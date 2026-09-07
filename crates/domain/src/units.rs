@@ -72,6 +72,11 @@ quantity!(
     "Signed Cartesian component in meters."
 );
 quantity!(
+    MetersPerPixel,
+    |v: f64| v > 0.0,
+    "Positive scale mapping image pixels to physical meters."
+);
+quantity!(
     Pixels,
     |_: f64| true,
     "Signed image pixel coordinate; not a physical length."

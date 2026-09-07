@@ -97,6 +97,7 @@ fn every_unit_rejects_nonfinite_in_constructor_and_deserializer() {
         Gigahertz,
         Meters,
         CoordinateMeters,
+        MetersPerPixel,
         Pixels,
         Seconds,
         Milliseconds,

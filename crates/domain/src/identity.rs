@@ -68,7 +68,9 @@ identifier!(
     ActorId,
     OperationId,
     ChannelScheduleId,
-    EndpointId
+    EndpointId,
+    MapAssetId,
+    ActorDeviceId
 );
 
 /// A content reference identifies bytes, never a filesystem path or URL.

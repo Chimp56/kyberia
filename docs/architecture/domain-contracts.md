@@ -144,6 +144,98 @@ assuming an operating system always supports a measurement.
 
 ## Validation and current scope
 
+### Project, floors and calibration increment
+
+The `project` module owns a canonical project→site→building→floor→map hierarchy.
+Buildings own metric building frames. Floors own distinct metric floor frames,
+a parent building-frame reference, a signed three-dimensional origin and yaw,
+and a strictly positive clear height. Negative floor elevations represent
+basements. `Floor::to_building` and `from_building` explicitly check the supplied
+frame and apply a rigid yaw/translation transform; outputs retain meter types.
+No external geometry, image-decoder or database object is stored in this graph.
+
+A map asset has independent identity, floor attachment, pixel frame, positive
+image dimensions, immutable content hash/media type/length, and provenance.
+Multiple maps can reference identical source bytes without becoming the same
+map. File existence, hash verification, malicious image decoding and resource
+limits remain storage/import responsibilities.
+
+`TwoPointCalibration` stores both image control points, target metric origin,
+known distance, target segment direction, image y-axis handedness, and distance
+and control-point uncertainty. It computes a positive `MetersPerPixel` scale
+and invertible similarity transform. Typical raster +y-down is reflected before
+rotation into the right-handed floor frame; +y-up images are explicitly
+supported. `to_floor`/`to_image` require the correct source frame. Degenerate
+controls, zero distance, frame loops, negative uncertainty and nonfinite
+arithmetic fail. Map-calibration admission additionally checks frame ownership
+and that controls lie within the continuous image rectangle [0,width]×[0,height].
+Exact two-control-point fit does not establish measurement accuracy. Unknown
+uncertainty remains unknown; multi-point least squares and covariance propagation
+are not part of this two-point solver.
+
+`Project::execute` consumes a v1 command request and returns a new immutable
+project plus an operation receipt. Requests contain stable operation/project/
+actor/device identity, expected base revision, explicit logical time and UTC
+evidence. Reusing an operation ID, supplying another project ID, stale revision
+or nonincreasing logical time fails without changing the original state. Actor
+authentication and authorization are outer application responsibilities.
+
+Commands create/remove sites, buildings and floors, import/remove maps, register
+calibration revisions, activate an earlier calibration, and bind floor evidence.
+Parent relationships, frame uniqueness, map/calibration references and positive
+geometry constraints are rechecked on execution and deserialization. Maps and
+frames cannot be changed once a floor is evidence-bound: an explicit future
+coordinate-migration workflow is required. The binding is an immutable evidence
+reference and cannot be undone by a simple command. Acquisition must bind a
+floor in the same application transaction that first attaches spatial evidence;
+the domain cannot detect undisclosed sensor data in another store.
+
+Calibration undo changes the active calibration reference and retains all prior
+calibration records. Receipt inverse commands run through normal validation;
+they can be rejected when newer dependent objects or evidence make the operation
+unsafe. Removing a map with historical calibration dependencies is deliberately
+rejected, preventing orphaned history. Broader editor undo, archive/tombstone
+semantics and explicit history-preserving map migration remain subsequent work.
+Specifically, import→calibrate→undo calibration→undo import is not yet supported:
+the retained calibration blocks map deletion with `HasDependents`, even after
+its active reference is restored to unknown. A regression test pins this honest
+limitation. Do not label this initial operation log as complete editor undo.
+
+Receipts record exact accepted request, resulting revision, typed event and
+inverse command or explicit nonapplicability. A deserialized receipt is untrusted
+until `Project::replay` executes its request against the correct prior project
+and compares the complete expected receipt. Forged events, inverses or revision
+claims fail replay. This supports ordered deterministic replay; divergent offline
+operation branches currently produce revision conflicts, with merge policy to
+be implemented separately.
+
+The snapshot uses deterministically ordered ID maps. Duplicate JSON object keys
+are rejected instead of silently keeping the last object. Snapshots enforce
+referential integrity and operation-revision index consistency; they are not
+cryptographic proof of history. Content checksums/signatures and full replay are
+separate storage/application verification steps. Current admission limits are
+10,000 total hierarchy/calibration entities and 100,000 operations. This pure
+metadata aggregate clones state per command; it must never receive individual
+radio observations. A persistent structural-sharing implementation may replace
+the internal representation after representative benchmarks.
+
+Metadata baseline, 2026-09-07, local macOS ARM64, Rust 1.98.1, isolated workspace
+default release profile: `cargo run --manifest-path crates/domain/Cargo.toml
+--offline --release --example project_benchmark` created 100 sites/operations in
+0.425 ms, 1,000 in 23.688 ms, and 10,000 in 2,416.783 ms. Inputs use sequential
+explicit IDs, identical names, one project and no I/O or stochastic model. These
+are descriptive single-run timings, not regression thresholds or a large mixed
+building benchmark. An earlier 1,000-operation run took 48.132 ms while other
+checks ran. The roughly quadratic total cost is visible: repeated cloning and
+whole-state validation must be replaced or backgrounded before large-history
+interactive replay. High-volume observations remain outside this aggregate.
+
+Requirement links: §6 MAP-001 and MAP-003, §7.2, §10.6–10.7, §11.3/11.6,
+§14.4–14.5, §16.3, backlog §18.1 FND-009/FND-011 and §18.4 MAPB-002/MAPB-008,
+and §19 iteration 3. This increment supplies domain workflows only: calibrated
+image import UI, operation persistence, migration/merge, geospatial frame graph,
+materials/geometry editor and AP/radio identity graph remain open.
+
 Run `cargo test --manifest-path crates/domain/Cargo.toml` and
 `cargo clippy --manifest-path crates/domain/Cargo.toml --all-targets -- -D warnings`.
 Compile-fail examples protect unit/identity/time separation. Property tests cover
@@ -152,9 +244,9 @@ Adversarial cases test nonfinite deserialization, covariance determinants,
 overflow, clock restart/reversal, schema drift, metadata bounds, unknown noise,
 non-UTF8 SSIDs, duplicate chains and conditional capability rejection.
 
-This increment implements foundational value invariants and the scan/frame/
-health contract, not the complete domain graph. Active, spectrum, GPS and
-controller payload schemas, operations/jobs, full identity graph, calibration
-execution, metric registry and migration policy still require their own reviewed
-increments. No hardware availability or RF accuracy claim follows from these
-contract tests.
+These increments implement foundational values, scan/frame/health contracts,
+project hierarchy, two-point calibration and a bounded command/operation model,
+not the complete domain graph. Active, spectrum, GPS and controller payloads,
+analysis jobs, full radio identity graph, RF calibration, metric registry and
+migration policy still require their own reviewed increments. No hardware
+availability or RF accuracy claim follows from these contract tests.

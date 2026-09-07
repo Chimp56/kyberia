@@ -35,6 +35,7 @@ pub mod capability;
 pub mod evidence;
 pub mod identity;
 pub mod observation;
+pub mod project;
 pub mod spatial;
 pub mod time;
 pub mod units;

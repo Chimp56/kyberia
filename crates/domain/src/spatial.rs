@@ -1,11 +1,13 @@
 //! Right-handed Cartesian positions: x/y in the named frame, +z up.
-//! Pixel coordinates are a separate type; transforms live in the spatial crate.
+//! Pixel coordinates are a separate type; basic calibration preserves frames.
+mod calibration;
 use crate::{
     ValidationError,
     evidence::Evidence,
     identity::{FrameId, PoseId, Text},
     units::*,
 };
+pub use calibration::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
