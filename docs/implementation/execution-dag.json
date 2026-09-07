@@ -542,6 +542,58 @@
         "backlog:FND-006:1"
       ],
       "acceptance": "Real SQLite-only, SQLite+Parquet and embedded analytical engine comparison with semantic parity, pinned sources and reproducible workload evidence; Gate C review."
+    },
+    {
+      "id": "iteration-4-native-normalization",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts",
+        "iteration-2-native-macos"
+      ],
+      "owner": "capture/platform",
+      "requirements": [
+        "backlog:FND-002:1",
+        "backlog:COL-004:1"
+      ],
+      "acceptance": "Reviewed strict protocol and canonical clock/identity/privacy normalization; native transport/UI and survey assignment remain open"
+    },
+    {
+      "id": "iteration-4-storage-guard",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "storage-proof"
+      ],
+      "owner": "storage/security",
+      "requirements": [
+        "backlog:FND-004:1",
+        "backlog:FND-005:1"
+      ],
+      "acceptance": "Reproduced silent-write defect corrected with physical-schema rejection and transactional authoritative readback; independent hostile-input probes"
+    },
+    {
+      "id": "iteration-4-release-tooling",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-2-automation"
+      ],
+      "owner": "supply-chain Luna xhigh",
+      "requirements": [
+        "backlog:OSS-011:1"
+      ],
+      "acceptance": "Actual pinned SBOM and advisory/license/source commands, explicit target/source/lock evidence and independently reviewed failure behavior"
+    },
+    {
+      "id": "iteration-4-renderer-comparison",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "UI/performance Luna xhigh",
+      "requirements": [
+        "backlog:OSS-010:1",
+        "backlog:MAPB-001:1"
+      ],
+      "acceptance": "Gate B comparable actual browser workloads, numeric/mask correctness, measured frame/memory evidence and explicit unsupported runtime states"
     }
   ]
 }

@@ -161703,6 +161703,12 @@
           "description": "Source response/API timing remains distinct from actual RF capture",
           "revision": "05f6f2375eb09f46c5492b3b064269a922da1a60566c0c6308f18cd0e08372a5",
           "sha256": "05f6f2375eb09f46c5492b3b064269a922da1a60566c0c6308f18cd0e08372a5"
+        },
+        {
+          "path": "crates/capture-adapter/src/macos/normalize.rs",
+          "description": "Strict native NDJSON to canonical V2 with separate source result clocks and exact source evidence",
+          "revision": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee",
+          "sha256": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee"
         }
       ],
       "validation": [],
@@ -161722,6 +161728,15 @@
           "revision": "44a77e17b6090b59dba723017fb16ba0f40bfbed09f59afc690fb06f197f168f",
           "sha256": "44a77e17b6090b59dba723017fb16ba0f40bfbed09f59afc690fb06f197f168f",
           "reviewer": "/root/sionna_rt",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/capture-normalization-review.md",
+          "description": "Independent malformed-clock, identity/privacy and numerical timestamp review; transport/UI integration remains open",
+          "revision": "dcfd6f275f0fb0d3d7de8824317e39c01617a55d922d98241a2ac2c0a754bd51",
+          "sha256": "dcfd6f275f0fb0d3d7de8824317e39c01617a55d922d98241a2ac2c0a754bd51",
+          "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -161809,9 +161824,26 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Canonical physical-schema validation, disabled executable schema and cooperative SQL limits",
+          "revision": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002",
+          "sha256": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002"
+        }
+      ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/storage-schema-guard-review.md",
+          "description": "Independent correction review; full migration/import gate remains open",
+          "revision": "ae5beabff882f541b16e8a375cdc55da9ecde0fce9aceb39b1163589ff503c15",
+          "sha256": "ae5beabff882f541b16e8a375cdc55da9ecde0fce9aceb39b1163589ff503c15",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:e06648333b04880af91d:1",
@@ -161852,9 +161884,26 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Canonical physical-schema validation, disabled executable schema and cooperative SQL limits",
+          "revision": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002",
+          "sha256": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002"
+        }
+      ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/storage-schema-guard-review.md",
+          "description": "Independent correction review; full migration/import gate remains open",
+          "revision": "ae5beabff882f541b16e8a375cdc55da9ecde0fce9aceb39b1163589ff503c15",
+          "sha256": "ae5beabff882f541b16e8a375cdc55da9ecde0fce9aceb39b1163589ff503c15",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:e06648333b04880af91d:1",
@@ -162616,6 +162665,12 @@
           "description": "Defensive versioned adapter decoder",
           "revision": "528d05fd1c0017ea1bfb9fa8d962905117654ec815ba49b3f166b34e7e00b716",
           "sha256": "528d05fd1c0017ea1bfb9fa8d962905117654ec815ba49b3f166b34e7e00b716"
+        },
+        {
+          "path": "crates/capture-adapter/src/macos/normalize.rs",
+          "description": "Strict native NDJSON to canonical V2 with separate source result clocks and exact source evidence",
+          "revision": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee",
+          "sha256": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee"
         }
       ],
       "validation": [
@@ -162644,6 +162699,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/capture-normalization-review.md",
+          "description": "Independent malformed-clock, identity/privacy and numerical timestamp review; transport/UI integration remains open",
+          "revision": "dcfd6f275f0fb0d3d7de8824317e39c01617a55d922d98241a2ac2c0a754bd51",
+          "sha256": "dcfd6f275f0fb0d3d7de8824317e39c01617a55d922d98241a2ac2c0a754bd51",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
