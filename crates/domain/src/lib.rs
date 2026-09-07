@@ -31,6 +31,7 @@
 //! use kyberia_domain::units::{Eirp, ConductedPower, Dbm};
 //! let power: Eirp = ConductedPower(Dbm::new(20.0).unwrap());
 //! ```
+pub mod analysis;
 pub mod capability;
 pub mod evidence;
 pub mod identity;

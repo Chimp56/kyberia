@@ -37,6 +37,11 @@ macro_rules! quantity {
     };
 }
 quantity!(
+    Dimensionless,
+    |_: f64| true,
+    "Finite dimensionless scalar; never a length or physical coordinate."
+);
+quantity!(
     Dbm,
     |_: f64| true,
     "Logarithmic power referenced to one milliwatt; finite, signed."

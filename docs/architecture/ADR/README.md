@@ -10,6 +10,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0004](0004-storage-split.md) | Proposed; research comparison reviewed | SQLite authority with immutable analytical chunks; production Gate C remains open |
 | [0005](0005-source-response-timing.md) | Accepted; native normalization integrated | Preserve source result/API timing separately from RF capture, cache age and channel dwell; storage/survey composition remains open |
 | [0006](0006-sionna-worker-boundary.md) | Accepted boundary; full Gate I open | Adopt exact-source Sionna RT behind versioned, validating process contracts; bounded CPU proof independently reviewed |
+| [0009](0009-analysis-manifest.md) | Accepted; execution integration open | Immutable spatial inputs and typed canonical manifest identity with pinned JSON encoding and independently verified hashes |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

@@ -90,6 +90,7 @@ fn every_unit_rejects_nonfinite_in_constructor_and_deserializer() {
         )+}
     }
     check!(
+        Dimensionless,
         Dbm,
         Db,
         Hertz,

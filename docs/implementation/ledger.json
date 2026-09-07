@@ -161592,8 +161592,8 @@
         {
           "path": "crates/domain/src/units.rs",
           "description": "Validated physical values",
-          "revision": "ec884a619b3569d5254285c8a0d38a2a3615add8d26d4a9e76370cfb6dd1a19e",
-          "sha256": "ec884a619b3569d5254285c8a0d38a2a3615add8d26d4a9e76370cfb6dd1a19e"
+          "revision": "9f1f7d3da6d687c2ea7ef262d88ddba07443c075aa1e8c6b65aebe495a843078",
+          "sha256": "9f1f7d3da6d687c2ea7ef262d88ddba07443c075aa1e8c6b65aebe495a843078"
         },
         {
           "path": "crates/domain/src/identity.rs",
@@ -161608,6 +161608,15 @@
           "description": "Integrated canonical contracts and compile-fail checks",
           "revision": "3468b98a43f37855a4745948fe512866eaf676578dfb33169aaa8ffda8f0ac62",
           "sha256": "3468b98a43f37855a4745948fe512866eaf676578dfb33169aaa8ffda8f0ac62",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/analysis-manifest-iteration-4.md",
+          "description": "Integrated immutable analysis identity and unit contract validation",
+          "revision": "1547687de4f81c43decd9d2dc2c0bf53136052889e0f35bf4e29a2e1c8663b9b",
+          "sha256": "1547687de4f81c43decd9d2dc2c0bf53136052889e0f35bf4e29a2e1c8663b9b",
           "command": "cargo test --workspace --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -161643,6 +161652,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/manifest-luna-review.md",
+          "description": "Independent Luna xhigh canonicalization and architecture review",
+          "revision": "66647439242c32285d9ba7f6b405c116b62506c9d0a05559ee9105f7b832629c",
+          "sha256": "66647439242c32285d9ba7f6b405c116b62506c9d0a05559ee9105f7b832629c",
+          "reviewer": "/root/manifest_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -162066,15 +162084,45 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "status": "VALIDATED",
+      "owner": "/root",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Deterministic typed manifest canonicalization and independently encoded golden SHA-256",
+        "Seed, binary64, set-order, major-input hash invalidation and malformed/grid precision regression tests"
+      ],
+      "implementation": [
+        {
+          "path": "crates/domain/src/analysis.rs",
+          "description": "Pure immutable spatial manifest and artifact-byte verifier",
+          "revision": "7ee0556dcfde25aaaf59e3f269714c64f0adfdada1b679f0627ae5bce0f1377b",
+          "sha256": "7ee0556dcfde25aaaf59e3f269714c64f0adfdada1b679f0627ae5bce0f1377b"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/analysis-manifest-iteration-4.md",
+          "description": "Integrated immutable analysis identity and unit contract validation",
+          "revision": "1547687de4f81c43decd9d2dc2c0bf53136052889e0f35bf4e29a2e1c8663b9b",
+          "sha256": "1547687de4f81c43decd9d2dc2c0bf53136052889e0f35bf4e29a2e1c8663b9b",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/manifest-luna-review.md",
+          "description": "Independent Luna xhigh canonicalization and architecture review",
+          "revision": "66647439242c32285d9ba7f6b405c116b62506c9d0a05559ee9105f7b832629c",
+          "sha256": "66647439242c32285d9ba7f6b405c116b62506c9d0a05559ee9105f7b832629c",
+          "reviewer": "/root/manifest_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:e06648333b04880af91d:1",
