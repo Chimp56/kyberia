@@ -1,0 +1,2 @@
+# Python 3.11+ has tomllib; older supported interpreters use the same upstream parser.
+tomli==2.4.1 ; python_version < "3.11" --hash=sha256:0d85819802132122da43cb86656f8d1f8c6587d54ae7dcaf30e90533028b49fe

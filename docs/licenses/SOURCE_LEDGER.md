@@ -1,0 +1,28 @@
+# Source and license ledger
+
+All third-party runtime dependencies, toolchains, datasets and transformed assets must have version, license, redistribution status, transformation, provenance and update procedure. No competitor source or catalog data has been copied. No legal clearance is inferred from a process boundary.
+
+| Source | Version/revision | License | Redistribution | Transformation/provenance | Update procedure |
+|---|---|---|---|---|---|
+| User-supplied plan.md | 0.2; baseline commit 4e3bc52 | User-provided specification; no new license asserted | Preserved in requested repository | Unmodified authoritative source; includes static upstream audit, not runtime evidence | Explicit specification revision followed by ledger coverage review |
+| Rust toolchain | 1.98.1 | MIT/Apache-2.0, component notices apply | Development tool; not bundled as an engine | Locally installed rustup toolchain; record `rustc -Vv` for releases | Pin new release and run compile/property/numerical regression checks |
+| Node.js | 24.20.0 | MIT plus bundled third-party notices | Development tool; retain upstream notices if bundled | Official nodejs.org archive checked against official SHA-256 manifest | Update pin/checksum and run build/typecheck/E2E checks |
+| Python | 3.9.6 system interpreter | PSF and bundled component notices | System dependency; not bundled | Standard-library ledger/fixture tools | Test minimum supported interpreter and release worker pins separately |
+| Kismet | audit 2d25ad004e9216ac963c4f156e9077331717959c | GPL-2.0-or-later per supplied audit; verify distribution components | External only; no source/runtime bundled | Plan's static audit reference; no runtime import yet | Pin tested releases, authenticate/probe, API/DB/PCAP parity and legal review before optional bundling |
+| Sionna RT | audit bc0549155c7b782c7614a0ec06a0ac4e32b979ae / 2.0.1 | Apache-2.0 per supplied audit | Adopt only within separately pinned optional worker | No package imported or installed yet; Mitsuba/Dr.Jit transitive ledger pending actual lock | Fresh environment, upstream suite, canonical scenes, convergence and measured holdouts |
+| Deconflict | audit 8d5dd0a4751550d4aab371fbd3f3b1a542ed5968 | No source reuse; audit reference only | No runtime/source/data bundled | Independent neutral interchange and comparison only | Review upstream agreement/fixtures; no dependency on acceptance |
+| wifiheatmap | audit 4602ce27903f3231567575feff3a1bffd962777b | GPL-2.0 per supplied audit | No runtime/source/data bundled | Independently constructed behavioral fixtures only | Review public behavior; never copy upstream implementation |
+
+Material numbers in plan §8.3 are schema illustrations and must never become shipped presets. Vendor AP records, antenna patterns, OUI databases and map providers require separate field-level provenance and reviewed redistribution rights before addition.
+
+## Locked Rust package inventory
+
+[cargo-sources.json](cargo-sources.json) records all 86 resolved external packages, including development and conditional platform dependencies. Each entry contains source, version, declared upstream license, archive SHA-256, redistribution qualification, transformation, provenance and update procedure. `python3 tools/source_inventory.py check` compares the inventory against locked local Cargo metadata and downloaded archives. This is a source inventory, not an assertion that all packages ship in the executable. Target-specific distributable SBOM generation and notice assembly remain release gates.
+
+Direct dependencies are Serde 1.0.228 and serde_json 1.0.149 (MIT OR Apache-2.0), rusqlite 0.40.2 (MIT), sha2 0.10.9 (MIT OR Apache-2.0), tempfile 3.23.0 (MIT OR Apache-2.0), uuid 1.21.0 (Apache-2.0 OR MIT), and test-only proptest 1.10.0 (MIT OR Apache-2.0). The registry source is unmodified. Kyberia crate license identifiers are the provisional permissive distribution choice; no distribution clearance or legal grant is inferred from package metadata alone.
+
+rusqlite's bundled native dependency is libsqlite3-sys 0.38.2 (wrapper MIT) containing SQLite 3.53.2, verified from its shipped `sqlite3.h`. SQLite's separate [public-domain dedication](https://sqlite.org/copyright.html) applies to SQLite itself; preserve relevant wrapper and bundled source notices when packaging. Update the wrapper/native source together, record the embedded SQLite version and run corruption, migration and concurrent-writer regressions.
+
+The local development package manager is pnpm 12.3.4, downloaded from the npm registry and verified against its published SHA-512 integrity value. pnpm is MIT licensed; retain native launcher/component notices if redistributed. It is not currently a Kyberia runtime dependency. Update its pin alongside Node and rerun frontend checks once the desktop workspace is introduced.
+
+Python tooling on interpreters before 3.11 uses Tomli 2.4.1 (MIT), installed unmodified from PyPI with the universal wheel SHA-256 pinned in [tools/requirements.txt](../../tools/requirements.txt). Its installed package metadata identifies the MIT license and included LICENSE file. It is a development dependency, not a capture/propagation engine; retain that notice if distributed. Update version and hash together after upstream/license review, then run the source-inventory adversarial tests and full Python checks. Python 3.11+ uses the equivalent standard-library `tomllib` module.

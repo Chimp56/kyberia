@@ -161547,15 +161547,57 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture/domain",
+      "status": "VALIDATED",
+      "owner": "/root/domain",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Physical unit and opaque identity constructor/deserialization validation",
+        "Compile-fail distinction for dB/dBm/frequency/distance/pixels/time and identity families"
+      ],
+      "implementation": [
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated physical values",
+          "revision": "0e5d37b96d0118badc8ec8c43c4772909e19ac8fbffba31663d10cd2fb04409b",
+          "sha256": "0e5d37b96d0118badc8ec8c43c4772909e19ac8fbffba31663d10cd2fb04409b"
+        },
+        {
+          "path": "crates/domain/src/identity.rs",
+          "description": "Canonical typed identities",
+          "revision": "2438a332728671b14d49f5bfdb8dacd61ee1f16f2ff70300151bd7952d10be48",
+          "sha256": "2438a332728671b14d49f5bfdb8dacd61ee1f16f2ff70300151bd7952d10be48"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/foundation-iteration-1.md",
+          "description": "macOS contract and compile-fail checks",
+          "revision": "e8a31502685f464879da9ab6591d0d6805aa74517ae6b65c9a494e3e69be13bd",
+          "sha256": "e8a31502685f464879da9ab6591d0d6805aa74517ae6b65c9a494e3e69be13bd",
+          "command": "cargo test --workspace --offline",
+          "result": "PASS",
+          "scope": "contract"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/domain-contracts-review.md",
+          "description": "Independent corrected covariance and canonical contracts review",
+          "revision": "c4c04a0ecb978dc770db3d09bd891f27de53970bdc18c77dbdd43aba9d98f1b0",
+          "sha256": "c4c04a0ecb978dc770db3d09bd891f27de53970bdc18c77dbdd43aba9d98f1b0",
+          "reviewer": "/root/qa_spec_audit",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Near-singular covariance admitted an indefinite matrix; corrected and independently tested",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:e06648333b04880af91d:1",
@@ -161590,7 +161632,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -161633,7 +161675,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -161676,7 +161718,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -161719,7 +161761,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -225948,7 +225990,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -225991,7 +226033,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -226034,7 +226076,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -226077,7 +226119,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -226120,7 +226162,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
