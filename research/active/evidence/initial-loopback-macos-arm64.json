@@ -1,0 +1,269 @@
+{
+  "checks_passed": 4,
+  "evidence_kind": "initial_real_iperf3_direct_process_runs",
+  "executed_binary_hash_reason": "Not captured before subsequent same-source configure/build; current installed hash is separate build evidence.",
+  "executed_binary_sha256": null,
+  "execution_context": "outside_workspace_sandbox_after_loopback_permission_approval",
+  "limitations": [
+    "Initial commands invoked real client/server processes directly; parser subsequently validated retained actual client JSON.",
+    "Wrapper cancellation, timeout and recovery have fake-child tests only; actual acceptance remains pending.",
+    "Parallel streams explicitly unsupported pending actual runtime proof.",
+    "No external targets, authenticated agent, RF attribution, packet-capture counter oracle or controlled loss."
+  ],
+  "python": "3.9.6",
+  "runs": [
+    {
+      "client_stdout_sha256": "a9ba0157cb8073c659c40e883bd4330c5200d68f18eeaf18158b5a1a3d63a51d",
+      "cpu_utilization_percent": {
+        "host_system": 0.01690973583013872,
+        "host_total": 0.020291682996166464,
+        "host_user": 0.0034814162003226775,
+        "remote_system": 0,
+        "remote_total": 0,
+        "remote_user": 0
+      },
+      "direction": "upload",
+      "duration_s": 1,
+      "measurement": {
+        "connections": [
+          {
+            "local_host": "127.0.0.1",
+            "local_port": 56696,
+            "remote_host": "127.0.0.1",
+            "remote_port": 55291,
+            "socket": 5
+          }
+        ],
+        "source_start_unix_ms": 1788804109364,
+        "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+        "source_version": "3.20",
+        "transfers": [
+          {
+            "bits_per_second": 2086548.1622394987,
+            "bytes": 262144,
+            "endpoint": "client",
+            "jitter_ms": null,
+            "lost_packets": null,
+            "lost_percent": null,
+            "megabits_per_second": 2.086548162239499,
+            "packets": null,
+            "retransmits": null,
+            "role": "sender",
+            "seconds": 1.005082,
+            "source_sender_flag": true
+          },
+          {
+            "bits_per_second": 2086027.2168525255,
+            "bytes": 262144,
+            "endpoint": "server",
+            "jitter_ms": null,
+            "lost_packets": null,
+            "lost_percent": null,
+            "megabits_per_second": 2.0860272168525253,
+            "packets": null,
+            "retransmits": null,
+            "role": "receiver",
+            "seconds": 1.005333,
+            "source_sender_flag": true
+          }
+        ]
+      },
+      "offered_rate_bps": 2000000,
+      "protocol": "tcp",
+      "server_counter_agreement": "PASS",
+      "server_stdout_sha256": "03c19613663185a07c5865f94e1a095f1efe21208948351fced07765db8fda61",
+      "streams": 1
+    },
+    {
+      "client_stdout_sha256": "f71621c7457a52e9de9b577bf24e7f583f675600988aec1a330d656070792e79",
+      "cpu_utilization_percent": {
+        "host_system": 0.019262745849527012,
+        "host_total": 0.02105927136917202,
+        "host_user": 0.0022955603862130636,
+        "remote_system": 0,
+        "remote_total": 0,
+        "remote_user": 0
+      },
+      "direction": "download",
+      "duration_s": 1,
+      "measurement": {
+        "connections": [
+          {
+            "local_host": "127.0.0.1",
+            "local_port": 56698,
+            "remote_host": "127.0.0.1",
+            "remote_port": 55291,
+            "socket": 5
+          }
+        ],
+        "source_start_unix_ms": 1788804110545,
+        "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+        "source_version": "3.20",
+        "transfers": [
+          {
+            "bits_per_second": 2093135.2734103256,
+            "bytes": 262144,
+            "endpoint": "server",
+            "jitter_ms": null,
+            "lost_packets": null,
+            "lost_percent": null,
+            "megabits_per_second": 2.0931352734103257,
+            "packets": null,
+            "retransmits": null,
+            "role": "sender",
+            "seconds": 1.001919,
+            "source_sender_flag": false
+          },
+          {
+            "bits_per_second": 2093553.1820800044,
+            "bytes": 262144,
+            "endpoint": "client",
+            "jitter_ms": null,
+            "lost_packets": null,
+            "lost_percent": null,
+            "megabits_per_second": 2.0935531820800044,
+            "packets": null,
+            "retransmits": null,
+            "role": "receiver",
+            "seconds": 1.001719,
+            "source_sender_flag": false
+          }
+        ]
+      },
+      "offered_rate_bps": 2000000,
+      "protocol": "tcp",
+      "server_counter_agreement": "PASS",
+      "server_stdout_sha256": "11c97ea27e6903b87e79c2cfe9983e81ab2f5c3622dbe717dbe16bb1c1fe6604",
+      "streams": 1
+    },
+    {
+      "client_stdout_sha256": "19353fa17a33676290441b000b790a31e55022e22241eb1400d2bd543bf5375c",
+      "cpu_utilization_percent": {
+        "host_system": 0.2925622925901462,
+        "host_total": 0.3376254406837661,
+        "host_user": 0.044764716649291325,
+        "remote_system": 0,
+        "remote_total": 0,
+        "remote_user": 0
+      },
+      "direction": "upload",
+      "duration_s": 1,
+      "measurement": {
+        "connections": [
+          {
+            "local_host": "127.0.0.1",
+            "local_port": 64232,
+            "remote_host": "127.0.0.1",
+            "remote_port": 55291,
+            "socket": 5
+          }
+        ],
+        "source_start_unix_ms": 1788804111730,
+        "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+        "source_version": "3.20",
+        "transfers": [
+          {
+            "bits_per_second": 2005792.5218562735,
+            "bytes": 252000,
+            "endpoint": "client",
+            "jitter_ms": null,
+            "lost_packets": null,
+            "lost_percent": null,
+            "megabits_per_second": 2.0057925218562733,
+            "packets": 210,
+            "retransmits": null,
+            "role": "sender",
+            "seconds": 1.005089,
+            "source_sender_flag": true
+          },
+          {
+            "bits_per_second": 2005493.221015102,
+            "bytes": 252000,
+            "endpoint": "server",
+            "jitter_ms": 0.0501811475701599,
+            "lost_packets": 0,
+            "lost_percent": 0,
+            "megabits_per_second": 2.005493221015102,
+            "packets": 210,
+            "retransmits": null,
+            "role": "receiver",
+            "seconds": 1.005239,
+            "source_sender_flag": false
+          }
+        ]
+      },
+      "offered_rate_bps": 2000000,
+      "protocol": "udp",
+      "server_counter_agreement": "PASS",
+      "server_stdout_sha256": "f5404c88bf3c006aa6685cfc2df4c6e1dd041b17005a50ea1cc21f2a9521cfc3",
+      "streams": 1
+    },
+    {
+      "client_stdout_sha256": "8a22e3b6bf5c83783ac7217b36f6686479b01b89410fbe32e501f04c777bb727",
+      "cpu_utilization_percent": {
+        "host_system": 1.213733229354002,
+        "host_total": 1.3301131570989766,
+        "host_user": 0.11637992774497477,
+        "remote_system": 0,
+        "remote_total": 0,
+        "remote_user": 0
+      },
+      "direction": "download",
+      "duration_s": 1,
+      "measurement": {
+        "connections": [
+          {
+            "local_host": "127.0.0.1",
+            "local_port": 60681,
+            "remote_host": "127.0.0.1",
+            "remote_port": 55291,
+            "socket": 5
+          }
+        ],
+        "source_start_unix_ms": 1788804112914,
+        "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+        "source_version": "3.20",
+        "transfers": [
+          {
+            "bits_per_second": 2005373.5256873828,
+            "bytes": 252000,
+            "endpoint": "server",
+            "jitter_ms": null,
+            "lost_packets": null,
+            "lost_percent": null,
+            "megabits_per_second": 2.0053735256873826,
+            "packets": 210,
+            "retransmits": null,
+            "role": "sender",
+            "seconds": 1.005299,
+            "source_sender_flag": true
+          },
+          {
+            "bits_per_second": 2005806.491410651,
+            "bytes": 252000,
+            "endpoint": "client",
+            "jitter_ms": 0.06125845522878397,
+            "lost_packets": 0,
+            "lost_percent": 0,
+            "megabits_per_second": 2.005806491410651,
+            "packets": 210,
+            "retransmits": null,
+            "role": "receiver",
+            "seconds": 1.005082,
+            "source_sender_flag": false
+          }
+        ]
+      },
+      "offered_rate_bps": 2000000,
+      "protocol": "udp",
+      "server_counter_agreement": "PASS",
+      "server_stdout_sha256": "5570bc8155f3e62540d2bae7e73933ec4fdf46b1dd7747d8b8049ae92eabe8f0",
+      "streams": 1
+    }
+  ],
+  "schema_version": "1",
+  "server_json_exception": "Exactly one identical duplicate start.target_bitrate matching requested rate; all other duplicates rejected.",
+  "source_archive_sha256": "3acc572d1ecca4e0b20359c7bf0132ddc80d982efeee20c86f6726a9a6094388",
+  "source_version": "3.20",
+  "wrapper_live_acceptance": "not_executed_approval_interrupted"
+}

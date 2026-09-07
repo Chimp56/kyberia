@@ -1,0 +1,142 @@
+{
+  "build": {
+    "authentication": "disabled_without_openssl",
+    "binary_hash_scope": "Current installed binary after same-source reconfigure/rebuild; initial throughput-run binary hash was not captured.",
+    "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "configure_arguments": [
+      "--disable-shared",
+      "--without-openssl",
+      "--prefix=<worktree>/.tools/iperf-install"
+    ],
+    "dynamic_dependencies": [
+      {
+        "compatibility_version": "1.0.0",
+        "current_version": "1356.0.0",
+        "path": "/usr/lib/libSystem.B.dylib",
+        "provenance": "Apple operating system runtime; not bundled by this research change"
+      }
+    ],
+    "generated_config_sha256": "4164115aa021b2f6362d31abedab693c3cb71807ba33ca076bf7831dc3040d3e",
+    "observed_warnings": [
+      "macOS daemon API deprecation",
+      "cJSON LLONG_MAX conversion to binary64",
+      "initial sandbox sysctl configure denial; reconfigured outside sandbox successfully"
+    ],
+    "optional_features_reported": [
+      "sendfile / zerocopy",
+      "bind to device",
+      "support IPv4 don't fragment",
+      "POSIX threads"
+    ],
+    "os": "macOS-26.6.2-arm64-arm-64bit",
+    "target": "arm64-apple-darwin25.6.0",
+    "upstream_make_check": {
+      "authentication_caveat": "t_auth no-OpenSSL main returns success without authentication tests",
+      "passed": 5,
+      "total": 5
+    }
+  },
+  "bundled_source_notices": [
+    {
+      "component": "cJSON",
+      "license": "MIT",
+      "sha256": "ffe52a5670d924f76bcb71877335a5d71e6ca7824c1004d419189dc59fc6558a",
+      "source": "src/cjson.c",
+      "version": "1.7.15"
+    },
+    {
+      "component": "network helpers",
+      "notices": [
+        "MIT/Russ Cox",
+        "Lucent permissive notice",
+        "BSD-2-Clause/Eric Jackson"
+      ],
+      "sha256": "be61de25df61ff3f7a0188460d337fb7b146b6e7a683be9034f0474112cc2f23",
+      "source": "src/net.c"
+    },
+    {
+      "component": "queue declarations",
+      "license": "BSD-style notice retained in upstream LICENSE",
+      "source": "src/queue.h"
+    },
+    {
+      "component": "units",
+      "license": "University of Illinois/NCSA permissive notice",
+      "sha256": "fce8aa0497af2cdc54db58352ca76e649561f5928a09b1a0781698b18fd7ff9d",
+      "source": "src/units.c"
+    },
+    {
+      "component": "portable_endian",
+      "license": "author public-domain dedication",
+      "sha256": "359a97202cfe30261b8e94c45d6e77d71eda6e85f37a1b95dfe9184e2d06ce62",
+      "source": "src/portable_endian.h"
+    }
+  ],
+  "installed_files": [
+    {
+      "path": "bin/iperf3",
+      "sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12"
+    },
+    {
+      "path": "include/iperf_api.h",
+      "sha256": "4e050bdf7d54866d56fb1188fd9194785ecf30d56d5cd4d2cf2a1d810a92284f"
+    },
+    {
+      "path": "lib/libiperf.a",
+      "sha256": "76308c0751dd96ea2a09ce25d337cc171594108ecfe5d5c361154b4176275a0f"
+    },
+    {
+      "path": "lib/libiperf.la",
+      "sha256": "7e5985c65f63388688480073f13063f1e34a69fdcc05737c3a2c22f8a260f5a2"
+    },
+    {
+      "path": "share/man/man1/iperf3.1",
+      "sha256": "e36f0b7cb1970718230d0d5a1478d6e32d5a63635e088b9eb2f0a761750acd89"
+    },
+    {
+      "path": "share/man/man3/libiperf.3",
+      "sha256": "8defacd908a0a84618b873d882bf5b708a969016097ab3774f9fe428a5f389e3"
+    }
+  ],
+  "inventory_kind": "actual_local_build_and_source_metadata_not_release_clearance",
+  "python_runtime": {
+    "distribution": "Apple Command Line Tools Python framework",
+    "executable": "/Library/Developer/CommandLineTools/usr/bin/python3",
+    "license": "Python Software Foundation and bundled historical notices retained in runtime license file",
+    "license_file": "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/LICENSE.txt",
+    "license_sha256": "599826df92bfdcd2702eac691072498bb096c55af04ee984cf90f70ed77b5a70",
+    "third_party_python_dependencies": [],
+    "version": "3.9.6"
+  },
+  "recorded_at_utc": "2026-09-07T18:38:01.457859+00:00",
+  "release_gates_open": [
+    "Review all native/runtime notices and bundling obligations before redistribution",
+    "Portable pinned toolchain/runtime packaging and release SBOM",
+    "Fresh-environment wrapper live acceptance against recorded executable hash",
+    "No third-party assets or repository-wide license grants are inferred"
+  ],
+  "schema_version": 1,
+  "source": {
+    "archive_sha256": "3acc572d1ecca4e0b20359c7bf0132ddc80d982efeee20c86f6726a9a6094388",
+    "archive_url": "https://downloads.es.net/pub/iperf/iperf-3.20.tar.gz",
+    "audited_json_source_sha256": "4bd0a3e7c031ae61f8a055e1e3568afea25a24d6ee59268e9c0b225624af9a83",
+    "disposition": "ADOPT_PROCESS_RESEARCH",
+    "json_source_locations": {
+      "server_duplicate_target_bitrate": [
+        "src/iperf_api.c:1025",
+        "src/iperf_api.c:2616"
+      ],
+      "tcp_summary_roles": "src/iperf_api.c:4342",
+      "test_start": "src/iperf_api.c:923",
+      "timestamp": "src/iperf_api.c:983",
+      "udp_unambiguous_summaries": "src/iperf_api.c:4434"
+    },
+    "license_assessment": "BSD-style main notice with an enhancements clause and bundled component notices; retain the complete notice, not merely an SPDX shorthand.",
+    "license_notice": "research/active/iperf-3.20-LICENSE",
+    "license_notice_sha256": "7c9ba0385fcf35c4c9e08ad0c0cba72d4315f36f0f742fef4de826a28cc33a97",
+    "project": "ESnet iperf3",
+    "upstream_documentation": "https://software.es.net/iperf/invoking.html",
+    "version": "3.20"
+  }
+}

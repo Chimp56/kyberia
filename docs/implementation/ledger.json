@@ -42854,15 +42854,50 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "active measurement",
-      "phase": 2,
+      "status": "IN_PROGRESS",
+      "owner": "active/platform",
+      "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded loopback research parser and lifecycle; production topology, modes, quotas and UI remain open"
+      ],
+      "implementation": [
+        {
+          "path": "research/active/contract.py",
+          "description": "Pinned strict iperf3 result and endpoint semantics",
+          "revision": "d24a93d35dc2e8e461616aef5140d22734b34ff88a6256f5177088e5ca29a9d4",
+          "sha256": "d24a93d35dc2e8e461616aef5140d22734b34ff88a6256f5177088e5ca29a9d4"
+        },
+        {
+          "path": "research/active/process.py",
+          "description": "Bounded POSIX research supervisor",
+          "revision": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5",
+          "sha256": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/active-process-iteration-4.md",
+          "description": "Actual bounded macOS loopback and parser/lifecycle regression",
+          "revision": "3b2bb3784114e9ab30f4ece35c93cbebfe8e3cc64d86efc330ab39679de31c72",
+          "sha256": "3b2bb3784114e9ab30f4ece35c93cbebfe8e3cc64d86efc330ab39679de31c72",
+          "command": "python3 -m unittest tests.test_active_process -q",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/active-luna-review.md",
+          "description": "Independent final correction review",
+          "revision": "082b0bf0435876d6ef4b619536a4af826253967a27ff1b827239990368a77a22",
+          "sha256": "082b0bf0435876d6ef4b619536a4af826253967a27ff1b827239990368a77a22",
+          "reviewer": "/root/active_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:a6f56afce0148e18dd62:1",
@@ -229335,15 +229370,50 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "active measurement",
-      "phase": 2,
+      "status": "IN_PROGRESS",
+      "owner": "active/platform",
+      "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded loopback research parser and lifecycle; production topology, modes, quotas and UI remain open"
+      ],
+      "implementation": [
+        {
+          "path": "research/active/contract.py",
+          "description": "Pinned strict iperf3 result and endpoint semantics",
+          "revision": "d24a93d35dc2e8e461616aef5140d22734b34ff88a6256f5177088e5ca29a9d4",
+          "sha256": "d24a93d35dc2e8e461616aef5140d22734b34ff88a6256f5177088e5ca29a9d4"
+        },
+        {
+          "path": "research/active/process.py",
+          "description": "Bounded POSIX research supervisor",
+          "revision": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5",
+          "sha256": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/active-process-iteration-4.md",
+          "description": "Actual bounded macOS loopback and parser/lifecycle regression",
+          "revision": "3b2bb3784114e9ab30f4ece35c93cbebfe8e3cc64d86efc330ab39679de31c72",
+          "sha256": "3b2bb3784114e9ab30f4ece35c93cbebfe8e3cc64d86efc330ab39679de31c72",
+          "command": "python3 -m unittest tests.test_active_process -q",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/active-luna-review.md",
+          "description": "Independent final correction review",
+          "revision": "082b0bf0435876d6ef4b619536a4af826253967a27ff1b827239990368a77a22",
+          "sha256": "082b0bf0435876d6ef4b619536a4af826253967a27ff1b827239990368a77a22",
+          "reviewer": "/root/active_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",

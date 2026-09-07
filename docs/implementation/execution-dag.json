@@ -606,6 +606,28 @@
         "backlog:FND-008:1"
       ],
       "acceptance": "Immutable input and algorithm provenance, typed bounded parameters/grid, canonical bytes and golden hashes, cache invalidation tests, independent review"
+    },
+    {
+      "id": "iteration-5-geometry-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "geometry/platform Luna xhigh",
+      "requirements": [
+        "source:list_item:6c44e6f525f207d43b3d:1",
+        "source:list_item:fd66dc8b20d9cf80c3cb:1",
+        "source:list_item:809b50eeee20005ec2e0:1",
+        "source:list_item:416d1db1ca0a7c6523c1:1",
+        "source:list_item:0ff71593f6c96aafb221:1",
+        "source:list_item:2b42c6efecd659e19367:1"
+      ],
+      "owned_paths": [
+        "research/geometry",
+        "docs/validation/geometry-proof.md",
+        "docs/licenses/geometry-research-sources.json"
+      ],
+      "acceptance": "Gate E actual mature-kernel comparison: import, booleans/offsets, intersections, explicit repair, native/WASM and license evidence; independent review required"
     }
   ]
 }

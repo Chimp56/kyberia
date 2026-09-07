@@ -1,0 +1,13 @@
+{
+  "schema_version": "1",
+  "request_id": "owned-loopback-proof",
+  "target_ip": "127.0.0.1",
+  "target_class": "loopback",
+  "port": 55291,
+  "protocol": "tcp",
+  "direction": "upload",
+  "duration_s": 1,
+  "offered_rate_bps": 2000000,
+  "streams": 1,
+  "authorization": "owned_loopback"
+}

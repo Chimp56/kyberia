@@ -1,2 +1,5 @@
 # Evidence checks hash source bytes; keep text identical across platform checkouts.
 * text=auto eol=lf
+
+# Preserve the exact hashed upstream notice, including its final blank lines.
+research/active/iperf-3.20-LICENSE whitespace=-blank-at-eof

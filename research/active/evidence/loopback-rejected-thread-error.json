@@ -1,0 +1,825 @@
+{
+  "acceptance_status": "FAILED",
+  "checks_passed": null,
+  "evidence_kind": "actual_iperf3_loopback_interoperability",
+  "executed_at_utc": "2026-09-07T20:37:54.216042+00:00",
+  "failure": "Server thread cleanup raised PermissionError; old harness incorrectly counted eight checks. Retained as rejected evidence, not acceptance.",
+  "limitations": [
+    "No RF, Wi-Fi, LAN, Internet, authenticated-agent or shaped-loss validation.",
+    "Counter comparison uses iperf3 endpoint summaries, not independent packet capture.",
+    "Parallel streams share a conservative 4 Mbps requested aggregate; pacing can overshoot briefly."
+  ],
+  "machine": "arm64",
+  "os": "macOS-26.6.2-arm64-arm-64bit",
+  "python": "3.9.6",
+  "runs": [
+    {
+      "client_cpu_percent": 0,
+      "kind": "real_loopback",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": 0,
+        "measurement": {
+          "connections": [
+            {
+              "local_host": "127.0.0.1",
+              "local_port": 60700,
+              "remote_host": "127.0.0.1",
+              "remote_port": 60698,
+              "socket": 5
+            }
+          ],
+          "source_start_unix_ms": 1788813466023,
+          "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+          "source_version": "3.20",
+          "transfers": [
+            {
+              "bits_per_second": 4172598.144452558,
+              "bytes": 524288,
+              "endpoint": "client",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 4.172598144452558,
+              "packet_count_semantics": null,
+              "packets": null,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "sender",
+              "seconds": 1.005202,
+              "source_jitter_ms": null,
+              "source_lost_packets": null,
+              "source_lost_percent": null,
+              "source_sender_flag": true
+            },
+            {
+              "bits_per_second": 4171983.8862087834,
+              "bytes": 524288,
+              "endpoint": "server",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 4.171983886208784,
+              "packet_count_semantics": null,
+              "packets": null,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "receiver",
+              "seconds": 1.00535,
+              "source_jitter_ms": null,
+              "source_lost_packets": null,
+              "source_lost_percent": null,
+              "source_sender_flag": true
+            }
+          ]
+        },
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "29f6ddbf-b66a-4fc5-85aa-35a1f633c0cf",
+          "clock_synchronization": "unknown",
+          "end_ns": 1338045625,
+          "host_started_unix_ns": 1788813466015032000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 296749791
+        },
+        "reason": null,
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "upload",
+          "duration_s": 1,
+          "offered_rate_bps": 4000000,
+          "port": 60698,
+          "protocol": "tcp",
+          "request_id": "tcp-upload-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "completed",
+        "stderr_bytes": 0,
+        "stdout_sha256": "331eb7bc2ba46d3788dcd97589145f66e26088359b05670ec05a73d31d17aa7d",
+        "wifi_attribution": "not_established"
+      },
+      "server_counter_agreement": "PASS",
+      "server_cpu_percent": 0.0641561231797565,
+      "server_stdout_sha256": "f4b4b454a885e9d9961cdbc888eb6904fa9c6137d0717ce40177dbd8d43f44bf"
+    },
+    {
+      "client_cpu_percent": 0,
+      "kind": "real_loopback",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": 0,
+        "measurement": {
+          "connections": [
+            {
+              "local_host": "127.0.0.1",
+              "local_port": 60705,
+              "remote_host": "127.0.0.1",
+              "remote_port": 60703,
+              "socket": 5
+            }
+          ],
+          "source_start_unix_ms": 1788813467291,
+          "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+          "source_version": "3.20",
+          "transfers": [
+            {
+              "bits_per_second": 4172436.2615532,
+              "bytes": 524288,
+              "endpoint": "server",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 4.1724362615532,
+              "packet_count_semantics": null,
+              "packets": null,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "sender",
+              "seconds": 1.005241,
+              "source_jitter_ms": null,
+              "source_lost_packets": null,
+              "source_lost_percent": null,
+              "source_sender_flag": false
+            },
+            {
+              "bits_per_second": 4173258.2586018713,
+              "bytes": 524288,
+              "endpoint": "client",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 4.173258258601871,
+              "packet_count_semantics": null,
+              "packets": null,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "receiver",
+              "seconds": 1.005043,
+              "source_jitter_ms": null,
+              "source_lost_packets": null,
+              "source_lost_percent": null,
+              "source_sender_flag": false
+            }
+          ]
+        },
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "bd986507-d054-4e5f-87a2-1a2ec6bcc2bb",
+          "clock_synchronization": "unknown",
+          "end_ns": 2582230875,
+          "host_started_unix_ns": 1788813467280628000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 1562315416
+        },
+        "reason": null,
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "download",
+          "duration_s": 1,
+          "offered_rate_bps": 4000000,
+          "port": 60703,
+          "protocol": "tcp",
+          "request_id": "tcp-download-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "completed",
+        "stderr_bytes": 0,
+        "stdout_sha256": "9c54af68bf161ca75d6f05a230bee015e2f73770f2ac319a9333776aedde5d81",
+        "wifi_attribution": "not_established"
+      },
+      "server_counter_agreement": "PASS",
+      "server_cpu_percent": 0.07013124988808843,
+      "server_stdout_sha256": "1b03a3c357535b4258b213436c56534e3f2a387d8a68d226fce0924a9f3a97e8"
+    },
+    {
+      "client_cpu_percent": 0,
+      "kind": "real_loopback",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": 0,
+        "measurement": {
+          "connections": [
+            {
+              "local_host": "127.0.0.1",
+              "local_port": 62439,
+              "remote_host": "127.0.0.1",
+              "remote_port": 60706,
+              "socket": 5
+            }
+          ],
+          "source_start_unix_ms": 1788813468537,
+          "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+          "source_version": "3.20",
+          "transfers": [
+            {
+              "bits_per_second": 4002109.3058194956,
+              "bytes": 502800,
+              "endpoint": "client",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 4.002109305819496,
+              "packet_count_semantics": "sent_datagrams",
+              "packets": 419,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "sender",
+              "seconds": 1.00507,
+              "source_jitter_ms": 0,
+              "source_lost_packets": 0,
+              "source_lost_percent": 0,
+              "source_sender_flag": true
+            },
+            {
+              "bits_per_second": 4001635.513321375,
+              "bytes": 502800,
+              "endpoint": "server",
+              "jitter_ms": 0.016384068277976758,
+              "loss_denominator_packets": 419,
+              "loss_semantics": "iperf_sequence_gap_estimate",
+              "lost_packets": 0,
+              "lost_percent": 0,
+              "megabits_per_second": 4.001635513321375,
+              "packet_count_semantics": "highest_sequence_seen",
+              "packets": 419,
+              "received_datagrams": 419,
+              "retransmits": null,
+              "role": "receiver",
+              "seconds": 1.005189,
+              "source_jitter_ms": 0.016384068277976758,
+              "source_lost_packets": 0,
+              "source_lost_percent": 0,
+              "source_sender_flag": false
+            }
+          ]
+        },
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "dd5174bc-77f1-40e0-90c1-2ca94c49b87e",
+          "clock_synchronization": "unknown",
+          "end_ns": 3827758791,
+          "host_started_unix_ns": 1788813468530690000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 2812349166
+        },
+        "reason": null,
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "upload",
+          "duration_s": 1,
+          "offered_rate_bps": 4000000,
+          "port": 60706,
+          "protocol": "udp",
+          "request_id": "udp-upload-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "completed",
+        "stderr_bytes": 0,
+        "stdout_sha256": "55c8789add3f15a5666281b06eefd5e4d4ef2d23b6f4ae6bd0634d406086d26d",
+        "wifi_attribution": "not_established"
+      },
+      "server_counter_agreement": "PASS",
+      "server_cpu_percent": 0.3859939892379305,
+      "server_stdout_sha256": "80c00565f29e60aa41dadd7841ec9fa8be1b13c9d79209fec6e094215fc9784b"
+    },
+    {
+      "client_cpu_percent": 0,
+      "kind": "real_loopback",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": 0,
+        "measurement": {
+          "connections": [
+            {
+              "local_host": "127.0.0.1",
+              "local_port": 64710,
+              "remote_host": "127.0.0.1",
+              "remote_port": 60710,
+              "socket": 5
+            }
+          ],
+          "source_start_unix_ms": 1788813469780,
+          "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+          "source_version": "3.20",
+          "transfers": [
+            {
+              "bits_per_second": 3998099.550929451,
+              "bytes": 502800,
+              "endpoint": "server",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 3.998099550929451,
+              "packet_count_semantics": "sent_datagrams",
+              "packets": 419,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "sender",
+              "seconds": 1.006078,
+              "source_jitter_ms": 0,
+              "source_lost_packets": 0,
+              "source_lost_percent": 0,
+              "source_sender_flag": true
+            },
+            {
+              "bits_per_second": 3999041.59802593,
+              "bytes": 502800,
+              "endpoint": "client",
+              "jitter_ms": 0.10935654278791926,
+              "loss_denominator_packets": 419,
+              "loss_semantics": "iperf_sequence_gap_estimate",
+              "lost_packets": 0,
+              "lost_percent": 0,
+              "megabits_per_second": 3.99904159802593,
+              "packet_count_semantics": "highest_sequence_seen",
+              "packets": 419,
+              "received_datagrams": 419,
+              "retransmits": null,
+              "role": "receiver",
+              "seconds": 1.005841,
+              "source_jitter_ms": 0.10935654278791926,
+              "source_lost_packets": 0,
+              "source_lost_percent": 0,
+              "source_sender_flag": false
+            }
+          ]
+        },
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "2ec9ec5b-be93-4a88-8b39-92f74dcc012b",
+          "clock_synchronization": "unknown",
+          "end_ns": 5097783708,
+          "host_started_unix_ns": 1788813469764050000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 4045680666
+        },
+        "reason": null,
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "download",
+          "duration_s": 1,
+          "offered_rate_bps": 4000000,
+          "port": 60710,
+          "protocol": "udp",
+          "request_id": "udp-download-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "completed",
+        "stderr_bytes": 0,
+        "stdout_sha256": "148105e5b28018aed5c46b7485df43e48ee618e0d0ce532658ae95eea8a79351",
+        "wifi_attribution": "not_established"
+      },
+      "server_counter_agreement": "PASS",
+      "server_cpu_percent": 1.4886105440182247,
+      "server_stdout_sha256": "3aa8324c9ab3b43f3bf87e4c2294cea417c3616dc27938f329ecaf2b6fc63970"
+    },
+    {
+      "kind": "real_cancelled",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": -9,
+        "measurement": null,
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "8ae7ac15-cb61-45fd-8a24-fdb0389b06e3",
+          "clock_synchronization": "unknown",
+          "end_ns": 5714124833,
+          "host_started_unix_ns": 1788813471031795000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 5313400666
+        },
+        "reason": "client_cancelled",
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "upload",
+          "duration_s": 2,
+          "offered_rate_bps": 4000000,
+          "port": 60713,
+          "protocol": "tcp",
+          "request_id": "tcp-upload-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "cancelled",
+        "stderr_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "wifi_attribution": "not_established"
+      }
+    },
+    {
+      "kind": "real_timeout",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": -9,
+        "measurement": null,
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "3f6769c2-d434-4632-983d-7241359dc693",
+          "clock_synchronization": "unknown",
+          "end_ns": 6245994083,
+          "host_started_unix_ns": 1788813471647593000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 5929186166
+        },
+        "reason": "client_timeout",
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "upload",
+          "duration_s": 2,
+          "offered_rate_bps": 4000000,
+          "port": 60716,
+          "protocol": "tcp",
+          "request_id": "tcp-upload-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "timeout",
+        "stderr_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "wifi_attribution": "not_established"
+      }
+    },
+    {
+      "kind": "real_recovery",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": 0,
+        "measurement": {
+          "connections": [
+            {
+              "local_host": "127.0.0.1",
+              "local_port": 60722,
+              "remote_host": "127.0.0.1",
+              "remote_port": 60720,
+              "socket": 5
+            }
+          ],
+          "source_start_unix_ms": 1788813472184,
+          "source_system": "Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+          "source_version": "3.20",
+          "transfers": [
+            {
+              "bits_per_second": 4172353.2495540963,
+              "bytes": 524288,
+              "endpoint": "client",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 4.172353249554097,
+              "packet_count_semantics": null,
+              "packets": null,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "sender",
+              "seconds": 1.005261,
+              "source_jitter_ms": null,
+              "source_lost_packets": null,
+              "source_lost_percent": null,
+              "source_sender_flag": true
+            },
+            {
+              "bits_per_second": 4171104.3177844826,
+              "bytes": 524288,
+              "endpoint": "server",
+              "jitter_ms": null,
+              "loss_denominator_packets": null,
+              "loss_semantics": null,
+              "lost_packets": null,
+              "lost_percent": null,
+              "megabits_per_second": 4.171104317784483,
+              "packet_count_semantics": null,
+              "packets": null,
+              "received_datagrams": null,
+              "retransmits": null,
+              "role": "receiver",
+              "seconds": 1.005562,
+              "source_jitter_ms": null,
+              "source_lost_packets": null,
+              "source_lost_percent": null,
+              "source_sender_flag": true
+            }
+          ]
+        },
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "aea4c7d6-8b77-4933-b1b0-8b39a4b4fd51",
+          "clock_synchronization": "unknown",
+          "end_ns": 7476831750,
+          "host_started_unix_ns": 1788813472177608000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 6459191583
+        },
+        "reason": null,
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "upload",
+          "duration_s": 1,
+          "offered_rate_bps": 4000000,
+          "port": 60720,
+          "protocol": "tcp",
+          "request_id": "tcp-upload-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "completed",
+        "stderr_bytes": 0,
+        "stdout_sha256": "b77497e18100b3ad1fad095f2161205494ec9f79fd2b22153253fb24609e5f8d",
+        "wifi_attribution": "not_established"
+      }
+    },
+    {
+      "kind": "real_connection_refused",
+      "result": {
+        "adapter_version": "0.1.0",
+        "authentication": "not_implemented_loopback_only",
+        "exit_code": 1,
+        "measurement": null,
+        "process_window": {
+          "clock": "host_monotonic_ns",
+          "clock_epoch": "709e9a00-2014-42b4-be4c-bd52ef4c9929",
+          "clock_synchronization": "unknown",
+          "end_ns": 8497295791,
+          "host_started_unix_ns": 1788813473205929000,
+          "meaning": "client_process_execution_not_RF_capture",
+          "start_ns": 7487492041
+        },
+        "reason": "client_process_error",
+        "request": {
+          "authorization": "owned_loopback",
+          "direction": "upload",
+          "duration_s": 1,
+          "offered_rate_bps": 4000000,
+          "port": 60724,
+          "protocol": "tcp",
+          "request_id": "tcp-upload-1",
+          "schema_version": "1",
+          "streams": 1,
+          "target_class": "loopback",
+          "target_ip": "127.0.0.1"
+        },
+        "schema_version": "1",
+        "source": {
+          "binary_sha256": "251a081d992ee0e9d69d6f585b332633b49feb8ed502f7febb2ad59d9812df12",
+          "cjson_version": "1.7.15",
+          "machine": "arm64",
+          "optional_features": "Optional features available: sendfile / zerocopy, bind to device, support IPv4 don't fragment, POSIX threads",
+          "os": "macOS-26.6.2-arm64-arm-64bit",
+          "python": "3.9.6",
+          "tool": "iperf3",
+          "version": "3.20"
+        },
+        "status": "process_error",
+        "stderr_bytes": 0,
+        "stdout_sha256": "77fc6d64e1491ad7e7f7d9d5df975ac7cef65355516d3a23fe8778dc43915b9e",
+        "wifi_attribution": "not_established"
+      }
+    }
+  ],
+  "schema_version": "1",
+  "unsupported_not_executed": [
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "upload",
+        "duration_s": 1,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "tcp",
+        "request_id": "tcp-upload-2",
+        "schema_version": "1",
+        "streams": 2,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    },
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "upload",
+        "duration_s": 2,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "tcp",
+        "request_id": "tcp-upload-4",
+        "schema_version": "1",
+        "streams": 4,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    },
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "download",
+        "duration_s": 1,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "tcp",
+        "request_id": "tcp-download-2",
+        "schema_version": "1",
+        "streams": 2,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    },
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "download",
+        "duration_s": 2,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "tcp",
+        "request_id": "tcp-download-4",
+        "schema_version": "1",
+        "streams": 4,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    },
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "upload",
+        "duration_s": 1,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "udp",
+        "request_id": "udp-upload-2",
+        "schema_version": "1",
+        "streams": 2,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    },
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "upload",
+        "duration_s": 2,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "udp",
+        "request_id": "udp-upload-4",
+        "schema_version": "1",
+        "streams": 4,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    },
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "download",
+        "duration_s": 1,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "udp",
+        "request_id": "udp-download-2",
+        "schema_version": "1",
+        "streams": 2,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    },
+    {
+      "reason": "parallel_streams_not_runtime_verified",
+      "request": {
+        "authorization": "owned_loopback",
+        "direction": "download",
+        "duration_s": 2,
+        "offered_rate_bps": 4000000,
+        "port": 55291,
+        "protocol": "udp",
+        "request_id": "udp-download-4",
+        "schema_version": "1",
+        "streams": 4,
+        "target_class": "loopback",
+        "target_ip": "127.0.0.1"
+      }
+    }
+  ]
+}

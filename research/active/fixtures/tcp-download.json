@@ -1,0 +1,111 @@
+{
+	"start":	{
+		"connected":	[{
+				"socket":	5,
+				"local_host":	"127.0.0.1",
+				"local_port":	56698,
+				"remote_host":	"127.0.0.1",
+				"remote_port":	55291
+			}],
+		"version":	"iperf 3.20",
+		"system_info":	"Darwin astra.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:49 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6000 arm64",
+		"timestamp":	{
+			"time":	"Mon, 07 Sep 2026 18:01:50 UTC",
+			"timesecs":	1788804110,
+			"timemillisecs":	1788804110545
+		},
+		"connecting_to":	{
+			"host":	"127.0.0.1",
+			"port":	55291
+		},
+		"cookie":	"advpuiohifm6ptxlpa7m7aegyhmi2bcyljgx",
+		"tcp_mss_default":	16332,
+		"target_bitrate":	2000000,
+		"fq_rate":	0,
+		"sock_bufsize":	0,
+		"sndbuf_actual":	131072,
+		"rcvbuf_actual":	131072,
+		"test_start":	{
+			"protocol":	"TCP",
+			"num_streams":	1,
+			"blksize":	131072,
+			"omit":	0,
+			"duration":	1,
+			"bytes":	0,
+			"blocks":	0,
+			"reverse":	1,
+			"tos":	0,
+			"target_bitrate":	2000000,
+			"bidir":	0,
+			"fqrate":	0,
+			"interval":	1
+		}
+	},
+	"intervals":	[{
+			"streams":	[{
+					"socket":	5,
+					"start":	0,
+					"end":	1.001719,
+					"seconds":	1.0017189979553223,
+					"bytes":	262144,
+					"bits_per_second":	2093553.1863533,
+					"omitted":	false,
+					"sender":	false
+				}],
+			"sum":	{
+				"start":	0,
+				"end":	1.001719,
+				"seconds":	1.0017189979553223,
+				"bytes":	262144,
+				"bits_per_second":	2093553.1863533,
+				"omitted":	false,
+				"sender":	false
+			}
+		}],
+	"end":	{
+		"streams":	[{
+				"sender":	{
+					"socket":	5,
+					"start":	0,
+					"end":	1.001919,
+					"seconds":	1.001919,
+					"bytes":	262144,
+					"bits_per_second":	2093135.2734103256,
+					"sender":	false
+				},
+				"receiver":	{
+					"socket":	5,
+					"start":	0,
+					"end":	1.001719,
+					"seconds":	1.001719,
+					"bytes":	262144,
+					"bits_per_second":	2093553.1820800044,
+					"sender":	false
+				}
+			}],
+		"sum_sent":	{
+			"start":	0,
+			"end":	1.001919,
+			"seconds":	1.001919,
+			"bytes":	262144,
+			"bits_per_second":	2093135.2734103256,
+			"sender":	false
+		},
+		"sum_received":	{
+			"start":	0,
+			"end":	1.001719,
+			"seconds":	1.001719,
+			"bytes":	262144,
+			"bits_per_second":	2093553.1820800044,
+			"sender":	false
+		},
+		"cpu_utilization_percent":	{
+			"host_total":	0.17897332222464438,
+			"host_user":	0.0160259760167785,
+			"host_system":	0.16364412777381276,
+			"remote_total":	0.02105927136917202,
+			"remote_user":	0.0022955603862130636,
+			"remote_system":	0.019262745849527012
+		}
+	}
+}
