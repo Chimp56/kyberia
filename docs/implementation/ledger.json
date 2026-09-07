@@ -161688,9 +161688,9 @@
       "implementation": [
         {
           "path": "crates/domain/src/observation.rs",
-          "description": "Canonical V2 observations with explicit unknown upstream versions",
-          "revision": "d0674a0411a6f090051cd4ae1101b637eb3df377b775d8a54a0d8a1be8aed2ad",
-          "sha256": "d0674a0411a6f090051cd4ae1101b637eb3df377b775d8a54a0d8a1be8aed2ad"
+          "description": "Canonical V2 envelope; additive receipt exports under separate review, full normalization still in progress",
+          "revision": "bf81161a1076f6858aed74979f62fa2284938df97beafc8070a7aff1622dec59",
+          "sha256": "bf81161a1076f6858aed74979f62fa2284938df97beafc8070a7aff1622dec59"
         },
         {
           "path": "crates/domain/src/observation/wire.rs",
@@ -161875,14 +161875,56 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "/root/storage_data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "research/storage/engines.py",
+          "description": "Real three-engine research comparison; production Rust chunk storage remains open",
+          "revision": "e19c72fc1fae92710fb0c7f979da207e390834d71a9865e3e502bef015963359",
+          "sha256": "e19c72fc1fae92710fb0c7f979da207e390834d71a9865e3e502bef015963359"
+        }
+      ],
+      "validation": [
+        {
+          "path": "research/storage/evidence/macos-arm64.json",
+          "description": "Nine corrected-source actual storage/parity/export/migration cases",
+          "revision": "fb5e5b764996221e8ea441e9abd6c0d1d725fb8cdb791f6bf4ada66d60a1fa24",
+          "sha256": "fb5e5b764996221e8ea441e9abd6c0d1d725fb8cdb791f6bf4ada66d60a1fa24",
+          "command": "research/storage/.venv/bin/python research/storage/benchmark.py --output .tools/storage-review/corrected.json --data-root research/storage/.venv/review-corrected-data",
+          "scope": "research_runtime",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/storage-proof-review.md",
+          "description": "Independent full research review with separately reviewed root correction",
+          "revision": "3c877f9e5c571e93874b54934f69413dc217bf0326ae24d2502f632b7d98d581",
+          "sha256": "3c877f9e5c571e93874b54934f69413dc217bf0326ae24d2502f632b7d98d581",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "STO-001 nullable required versions caused engine disagreement; corrected and independently revalidated",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/storage-provenance-correction-review.md",
+          "description": "Separate approval of root-authored required-version fix",
+          "revision": "5fc83e5ed723db9b9d07dda98c1c4e1cc8fc6fe6b09bb0038639228c950e4dce",
+          "sha256": "5fc83e5ed723db9b9d07dda98c1c4e1cc8fc6fe6b09bb0038639228c950e4dce",
+          "reviewer": "/root/rf_numerical_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:e06648333b04880af91d:1",

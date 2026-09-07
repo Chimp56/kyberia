@@ -6,6 +6,9 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 |---|---|---|
 | [0001](0001-canonical-boundaries.md) | Accepted specification constraint | Local-first modular monolith, canonical Rust domain and versioned outer adapters (§10/§14, Appendix I) |
 | [0002](0002-toolchain-and-delivery-gates.md) | Accepted toolchain baseline; product gates pending | Rust/Cargo and TypeScript/pnpm; retain gates A–I and isolate platform validation |
+| [0003](0003-versioned-observation-migration.md) | Accepted | Independently version observations and survey snapshots; preserve immutable V1 migration fixtures |
+| [0004](0004-storage-split.md) | Proposed; research comparison reviewed | SQLite authority with immutable analytical chunks; production Gate C remains open |
+| [0005](0005-source-response-timing.md) | Accepted; adapter integration open | Preserve source result/API timing separately from RF capture, cache age and channel dwell |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 
