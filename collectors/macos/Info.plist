@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>org.kyberia.collector.macos</string>
+<key>CFBundleName</key><string>Kyberia Wi-Fi Collector</string>
+<key>CFBundleExecutable</key><string>kyberia-macos-collector</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>LSUIElement</key><true/>
+<key>CFBundleVersion</key><string>0.1.0</string>
+<key>NSLocationUsageDescription</key><string>Kyberia needs location permission to read nearby Wi-Fi network metadata during an explicitly requested survey.</string>
+<key>NSLocationWhenInUseUsageDescription</key><string>Kyberia needs location permission to read nearby Wi-Fi network metadata during an explicitly requested survey.</string>
+</dict></plist>

@@ -1,0 +1,65 @@
+{
+  "binary_sha256": "92d7f61adeaef0187c90012ec1c003362b22d3af17ecb2058cfa0f12e98b4efc",
+  "evidence_kind": "native_runtime_redacted_summary",
+  "executed_at_utc": "2026-09-07T05:37:51.225072Z",
+  "execution_context": "outside_workspace_sandbox",
+  "limitations": [
+    "No raw SSID/BSSID/interface identifiers or raw output retained in this report.",
+    "An empty interface list reports this process's API access, not physical absence of radios.",
+    "Permission-denied/unavailable results do not validate authorized scan metrics or full Gate A."
+  ],
+  "machine_architecture": "arm64",
+  "permission_prompt_requested": false,
+  "python_version": "3.9.6",
+  "runs": [
+    {
+      "collector_build": "sha256:d574ee6190aaf9c0ab3d096dd1d28a17c4267c4f935d1b1f497b07aa8767cdf0",
+      "collector_version": "0.1.0",
+      "command": [
+        "kyberia-macos-collector",
+        "probe",
+        "--timeout-seconds",
+        "5",
+        "--limit",
+        "16"
+      ],
+      "contract_validation": "PASS",
+      "exit_code": 0,
+      "identifier_policy": "redacted",
+      "location_authorization": "not_determined",
+      "location_services_enabled": true,
+      "native_os_version": "Version 26.6.2 (Build 25G83)",
+      "observation_count": 0,
+      "reason": "capabilities_probed_only",
+      "record_count": 3,
+      "source_count": 1,
+      "status": "ok",
+      "stderr_bytes": 0
+    },
+    {
+      "collector_build": "sha256:d574ee6190aaf9c0ab3d096dd1d28a17c4267c4f935d1b1f497b07aa8767cdf0",
+      "collector_version": "0.1.0",
+      "command": [
+        "kyberia-macos-collector",
+        "scan",
+        "--timeout-seconds",
+        "5",
+        "--limit",
+        "16"
+      ],
+      "contract_validation": "PASS",
+      "exit_code": 77,
+      "identifier_policy": "redacted",
+      "location_authorization": "not_determined",
+      "location_services_enabled": true,
+      "native_os_version": "Version 26.6.2 (Build 25G83)",
+      "observation_count": 0,
+      "reason": "location_not_determined",
+      "record_count": 3,
+      "source_count": 1,
+      "status": "permission_required",
+      "stderr_bytes": 0
+    }
+  ],
+  "schema_version": 1
+}
