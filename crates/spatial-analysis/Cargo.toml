@@ -1,0 +1,17 @@
+[package]
+name = "kyberia-spatial-analysis"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+description = "Deterministic bounded numerical RSSI interpolation tiles"
+
+[dependencies]
+kyberia-domain = { path = "../domain" }
+serde = { version = "=1.0.228", features = ["derive"] }
+
+[dev-dependencies]
+proptest = "=1.10.0"
+serde_json = "=1.0.149"
+
+[lints.rust]
+unsafe_code = "forbid"
