@@ -1,0 +1,1249 @@
+{
+  "evidence_class": "synthetic",
+  "generator": "kyberia-synthetic/1",
+  "scenes": [
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 60.052008056116
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -40.052008056116
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "open-2400000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [],
+        "frequency_hz": 2400000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 63.052008056116
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -43.052008056116
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "one-wall-2400000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [
+          {
+            "synthetic_insertion_loss_db": 3,
+            "x_m": 3
+          }
+        ],
+        "frequency_hz": 2400000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 70.052008056116
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -50.052008056116
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "two-wall-2400000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [
+          {
+            "synthetic_insertion_loss_db": 3,
+            "x_m": 3
+          },
+          {
+            "synthetic_insertion_loss_db": 7,
+            "x_m": 6
+          }
+        ],
+        "frequency_hz": 2400000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 66.427183308604
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -46.427183308604
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "open-5000000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [],
+        "frequency_hz": 5000000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 69.427183308604
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -49.427183308604
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "one-wall-5000000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [
+          {
+            "synthetic_insertion_loss_db": 3,
+            "x_m": 3
+          }
+        ],
+        "frequency_hz": 5000000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 76.427183308604
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -56.427183308604
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "two-wall-5000000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [
+          {
+            "synthetic_insertion_loss_db": 3,
+            "x_m": 3
+          },
+          {
+            "synthetic_insertion_loss_db": 7,
+            "x_m": 6
+          }
+        ],
+        "frequency_hz": 5000000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 68.010808229556
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -48.010808229556005
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "open-6000000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [],
+        "frequency_hz": 6000000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 71.010808229556
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -51.010808229556005
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "one-wall-6000000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [
+          {
+            "synthetic_insertion_loss_db": 3,
+            "x_m": 3
+          }
+        ],
+        "frequency_hz": 6000000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Far-field Friis, isotropic antennas, speed of light 299792458 m/s.",
+        "Crossing penalties are artificial ideal attenuators, not material presets.",
+        "P0/P1 additive-loss fixture; no reflection or multipath claim."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_loss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 78.010808229556
+        },
+        "rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -58.010808229556005
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "two-wall-6000000000",
+      "inputs": {
+        "cable_loss_db": 0,
+        "crossings": [
+          {
+            "synthetic_insertion_loss_db": 3,
+            "x_m": 3
+          },
+          {
+            "synthetic_insertion_loss_db": 7,
+            "x_m": 6
+          }
+        ],
+        "frequency_hz": 6000000000,
+        "path_loss_exponent": 2,
+        "rx_gain_dbi": 0,
+        "rx_position_m": [
+          10,
+          0,
+          1.5
+        ],
+        "tx_conducted_dbm": 20,
+        "tx_gain_dbi": 0,
+        "tx_position_m": [
+          0,
+          0,
+          1.5
+        ]
+      },
+      "requirements": [
+        "7.10",
+        "8.4",
+        "16.5",
+        "Appendix I/TST-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "One ideal attenuator at equal distance; arbitrary frequency curves test mapping.",
+        "These are not concrete, glass, or vendor material measurements."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "A_rss_dbm": [
+          -43.052008056116,
+          -52.427183308604,
+          -57.010808229556
+        ],
+        "B_minus_A": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": -4
+        },
+        "B_rss_dbm": [
+          -47.052008056116,
+          -56.427183308604,
+          -61.010808229556
+        ],
+        "absolute_tolerance_db": 1e-06
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "material-frequency-comparison",
+      "inputs": {
+        "distance_m": 10,
+        "frequency_hz": [
+          2400000000,
+          5000000000,
+          6000000000
+        ],
+        "materials": {
+          "artificial-A": [
+            3,
+            6,
+            9
+          ],
+          "artificial-B": [
+            7,
+            10,
+            13
+          ]
+        },
+        "tx_dbm": 20
+      },
+      "requirements": [
+        "8.3",
+        "16.5"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "One slab at z=5; the floor elevations are references, not extra obstructions.",
+        "Opening variant removes the slab at the direct crossing; arbitrary 12 dB insertion."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "closed_slab_rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -58.427183308604
+        },
+        "open_slab_rss": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -46.427183308604
+        },
+        "opening_minus_closed": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 12
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "slab-versus-opening",
+      "inputs": {
+        "floor_elevations_m": [
+          0,
+          5,
+          10
+        ],
+        "frequency_hz": 5000000000,
+        "opening_xy_m": [
+          [
+            -1,
+            -1
+          ],
+          [
+            1,
+            -1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            -1,
+            1
+          ]
+        ],
+        "rx_position_m": [
+          0,
+          0,
+          11
+        ],
+        "slab_loss_db": 12,
+        "slab_z_m": 5,
+        "tx_dbm": 20,
+        "tx_position_m": [
+          0,
+          0,
+          1
+        ]
+      },
+      "requirements": [
+        "8.2",
+        "16.3",
+        "16.5",
+        "18.7/PREB-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Image-source geometry only; interaction coefficients and radio map require the Sionna runtime gate.",
+        "No invented electromagnetic reflection result or competing ray tracer."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "path_coefficient": null,
+        "radio_map_rss": null,
+        "reflected_path_length": {
+          "absolute_tolerance": 1e-06,
+          "unit": "m",
+          "value": 4.472135955
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "single-reflection-geometry",
+      "inputs": {
+        "reflector_plane": "y=0",
+        "rx_position_m": [
+          2,
+          1,
+          1
+        ],
+        "specular_point_m": [
+          0,
+          0,
+          1
+        ],
+        "tx_position_m": [
+          -2,
+          1,
+          1
+        ]
+      },
+      "requirements": [
+        "16.5",
+        "18.7/PREB-010"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "A canonical grazing screen geometry for a pinned Sionna diffraction run.",
+        "Field baseline deliberately unknown until independent analytic/upstream runtime validation."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "grazing_direct_path_length": {
+          "absolute_tolerance": 1e-06,
+          "unit": "m",
+          "value": 10
+        },
+        "path_coefficient": null,
+        "radio_map_rss": null
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "knife-edge-geometry",
+      "inputs": {
+        "edge_direction": [
+          0,
+          1,
+          0
+        ],
+        "frequency_hz": 5000000000,
+        "rx_position_m": [
+          5,
+          0,
+          1
+        ],
+        "screen_plane": "x=0",
+        "screen_top_z_m": 1,
+        "tx_position_m": [
+          -5,
+          0,
+          1
+        ]
+      },
+      "requirements": [
+        "16.5",
+        "18.7/PREB-010"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Original analytic directional test pattern; no vendor antenna or radiated-power normalization claim.",
+        "Active rotations in right-handed z-up frame; gain uses local arrival/departure direction."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "absolute_tolerance_db": 1e-06,
+        "off_axis_rss_dbm": [
+          -57,
+          -60
+        ],
+        "rss_dbm": [
+          -57,
+          -60,
+          -63,
+          -60,
+          -57
+        ]
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "directional-antenna-rotation",
+      "inputs": {
+        "boresight_axis": "+x",
+        "gain_model": "G_dBi(theta) = 3*cos(theta)",
+        "isotropic_rss_dbm": -60,
+        "off_axis_case": {
+          "world_receiver_direction": [
+            0.7071067811865476,
+            0.7071067811865476,
+            0
+          ],
+          "yaw_degrees_ccw_about_z": [
+            45,
+            -45
+          ]
+        },
+        "world_receiver_direction": [
+          1,
+          0,
+          0
+        ],
+        "yaw_degrees_ccw_about_z": [
+          0,
+          90,
+          180,
+          270,
+          360
+        ]
+      },
+      "requirements": [
+        "8.8",
+        "16.3",
+        "18.7/PREB-004"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Explicit synthetic coupling coefficient supplied to linear-power composition.",
+        "Not a calibrated spectral mask, MAC contention, or universal adjacent-channel rule.",
+        "Unknown noise forbids numerical measured SINR."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "effective_interference": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -60
+        },
+        "sinr": null,
+        "sir": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 10
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "co-channel-pair",
+      "inputs": {
+        "coupling": 1,
+        "desired_dbm": -50,
+        "interferer_activity": 1,
+        "interferer_dbm": -60,
+        "noise_dbm": null,
+        "noise_reason": "not_observable"
+      },
+      "requirements": [
+        "7.10",
+        "7.11",
+        "16.5"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Explicit synthetic coupling coefficient supplied to linear-power composition.",
+        "Not a calibrated spectral mask, MAC contention, or universal adjacent-channel rule.",
+        "Unknown noise forbids numerical measured SINR."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "effective_interference": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -80
+        },
+        "sinr": null,
+        "sir": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 30
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "adjacent-channel-pair",
+      "inputs": {
+        "coupling": 0.01,
+        "desired_dbm": -50,
+        "interferer_activity": 1,
+        "interferer_dbm": -60,
+        "noise_dbm": null,
+        "noise_reason": "not_observable"
+      },
+      "requirements": [
+        "7.10",
+        "7.11",
+        "16.5"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Artificial asymmetric topology tests sensing versus receiver interference.",
+        "Threshold is a scenario input, not a regulatory or chipset default.",
+        "No MAC scheduler means collision probability is unknown."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "A_senses_B": false,
+        "B_senses_A": false,
+        "collision_probability": null,
+        "receiver_equal_power_sir": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dB",
+          "value": 0
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "hidden-node-like-topology",
+      "inputs": {
+        "rx_power_dbm": {
+          "A_to_B": -95,
+          "A_to_R": -55,
+          "B_to_A": -95,
+          "B_to_R": -55
+        },
+        "scenario_cca_threshold_dbm": -82,
+        "simultaneous_transmission": true
+      },
+      "requirements": [
+        "Appendix I/PHY-007"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Fabricated independent semantic inputs, not measured captures or a PHY curve.",
+        "A diagnostic hypothesis must preserve endpoint tier and contradictory evidence."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "may_assert_proven_root_cause": false,
+        "preserve_internet_mbps": 80,
+        "preserve_lan_mbps": 120,
+        "rssi_to_goodput_function": null
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "low-rssi-high-throughput",
+      "inputs": {
+        "active_window_seconds": [
+          0,
+          5
+        ],
+        "internet_endpoint": {
+          "throughput_mbps": 80,
+          "tier": "INTERNET_CONTROL"
+        },
+        "lan_endpoint": {
+          "throughput_mbps": 120,
+          "tier": "LAN_REFERENCE"
+        },
+        "scenario_occupancy_probability": 0.1,
+        "synthetic_rssi_dbm": -77
+      },
+      "requirements": [
+        "7.15",
+        "7.17",
+        "16.8",
+        "6.9/REQ-004"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Fabricated independent semantic inputs, not measured captures or a PHY curve.",
+        "A diagnostic hypothesis must preserve endpoint tier and contradictory evidence."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "may_assert_proven_root_cause": false,
+        "preserve_internet_mbps": 7,
+        "preserve_lan_mbps": 8,
+        "rssi_to_goodput_function": null
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "high-rssi-congested",
+      "inputs": {
+        "active_window_seconds": [
+          0,
+          5
+        ],
+        "internet_endpoint": {
+          "throughput_mbps": 7,
+          "tier": "INTERNET_CONTROL"
+        },
+        "lan_endpoint": {
+          "throughput_mbps": 8,
+          "tier": "LAN_REFERENCE"
+        },
+        "scenario_occupancy_probability": 0.95,
+        "synthetic_rssi_dbm": -40
+      },
+      "requirements": [
+        "7.15",
+        "7.17",
+        "16.8",
+        "6.9/REQ-004"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Fabricated independent semantic inputs, not measured captures or a PHY curve.",
+        "A diagnostic hypothesis must preserve endpoint tier and contradictory evidence."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "may_assert_proven_root_cause": false,
+        "preserve_internet_mbps": 2,
+        "preserve_lan_mbps": 250,
+        "rssi_to_goodput_function": null
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "healthy-lan-slow-wan",
+      "inputs": {
+        "active_window_seconds": [
+          0,
+          5
+        ],
+        "internet_endpoint": {
+          "throughput_mbps": 2,
+          "tier": "INTERNET_CONTROL"
+        },
+        "lan_endpoint": {
+          "throughput_mbps": 250,
+          "tier": "LAN_REFERENCE"
+        },
+        "scenario_occupancy_probability": 0.1,
+        "synthetic_rssi_dbm": -50
+      },
+      "requirements": [
+        "7.15",
+        "7.17",
+        "16.8",
+        "6.9/REQ-004"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Reciprocal path loss; unequal transmit powers; threshold is illustrative user policy."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "bidirectional_min": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -75
+        },
+        "compliance": "FAIL",
+        "downlink": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -60
+        },
+        "uplink": {
+          "absolute_tolerance": 1e-06,
+          "unit": "dBm",
+          "value": -75
+        }
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "uplink-limited-client",
+      "inputs": {
+        "antenna_gains_db": 0,
+        "ap_tx_dbm": 25,
+        "client_tx_dbm": 10,
+        "path_loss_db": 85,
+        "scenario_required_bidirectional_dbm": -67
+      },
+      "requirements": [
+        "7.16",
+        "8.9",
+        "18.7/PREB-005"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "One nondegenerate triangle; no extrapolation outside convex hull."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "absolute_tolerance_db": 1e-06,
+        "classes": [
+          "interpolated",
+          "outside_evidence_support"
+        ],
+        "outside_counts_as_pass": false,
+        "values_dbm": [
+          -55,
+          null
+        ]
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "measurement-gap",
+      "inputs": {
+        "extrapolate": false,
+        "queries_m": [
+          [
+            1,
+            1
+          ],
+          [
+            4,
+            4
+          ]
+        ],
+        "sample_points_m": [
+          [
+            0,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "sample_rssi_dbm": [
+          -40,
+          -60,
+          -80
+        ]
+      },
+      "requirements": [
+        "7.24",
+        "16.4"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Toy policy: roam when candidate minus current >=5 dB, no dwell condition.",
+        "Sampling bounds a transition interval; it does not measure authentication timing."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "association": [
+          "A",
+          "A",
+          "A",
+          "B"
+        ],
+        "authentication_duration_ms": null,
+        "transition_position_interval_m": [
+          2,
+          3
+        ],
+        "transition_time_interval_seconds": [
+          2,
+          3
+        ]
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "roaming-boundary",
+      "inputs": {
+        "ap_A_dbm": [
+          -55,
+          -65,
+          -70,
+          -74
+        ],
+        "ap_B_dbm": [
+          -75,
+          -68,
+          -66,
+          -60
+        ],
+        "hysteresis_db": 5,
+        "initial_association": "A",
+        "path_x_m": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "times_seconds": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "requirements": [
+        "7.19",
+        "8.13",
+        "16.8"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    },
+    {
+      "assumptions": [
+        "Exact finite set cover, synthetic coefficients; no full-model or regulatory feasibility claim.",
+        "Enumerating all eight subsets proves the optimum for this stated objective."
+      ],
+      "coordinate_frame": "building-local-right-handed-z-up-meters",
+      "evidence_class": "synthetic",
+      "expected": {
+        "all_feasible_subsets": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "C"
+          ],
+          [
+            "A",
+            "C"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "A",
+            "B",
+            "C"
+          ]
+        ],
+        "ap_count": 2,
+        "selected": [
+          "A",
+          "B"
+        ],
+        "total_cost": 4
+      },
+      "generator": "kyberia-synthetic/1",
+      "id": "multi-floor-candidate-optimum",
+      "inputs": {
+        "candidates": [
+          {
+            "cost": 2,
+            "covers": [
+              "L"
+            ],
+            "floor": 0,
+            "id": "A"
+          },
+          {
+            "cost": 2,
+            "covers": [
+              "U"
+            ],
+            "floor": 1,
+            "id": "B"
+          },
+          {
+            "cost": 5,
+            "covers": [
+              "L",
+              "U"
+            ],
+            "floor": 0,
+            "id": "C"
+          }
+        ],
+        "demand_cells": [
+          {
+            "id": "L",
+            "position_m": [
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "U",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "objective_lexicographic": [
+          "uncovered_cells",
+          "total_cost",
+          "ap_count",
+          "sorted_candidate_ids"
+        ]
+      },
+      "requirements": [
+        "9.15",
+        "16.11",
+        "18.8/OPTB-003"
+      ],
+      "source": "kyberia-original-synthetic-v1"
+    }
+  ],
+  "schema_version": 1,
+  "seed": 42,
+  "tolerance_policy": "1e-6 dB bounds serialization/f64 arithmetic only; not physical accuracy."
+}

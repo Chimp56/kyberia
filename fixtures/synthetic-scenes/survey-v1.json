@@ -1,0 +1,725 @@
+{
+  "evidence_class": "synthetic",
+  "generator": "kyberia-synthetic/1",
+  "jitter_model": "LCG32(1664525,1013904223); (state%7-3)/2 dB; not Gaussian",
+  "position_covariance_layout": {
+    "axes": [
+      "x",
+      "y"
+    ],
+    "field": "synthetic_position_covariance_m2",
+    "order": "row-major",
+    "shape": [
+      2,
+      2
+    ],
+    "vertical_assumption": "z is fixed at 1.5 m by synthetic construction; no measured vertical precision claim"
+  },
+  "samples": [
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-00",
+      "monotonic_ns": 0,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        0,
+        0,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -40.0,
+      "truth_dbm": -40
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-01",
+      "monotonic_ns": 1000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        1,
+        0,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -42.5,
+      "truth_dbm": -42
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-02",
+      "monotonic_ns": 2000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        2,
+        0,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -44.0,
+      "truth_dbm": -44
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-03",
+      "monotonic_ns": 3000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        3,
+        0,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -59.0,
+      "truth_dbm": -58
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-04",
+      "monotonic_ns": 4000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        4,
+        0,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -59.0,
+      "truth_dbm": -60
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-05",
+      "monotonic_ns": 5000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        0,
+        1,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -41.5,
+      "truth_dbm": -43
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-06",
+      "monotonic_ns": 6000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        1,
+        1,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -43.5,
+      "truth_dbm": -45
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-07",
+      "monotonic_ns": 7000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        2,
+        1,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -47.5,
+      "truth_dbm": -47
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-08",
+      "monotonic_ns": 8000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        3,
+        1,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -61.5,
+      "truth_dbm": -61
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-09",
+      "monotonic_ns": 9000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        4,
+        1,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -63.5,
+      "truth_dbm": -63
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-10",
+      "monotonic_ns": 10000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        0,
+        2,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -44.5,
+      "truth_dbm": -46
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-11",
+      "monotonic_ns": 11000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        1,
+        2,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -48.0,
+      "truth_dbm": -48
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-12",
+      "monotonic_ns": 12000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        2,
+        2,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -50.0,
+      "truth_dbm": -50
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-13",
+      "monotonic_ns": 13000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        3,
+        2,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -62.5,
+      "truth_dbm": -64
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-14",
+      "monotonic_ns": 14000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        4,
+        2,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -67.0,
+      "truth_dbm": -66
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-15",
+      "monotonic_ns": 15000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        0,
+        3,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -50.0,
+      "truth_dbm": -49
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-16",
+      "monotonic_ns": 16000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        1,
+        3,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -52.5,
+      "truth_dbm": -51
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-17",
+      "monotonic_ns": 17000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        2,
+        3,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -53.5,
+      "truth_dbm": -53
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-18",
+      "monotonic_ns": 18000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        3,
+        3,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -68.0,
+      "truth_dbm": -67
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-19",
+      "monotonic_ns": 19000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        4,
+        3,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -68.5,
+      "truth_dbm": -69
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-20",
+      "monotonic_ns": 20000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        0,
+        4,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -53.5,
+      "truth_dbm": -52
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-21",
+      "monotonic_ns": 21000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        1,
+        4,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -54.0,
+      "truth_dbm": -54
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-west",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-22",
+      "monotonic_ns": 22000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        2,
+        4,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -54.5,
+      "truth_dbm": -56
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-23",
+      "monotonic_ns": 23000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        3,
+        4,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -70.0,
+      "truth_dbm": -70
+    },
+    {
+      "adapter_version": "kyberia-synthetic/1",
+      "calibration": "not_applicable_synthetic",
+      "clock": "synthetic-session",
+      "evidence_class": "synthetic",
+      "fold": "room-east",
+      "frame": "floor-0",
+      "frequency_hz": 5000000000,
+      "id": "synthetic-24",
+      "monotonic_ns": 24000000000,
+      "noise_dbm": null,
+      "noise_reason": "not_observable",
+      "position_m": [
+        4,
+        4,
+        1.5
+      ],
+      "sensor": "synthetic-radio",
+      "source": "kyberia-original-synthetic-v1",
+      "synthetic_position_covariance_m2": [
+        0.04,
+        0,
+        0,
+        0.04
+      ],
+      "synthetic_rssi_dbm": -71.5,
+      "truth_dbm": -72
+    }
+  ],
+  "schema_version": 1,
+  "seed": 42,
+  "truth_model": "-40 - 2*x - 3*y - (12 if x>=3 else 0) dBm",
+  "validation": "Hold out entire east/west rooms; no random nearby train/test split.",
+  "warning": "Test-only original artificial field; not RF measurement or calibrated material data."
+}

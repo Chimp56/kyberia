@@ -1,0 +1,41 @@
+{
+  "records": [
+    {
+      "artifacts": [
+        {
+          "path": "fixtures/synthetic-scenes/canonical-v1.json",
+          "sha256": "b960443f591d80e36c8ed98d8df14f232642cb386c4dc9a8333e165b86a3927a"
+        },
+        {
+          "path": "fixtures/synthetic-scenes/survey-v1.json",
+          "sha256": "a3188519f4a57687634ff02283e671f52e767df36cde3c15c2b26b5444c068cf"
+        }
+      ],
+      "id": "kyberia-original-synthetic-v1",
+      "license": "NOASSERTION",
+      "provenance": "Original synthetic data, evidence_class=synthetic; no vendor datasets or measured captures",
+      "redistribution_status": "Pending project licensing/distribution Gate G; no third-party data redistribution",
+      "source": "Original Kyberia mathematical and semantic fixtures; plan.md sections 7, 8, 9, 16; no captured data",
+      "transformation": "Deterministic canonical JSON from tools/validation/fixtures.py",
+      "update_procedure": "Change versioned generator with independent numerical review; regenerate, test, record new hashes and licensing review",
+      "version": "1"
+    },
+    {
+      "artifacts": [
+        {
+          "path": "fixtures/wifiheatmap-oracle/tin-v1.json",
+          "sha256": "708614f9ab64f2a05ed7ab4bea067aa126a2fbbf5310a4837b82c59ae07ee4a2"
+        }
+      ],
+      "id": "kyberia-original-tin-v1",
+      "license": "NOASSERTION",
+      "provenance": "Original synthetic data, evidence_class=synthetic; no vendor datasets or measured captures",
+      "redistribution_status": "Pending project licensing/distribution Gate G; no third-party data redistribution",
+      "source": "Original points and determinant formula independently constructed from plan.md Appendix I behavioral specification; no upstream source or fixture copied",
+      "transformation": "Deterministic canonical JSON from tools/validation/fixtures.py",
+      "update_procedure": "Change versioned generator with independent numerical review; regenerate, test, record new hashes and licensing review",
+      "version": "1"
+    }
+  ],
+  "schema_version": 1
+}
