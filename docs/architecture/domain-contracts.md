@@ -1,4 +1,4 @@
-# Canonical evidence contracts, version 1
+# Canonical evidence contracts
 
 `crates/domain` is the inward, side-effect-free boundary required by plan sections
 3, 7.1–7.7, 10.5/10.9/10.12/10.16, 11.4–11.6, 14.2–14.5 and Appendix I.
@@ -52,16 +52,55 @@ Omission, null, not measured, not advertised, not applicable, not observable,
 redacted, not retained, failed test and outside support have distinct semantics.
 Unknown has no conversion to a numeric value. `EvidenceClass` distinguishes
 observed, calibrated, inferred, interpolated, extrapolated and simulated derived
-products; the v1 scan/frame payload contains reported evidence only.
+products; scan/frame payloads contain reported evidence only.
 
-`SchemaVersion::V1` serializes as the string `"1"`. Missing required fields and
-unknown versions/enum variants fail deserialization. Additive object members are
+`SchemaVersion::V1` serializes as the string `"1"` for project, capability and
+calibration contracts. Observation envelopes independently use
+`ObservationSchemaVersion::V2`, serialized as `"2"`; adding observation V2 does not
+make other contracts accept V2. Missing required fields and unknown versions/enum
+variants fail deserialization. Additive observation object members are
 ignored and cannot affect existing semantics. A producer must change the schema
 version for semantic additions, new enum variants or changed units; these must
 never be hidden in optional fields. Future-version raw bytes can be retained by
 outer importers without admitting them as validated canonical observations.
-No older wire version existed before v1; tests cover v1 round trips, extra object
-fields, missing fields, and rejection of version 2.
+
+Observation V1 input remains readable. Its required textual upstream version is
+validated and migrated into `Evidence::Known(Text)`. V2 requires an explicit
+`Evidence<Text>` instead. A source such as a database import that lacks the
+producing software version uses `Unknown(SourceDidNotProvide)`. The upstream data
+format version in `source_schema_version` is separate and is never substituted
+for the upstream software version. No other observation fields change in this
+migration. Canonical `EnvelopeData` construction and observation serialization
+support V2 only; only the versioned envelope decoder reads V1.
+
+`DecodedObservation` deserializes the envelope and returns a decoder-generated
+receipt containing input/output schemas, `kyberia-observation/2.0.0` and whether
+migration occurred. `ObservationEnvelope` also supports convenient deserialization
+when the caller does not need the receipt. Imports that persist transformed data
+must keep the receipt with their original artifact reference and immutable bytes.
+The decoder never performs file I/O or overwrites old bytes. Observation identity
+is preserved; serialized byte checksums change when the schema changes. Receipts
+establish which decoder ran, not source authenticity.
+
+Version dispatch validates typed wire fields and checks their shape against the
+explicit schema. V1 with an evidence object and V2 with bare text both fail, as do
+null/missing versions, duplicate known fields, invalid text and future schemas.
+There is no semantic fallback or downgrade writer. The implementation uses Serde
+without a JSON value-tree dependency in the core. Resource limits at the outer
+framing boundary remain necessary before decoding.
+
+Point-survey receipt snapshots independently emit top-level schema `"2"` while
+their capture configuration remains V1. Their decoder accepts the exact original
+untagged V1 shape, converting each textual source version to known evidence and
+revalidating the complete point state. Only absence of the historical top-level
+tag selects that legacy decoder: explicit null, `"1"`, future tags and mixed record
+shapes fail. `DecodedPointSurvey` exposes its own receipt and decoder version
+`kyberia-point-snapshot/2.0.0`. Empty snapshots with no tag are necessarily treated
+as legacy because the historical empty representation has no differing record
+field; this does not bypass state or configuration validation.
+
+See [ADR 0003](ADR/0003-versioned-observation-migration.md) for policy, alternatives,
+fixture provenance and migration validation.
 
 ## Time and spatial uncertainty
 
@@ -248,5 +287,5 @@ These increments implement foundational values, scan/frame/health contracts,
 project hierarchy, two-point calibration and a bounded command/operation model,
 not the complete domain graph. Active, spectrum, GPS and controller payloads,
 analysis jobs, full radio identity graph, RF calibration, metric registry and
-migration policy still require their own reviewed increments. No hardware
+broader migration policies still require their own reviewed increments. No hardware
 availability or RF accuracy claim follows from these contract tests.

@@ -1,0 +1,152 @@
+{
+  "schema_version": "1",
+  "id": "01010101010101010101010101010101",
+  "session_id": "02020202020202020202020202020202",
+  "source": {
+    "source_id": "03030303030303030303030303030303",
+    "collector_id": "04040404040404040404040404040404",
+    "sensor_id": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "adapter_id": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "kind": "synthetic_fixture",
+    "source_name": "independent contract fixture",
+    "source_version": "1",
+    "source_schema_version": "1",
+    "adapter_name": "test",
+    "adapter_version": "0.1.0",
+    "parser_version": "0.1.0",
+    "driver_version": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "os_version": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    }
+  },
+  "time": {
+    "wall": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "monotonic": {
+      "state": "known",
+      "detail": {
+        "epoch": "01010101010101010101010101010101",
+        "nanoseconds": 10
+      }
+    },
+    "synchronization": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    }
+  },
+  "pose": {
+    "state": "unknown",
+    "detail": "source_did_not_provide"
+  },
+  "channel": {
+    "state": "unknown",
+    "detail": "source_did_not_provide"
+  },
+  "dwell": {
+    "state": "unknown",
+    "detail": "source_did_not_provide"
+  },
+  "privacy": {
+    "policy_version": "metadata-v1",
+    "identifiers": "redacted",
+    "payload": {
+      "state": "discarded"
+    }
+  },
+  "quality": [
+    "synthetic_fixture"
+  ],
+  "raw_source": {
+    "state": "unknown",
+    "detail": "source_did_not_provide"
+  },
+  "payload": {
+    "kind": "scan",
+    "data": {
+      "identity": {
+        "physical_device": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "radio": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "bss": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "bssid": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "ess": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "mld": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "link_id": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "client": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "grouping_evidence": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        }
+      },
+      "ssid": {
+        "state": "known",
+        "detail": [
+          255,
+          0,
+          128
+        ]
+      },
+      "signal": {
+        "rssi_dbm": {
+          "state": "known",
+          "detail": -62.5
+        },
+        "noise_dbm": {
+          "state": "unknown",
+          "detail": "not_observable"
+        },
+        "chains": [],
+        "calibration": {
+          "state": "known",
+          "detail": {
+            "state": "uncalibrated"
+          }
+        },
+        "measurement_method": "raw OS scan"
+      },
+      "information_elements": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "result_age": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      }
+    }
+  }
+}

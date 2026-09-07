@@ -1,4 +1,13 @@
 use crate::*;
+mod wire;
+pub use wire::{DecodedPointSurvey, PointSnapshotDecodeReceipt, PointSnapshotInputVersion};
+
+/// Receipt schema evolves independently of the V1 capture configuration.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PointSnapshotSchemaVersion {
+    #[serde(rename = "2")]
+    V2,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -20,7 +29,7 @@ struct ActiveWindow {
 /// Deserialization verifies consistency, not cryptographic source authenticity.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct AcceptedEvidence {
+struct AcceptedEvidence<V = Evidence<Text>> {
     observation_id: ObservationId,
     captured: u64,
     result_age: Option<Seconds>,
@@ -31,15 +40,16 @@ struct AcceptedEvidence {
     pose: Evidence<PoseReference>,
     calibration: Evidence<CalibrationState>,
     raw_source: Evidence<ArtifactReference>,
-    source_version: Text,
+    source_version: V,
     parser_version: Text,
     quality: Vec<QualityFlag>,
     dwell: Option<MonotonicWindow>,
     tuned_frequency: Evidence<Hertz>,
 }
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Snapshot {
+    schema_version: PointSnapshotSchemaVersion,
     config: PointConfig,
     phase: PointPhase,
     started: u64,
@@ -47,8 +57,8 @@ struct Snapshot {
     windows: Vec<ActiveWindow>,
     records: Vec<AcceptedEvidence>,
 }
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "Snapshot", into = "Snapshot")]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(transparent)]
 pub struct PointSurvey(Snapshot);
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct PointProgress {
@@ -68,6 +78,7 @@ impl PointSurvey {
             return Err(SurveyError::WrongClock);
         }
         Ok(Self(Snapshot {
+            schema_version: PointSnapshotSchemaVersion::V2,
             config,
             phase: PointPhase::Capturing,
             started: at.nanoseconds,

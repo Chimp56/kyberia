@@ -19,7 +19,7 @@ fn timestamp(n: u64) -> MonotonicTimestamp {
 }
 fn fixture() -> EnvelopeData {
     EnvelopeData {
-        schema_version: SchemaVersion::V1,
+        schema_version: ObservationSchemaVersion::V2,
         id: ObservationId::from_bytes([1; 16]).unwrap(),
         session_id: SessionId::from_bytes([2; 16]).unwrap(),
         source: SourceDescriptor {
@@ -29,7 +29,7 @@ fn fixture() -> EnvelopeData {
             adapter_id: unknown(),
             kind: SourceKind::SyntheticFixture,
             source_name: text("independent contract fixture"),
-            source_version: text("1"),
+            source_version: Evidence::Known(text("1")),
             source_schema_version: text("1"),
             adapter_name: text("test"),
             adapter_version: text("0.1.0"),
@@ -231,7 +231,7 @@ fn schema_round_trip_additive_compatibility_and_missing_field_rejection() {
         serde_json::from_value::<ObservationEnvelope>(json.clone()).unwrap(),
         envelope
     );
-    json["schema_version"] = serde_json::json!("2");
+    json["schema_version"] = serde_json::json!("3");
     assert!(serde_json::from_value::<ObservationEnvelope>(json).is_err());
     let mut json = serde_json::to_value(&envelope).unwrap();
     json.as_object_mut().unwrap().remove("time");

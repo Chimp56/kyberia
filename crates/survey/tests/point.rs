@@ -95,7 +95,7 @@ fn config() -> PointConfigData {
 fn observation(n: u8, time: u64) -> ObservationEnvelope {
     let cfg = config();
     ObservationEnvelope::new(EnvelopeData {
-        schema_version: SchemaVersion::V1,
+        schema_version: ObservationSchemaVersion::V2,
         id: ObservationId::from_bytes([n; 16]).unwrap(),
         session_id: cfg.session_id,
         source: SourceDescriptor {
@@ -105,7 +105,7 @@ fn observation(n: u8, time: u64) -> ObservationEnvelope {
             adapter_id: unknown(),
             kind: SourceKind::SyntheticFixture,
             source_name: text("fixture"),
-            source_version: text("1"),
+            source_version: Evidence::Known(text("1")),
             source_schema_version: text("1"),
             adapter_name: text("fixture"),
             adapter_version: text("1"),

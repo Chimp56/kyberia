@@ -1,7 +1,16 @@
-//! V1 normalized evidence envelope. Foreign schemas terminate at adapters.
+//! V2 normalized evidence envelope with explicit V1 read migration.
 //! Unknown values retain reasons; derived predictions cannot enter scan payloads.
 use crate::{ValidationError, evidence::*, identity::*, spatial::PoseReference, time::*, units::*};
 use serde::{Deserialize, Serialize};
+mod wire;
+pub use wire::{DecodedObservation, ObservationDecodeReceipt, ObservationInputVersion};
+
+/// Current observation schema only. Other domain contracts retain their own V1.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ObservationSchemaVersion {
+    #[serde(rename = "2")]
+    V2,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -25,7 +34,8 @@ pub struct SourceDescriptor {
     pub adapter_id: Evidence<AdapterId>,
     pub kind: SourceKind,
     pub source_name: Text,
-    pub source_version: Text,
+    /// Upstream software version, distinct from its data format/schema version.
+    pub source_version: Evidence<Text>,
     pub source_schema_version: Text,
     pub adapter_name: Text,
     pub adapter_version: Text,
@@ -192,7 +202,7 @@ pub struct PrivacyState {
 /// cross-field invariants before admitting this data to canonical storage.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EnvelopeData {
-    pub schema_version: SchemaVersion,
+    pub schema_version: ObservationSchemaVersion,
     pub id: ObservationId,
     pub session_id: SessionId,
     pub source: SourceDescriptor,
@@ -206,8 +216,8 @@ pub struct EnvelopeData {
     pub payload: ObservationPayload,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "EnvelopeData", into = "EnvelopeData")]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(transparent)]
 pub struct ObservationEnvelope(EnvelopeData);
 impl ObservationEnvelope {
     pub fn new(data: EnvelopeData) -> Result<Self, ValidationError> {

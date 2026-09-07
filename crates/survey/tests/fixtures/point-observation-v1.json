@@ -1,0 +1,266 @@
+{
+  "schema_version": "1",
+  "id": "01010101010101010101010101010101",
+  "session_id": "01010101010101010101010101010101",
+  "source": {
+    "source_id": "01010101010101010101010101010101",
+    "collector_id": "01010101010101010101010101010101",
+    "sensor_id": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "adapter_id": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "kind": "synthetic_fixture",
+    "source_name": "fixture",
+    "source_version": "1",
+    "source_schema_version": "1",
+    "adapter_name": "fixture",
+    "adapter_version": "1",
+    "parser_version": "1",
+    "driver_version": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "os_version": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    }
+  },
+  "time": {
+    "wall": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "monotonic": {
+      "state": "known",
+      "detail": {
+        "epoch": "01010101010101010101010101010101",
+        "nanoseconds": 500000000
+      }
+    },
+    "synchronization": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    }
+  },
+  "pose": {
+    "state": "known",
+    "detail": {
+      "pose_id": "01010101010101010101010101010101",
+      "frame_id": "01010101010101010101010101010101",
+      "assignment_version": "1",
+      "position": {
+        "x": 1.0,
+        "y": 2.0,
+        "z": 0.0
+      },
+      "covariance": {
+        "state": "known",
+        "detail": [
+          0.01,
+          0.0,
+          0.0,
+          0.01,
+          0.0,
+          0.01
+        ]
+      },
+      "orientation": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "method_version": "manual anchor/v1"
+    }
+  },
+  "channel": {
+    "state": "known",
+    "detail": {
+      "band": {
+        "state": "known",
+        "detail": "ghz2_4"
+      },
+      "primary_channel": {
+        "state": "known",
+        "detail": 1
+      },
+      "primary_frequency": {
+        "state": "known",
+        "detail": 2412000000.0
+      },
+      "center_frequency": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "second_center_frequency": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "width": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "puncturing": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      }
+    }
+  },
+  "dwell": {
+    "state": "known",
+    "detail": {
+      "schedule_id": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "cycle_index": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "tuned_channel": {
+        "band": {
+          "state": "known",
+          "detail": "ghz2_4"
+        },
+        "primary_channel": {
+          "state": "known",
+          "detail": 1
+        },
+        "primary_frequency": {
+          "state": "known",
+          "detail": 2412000000.0
+        },
+        "center_frequency": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "second_center_frequency": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "width": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "puncturing": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        }
+      },
+      "window": {
+        "state": "known",
+        "detail": {
+          "start": {
+            "epoch": "01010101010101010101010101010101",
+            "nanoseconds": 0
+          },
+          "end": {
+            "epoch": "01010101010101010101010101010101",
+            "nanoseconds": 500000000
+          }
+        }
+      },
+      "reported_duration": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "method_version": "actual dwell fixture"
+    }
+  },
+  "privacy": {
+    "policy_version": "fixture",
+    "identifiers": "project_pseudonymized",
+    "payload": {
+      "state": "discarded"
+    }
+  },
+  "quality": [
+    "synthetic_fixture"
+  ],
+  "raw_source": {
+    "state": "unknown",
+    "detail": "source_did_not_provide"
+  },
+  "payload": {
+    "kind": "scan",
+    "data": {
+      "identity": {
+        "physical_device": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "radio": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "bss": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "bssid": {
+          "state": "known",
+          "detail": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "ess": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "mld": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "link_id": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "client": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "grouping_evidence": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        }
+      },
+      "ssid": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "signal": {
+        "rssi_dbm": {
+          "state": "known",
+          "detail": -60.0
+        },
+        "noise_dbm": {
+          "state": "unknown",
+          "detail": "not_observable"
+        },
+        "chains": [],
+        "calibration": {
+          "state": "known",
+          "detail": {
+            "state": "uncalibrated"
+          }
+        },
+        "measurement_method": "fixture"
+      },
+      "information_elements": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "result_age": {
+        "state": "known",
+        "detail": 0.0
+      }
+    }
+  }
+}
