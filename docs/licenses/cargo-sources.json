@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "All resolved targets and development dependencies; not a shipped-binary SBOM",
-  "cargo_lock_sha256": "edd3e7d1f04aa069380d06b8f0d9e4852d27eb0570621b5a4ac05a4b51ccc68b",
+  "cargo_lock_sha256": "0a4a9aee763a2c507996ab222bb21d72907e8afe1221871e8d297dc0f1cd5dd3",
   "packages": [
     {
       "name": "autocfg",
@@ -94,6 +94,18 @@
       "repository": "https://github.com/rust-lang/cfg-if",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "circular",
+      "version": "0.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/sozu-proxy/circular",
+      "license_declared": "MIT",
+      "archive_sha256": "b0fc239e0f6cb375d2402d48afb92f76f5404fd1df208a41930ec81eda078bea",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -400,6 +412,18 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "nom",
+      "version": "8.0.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rust-bakery/nom",
+      "license_declared": "MIT",
+      "archive_sha256": "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "num-traits",
       "version": "0.2.19",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -418,6 +442,18 @@
       "repository": "https://github.com/matklad/once_cell",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "pcap-parser",
+      "version": "0.17.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rusticata/pcap-parser.git",
+      "license_declared": "MIT/Apache-2.0",
+      "archive_sha256": "1099a3a64b376c536394622c9e5ea8ecfac3e3e44f88857b1e7da114135d3df4",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -610,6 +646,18 @@
       "repository": "https://github.com/rusqlite/rusqlite",
       "license_declared": "MIT",
       "archive_sha256": "23f2a97da3e3873c73cb2a2e71b35c40ff95e0b1eefa8d72d8499a6928c3b5b3",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "rusticata-macros",
+      "version": "5.0.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rusticata/rusticata-macros.git",
+      "license_declared": "MIT/Apache-2.0",
+      "archive_sha256": "f40620447734539bcc6c64e9c66fed2410e17b46986733f1090c922d85f7105b",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",

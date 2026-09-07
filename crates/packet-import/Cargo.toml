@@ -1,0 +1,13 @@
+[package]
+name = "kyberia-packet-import"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kyberia-domain = { path = "../domain" }
+pcap-parser = "=0.17.0"
+sha2 = "=0.10.9"
+
+[lints]
+workspace = true
