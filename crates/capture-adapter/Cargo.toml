@@ -1,0 +1,19 @@
+[package]
+name = "kyberia-capture-adapter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kyberia-domain = { path = "../domain" }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
+base64 = "=0.22.1"
+time = { version = "=0.3.55", default-features = false, features = ["parsing"] }
+sha2 = "=0.10.9"
+
+[dev-dependencies]
+proptest = "=1.10.0"
+
+[lints]
+workspace = true

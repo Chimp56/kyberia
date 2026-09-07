@@ -1,0 +1,572 @@
+//! CoreWLAN NDJSON v1 boundary. Decode the complete bounded stream before publication.
+pub use crate::wire::TerminalStatus;
+use crate::{Error, ErrorKind as K, Result, check, wire::*};
+use base64::{Engine, engine::general_purpose::STANDARD};
+use kyberia_domain::{capability::*, evidence::*, identity::*, observation::*, time::*, units::*};
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::collections::{BTreeMap, BTreeSet};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+pub const PROTOCOL: &str = "kyberia.macos.collector/1";
+pub const MAX_RECORD_BYTES: usize = 16_384;
+pub const MAX_RECORDS: usize = 4_164;
+pub const MAX_STREAM_BYTES: usize = MAX_RECORD_BYTES * MAX_RECORDS;
+pub const ADAPTER_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[derive(Clone, Debug)]
+struct Record {
+    time: Receipt,
+    raw: ArtifactReference,
+    bytes: Vec<u8>,
+    body: Body,
+}
+/// Source process receipt clocks; these are never over-the-air capture clocks.
+#[derive(Clone, Debug)]
+struct Receipt {
+    utc: UtcTimestamp,
+    nanos: u64,
+    precision: Seconds,
+}
+/// Validated wire evidence. Private construction prevents bypassing the decoder.
+#[derive(Clone, Debug)]
+pub struct DecodedStream {
+    session: String,
+    records: Vec<Record>,
+}
+impl DecodedStream {
+    pub fn process_session(&self) -> &str {
+        &self.session
+    }
+    pub fn source_keys(&self) -> impl Iterator<Item = &str> {
+        self.records
+            .iter()
+            .filter_map(|r| {
+                if let Body::Capabilities(c) = &r.body {
+                    Some(c)
+                } else {
+                    None
+                }
+            })
+            .flat_map(|c| c.sources.iter().map(|s| s.source.source_id.as_str()))
+    }
+    pub fn observation_keys(&self) -> impl Iterator<Item = &str> {
+        self.records.iter().filter_map(|r| {
+            if let Body::ScanObservation(s) = &r.body {
+                Some(s.observation_id.as_str())
+            } else {
+                None
+            }
+        })
+    }
+}
+fn text(value: &str) -> Result<Text> {
+    check(value.len() <= 256, K::InvalidField("text length"))?;
+    Text::new(value).map_err(|_| Error::new(K::InvalidField("text")))
+}
+fn uuid(value: &str) -> Result<()> {
+    check(
+        value.len() == 36
+            && value.bytes().enumerate().all(|(i, b)| {
+                if [8, 13, 18, 23].contains(&i) {
+                    b == b'-'
+                } else {
+                    b.is_ascii_digit() || (b'a'..=b'f').contains(&b)
+                }
+            })
+            && value.bytes().any(|b| b != b'0' && b != b'-'),
+        K::InvalidField("uuid"),
+    )
+}
+fn decimal(value: &str) -> Result<u64> {
+    check(
+        !value.is_empty()
+            && value.len() <= 20
+            && value.bytes().all(|b| b.is_ascii_digit())
+            && (value == "0" || !value.starts_with('0')),
+        K::InvalidField("monotonic"),
+    )?;
+    value
+        .parse()
+        .map_err(|_| Error::new(K::InvalidField("monotonic")))
+}
+fn only_unknown(value: &E<Never>, reason: Reason) -> Result<()> {
+    check(
+        matches!(value,E::Unknown{reason:r} if *r==reason),
+        K::InvalidField("unknown evidence reason"),
+    )
+}
+fn receipt(t: Time) -> Result<Receipt> {
+    only_unknown(&t.capture_time, Reason::SourceDidNotProvide)?;
+    only_unknown(&t.clock_uncertainty_seconds, Reason::NotCalibrated)?;
+    // Native ISO8601DateFormatter emits milliseconds, UTC, and no leap seconds.
+    // Reject precision loss, offset ambiguity, and time's leap-second normalization.
+    let b = t.receipt_utc.as_bytes();
+    check(
+        b.len() == 24 && b[10] == b'T' && b[19] == b'.' && b[23] == b'Z' && &b[17..19] != b"60",
+        K::InvalidField("receipt UTC"),
+    )?;
+    let parsed = OffsetDateTime::parse(&t.receipt_utc, &Rfc3339)
+        .map_err(|_| Error::new(K::InvalidField("receipt UTC")))?;
+    let nanos = i64::try_from(parsed.unix_timestamp_nanos())
+        .map_err(|_| Error::new(K::InvalidField("receipt UTC range")))?;
+    Ok(Receipt {
+        utc: UtcTimestamp(nanos),
+        nanos: decimal(&t.receipt_monotonic_ns)?,
+        precision: Seconds::new(0.001).map_err(|_| Error::new(K::Canonical))?,
+    })
+}
+fn take<T: for<'de> Deserialize<'de>>(
+    m: &mut serde_json::Map<String, serde_json::Value>,
+    key: &'static str,
+) -> Result<T> {
+    serde_json::from_value(
+        m.remove(key)
+            .ok_or_else(|| Error::new(K::InvalidField(key)))?,
+    )
+    .map_err(|_| Error::new(K::InvalidField(key)))
+}
+/// Validates complete process sequencing, provenance, privacy and scientific meaning.
+/// This slice API performs no blocking reads. Transport deadlines belong to its caller.
+pub fn decode(data: &[u8]) -> Result<DecodedStream> {
+    check(
+        !data.is_empty() && data.len() <= MAX_STREAM_BYTES,
+        K::SizeLimit,
+    )?;
+    check(data.ends_with(b"\n"), K::Truncated)?;
+    let mut records = Vec::new();
+    let mut session = String::new();
+    for (index, line) in data.split_inclusive(|b| *b == b'\n').enumerate() {
+        let one = (|| {
+            check(index < MAX_RECORDS, K::RecordLimit)?;
+            check(line.len() <= MAX_RECORD_BYTES, K::SizeLimit)?;
+            let serde_json::Value::Object(mut object) = crate::json::decode(line)? else {
+                return Err(Error::new(K::InvalidJson));
+            };
+            check(
+                take::<String>(&mut object, "protocol")? == PROTOCOL,
+                K::UnsupportedProtocol,
+            )?;
+            check(
+                take::<u64>(&mut object, "sequence")? == index as u64,
+                K::Sequence,
+            )?;
+            let id = take::<String>(&mut object, "session_id")?;
+            uuid(&id)?;
+            if index == 0 {
+                session = id.clone();
+            }
+            check(id == session, K::Provenance)?;
+            let time = receipt(take(&mut object, "time")?)?;
+            let body = serde_json::from_value(serde_json::Value::Object(object))
+                .map_err(|_| Error::new(K::InvalidField("record body")))?;
+            let raw = ArtifactReference {
+                sha256: ContentHash::from_sha256(Sha256::digest(line).into()),
+                media_type: text("application/x-ndjson")?,
+                byte_length: line.len() as u64,
+            };
+            Ok(Record {
+                time,
+                raw,
+                bytes: line.to_vec(),
+                body,
+            })
+        })()
+        .map_err(|mut e: Error| {
+            e.record = Some(index);
+            e
+        })?;
+        records.push(one);
+    }
+    let stream = DecodedStream { session, records };
+    validate(&stream)?;
+    Ok(stream)
+}
+fn source(s: &Source, h: &Hello, session: &str) -> Result<()> {
+    check(
+        s.collector == h.collector
+            && s.collector_version == h.collector_version
+            && s.collector_build == h.collector_build
+            && s.os_version == h.os_version,
+        K::Provenance,
+    )?;
+    check(
+        s.source_kind == "native_api"
+            && s.source_schema == PROTOCOL
+            && s.source_api == "CoreWLAN.CWInterface.scanForNetworks"
+            && s.identity_scope == "collector_process_and_interface",
+        K::Provenance,
+    )?;
+    check(
+        !s.interface_name.is_empty()
+            && s.interface_name.len() <= 64
+            && s.interface_name
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_')
+            && s.source_id == format!("{session}:{}", s.interface_name),
+        K::Provenance,
+    )?;
+    text(&s.framework_version)?;
+    for value in [&s.physical_radio_id, &s.driver_version, &s.firmware_version] {
+        only_unknown(value, Reason::SourceDidNotProvide)?;
+    }
+    Ok(())
+}
+fn mac(value: &str) -> Result<MacAddress> {
+    check(value.len() == 17, K::InvalidField("bssid"))?;
+    let mut bytes = [0; 6];
+    let mut pieces = value.split(':');
+    for b in &mut bytes {
+        let p = pieces
+            .next()
+            .ok_or_else(|| Error::new(K::InvalidField("bssid")))?;
+        check(
+            p.len() == 2 && p.bytes().all(|b| b.is_ascii_hexdigit()),
+            K::InvalidField("bssid"),
+        )?;
+        *b = u8::from_str_radix(p, 16).map_err(|_| Error::new(K::InvalidField("bssid")))?;
+    }
+    check(
+        pieces.next().is_none() && bytes != [0; 6] && bytes[0] & 1 == 0,
+        K::InvalidField("bssid"),
+    )?;
+    Ok(MacAddress(bytes))
+}
+fn ssid(value: &str) -> Result<Ssid> {
+    check(value.len() <= 44, K::InvalidField("ssid"))?;
+    let bytes = STANDARD
+        .decode(value)
+        .map_err(|_| Error::new(K::InvalidField("ssid base64")))?;
+    check(!bytes.is_empty(), K::InvalidField("empty source SSID"))?;
+    Ssid::new(bytes).map_err(|_| Error::new(K::InvalidField("ssid length")))
+}
+fn known<T>(v: &E<T>) -> Option<&T> {
+    if let E::Known { value } = v {
+        Some(value)
+    } else {
+        None
+    }
+}
+fn channel(c: &E<Channel>) -> Result<()> {
+    let E::Known { value: c } = c else {
+        return Ok(());
+    };
+    check(
+        known(&c.reported_channel_number).is_none_or(|v| *v > 0),
+        K::InvalidField("channel"),
+    )?;
+    let band = match c.raw_band_enum {
+        1 => Some("2.4_ghz"),
+        2 => Some("5_ghz"),
+        3 => Some("6_ghz"),
+        _ => None,
+    };
+    check(
+        known(&c.band).map(String::as_str) == band,
+        K::InvalidField("band enum"),
+    )?;
+    let width = match c.raw_width_enum {
+        1 => Some(20),
+        2 => Some(40),
+        3 => Some(80),
+        4 => Some(160),
+        _ => None,
+    };
+    check(
+        known(&c.width_mhz).copied() == width,
+        K::InvalidField("width enum"),
+    )?;
+    for v in [&c.frequency_hz, &c.center_frequency_hz, &c.puncturing] {
+        only_unknown(v, Reason::SourceDidNotProvide)?;
+    }
+    Ok(())
+}
+struct ScanState<'a> {
+    source: &'a str,
+    started: u64,
+    start_event_receipt: u64,
+    completed: Option<u64>,
+}
+
+fn validate(s: &DecodedStream) -> Result<()> {
+    let Some(Record {
+        body: Body::Hello(h),
+        ..
+    }) = s.records.first()
+    else {
+        return Err(Error::new(K::Sequence));
+    };
+    let mut caps: Option<&Capabilities> = None;
+    let mut auth: Option<&Authorization> = None;
+    let mut sources = BTreeMap::new();
+    let mut scans = BTreeMap::new();
+    let mut observations = BTreeSet::new();
+    let mut ended = false;
+    let mut previous = 0;
+    for (index, r) in s.records.iter().enumerate() {
+        (|| {
+            check(!ended && r.time.nanos >= previous, K::Sequence)?;
+            previous = r.time.nanos;
+            match &r.body {
+                Body::Hello(h) => {
+                    check(
+                        index == 0
+                            && h.collector == "kyberia-macos-corewlan"
+                            && h.clock_epoch == s.session,
+                        K::Provenance,
+                    )?;
+                    check(
+                        h.collector_build.len() == 71
+                            && h.collector_build.starts_with("sha256:")
+                            && h.collector_build[7..]
+                                .bytes()
+                                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),
+                        K::Provenance,
+                    )?;
+                    text(&h.collector_version)?;
+                    text(&h.os_version)?;
+                    check(
+                        (1..=4096).contains(&h.max_observations)
+                            && h.max_record_bytes == MAX_RECORD_BYTES as u32
+                            && (1..=60).contains(&h.timeout_seconds),
+                        K::SizeLimit,
+                    )?;
+                }
+                Body::Capabilities(c) => {
+                    check(
+                        caps.is_none() && h.command != Command::Authorize,
+                        K::Sequence,
+                    )?;
+                    check(c.sources.len() <= 32, K::SizeLimit)?;
+                    for entry in &c.sources {
+                        source(&entry.source, h, &s.session)?;
+                        check(
+                            sources
+                                .insert(entry.source.source_id.as_str(), entry)
+                                .is_none(),
+                            K::Provenance,
+                        )?;
+                        check(entry.reported_band_enums.len() <= 256, K::SizeLimit)?;
+                        // Zero supported channels is valid, distinct from unknown.
+                        let _ = &entry.supported_channel_count;
+                    }
+                    let available = c.location_services_enabled
+                        && c.location_authorization == AuthorizationState::Authorized
+                        && c.sources.iter().any(|e| e.power_on);
+                    check(
+                        c.nearby_scan.state
+                            == if available {
+                                "available"
+                            } else {
+                                "unavailable"
+                            },
+                        K::Capability,
+                    )?;
+                    for offer in [&c.nearby_scan, &c.noise_dbm, &c.channel_width] {
+                        text(&offer.condition)?;
+                    }
+                    check(
+                        c.noise_dbm.state == "conditional"
+                            && c.channel_width.state == "conditional"
+                            && c.raw_payload_policy == "discard",
+                        K::Capability,
+                    )?;
+                    for e in [&c.monitor_frames, &c.channel_hopping_control] {
+                        only_unknown(e, Reason::NotSupportedByCollector)?;
+                    }
+                    for e in [&c.channel_dwell, &c.per_chain_signal, &c.capture_timestamp] {
+                        only_unknown(e, Reason::SourceDidNotProvide)?;
+                    }
+                    only_unknown(&c.phy_metadata, Reason::NotImplementedByCollector)?;
+                    only_unknown(&c.position, Reason::NotCollected)?;
+                    caps = Some(c);
+                }
+                Body::Authorization(a) => {
+                    check(
+                        h.command == Command::Authorize
+                            && index == 1
+                            && a.requested_by_operator
+                            && a.prompt_requested
+                                == (a.location_services_enabled
+                                    && a.state == AuthorizationState::NotDetermined),
+                        K::Sequence,
+                    )?;
+                    auth = Some(a);
+                }
+                Body::ScanStarted(start) => {
+                    check(
+                        h.command == Command::Scan
+                            && caps.is_some_and(|c| c.nearby_scan.state == "available"),
+                        K::Capability,
+                    )?;
+                    uuid(&start.scan_id)?;
+                    check(
+                        sources
+                            .get(start.source_id.as_str())
+                            .is_some_and(|s: &&ListedSource| s.power_on),
+                        K::Provenance,
+                    )?;
+                    let begin = decimal(&start.api_started_monotonic_ns)?;
+                    check(
+                        !start.include_hidden
+                            && begin <= r.time.nanos
+                            && scans
+                                .insert(
+                                    start.scan_id.as_str(),
+                                    ScanState {
+                                        source: start.source_id.as_str(),
+                                        started: begin,
+                                        start_event_receipt: r.time.nanos,
+                                        completed: None,
+                                    },
+                                )
+                                .is_none(),
+                        K::Sequence,
+                    )?;
+                }
+                Body::ScanObservation(o) => {
+                    check(h.command == Command::Scan, K::Sequence)?;
+                    uuid(&o.scan_id)?;
+                    uuid(&o.observation_id)?;
+                    check(
+                        observations.insert(o.observation_id.as_str())
+                            && observations.len() <= usize::from(h.max_observations),
+                        K::Sequence,
+                    )?;
+                    source(&o.source, h, &s.session)?;
+                    let begin = decimal(&o.api_window.start_monotonic_ns)?;
+                    let end = decimal(&o.api_window.end_monotonic_ns)?;
+                    let scan = scans
+                        .get_mut(o.scan_id.as_str())
+                        .ok_or_else(|| Error::new(K::Sequence))?;
+                    // The native producer emits scan_started before the API call,
+                    // then reuses one completion reading for every returned network.
+                    check(
+                        scan.source == o.source.source_id
+                            && scan.started == begin
+                            && begin <= end
+                            && scan.start_event_receipt <= end
+                            && end <= r.time.nanos
+                            && scan.completed.is_none_or(|previous| previous == end),
+                        K::Sequence,
+                    )?;
+                    scan.completed = Some(end);
+                    check(
+                        sources
+                            .get(o.source.source_id.as_str())
+                            .is_some_and(|s| s.source == o.source),
+                        K::Provenance,
+                    )?;
+                    check(
+                        o.evidence_class == "observed_api_result"
+                            && o.calibration == "uncalibrated"
+                            && o.measurement_method
+                                == "CoreWLAN.CWNetwork.rssiValue/noiseMeasurement",
+                        K::Provenance,
+                    )?;
+                    check(
+                        o.quality
+                            == [
+                                "capture_time_unknown",
+                                "scan_cache_age_unknown",
+                                "uncalibrated",
+                                "dwell_unknown",
+                            ],
+                        K::Provenance,
+                    )?;
+                    if let Some(b) = known(&o.bssid) {
+                        mac(b)?;
+                    }
+                    if let Some(b) = known(&o.ssid_octets_base64) {
+                        ssid(b)?;
+                    }
+                    if h.identifier_policy == Policy::Redacted {
+                        check(
+                            matches!(
+                                o.bssid,
+                                E::Unknown {
+                                    reason: Reason::Redacted
+                                }
+                            ) && matches!(
+                                o.ssid_octets_base64,
+                                E::Unknown {
+                                    reason: Reason::Redacted
+                                }
+                            ),
+                            K::Privacy,
+                        )?;
+                    }
+                    for v in [&o.rssi_dbm, &o.noise_dbm] {
+                        check(
+                            known(v).is_none_or(|n| (-200..=-1).contains(n)),
+                            K::InvalidField("dBm"),
+                        )?;
+                    }
+                    channel(&o.channel)?;
+                    for v in [&o.result_age_seconds, &o.dwell_seconds] {
+                        only_unknown(v, Reason::SourceDidNotProvide)?;
+                    }
+                    only_unknown(&o.phy, Reason::NotImplementedByCollector)?;
+                    only_unknown(&o.position, Reason::NotCollected)?;
+                    only_unknown(&o.information_elements, Reason::NotRetainedByCollector)?;
+                }
+                Body::Complete(c) => {
+                    text(&c.reason)?;
+                    check(
+                        usize::from(c.observation_count) == observations.len()
+                            && c.partial
+                                == (c.status != TerminalStatus::Ok && !observations.is_empty()),
+                        K::Sequence,
+                    )?;
+                    if let Some(d) = &c.native_error_domain {
+                        text(d)?;
+                    }
+                    check(
+                        c.native_error_domain.is_some() == c.native_error_code.is_some()
+                            && (c.native_error_code.is_none() || c.status == TerminalStatus::Error),
+                        K::InvalidField("native error"),
+                    )?;
+                    check(
+                        c.final_authorization.is_some()
+                            == c.final_location_services_enabled.is_some()
+                            && (c.final_authorization.is_none() || h.command == Command::Authorize),
+                        K::Sequence,
+                    )?;
+                    if c.status == TerminalStatus::Ok {
+                        match h.command {
+                            Command::Probe => check(caps.is_some(), K::Sequence)?,
+                            Command::Scan => check(
+                                !scans.is_empty()
+                                    && caps.is_some_and(|c| c.nearby_scan.state == "available"),
+                                K::Sequence,
+                            )?,
+                            Command::Authorize => check(
+                                auth.is_some_and(|a| {
+                                    a.location_services_enabled
+                                        && (a.state == AuthorizationState::Authorized
+                                            || a.prompt_requested)
+                                }) && c.reason == "location_authorized"
+                                    && c.final_authorization
+                                        == Some(AuthorizationState::Authorized)
+                                    && c.final_location_services_enabled == Some(true),
+                                K::Capability,
+                            )?,
+                        }
+                    }
+                    ended = true;
+                }
+            }
+            Ok(())
+        })()
+        .map_err(|mut e: Error| {
+            e.record = Some(index);
+            e
+        })?;
+    }
+    check(ended, K::Incomplete)
+}
+
+mod normalize;
+pub use normalize::{
+    Completion, MappingContext, NormalizedCapture, ObservationMapping, SourceMapping, SourceRecord,
+    normalize,
+};

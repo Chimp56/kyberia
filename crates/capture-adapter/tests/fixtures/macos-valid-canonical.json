@@ -1,0 +1,245 @@
+{
+  "schema_version": "1",
+  "envelope": {
+    "schema_version": "2",
+    "id": "08080808080808080808080808080808",
+    "session_id": "01010101010101010101010101010101",
+    "source": {
+      "source_id": "04040404040404040404040404040404",
+      "collector_id": "02020202020202020202020202020202",
+      "sensor_id": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "adapter_id": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "kind": "synthetic_fixture",
+      "source_name": "CoreWLAN.CWInterface.scanForNetworks",
+      "source_version": {
+        "state": "known",
+        "detail": "synthetic-framework"
+      },
+      "source_schema_version": "kyberia.macos.collector/1",
+      "adapter_name": "kyberia-macos-corewlan",
+      "adapter_version": "0.1.0",
+      "parser_version": "kyberia-capture-adapter/0.1.0",
+      "driver_version": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "os_version": {
+        "state": "known",
+        "detail": "synthetic-macos-fixture"
+      }
+    },
+    "time": {
+      "wall": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "monotonic": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      },
+      "synchronization": {
+        "state": "unknown",
+        "detail": "source_did_not_provide"
+      }
+    },
+    "pose": {
+      "state": "unknown",
+      "detail": "not_measured"
+    },
+    "channel": {
+      "state": "known",
+      "detail": {
+        "band": {
+          "state": "known",
+          "detail": "ghz6"
+        },
+        "primary_channel": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "primary_frequency": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "center_frequency": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "second_center_frequency": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        },
+        "width": {
+          "state": "unknown",
+          "detail": "unsupported_capability"
+        },
+        "puncturing": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        }
+      }
+    },
+    "dwell": {
+      "state": "unknown",
+      "detail": "source_did_not_provide"
+    },
+    "privacy": {
+      "policy_version": "test-policy/1",
+      "identifiers": "explicit_research_consent",
+      "payload": {
+        "state": "discarded"
+      }
+    },
+    "quality": [
+      "clock_uncertain",
+      "synthetic_fixture"
+    ],
+    "raw_source": {
+      "state": "known",
+      "detail": {
+        "sha256": "f8dbf15fabe922f1aa9a372b2479cb816113dd5e9e8983f3c32a14fbc1f7e2df",
+        "media_type": "application/x-ndjson",
+        "byte_length": 2510
+      }
+    },
+    "payload": {
+      "kind": "scan",
+      "data": {
+        "identity": {
+          "physical_device": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          },
+          "radio": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          },
+          "bss": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          },
+          "bssid": {
+            "state": "known",
+            "detail": [
+              2,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "ess": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          },
+          "mld": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          },
+          "link_id": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          },
+          "client": {
+            "state": "unknown",
+            "detail": "not_applicable"
+          },
+          "grouping_evidence": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          }
+        },
+        "ssid": {
+          "state": "known",
+          "detail": [
+            116,
+            101,
+            115,
+            116,
+            45,
+            111,
+            110,
+            108,
+            121
+          ]
+        },
+        "signal": {
+          "rssi_dbm": {
+            "state": "known",
+            "detail": -61.0
+          },
+          "noise_dbm": {
+            "state": "unknown",
+            "detail": "source_did_not_provide"
+          },
+          "chains": [],
+          "calibration": {
+            "state": "known",
+            "detail": {
+              "state": "uncalibrated"
+            }
+          },
+          "measurement_method": "CoreWLAN.CWNetwork.rssiValue/noiseMeasurement"
+        },
+        "information_elements": {
+          "state": "unknown",
+          "detail": "not_retained"
+        },
+        "result_age": {
+          "state": "unknown",
+          "detail": "source_did_not_provide"
+        }
+      }
+    }
+  },
+  "source_response": {
+    "state": "known",
+    "detail": {
+      "returned_at": {
+        "wall": {
+          "state": "known",
+          "detail": {
+            "time": 1788739200000000000,
+            "source": "CoreWLAN collector Foundation.Date result receipt",
+            "precision": 0.001,
+            "uncertainty": {
+              "state": "unknown",
+              "detail": "not_measured"
+            }
+          }
+        },
+        "monotonic": {
+          "state": "known",
+          "detail": {
+            "epoch": "03030303030303030303030303030303",
+            "nanoseconds": 4000
+          }
+        },
+        "synchronization": {
+          "state": "unknown",
+          "detail": "clock_unavailable"
+        }
+      },
+      "api_window": {
+        "state": "known",
+        "detail": {
+          "start": {
+            "epoch": "03030303030303030303030303030303",
+            "nanoseconds": 2900
+          },
+          "end": {
+            "epoch": "03030303030303030303030303030303",
+            "nanoseconds": 3500
+          }
+        }
+      }
+    }
+  }
+}
