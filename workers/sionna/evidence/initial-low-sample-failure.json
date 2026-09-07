@@ -1,0 +1,1900 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "runtime",
+  "scope": "empty_space_cpu_proof",
+  "created_utc": "2026-09-07T06:09:55.249958+00:00",
+  "command": [
+    "workers/sionna/acceptance.py",
+    "--output",
+    "workers/sionna/evidence/cpu-proof.json"
+  ],
+  "status": "FAIL",
+  "jobs": [
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "cpu-probe",
+        "operation": "capabilities"
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "cpu-probe",
+        "request_sha256": "b8f531050c549a9c8c0861fa4db9ff085c04ca07b5a04bea9ff8788776d4fa4b",
+        "started_utc": "2026-09-07T06:09:55.250107+00:00",
+        "ended_utc": "2026-09-07T06:09:56.103094+00:00",
+        "elapsed_s": 0.8527658749953844,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 60,
+          "cpu_s": 30,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "request_id": "cpu-probe",
+          "request_sha256": "b8f531050c549a9c8c0861fa4db9ff085c04ca07b5a04bea9ff8788776d4fa4b",
+          "schema_version": 1,
+          "status": "completed",
+          "versions": {
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "worker": "0.1.0"
+          }
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx1",
+            "position_m": [
+              1,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx5",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx10",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "b196999c89c5ce8853558af555ecde71f36c00ae8ffede3598a4ac56efb1ceae",
+        "started_utc": "2026-09-07T06:09:56.103298+00:00",
+        "ended_utc": "2026-09-07T06:09:56.912693+00:00",
+        "elapsed_s": 0.809071458003018,
+        "returncode": 0,
+        "log_sha256": "cee6d235b1043fd88201d5c0bdaba736ae05d1ebdd6b58e0a28575a6fe331407",
+        "log": "jit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/e18c5d94cb9a480e5df46b7b762aea29.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/fc6c81d5ba95c0912c6b9165f7941cdb.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/249e9bdd6d6dafef52af663195ae61f2.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/80797556f2b35dfedbfbcef20f864d38.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/64ef530f0c57216073a33d68a7857027.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/752d583501d91bfc5b0794f01f084529.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/c50c95de33880c90ac0376df2f40cb02.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/5df4f65838d87370e10e9e2e74cd862c.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/cc732f58ca34b3897d2197051d93ab75.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/7dd69124c11a238ef3de1e4876ddd137.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/729500ffbda879f009613dcbe02ea7a6.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/36b8cedf08d433fc9f1c8295b7a84f00.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/b82797ecaaeb4f79073a684e67b8a7ba.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/0bdf1218d0dca492023e765d7b40a99e.llvm.bin.tmp\": Operation not permitted\n",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              3,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0003458420105744153
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00034413684625178576
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00033892987994477153
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        0.009934283792972565
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0019580486696213484
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0009344638092443347
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              3,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640874624346e-09
+                ]
+              ],
+              [
+                [
+                  1.6678203706987915e-08
+                ]
+              ],
+              [
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    9.880960715236142e-05
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    3.952384759031702e-06
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    9.880961897579255e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              3,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx1",
+              "rx5",
+              "rx10"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "96316d6d7a2226ca768ce56e4fac278bffd4729d311daa65df8be2aca2c8f1aa",
+          "elapsed_engine_s": 0.12958720797905698,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "b196999c89c5ce8853558af555ecde71f36c00ae8ffede3598a4ac56efb1ceae",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 5200000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx1",
+            "position_m": [
+              1,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx5",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx10",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "0a158405addae236e19d6d8fcbc72d9fdf526f89d48bba4f19668729e8abce03",
+        "started_utc": "2026-09-07T06:09:56.912943+00:00",
+        "ended_utc": "2026-09-07T06:09:57.717496+00:00",
+        "elapsed_s": 0.8042149579850957,
+        "returncode": 0,
+        "log_sha256": "171da26569e99926d8360d99714883b8d7a4c08863c6d6a6d9a32a6bbaef03d3",
+        "log": "jit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/e18c5d94cb9a480e5df46b7b762aea29.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/fc6c81d5ba95c0912c6b9165f7941cdb.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/249e9bdd6d6dafef52af663195ae61f2.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/80797556f2b35dfedbfbcef20f864d38.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/64ef530f0c57216073a33d68a7857027.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/752d583501d91bfc5b0794f01f084529.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/c50c95de33880c90ac0376df2f40cb02.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/5df4f65838d87370e10e9e2e74cd862c.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/cc732f58ca34b3897d2197051d93ab75.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/0d08fa6c390934413aa539cb6b51dbb1.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/729500ffbda879f009613dcbe02ea7a6.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/36b8cedf08d433fc9f1c8295b7a84f00.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/4f3177e19114131133e83a827cc77919.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/c762aa7b6612dd7497dc0219f08e7bd1.llvm.bin.tmp\": Operation not permitted\n",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              3,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0037890870589762926
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0009077143622562289
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00013265937741380185
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0025867002550512552
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00013409920211415738
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00043918497976846993
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              3,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640874624346e-09
+                ]
+              ],
+              [
+                [
+                  1.6678203706987915e-08
+                ]
+              ],
+              [
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    2.104820123349782e-05
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    8.419278287874477e-07
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    2.1048192877515248e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              3,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx1",
+              "rx5",
+              "rx10"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "46017ab1ba84799dfc71fcc9de6e6e4a34d8762239fd9eb87940bf3a1ad96bbd",
+          "elapsed_engine_s": 0.13083645899314433,
+          "frequency_hz": 5200000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "0a158405addae236e19d6d8fcbc72d9fdf526f89d48bba4f19668729e8abce03",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 6500000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx1",
+            "position_m": [
+              1,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx5",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx10",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "834a63a50acd704b5652afd9f43b2a3bf37afdd1d17e1e9cf19868bba259bd27",
+        "started_utc": "2026-09-07T06:09:57.717743+00:00",
+        "ended_utc": "2026-09-07T06:09:58.519828+00:00",
+        "elapsed_s": 0.8017897080280818,
+        "returncode": 0,
+        "log_sha256": "13f9f777c273f8de429adbd54a036aa43afc7f84c0b7df321ae0fae69060e464",
+        "log": "jit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/e18c5d94cb9a480e5df46b7b762aea29.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/fc6c81d5ba95c0912c6b9165f7941cdb.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/249e9bdd6d6dafef52af663195ae61f2.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/80797556f2b35dfedbfbcef20f864d38.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/64ef530f0c57216073a33d68a7857027.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/752d583501d91bfc5b0794f01f084529.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/c50c95de33880c90ac0376df2f40cb02.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/5df4f65838d87370e10e9e2e74cd862c.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/cc732f58ca34b3897d2197051d93ab75.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/4bad32f5b9273c3b4a0a04b6390c9f65.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/729500ffbda879f009613dcbe02ea7a6.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/36b8cedf08d433fc9f1c8295b7a84f00.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/e77879c7e52195ce6db7363cd127dc07.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/5300370e906dbb6208178823f9032b82.llvm.bin.tmp\": Operation not permitted\n",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              3,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0033371064346283674
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0003998179454356432
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0003353226347826421
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0015279294457286596
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0006156131275929511
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.00014922201808076352
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              3,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640874624346e-09
+                ]
+              ],
+              [
+                [
+                  1.6678203706987915e-08
+                ]
+              ],
+              [
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    1.3470847989083268e-05
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    5.388338308875973e-07
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    1.3470848614360875e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              3,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx1",
+              "rx5",
+              "rx10"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "f136d39d7e481ee9548e768f9c52be0deedbfd8011217f5b34107f787c033824",
+          "elapsed_engine_s": 0.13000620901584625,
+          "frequency_hz": 6500000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "834a63a50acd704b5652afd9f43b2a3bf37afdd1d17e1e9cf19868bba259bd27",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "tx1",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx0",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "b3e607ad570eb8a14db67cda687f73ed733413b8b179b099bd2c4a6d99e475fc",
+        "started_utc": "2026-09-07T06:09:58.520088+00:00",
+        "ended_utc": "2026-09-07T06:09:59.344211+00:00",
+        "elapsed_s": 0.8238038750132546,
+        "returncode": 0,
+        "log_sha256": "336b66a7ff03d26875401845a8191d694e4852f7eba2462c025dcef42808568d",
+        "log": "jit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/95f50c48fcd7b34345550ae78ad9663a.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/15778c5c2a4f96f1a499b65155ba4055.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/4ffe819aef0391e7a326d259714ef95d.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/dcdaa39dbd62e697ad103a854fc6f69c.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/752d583501d91bfc5b0794f01f084529.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/5883af385e5a6708c86ab9b1e996dc44.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/9209a102b4e75898687b90f216059a2c.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/cdab513548a55242524decafa18048fb.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/fdfc1be4d5c9ac57ed0417ad43611951.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/729500ffbda879f009613dcbe02ea7a6.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/36b8cedf08d433fc9f1c8295b7a84f00.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/b82797ecaaeb4f79073a684e67b8a7ba.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/0bdf1218d0dca492023e765d7b40a99e.llvm.bin.tmp\": Operation not permitted\n",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              1,
+              1,
+              2,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00033892987994477153
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        -0.00034413684625178576
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0009344638092443347
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        0.0019580486696213484
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              1,
+              2,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640741397583e-08
+                ],
+                [
+                  1.6678203706987915e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ],
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    9.880961897579255e-07
+                  ],
+                  [
+                    3.952384759031702e-06
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              1,
+              1,
+              2,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx0"
+            ],
+            "transmitter_ids": [
+              "tx0",
+              "tx1"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "53f82a49322e005e928a4ee1b1834875c408746ea7ecb7ae949f440d438c534f",
+          "elapsed_engine_s": 0.13364583300426602,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "b3e607ad570eb8a14db67cda687f73ed733413b8b179b099bd2c4a6d99e475fc",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "radio_map",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [],
+        "grid": {
+          "center_m": [
+            0,
+            0,
+            1.5
+          ],
+          "size_m": [
+            8,
+            8
+          ],
+          "cell_size_m": [
+            2,
+            2
+          ]
+        },
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 10000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "af6a52c8fc09aa76d7c9471324d98b7eb55faa8188b5fad5eda204bb535fb749",
+        "started_utc": "2026-09-07T06:09:59.344435+00:00",
+        "ended_utc": "2026-09-07T06:10:00.141999+00:00",
+        "elapsed_s": 0.797250667004846,
+        "returncode": 0,
+        "log_sha256": "1b5a12e437e7a5b904f18cb78fe07297788297a1d83388edd1ed350bd8987e76",
+        "log": "jit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/32e7c378d2a2019cc5879ab5f4e4ef11.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/bc7a3620cc3407e597acdbd24371f5da.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/df95a1c02e2bfc07f3ec9597967bf69a.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/2965c103d7de504a09b6cbc84735e3a3.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/fc3840b3254204e3fb2378fcb749a9a1.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/5ec229ba17bd760576a0551027d2328e.llvm.bin.tmp\": Operation not permitted\n",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "axis_order": [
+              "transmitter",
+              "y",
+              "x"
+            ],
+            "cell_centers_m": [
+              [
+                [
+                  -3.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -3.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  3.0,
+                  1.5
+                ]
+              ]
+            ],
+            "combination": "monte_carlo_cell_average_power",
+            "grid": {
+              "cell_size_m": [
+                2,
+                2
+              ],
+              "center_m": [
+                0,
+                0,
+                1.5
+              ],
+              "size_m": [
+                8,
+                8
+              ]
+            },
+            "kind": "planar_radio_map",
+            "no_data_mask": [
+              [
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ]
+              ]
+            ],
+            "orientation_rad": [
+              0,
+              0,
+              0
+            ],
+            "path_gain": [
+              [
+                [
+                  4.075033302797237e-06,
+                  6.152438800199889e-06,
+                  6.054866389604285e-06,
+                  4.350040399003774e-06
+                ],
+                [
+                  6.215460871317191e-06,
+                  1.1395189176255371e-05,
+                  1.1482737136248033e-05,
+                  6.0276897784206085e-06
+                ],
+                [
+                  6.070141353120562e-06,
+                  1.1565371096367016e-05,
+                  1.1496870683913585e-05,
+                  6.1099790400476195e-06
+                ],
+                [
+                  4.022498615086079e-06,
+                  6.135955118224956e-06,
+                  6.165290869830642e-06,
+                  4.117610842513386e-06
+                ]
+              ]
+            ],
+            "precision": "float32",
+            "shape": [
+              1,
+              4,
+              4
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": "linear_power_ratio"
+          },
+          "data_sha256": "e32cb36ea41fda3e94c7c2bd7f243a20247e7347d159bf7c01f93f83c2605219",
+          "elapsed_engine_s": 0.10028054198483005,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "af6a52c8fc09aa76d7c9471324d98b7eb55faa8188b5fad5eda204bb535fb749",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 10000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "pinned_cpu_backend",
+      "passed": true
+    },
+    {
+      "name": "path_execution_2400000000",
+      "passed": true
+    },
+    {
+      "name": "friis_2400000000",
+      "passed": true,
+      "max_relative_error": 6.955403911717817e-08,
+      "expected": [
+        9.880961210318492e-05,
+        3.952384484127397e-06,
+        9.880961210318492e-07
+      ],
+      "actual": [
+        9.880960715236142e-05,
+        3.952384759031702e-06,
+        9.880961897579255e-07
+      ]
+    },
+    {
+      "name": "absolute_delays_2400000000",
+      "passed": true
+    },
+    {
+      "name": "path_execution_5200000000",
+      "passed": true
+    },
+    {
+      "name": "friis_5200000000",
+      "passed": true,
+      "max_relative_error": 4.046543394458991e-07,
+      "expected": [
+        2.1048201394761286e-05,
+        8.419280557904512e-07,
+        2.104820139476128e-07
+      ],
+      "actual": [
+        2.104820123349782e-05,
+        8.419278287874477e-07,
+        2.1048192877515248e-07
+      ]
+    },
+    {
+      "name": "absolute_delays_5200000000",
+      "passed": true
+    },
+    {
+      "name": "path_execution_6500000000",
+      "passed": true
+    },
+    {
+      "name": "friis_6500000000",
+      "passed": true,
+      "max_relative_error": 2.3164518537801536e-07,
+      "expected": [
+        1.347084889264722e-05,
+        5.388339557058888e-07,
+        1.347084889264722e-07
+      ],
+      "actual": [
+        1.3470847989083268e-05,
+        5.388338308875973e-07,
+        1.3470848614360875e-07
+      ]
+    },
+    {
+      "name": "absolute_delays_6500000000",
+      "passed": true
+    },
+    {
+      "name": "two_transmitter_path_execution",
+      "passed": true
+    },
+    {
+      "name": "per_transmitter_identity_and_gain",
+      "passed": true,
+      "path_gain": [
+        9.880961897579255e-07,
+        3.952384759031702e-06
+      ]
+    },
+    {
+      "name": "map_execution_10000_42",
+      "passed": true
+    },
+    {
+      "name": "map_cell_average_10000_42",
+      "passed": false,
+      "max_relative_error": 0.05324410085200281,
+      "rms_relative_error": 0.016948104319807422
+    }
+  ],
+  "gate_i_passed": false,
+  "tolerances": {
+    "path_relative_error": 1e-05,
+    "delay_relative_error": 1e-05,
+    "same_seed_relative_error": 1e-05,
+    "map_cell_relative_error": 0.05
+  },
+  "open_gates": [
+    "full_upstream_suite",
+    "materials",
+    "refraction",
+    "reflection",
+    "diffraction",
+    "scattering",
+    "antenna_transforms",
+    "multi_floor",
+    "oom",
+    "hard_memory_quota",
+    "remote_artifacts",
+    "field_holdouts",
+    "desktop_without_worker",
+    "production_performance_envelope"
+  ],
+  "runtime": {
+    "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+    "backend": "llvm_ad_mono_polarized",
+    "drjit": "1.3.1",
+    "machine": "arm64",
+    "mitsuba": "3.8.0",
+    "os": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.12.12",
+    "sionna-rt": "2.0.1",
+    "worker": "0.1.0"
+  },
+  "cuda": false,
+  "failure": "AssertionError: map_cell_average_10000_42"
+}

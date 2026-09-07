@@ -1,0 +1,4316 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "runtime",
+  "scope": "empty_space_cpu_proof",
+  "created_utc": "2026-09-07T06:42:31.454941+00:00",
+  "command": [
+    "workers/sionna/acceptance.py",
+    "--output",
+    "workers/sionna/evidence/cpu-proof.json"
+  ],
+  "status": "PASS",
+  "jobs": [
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "cpu-probe",
+        "operation": "capabilities"
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "cpu-probe",
+        "request_sha256": "b8f531050c549a9c8c0861fa4db9ff085c04ca07b5a04bea9ff8788776d4fa4b",
+        "started_utc": "2026-09-07T06:42:31.455107+00:00",
+        "ended_utc": "2026-09-07T06:42:32.259720+00:00",
+        "elapsed_s": 0.8043669170001522,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 60,
+          "cpu_s": 30,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "request_id": "cpu-probe",
+          "request_sha256": "b8f531050c549a9c8c0861fa4db9ff085c04ca07b5a04bea9ff8788776d4fa4b",
+          "schema_version": 1,
+          "status": "completed",
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          }
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx1",
+            "position_m": [
+              1,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx5",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx10",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "b196999c89c5ce8853558af555ecde71f36c00ae8ffede3598a4ac56efb1ceae",
+        "started_utc": "2026-09-07T06:42:32.260342+00:00",
+        "ended_utc": "2026-09-07T06:42:33.054109+00:00",
+        "elapsed_s": 0.7934895830112509,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              3,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0003458420105744153
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00034413684625178576
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00033892987994477153
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        0.009934283792972565
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0019580486696213484
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0009344638092443347
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              3,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640874624346e-09
+                ]
+              ],
+              [
+                [
+                  1.6678203706987915e-08
+                ]
+              ],
+              [
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    9.880960715236142e-05
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    3.952384759031702e-06
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    9.880961897579255e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              3,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx1",
+              "rx5",
+              "rx10"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "96316d6d7a2226ca768ce56e4fac278bffd4729d311daa65df8be2aca2c8f1aa",
+          "elapsed_engine_s": 0.009651458007283509,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "b196999c89c5ce8853558af555ecde71f36c00ae8ffede3598a4ac56efb1ceae",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 5200000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx1",
+            "position_m": [
+              1,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx5",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx10",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "0a158405addae236e19d6d8fcbc72d9fdf526f89d48bba4f19668729e8abce03",
+        "started_utc": "2026-09-07T06:42:33.054744+00:00",
+        "ended_utc": "2026-09-07T06:42:33.875578+00:00",
+        "elapsed_s": 0.8205392499803565,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              3,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0037890870589762926
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0009077143622562289
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00013265937741380185
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0025867002550512552
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00013409920211415738
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00043918497976846993
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              3,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640874624346e-09
+                ]
+              ],
+              [
+                [
+                  1.6678203706987915e-08
+                ]
+              ],
+              [
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    2.104820123349782e-05
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    8.419278287874477e-07
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    2.1048192877515248e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              3,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx1",
+              "rx5",
+              "rx10"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "46017ab1ba84799dfc71fcc9de6e6e4a34d8762239fd9eb87940bf3a1ad96bbd",
+          "elapsed_engine_s": 0.017132416949607432,
+          "frequency_hz": 5200000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "0a158405addae236e19d6d8fcbc72d9fdf526f89d48bba4f19668729e8abce03",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 6500000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx1",
+            "position_m": [
+              1,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx5",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx10",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "834a63a50acd704b5652afd9f43b2a3bf37afdd1d17e1e9cf19868bba259bd27",
+        "started_utc": "2026-09-07T06:42:33.876237+00:00",
+        "ended_utc": "2026-09-07T06:42:34.661401+00:00",
+        "elapsed_s": 0.784873541968409,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              3,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0033371064346283674
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0003998179454356432
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0003353226347826421
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0015279294457286596
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.0006156131275929511
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.00014922201808076352
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              3,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640874624346e-09
+                ]
+              ],
+              [
+                [
+                  1.6678203706987915e-08
+                ]
+              ],
+              [
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    1.3470847989083268e-05
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    5.388338308875973e-07
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    1.3470848614360875e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              3,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx1",
+              "rx5",
+              "rx10"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "f136d39d7e481ee9548e768f9c52be0deedbfd8011217f5b34107f787c033824",
+          "elapsed_engine_s": 0.009312333015259355,
+          "frequency_hz": 6500000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "834a63a50acd704b5652afd9f43b2a3bf37afdd1d17e1e9cf19868bba259bd27",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "tx1",
+            "position_m": [
+              5,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx0",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          },
+          {
+            "id": "rx1",
+            "position_m": [
+              15,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "091309c678747540ddfd1d8ef8db56a3b685ec004bf4c19cfc7c3a97c112fd92",
+        "started_utc": "2026-09-07T06:42:34.662003+00:00",
+        "ended_utc": "2026-09-07T06:42:35.541195+00:00",
+        "elapsed_s": 0.8789320420473814,
+        "returncode": 0,
+        "log_sha256": "5226eec0be697a494138b6d2399f5b139a019c0e8da87947acd1ebc543c1ed05",
+        "log": "jit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/eb13f7ef00cac4efd64326753abdba43.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/7edb5837a865963d6df898cef1cc548f.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/849edccb5a87539a0d6e4a45be962f69.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/8b95cdf4a6c5a2c8cc1c960217bf3893.llvm.bin.tmp\": Operation not permitted\njit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/918a5d463fc0a592c259b290e41548ff.llvm.bin.tmp\": Operation not permitted\n",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              2,
+              1,
+              2,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00033892987994477153
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        -0.00034413684625178576
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00033039948903024197
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        -0.00033892987994477153
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0009344638092443347
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        0.0019580486696213484
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0005744475638493896
+                      ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        0.0009344638092443347
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              2,
+              2,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640741397583e-08
+                ],
+                [
+                  1.6678203706987915e-08
+                ]
+              ],
+              [
+                [
+                  5.0034614673677424e-08
+                ],
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ],
+                  [
+                    false
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    false
+                  ],
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    9.880961897579255e-07
+                  ],
+                  [
+                    3.952384759031702e-06
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    4.391538368508918e-07
+                  ],
+                  [
+                    9.880961897579255e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              2,
+              1,
+              2,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx0",
+              "rx1"
+            ],
+            "transmitter_ids": [
+              "tx0",
+              "tx1"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "16dc37775462d90fbdc3299736df0d58e206636bf187551b12cffe7c76e37bd1",
+          "elapsed_engine_s": 0.09297479200176895,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "091309c678747540ddfd1d8ef8db56a3b685ec004bf4c19cfc7c3a97c112fd92",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              9990,
+              9990,
+              0
+            ],
+            [
+              10000,
+              10000,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "d0344b0c3816a8e332f9c1d41010d8ba4043c9c4c5ffc76bb6ea04dfbb822fe8",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              9998.125,
+              9998.25,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx0",
+            "position_m": [
+              9999.2501,
+              9998.9,
+              4.1
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "6e5def90808e66090b394c9af27c4d994bf2f7c5260976861bba50f00b95a277",
+        "started_utc": "2026-09-07T06:42:35.541785+00:00",
+        "ended_utc": "2026-09-07T06:42:36.353797+00:00",
+        "elapsed_s": 0.8116841249866411,
+        "returncode": 0,
+        "log_sha256": "99624aa87f3844e8b169c3c12d9a7cfdf4db43a87baa68d25e2ff6f1b11f27b6",
+        "log": "jit_kernel_write(): could not write compiled kernel to cache file \"/Users/vincent/.drjit/a5d77d4bc9447c6e7327a07a7cd330b4.llvm.bin.tmp\": Operation not permitted\n",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.003084060037508607
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00697557395324111
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              1,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  4.347394444437214e-09
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    5.817005876451731e-05
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx0"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "8538f420c3c4129187f9fd24868dd4dd4ed362304ca1e0c5594eec8ae3bcb64b",
+          "elapsed_engine_s": 0.017281999986153096,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "6e5def90808e66090b394c9af27c4d994bf2f7c5260976861bba50f00b95a277",
+          "scene_sha256": "d0344b0c3816a8e332f9c1d41010d8ba4043c9c4c5ffc76bb6ea04dfbb822fe8",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "radio_map",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [],
+        "grid": {
+          "center_m": [
+            0,
+            0,
+            1.5
+          ],
+          "size_m": [
+            8,
+            8
+          ],
+          "cell_size_m": [
+            2,
+            2
+          ]
+        },
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 10000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "af6a52c8fc09aa76d7c9471324d98b7eb55faa8188b5fad5eda204bb535fb749",
+        "started_utc": "2026-09-07T06:42:36.354345+00:00",
+        "ended_utc": "2026-09-07T06:42:37.158690+00:00",
+        "elapsed_s": 0.8040845000068657,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "axis_order": [
+              "transmitter",
+              "y",
+              "x"
+            ],
+            "cell_centers_m": [
+              [
+                [
+                  -3.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -3.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  3.0,
+                  1.5
+                ]
+              ]
+            ],
+            "combination": "monte_carlo_cell_average_power",
+            "grid": {
+              "cell_size_m": [
+                2,
+                2
+              ],
+              "center_m": [
+                0,
+                0,
+                1.5
+              ],
+              "size_m": [
+                8,
+                8
+              ]
+            },
+            "kind": "planar_radio_map",
+            "no_data_mask": [
+              [
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ]
+              ]
+            ],
+            "orientation_rad": [
+              0,
+              0,
+              0
+            ],
+            "path_gain": [
+              [
+                [
+                  4.075033302797237e-06,
+                  6.152438800199889e-06,
+                  6.054866389604285e-06,
+                  4.350040399003774e-06
+                ],
+                [
+                  6.215460871317191e-06,
+                  1.1395189176255371e-05,
+                  1.1482737136248033e-05,
+                  6.0276897784206085e-06
+                ],
+                [
+                  6.070141353120562e-06,
+                  1.1565371096367016e-05,
+                  1.1496870683913585e-05,
+                  6.1099790400476195e-06
+                ],
+                [
+                  4.022498615086079e-06,
+                  6.135955118224956e-06,
+                  6.165290869830642e-06,
+                  4.117610842513386e-06
+                ]
+              ]
+            ],
+            "precision": "float32",
+            "shape": [
+              1,
+              4,
+              4
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": "linear_power_ratio"
+          },
+          "data_sha256": "e32cb36ea41fda3e94c7c2bd7f243a20247e7347d159bf7c01f93f83c2605219",
+          "elapsed_engine_s": 0.015286208014003932,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "af6a52c8fc09aa76d7c9471324d98b7eb55faa8188b5fad5eda204bb535fb749",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 10000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "radio_map",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [],
+        "grid": {
+          "center_m": [
+            0,
+            0,
+            1.5
+          ],
+          "size_m": [
+            8,
+            8
+          ],
+          "cell_size_m": [
+            2,
+            2
+          ]
+        },
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "2ccb2d7f2bb52abcefe6bf65ebad8234dcdff9eeb8b3e49fe3b5ced151001653",
+        "started_utc": "2026-09-07T06:42:37.210829+00:00",
+        "ended_utc": "2026-09-07T06:42:38.064016+00:00",
+        "elapsed_s": 0.8528127919998951,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "axis_order": [
+              "transmitter",
+              "y",
+              "x"
+            ],
+            "cell_centers_m": [
+              [
+                [
+                  -3.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -3.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  3.0,
+                  1.5
+                ]
+              ]
+            ],
+            "combination": "monte_carlo_cell_average_power",
+            "grid": {
+              "cell_size_m": [
+                2,
+                2
+              ],
+              "center_m": [
+                0,
+                0,
+                1.5
+              ],
+              "size_m": [
+                8,
+                8
+              ]
+            },
+            "kind": "planar_radio_map",
+            "no_data_mask": [
+              [
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ]
+              ]
+            ],
+            "orientation_rad": [
+              0,
+              0,
+              0
+            ],
+            "path_gain": [
+              [
+                [
+                  4.1307712308480404e-06,
+                  6.12095209362451e-06,
+                  6.147362910269294e-06,
+                  4.12591816711938e-06
+                ],
+                [
+                  6.1565997384605e-06,
+                  1.149847412307281e-05,
+                  1.148319188359892e-05,
+                  6.130892415967537e-06
+                ],
+                [
+                  6.1410164562403224e-06,
+                  1.1476100553409196e-05,
+                  1.1461541362223215e-05,
+                  6.151661636977224e-06
+                ],
+                [
+                  4.138512395002181e-06,
+                  6.142484835436335e-06,
+                  6.140120603959076e-06,
+                  4.117847311135847e-06
+                ]
+              ]
+            ],
+            "precision": "float32",
+            "shape": [
+              1,
+              4,
+              4
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": "linear_power_ratio"
+          },
+          "data_sha256": "315d27657c0c9ccfc9ea674b65013ce720d782a54170ff3d5d639798211bfc1d",
+          "elapsed_engine_s": 0.019201832998078316,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "2ccb2d7f2bb52abcefe6bf65ebad8234dcdff9eeb8b3e49fe3b5ced151001653",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "radio_map",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [],
+        "grid": {
+          "center_m": [
+            0,
+            0,
+            1.5
+          ],
+          "size_m": [
+            8,
+            8
+          ],
+          "cell_size_m": [
+            2,
+            2
+          ]
+        },
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 43,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "aacb75aa87737f22a1d0b41f25eb770b9eb8bf28b9a6dd229719276b03af7148",
+        "started_utc": "2026-09-07T06:42:38.116841+00:00",
+        "ended_utc": "2026-09-07T06:42:38.933616+00:00",
+        "elapsed_s": 0.8164244999643415,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "axis_order": [
+              "transmitter",
+              "y",
+              "x"
+            ],
+            "cell_centers_m": [
+              [
+                [
+                  -3.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -3.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  3.0,
+                  1.5
+                ]
+              ]
+            ],
+            "combination": "monte_carlo_cell_average_power",
+            "grid": {
+              "cell_size_m": [
+                2,
+                2
+              ],
+              "center_m": [
+                0,
+                0,
+                1.5
+              ],
+              "size_m": [
+                8,
+                8
+              ]
+            },
+            "kind": "planar_radio_map",
+            "no_data_mask": [
+              [
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ]
+              ]
+            ],
+            "orientation_rad": [
+              0,
+              0,
+              0
+            ],
+            "path_gain": [
+              [
+                [
+                  4.1307712308480404e-06,
+                  6.12095209362451e-06,
+                  6.147362910269294e-06,
+                  4.12591816711938e-06
+                ],
+                [
+                  6.1565997384605e-06,
+                  1.149847412307281e-05,
+                  1.148319188359892e-05,
+                  6.130892415967537e-06
+                ],
+                [
+                  6.1410164562403224e-06,
+                  1.1476100553409196e-05,
+                  1.1461541362223215e-05,
+                  6.151661636977224e-06
+                ],
+                [
+                  4.138512395002181e-06,
+                  6.142484835436335e-06,
+                  6.140120603959076e-06,
+                  4.117847311135847e-06
+                ]
+              ]
+            ],
+            "precision": "float32",
+            "shape": [
+              1,
+              4,
+              4
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": "linear_power_ratio"
+          },
+          "data_sha256": "315d27657c0c9ccfc9ea674b65013ce720d782a54170ff3d5d639798211bfc1d",
+          "elapsed_engine_s": 0.019333917007315904,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "aacb75aa87737f22a1d0b41f25eb770b9eb8bf28b9a6dd229719276b03af7148",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 43,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "radio_map",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [],
+        "grid": {
+          "center_m": [
+            0,
+            0,
+            1.5
+          ],
+          "size_m": [
+            8,
+            8
+          ],
+          "cell_size_m": [
+            2,
+            2
+          ]
+        },
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 44,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "51b03d73099d762e35ee577a703b0c12d0bfcafacbf0876d59fa16aa839ebdec",
+        "started_utc": "2026-09-07T06:42:38.986400+00:00",
+        "ended_utc": "2026-09-07T06:42:39.808518+00:00",
+        "elapsed_s": 0.8217759580002166,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "axis_order": [
+              "transmitter",
+              "y",
+              "x"
+            ],
+            "cell_centers_m": [
+              [
+                [
+                  -3.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -3.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  3.0,
+                  1.5
+                ]
+              ]
+            ],
+            "combination": "monte_carlo_cell_average_power",
+            "grid": {
+              "cell_size_m": [
+                2,
+                2
+              ],
+              "center_m": [
+                0,
+                0,
+                1.5
+              ],
+              "size_m": [
+                8,
+                8
+              ]
+            },
+            "kind": "planar_radio_map",
+            "no_data_mask": [
+              [
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ]
+              ]
+            ],
+            "orientation_rad": [
+              0,
+              0,
+              0
+            ],
+            "path_gain": [
+              [
+                [
+                  4.1307712308480404e-06,
+                  6.12095209362451e-06,
+                  6.147362910269294e-06,
+                  4.12591816711938e-06
+                ],
+                [
+                  6.1565997384605e-06,
+                  1.149847412307281e-05,
+                  1.148319188359892e-05,
+                  6.130892415967537e-06
+                ],
+                [
+                  6.1410164562403224e-06,
+                  1.1476100553409196e-05,
+                  1.1461541362223215e-05,
+                  6.151661636977224e-06
+                ],
+                [
+                  4.138512395002181e-06,
+                  6.142484835436335e-06,
+                  6.140120603959076e-06,
+                  4.117847311135847e-06
+                ]
+              ]
+            ],
+            "precision": "float32",
+            "shape": [
+              1,
+              4,
+              4
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": "linear_power_ratio"
+          },
+          "data_sha256": "315d27657c0c9ccfc9ea674b65013ce720d782a54170ff3d5d639798211bfc1d",
+          "elapsed_engine_s": 0.020724999951198697,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "51b03d73099d762e35ee577a703b0c12d0bfcafacbf0876d59fa16aa839ebdec",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 44,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "radio_map",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [],
+        "grid": {
+          "center_m": [
+            0,
+            0,
+            1.5
+          ],
+          "size_m": [
+            8,
+            8
+          ],
+          "cell_size_m": [
+            2,
+            2
+          ]
+        },
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "2ccb2d7f2bb52abcefe6bf65ebad8234dcdff9eeb8b3e49fe3b5ced151001653",
+        "started_utc": "2026-09-07T06:42:39.861586+00:00",
+        "ended_utc": "2026-09-07T06:42:40.679805+00:00",
+        "elapsed_s": 0.8178230419871397,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "axis_order": [
+              "transmitter",
+              "y",
+              "x"
+            ],
+            "cell_centers_m": [
+              [
+                [
+                  -3.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -3.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  -1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  -1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  1.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  1.0,
+                  1.5
+                ]
+              ],
+              [
+                [
+                  -3.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  -1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  1.0,
+                  3.0,
+                  1.5
+                ],
+                [
+                  3.0,
+                  3.0,
+                  1.5
+                ]
+              ]
+            ],
+            "combination": "monte_carlo_cell_average_power",
+            "grid": {
+              "cell_size_m": [
+                2,
+                2
+              ],
+              "center_m": [
+                0,
+                0,
+                1.5
+              ],
+              "size_m": [
+                8,
+                8
+              ]
+            },
+            "kind": "planar_radio_map",
+            "no_data_mask": [
+              [
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ],
+                [
+                  false,
+                  false,
+                  false,
+                  false
+                ]
+              ]
+            ],
+            "orientation_rad": [
+              0,
+              0,
+              0
+            ],
+            "path_gain": [
+              [
+                [
+                  4.1307712308480404e-06,
+                  6.12095209362451e-06,
+                  6.147362910269294e-06,
+                  4.12591816711938e-06
+                ],
+                [
+                  6.1565997384605e-06,
+                  1.149847412307281e-05,
+                  1.148319188359892e-05,
+                  6.130892415967537e-06
+                ],
+                [
+                  6.1410164562403224e-06,
+                  1.1476100553409196e-05,
+                  1.1461541362223215e-05,
+                  6.151661636977224e-06
+                ],
+                [
+                  4.138512395002181e-06,
+                  6.142484835436335e-06,
+                  6.140120603959076e-06,
+                  4.117847311135847e-06
+                ]
+              ]
+            ],
+            "precision": "float32",
+            "shape": [
+              1,
+              4,
+              4
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": "linear_power_ratio"
+          },
+          "data_sha256": "315d27657c0c9ccfc9ea674b65013ce720d782a54170ff3d5d639798211bfc1d",
+          "elapsed_engine_s": 0.023260375019162893,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "2ccb2d7f2bb52abcefe6bf65ebad8234dcdff9eeb8b3e49fe3b5ced151001653",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx0",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 0.1,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "aa61674116390254a599e79127c7b917bf1176270357bafc2a5eda2cb489b048",
+        "started_utc": "2026-09-07T06:42:40.732850+00:00",
+        "ended_utc": "2026-09-07T06:42:40.839937+00:00",
+        "elapsed_s": 0.10673729202244431,
+        "returncode": -9,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 0.1,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "status": "failed",
+        "error": "timed_out"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx0",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "a9cf5ae37dc9c5bfe5566706fbf1ed1d0f49ffb87c4f7bf8ea0d4d272f4bf3ad",
+        "started_utc": "2026-09-07T06:42:40.840224+00:00",
+        "ended_utc": "2026-09-07T06:42:40.948709+00:00",
+        "elapsed_s": 0.10817683296045288,
+        "returncode": -9,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "status": "failed",
+        "error": "cancelled"
+      }
+    },
+    {
+      "request": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "operation": "path_query",
+        "scene": {
+          "revision": "empty-space-v1",
+          "kind": "empty_space",
+          "coordinate_frame": "building-local-right-handed-z-up-meters",
+          "bounds_m": [
+            [
+              -20,
+              -20,
+              0
+            ],
+            [
+              20,
+              20,
+              10
+            ]
+          ]
+        },
+        "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+        "profile_revision": "iso-v1",
+        "frequency_hz": 2400000000.0,
+        "bandwidth_hz": 20000000.0,
+        "temperature_k": 290,
+        "transmitters": [
+          {
+            "id": "tx0",
+            "position_m": [
+              0,
+              0,
+              4
+            ]
+          }
+        ],
+        "receivers": [
+          {
+            "id": "rx0",
+            "position_m": [
+              10,
+              0,
+              4
+            ]
+          }
+        ],
+        "grid": null,
+        "solver": {
+          "backend": "llvm_ad_mono_polarized",
+          "seed": 42,
+          "samples": 100000,
+          "max_depth": 0,
+          "interactions": {
+            "los": true,
+            "specular_reflection": false,
+            "diffuse_reflection": false,
+            "refraction": false,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffraction_lit_region": false
+          },
+          "synthetic_array": true,
+          "loop_mode": "evaluated",
+          "antenna": "isotropic-single-V"
+        },
+        "limits": {
+          "timeout_s": 120,
+          "cpu_s": 120
+        }
+      },
+      "response": {
+        "schema_version": 1,
+        "request_id": "empty-space-proof",
+        "request_sha256": "a9cf5ae37dc9c5bfe5566706fbf1ed1d0f49ffb87c4f7bf8ea0d4d272f4bf3ad",
+        "started_utc": "2026-09-07T06:42:40.948856+00:00",
+        "ended_utc": "2026-09-07T06:42:41.761785+00:00",
+        "elapsed_s": 0.8126134999911301,
+        "returncode": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log": "",
+        "resource_limits": {
+          "wall_timeout_s": 120,
+          "cpu_s": 120,
+          "request_bytes": 65536,
+          "result_bytes": 1048576,
+          "log_bytes": 65536,
+          "hard_memory_limit": "not_implemented"
+        },
+        "result": {
+          "bandwidth_hz": 20000000.0,
+          "capabilities": {
+            "compiled_variants": [
+              "scalar_rgb",
+              "scalar_spectral",
+              "scalar_spectral_polarized",
+              "llvm_ad_rgb",
+              "llvm_ad_mono",
+              "llvm_ad_mono_polarized",
+              "llvm_ad_spectral",
+              "llvm_ad_spectral_polarized"
+            ],
+            "cpu_llvm": true,
+            "cuda": false,
+            "operations": [
+              "validate_scene",
+              "path_query",
+              "radio_map"
+            ],
+            "product_tier_supported": false,
+            "scene_kinds": [
+              "empty_space"
+            ]
+          },
+          "data": {
+            "coefficient_shape": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "coefficients_imag": [
+              [
+                [
+                  [
+                    [
+                      [
+                        -0.00033892987994477153
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "coefficients_real": [
+              [
+                [
+                  [
+                    [
+                      [
+                        0.0009344638092443347
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "combination": "sum_squared_path_amplitudes",
+            "delay_shape": [
+              1,
+              1,
+              1
+            ],
+            "delays_s": [
+              [
+                [
+                  3.335640741397583e-08
+                ]
+              ]
+            ],
+            "kind": "point_paths",
+            "no_data_mask": [
+              [
+                [
+                  [
+                    false
+                  ]
+                ]
+              ]
+            ],
+            "path_gain": [
+              [
+                [
+                  [
+                    9.880961897579255e-07
+                  ]
+                ]
+              ]
+            ],
+            "path_gain_shape": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "precision": "complex64",
+            "receiver_ids": [
+              "rx0"
+            ],
+            "transmitter_ids": [
+              "tx0"
+            ],
+            "units": {
+              "coefficient": "complex_amplitude_ratio",
+              "delay": "s",
+              "path_gain": "linear_power_ratio"
+            }
+          },
+          "data_sha256": "a37cc46eba50e97c265e0cb254eb6563218eb1372d800ce194035b75828bf984",
+          "elapsed_engine_s": 0.010733291041105986,
+          "frequency_hz": 2400000000.0,
+          "noise_model": "not_used_for_path_gain",
+          "profile_revision": "iso-v1",
+          "request_id": "empty-space-proof",
+          "request_sha256": "a9cf5ae37dc9c5bfe5566706fbf1ed1d0f49ffb87c4f7bf8ea0d4d272f4bf3ad",
+          "scene_sha256": "b63d5b537ea1d6b5e634e811ff75f29185334db0beccccb559d94c5080ad403a",
+          "schema_version": 1,
+          "solver": {
+            "antenna": "isotropic-single-V",
+            "backend": "llvm_ad_mono_polarized",
+            "interactions": {
+              "diffraction": false,
+              "diffraction_lit_region": false,
+              "diffuse_reflection": false,
+              "edge_diffraction": false,
+              "los": true,
+              "refraction": false,
+              "specular_reflection": false
+            },
+            "loop_mode": "evaluated",
+            "max_depth": 0,
+            "samples": 100000,
+            "seed": 42,
+            "synthetic_array": true
+          },
+          "status": "completed",
+          "temperature_k": 290,
+          "versions": {
+            "audited_python_source_verified": true,
+            "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+            "backend": "llvm_ad_mono_polarized",
+            "drjit": "1.3.1",
+            "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+            "machine": "arm64",
+            "mitsuba": "3.8.0",
+            "os": "macOS-26.6.2-arm64-arm-64bit",
+            "python": "3.12.12",
+            "sionna-rt": "2.0.1",
+            "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+            "worker": "0.1.0"
+          },
+          "warnings": [
+            "Empty-space LOS research proof; P2 product support is not established.",
+            "No geometry/material or field uncertainty has been quantified.",
+            "Zero sampled power is marked no-data; it is not measured absence.",
+            "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."
+          ]
+        },
+        "status": "completed"
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "pinned_cpu_backend",
+      "passed": true
+    },
+    {
+      "name": "path_execution_2400000000",
+      "passed": true
+    },
+    {
+      "name": "friis_2400000000",
+      "passed": true,
+      "max_relative_error": 6.955403911717817e-08,
+      "expected": [
+        9.880961210318492e-05,
+        3.952384484127397e-06,
+        9.880961210318492e-07
+      ],
+      "actual": [
+        9.880960715236142e-05,
+        3.952384759031702e-06,
+        9.880961897579255e-07
+      ]
+    },
+    {
+      "name": "absolute_delays_2400000000",
+      "passed": true
+    },
+    {
+      "name": "path_execution_5200000000",
+      "passed": true
+    },
+    {
+      "name": "friis_5200000000",
+      "passed": true,
+      "max_relative_error": 4.046543394458991e-07,
+      "expected": [
+        2.1048201394761286e-05,
+        8.419280557904512e-07,
+        2.104820139476128e-07
+      ],
+      "actual": [
+        2.104820123349782e-05,
+        8.419278287874477e-07,
+        2.1048192877515248e-07
+      ]
+    },
+    {
+      "name": "absolute_delays_5200000000",
+      "passed": true
+    },
+    {
+      "name": "path_execution_6500000000",
+      "passed": true
+    },
+    {
+      "name": "friis_6500000000",
+      "passed": true,
+      "max_relative_error": 2.3164518537801536e-07,
+      "expected": [
+        1.347084889264722e-05,
+        5.388339557058888e-07,
+        1.347084889264722e-07
+      ],
+      "actual": [
+        1.3470847989083268e-05,
+        5.388338308875973e-07,
+        1.3470848614360875e-07
+      ]
+    },
+    {
+      "name": "absolute_delays_6500000000",
+      "passed": true
+    },
+    {
+      "name": "two_transmitter_path_execution",
+      "passed": true
+    },
+    {
+      "name": "two_by_two_transmitter_receiver_axes",
+      "passed": true,
+      "path_gain": [
+        9.880961897579255e-07,
+        3.952384759031702e-06,
+        4.391538368508918e-07,
+        9.880961897579255e-07
+      ],
+      "expected": [
+        9.880961210318492e-07,
+        3.952384484127397e-06,
+        4.391538315697108e-07,
+        9.880961210318492e-07
+      ]
+    },
+    {
+      "name": "two_by_two_delay_axes",
+      "passed": true
+    },
+    {
+      "name": "large_coordinate_los_execution",
+      "passed": true
+    },
+    {
+      "name": "large_coordinate_los_delay",
+      "passed": true,
+      "absolute_distance_error_m": 0.00010848124128903791
+    },
+    {
+      "name": "map_execution_10000_42",
+      "passed": true
+    },
+    {
+      "name": "map_cell_average_10000_42",
+      "passed": true,
+      "accuracy_threshold_applies": false,
+      "note": "10k is a diagnostic undersampling case; 100k is the tested acceptance budget.",
+      "max_relative_error": 0.05324410085200281,
+      "rms_relative_error": 0.016948104319807422
+    },
+    {
+      "name": "map_mask_and_integrity",
+      "passed": true
+    },
+    {
+      "name": "map_execution_100000_42",
+      "passed": true
+    },
+    {
+      "name": "map_cell_average_100000_42",
+      "passed": true,
+      "accuracy_threshold_applies": true,
+      "note": "10k is a diagnostic undersampling case; 100k is the tested acceptance budget.",
+      "max_relative_error": 0.004226447721665218,
+      "rms_relative_error": 0.0020656313662810546
+    },
+    {
+      "name": "map_mask_and_integrity",
+      "passed": true
+    },
+    {
+      "name": "map_execution_100000_43",
+      "passed": true
+    },
+    {
+      "name": "map_cell_average_100000_43",
+      "passed": true,
+      "accuracy_threshold_applies": true,
+      "note": "10k is a diagnostic undersampling case; 100k is the tested acceptance budget.",
+      "max_relative_error": 0.004226447721665218,
+      "rms_relative_error": 0.0020656313662810546
+    },
+    {
+      "name": "map_mask_and_integrity",
+      "passed": true
+    },
+    {
+      "name": "map_execution_100000_44",
+      "passed": true
+    },
+    {
+      "name": "map_cell_average_100000_44",
+      "passed": true,
+      "accuracy_threshold_applies": true,
+      "note": "10k is a diagnostic undersampling case; 100k is the tested acceptance budget.",
+      "max_relative_error": 0.004226447721665218,
+      "rms_relative_error": 0.0020656313662810546
+    },
+    {
+      "name": "map_mask_and_integrity",
+      "passed": true
+    },
+    {
+      "name": "map_execution_100000_42",
+      "passed": true
+    },
+    {
+      "name": "map_cell_average_100000_42",
+      "passed": true,
+      "accuracy_threshold_applies": true,
+      "note": "10k is a diagnostic undersampling case; 100k is the tested acceptance budget.",
+      "max_relative_error": 0.004226447721665218,
+      "rms_relative_error": 0.0020656313662810546
+    },
+    {
+      "name": "map_mask_and_integrity",
+      "passed": true
+    },
+    {
+      "name": "fixed_seed_repeatability",
+      "passed": true
+    },
+    {
+      "name": "actual_worker_timeout",
+      "passed": true
+    },
+    {
+      "name": "actual_worker_cancellation",
+      "passed": true
+    },
+    {
+      "name": "recovery_after_cancel",
+      "passed": true
+    }
+  ],
+  "gate_i_passed": false,
+  "tolerances": {
+    "path_relative_error": 1e-05,
+    "delay_relative_error": 1e-05,
+    "same_seed_relative_error": 1e-05,
+    "map_cell_relative_error": 0.05
+  },
+  "open_gates": [
+    "full_upstream_suite",
+    "materials",
+    "refraction",
+    "reflection",
+    "diffraction",
+    "scattering",
+    "antenna_transforms",
+    "multi_floor",
+    "oom",
+    "hard_memory_quota",
+    "remote_artifacts",
+    "field_holdouts",
+    "desktop_without_worker",
+    "production_performance_envelope"
+  ],
+  "runtime": {
+    "audited_python_source_verified": true,
+    "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+    "backend": "llvm_ad_mono_polarized",
+    "drjit": "1.3.1",
+    "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+    "machine": "arm64",
+    "mitsuba": "3.8.0",
+    "os": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.12.12",
+    "sionna-rt": "2.0.1",
+    "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+    "worker": "0.1.0"
+  },
+  "cuda": false,
+  "map_samples": {
+    "10000": [
+      [
+        4.075033302797237e-06,
+        6.152438800199889e-06,
+        6.054866389604285e-06,
+        4.350040399003774e-06,
+        6.215460871317191e-06,
+        1.1395189176255371e-05,
+        1.1482737136248033e-05,
+        6.0276897784206085e-06,
+        6.070141353120562e-06,
+        1.1565371096367016e-05,
+        1.1496870683913585e-05,
+        6.1099790400476195e-06,
+        4.022498615086079e-06,
+        6.135955118224956e-06,
+        6.165290869830642e-06,
+        4.117610842513386e-06
+      ]
+    ],
+    "100000": [
+      [
+        4.1307712308480404e-06,
+        6.12095209362451e-06,
+        6.147362910269294e-06,
+        4.12591816711938e-06,
+        6.1565997384605e-06,
+        1.149847412307281e-05,
+        1.148319188359892e-05,
+        6.130892415967537e-06,
+        6.1410164562403224e-06,
+        1.1476100553409196e-05,
+        1.1461541362223215e-05,
+        6.151661636977224e-06,
+        4.138512395002181e-06,
+        6.142484835436335e-06,
+        6.140120603959076e-06,
+        4.117847311135847e-06
+      ],
+      [
+        4.1307712308480404e-06,
+        6.12095209362451e-06,
+        6.147362910269294e-06,
+        4.12591816711938e-06,
+        6.1565997384605e-06,
+        1.149847412307281e-05,
+        1.148319188359892e-05,
+        6.130892415967537e-06,
+        6.1410164562403224e-06,
+        1.1476100553409196e-05,
+        1.1461541362223215e-05,
+        6.151661636977224e-06,
+        4.138512395002181e-06,
+        6.142484835436335e-06,
+        6.140120603959076e-06,
+        4.117847311135847e-06
+      ],
+      [
+        4.1307712308480404e-06,
+        6.12095209362451e-06,
+        6.147362910269294e-06,
+        4.12591816711938e-06,
+        6.1565997384605e-06,
+        1.149847412307281e-05,
+        1.148319188359892e-05,
+        6.130892415967537e-06,
+        6.1410164562403224e-06,
+        1.1476100553409196e-05,
+        1.1461541362223215e-05,
+        6.151661636977224e-06,
+        4.138512395002181e-06,
+        6.142484835436335e-06,
+        6.140120603959076e-06,
+        4.117847311135847e-06
+      ],
+      [
+        4.1307712308480404e-06,
+        6.12095209362451e-06,
+        6.147362910269294e-06,
+        4.12591816711938e-06,
+        6.1565997384605e-06,
+        1.149847412307281e-05,
+        1.148319188359892e-05,
+        6.130892415967537e-06,
+        6.1410164562403224e-06,
+        1.1476100553409196e-05,
+        1.1461541362223215e-05,
+        6.151661636977224e-06,
+        4.138512395002181e-06,
+        6.142484835436335e-06,
+        6.140120603959076e-06,
+        4.117847311135847e-06
+      ]
+    ]
+  }
+}

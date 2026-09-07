@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "runtime",
+  "source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+  "verified_test_files": {
+    "test/conftest.py": "5aac375f8e8998567433e938ff2029aaf25009081905702094ebad9d74dafbd3",
+    "test/unit/test_paths_cir.py": "b7b92f1e258119cddf3c96f51102ca4400ee986f92813870125cf0886932155a",
+    "test/unit/test_radio_maps.py": "a4797fb176593e463a62de09a7cee863c4aeb6a3a67769f3ad2b629da18b994a"
+  },
+  "runtime": {
+    "audited_python_source_verified": true,
+    "audited_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+    "backend": "llvm_ad_mono_polarized",
+    "drjit": "1.3.1",
+    "llvm_library_sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316",
+    "machine": "arm64",
+    "mitsuba": "3.8.0",
+    "os": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.12.12",
+    "sionna-rt": "2.0.1",
+    "source_pin_sha256": "5ceba9ae65f12c889a4cf96eaa7e4332fea0f16de47fd2d7d8dfdde635a033d6",
+    "worker": "0.1.0"
+  },
+  "command": [
+    "/Users/vincent/code/kyberia/.worktrees/sionna/workers/sionna/.venv-audited/bin/python",
+    "-m",
+    "pytest",
+    "--cpu",
+    "-q",
+    ".tools/upstream/sionna-rt-bc0549155c7b782c7614a0ec06a0ac4e32b979ae/test/unit/test_paths_cir.py",
+    ".tools/upstream/sionna-rt-bc0549155c7b782c7614a0ec06a0ac4e32b979ae/test/unit/test_radio_maps.py::test_los"
+  ],
+  "created_utc": "2026-09-07T06:29:26.653271+00:00",
+  "execution": {
+    "state": "exited",
+    "returncode": 0,
+    "stdout": "\n========================================\n\n           Running tests on CPU\n\n========================================\n\n...................                                                      [100%]\n19 passed in 29.64s\n",
+    "stderr": "",
+    "elapsed_s": 30.019459458009806
+  },
+  "full_upstream_suite": "NOT_RUN",
+  "selection": "CIR suite and LOS radio-map test",
+  "status": "PASS"
+}

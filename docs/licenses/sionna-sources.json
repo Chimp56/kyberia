@@ -1,0 +1,4085 @@
+{
+  "schema_version": 1,
+  "scope": "optional_sionna_worker_cpu_environment",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "python": "3.12.12",
+  "python_binary_sha256": "3874a935f7242b660e652d35c25a1b87415fcfea3ee191ff262fcca5c50102c5",
+  "python_source": "https://github.com/python/cpython/tree/v3.12.12",
+  "python_distribution": "https://github.com/astral-sh/python-build-standalone/releases/tag/20260211",
+  "python_distribution_license_review": "pending standalone bundled-library review",
+  "upstream_source": "https://github.com/NVlabs/sionna-rt/tree/bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+  "audited_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae",
+  "package_source_comparison": [
+    {
+      "path": "__init__.py",
+      "source_sha256": "6290c1f46390db1734e8b4f21a9ca6a31f843db43dcaf518248974ca33e23147",
+      "installed_sha256": "6290c1f46390db1734e8b4f21a9ca6a31f843db43dcaf518248974ca33e23147",
+      "matches": true
+    },
+    {
+      "path": "antenna_array.py",
+      "source_sha256": "f72945d0a97638ded9f392ce6d4c253157384c106d30d6db0738c53db7acaec6",
+      "installed_sha256": "f72945d0a97638ded9f392ce6d4c253157384c106d30d6db0738c53db7acaec6",
+      "matches": true
+    },
+    {
+      "path": "antenna_pattern.py",
+      "source_sha256": "1e27b23d1ef55ac4208159d932f4269846b7fe35dcd556469e38ebbdfe3ee0c7",
+      "installed_sha256": "1e27b23d1ef55ac4208159d932f4269846b7fe35dcd556469e38ebbdfe3ee0c7",
+      "matches": true
+    },
+    {
+      "path": "camera.py",
+      "source_sha256": "2be3bba6fc0957788fe63c96009cd96d07815865a7d008cae8ad54954f1b0972",
+      "installed_sha256": "2be3bba6fc0957788fe63c96009cd96d07815865a7d008cae8ad54954f1b0972",
+      "matches": true
+    },
+    {
+      "path": "constants.py",
+      "source_sha256": "44d9b1a864c8cba5e9a35b15d3a54a85940c71bd7e0f8b23647d695d0a386044",
+      "installed_sha256": "44d9b1a864c8cba5e9a35b15d3a54a85940c71bd7e0f8b23647d695d0a386044",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/__init__.py",
+      "source_sha256": "f21eed446ccab1d89e7b56d31df6c47ec399b2973650ac770e128ab01c8c3171",
+      "installed_sha256": "f21eed446ccab1d89e7b56d31df6c47ec399b2973650ac770e128ab01c8c3171",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/field_calculator.py",
+      "source_sha256": "e12807588d19bd2ab404623fa99568f838178bb5d5cc2067b1e2e4007e58defe",
+      "installed_sha256": "e12807588d19bd2ab404623fa99568f838178bb5d5cc2067b1e2e4007e58defe",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/image_method.py",
+      "source_sha256": "f1983dc1b5a6038f95788f331855f798552e216caa04c6361443ec0cc5015d2a",
+      "installed_sha256": "f1983dc1b5a6038f95788f331855f798552e216caa04c6361443ec0cc5015d2a",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/path_solver.py",
+      "source_sha256": "751c4b7dad2f4e97cfdacf297ae7b5ea39b0e4633ee334246d9af6b9b5e61a1a",
+      "installed_sha256": "751c4b7dad2f4e97cfdacf297ae7b5ea39b0e4633ee334246d9af6b9b5e61a1a",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/paths.py",
+      "source_sha256": "c81f15e7ae6eddd89cd82ff10025db70e79fbbc19eec3a8cd2ce8d1ef1f852da",
+      "installed_sha256": "c81f15e7ae6eddd89cd82ff10025db70e79fbbc19eec3a8cd2ce8d1ef1f852da",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/paths_buffer.py",
+      "source_sha256": "916e86fd287486c30086a8fbf34237c2d43aea9191d92bccc73bc56c7f956aad",
+      "installed_sha256": "916e86fd287486c30086a8fbf34237c2d43aea9191d92bccc73bc56c7f956aad",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/sample_data.py",
+      "source_sha256": "b144b991e1cd2c021eb1e6d8f56f76376273a4407bd75e7092b800c5b2e9d63c",
+      "installed_sha256": "b144b991e1cd2c021eb1e6d8f56f76376273a4407bd75e7092b800c5b2e9d63c",
+      "matches": true
+    },
+    {
+      "path": "path_solvers/sb_candidate_generator.py",
+      "source_sha256": "e957ea63a23fe5a2f20fbaaf891139d4210ba631c2a4bb216ca05cb74444b41f",
+      "installed_sha256": "e957ea63a23fe5a2f20fbaaf891139d4210ba631c2a4bb216ca05cb74444b41f",
+      "matches": true
+    },
+    {
+      "path": "preview.py",
+      "source_sha256": "82e4a24857d997941b7014311b0f7458424b0f462f51679d5b58322cc6f11add",
+      "installed_sha256": "82e4a24857d997941b7014311b0f7458424b0f462f51679d5b58322cc6f11add",
+      "matches": true
+    },
+    {
+      "path": "radio_devices/__init__.py",
+      "source_sha256": "5e66f2fbf9569311c8b62a4ad8d95893438f6150640b644daea8db6a3e26d702",
+      "installed_sha256": "5e66f2fbf9569311c8b62a4ad8d95893438f6150640b644daea8db6a3e26d702",
+      "matches": true
+    },
+    {
+      "path": "radio_devices/radio_device.py",
+      "source_sha256": "f74d0be1b0cf16251c08d9627b881fcee6c34cefea24fa35100ff88f3ead3859",
+      "installed_sha256": "f74d0be1b0cf16251c08d9627b881fcee6c34cefea24fa35100ff88f3ead3859",
+      "matches": true
+    },
+    {
+      "path": "radio_devices/receiver.py",
+      "source_sha256": "b6820c86a8dc657bd7e9d266874beafc4c04edef9e726f238ad01d850fd9f72b",
+      "installed_sha256": "b6820c86a8dc657bd7e9d266874beafc4c04edef9e726f238ad01d850fd9f72b",
+      "matches": true
+    },
+    {
+      "path": "radio_devices/transmitter.py",
+      "source_sha256": "d82f330b4f38d86f0f5e6a1e68b31101d961103dc8701f22a4b480e3ad3f0dc8",
+      "installed_sha256": "d82f330b4f38d86f0f5e6a1e68b31101d961103dc8701f22a4b480e3ad3f0dc8",
+      "matches": true
+    },
+    {
+      "path": "radio_map_solvers/__init__.py",
+      "source_sha256": "1b9c3c582627561d3c85ac823baf76f18ceb52d733d2e85477db89cc074e89a7",
+      "installed_sha256": "1b9c3c582627561d3c85ac823baf76f18ceb52d733d2e85477db89cc074e89a7",
+      "matches": true
+    },
+    {
+      "path": "radio_map_solvers/mesh_radio_map.py",
+      "source_sha256": "8f6d68dfe7a144b88affac5b71b0945cf8f45001dc3702e4dd9f459eef6cf872",
+      "installed_sha256": "8f6d68dfe7a144b88affac5b71b0945cf8f45001dc3702e4dd9f459eef6cf872",
+      "matches": true
+    },
+    {
+      "path": "radio_map_solvers/planar_radio_map.py",
+      "source_sha256": "25704f23695e999b251fee5b6c40c2a0bf8ff4e2526231aeba881f072ef9da13",
+      "installed_sha256": "25704f23695e999b251fee5b6c40c2a0bf8ff4e2526231aeba881f072ef9da13",
+      "matches": true
+    },
+    {
+      "path": "radio_map_solvers/radio_map.py",
+      "source_sha256": "cb4e1c4bac5c1d526962eb20275893e39bb6e9058508ffa1ed99b3b595b403bb",
+      "installed_sha256": "cb4e1c4bac5c1d526962eb20275893e39bb6e9058508ffa1ed99b3b595b403bb",
+      "matches": true
+    },
+    {
+      "path": "radio_map_solvers/radio_map_solver.py",
+      "source_sha256": "b748d3e9993a81f4e15b2a17e0908e05e151b205c9e7cf4b71df0577897971a8",
+      "installed_sha256": "b748d3e9993a81f4e15b2a17e0908e05e151b205c9e7cf4b71df0577897971a8",
+      "matches": true
+    },
+    {
+      "path": "radio_materials/__init__.py",
+      "source_sha256": "2b6295e8a826d60bf077e14fd0aa2ea0a8b5bb0823775d0b13ecd0322b6b7817",
+      "installed_sha256": "2b6295e8a826d60bf077e14fd0aa2ea0a8b5bb0823775d0b13ecd0322b6b7817",
+      "matches": true
+    },
+    {
+      "path": "radio_materials/itu.py",
+      "source_sha256": "32a8d904ecdbffea08b73980ea1646dd8bbeb2235022200967b1b8cfe8264d08",
+      "installed_sha256": "32a8d904ecdbffea08b73980ea1646dd8bbeb2235022200967b1b8cfe8264d08",
+      "matches": true
+    },
+    {
+      "path": "radio_materials/itu_material.py",
+      "source_sha256": "bda625a0fcdefa9b517f1211226f26738d0e1db641eb4b01e2d1e6ac1a991b88",
+      "installed_sha256": "bda625a0fcdefa9b517f1211226f26738d0e1db641eb4b01e2d1e6ac1a991b88",
+      "matches": true
+    },
+    {
+      "path": "radio_materials/radio_material.py",
+      "source_sha256": "90700a03b472b3a43b172ae48fec9038eb7bc3bb4181ea2b625489bf4bfd7492",
+      "installed_sha256": "90700a03b472b3a43b172ae48fec9038eb7bc3bb4181ea2b625489bf4bfd7492",
+      "matches": true
+    },
+    {
+      "path": "radio_materials/radio_material_base.py",
+      "source_sha256": "f769d54d8fc133e6c61844dc624cbc1377aa25c1ec7458e33c429079cce298bf",
+      "installed_sha256": "f769d54d8fc133e6c61844dc624cbc1377aa25c1ec7458e33c429079cce298bf",
+      "matches": true
+    },
+    {
+      "path": "radio_materials/scattering_pattern.py",
+      "source_sha256": "2bdc56f5978feb38298374dbe20da390aa6a0032d6d99264a5e2c4f84706eb6c",
+      "installed_sha256": "2bdc56f5978feb38298374dbe20da390aa6a0032d6d99264a5e2c4f84706eb6c",
+      "matches": true
+    },
+    {
+      "path": "registry/__init__.py",
+      "source_sha256": "5f19304ccf9f0bbd2ad24a057158f1e0c50e1e33e170245057572d57b0d9dc68",
+      "installed_sha256": "5f19304ccf9f0bbd2ad24a057158f1e0c50e1e33e170245057572d57b0d9dc68",
+      "matches": true
+    },
+    {
+      "path": "registry/registry.py",
+      "source_sha256": "3905bc6bd20b509d4d7dd164a6bddf3b3b6b4fb59b45b6337ff9706d333fbb5d",
+      "installed_sha256": "3905bc6bd20b509d4d7dd164a6bddf3b3b6b4fb59b45b6337ff9706d333fbb5d",
+      "matches": true
+    },
+    {
+      "path": "renderer.py",
+      "source_sha256": "ad7f1c949e2d332955bb5ee515a42d647a4fbfe69b37b73700fddae1d4524fde",
+      "installed_sha256": "ad7f1c949e2d332955bb5ee515a42d647a4fbfe69b37b73700fddae1d4524fde",
+      "matches": true
+    },
+    {
+      "path": "scene.py",
+      "source_sha256": "8609f427fbea90848f70fca1af295e1c48bdb0c25214b9f456117a652b15e9fe",
+      "installed_sha256": "8609f427fbea90848f70fca1af295e1c48bdb0c25214b9f456117a652b15e9fe",
+      "matches": true
+    },
+    {
+      "path": "scene_object.py",
+      "source_sha256": "f34a545a45c8d6f71f4a3b211f910b23434a19695805f3207749f9092102f29d",
+      "installed_sha256": "f34a545a45c8d6f71f4a3b211f910b23434a19695805f3207749f9092102f29d",
+      "matches": true
+    },
+    {
+      "path": "scene_utils.py",
+      "source_sha256": "7c4ad611471e995008c7e63c79acef525cb65d9354b185fbd2642162e2df97eb",
+      "installed_sha256": "7c4ad611471e995008c7e63c79acef525cb65d9354b185fbd2642162e2df97eb",
+      "matches": true
+    },
+    {
+      "path": "scenes/__init__.py",
+      "source_sha256": "2940b935cf6959c333c6fd3cc70b5b4e2da750793add812671daee3db906086b",
+      "installed_sha256": "2940b935cf6959c333c6fd3cc70b5b4e2da750793add812671daee3db906086b",
+      "matches": true
+    },
+    {
+      "path": "sliced_integrator.py",
+      "source_sha256": "cf344da12ee5dd8b8549708b197b5f0c7a913f413ec22a379a15b108e838a89e",
+      "installed_sha256": "cf344da12ee5dd8b8549708b197b5f0c7a913f413ec22a379a15b108e838a89e",
+      "matches": true
+    },
+    {
+      "path": "twosided_area.py",
+      "source_sha256": "fafc435aba26da7e63d333697703815a1d11da7f2451ba9ff8e6b717af370e24",
+      "installed_sha256": "fafc435aba26da7e63d333697703815a1d11da7f2451ba9ff8e6b717af370e24",
+      "matches": true
+    },
+    {
+      "path": "utils/__init__.py",
+      "source_sha256": "f2bededed5cf2f6cabb0873aecdb723bdea0aca8cdd8d04f658cacfe570b8897",
+      "installed_sha256": "f2bededed5cf2f6cabb0873aecdb723bdea0aca8cdd8d04f658cacfe570b8897",
+      "matches": true
+    },
+    {
+      "path": "utils/complex.py",
+      "source_sha256": "b2e86007ae9b12f7cccce69903e05d388744d0ea5a4dab227f997a27c2226112",
+      "installed_sha256": "b2e86007ae9b12f7cccce69903e05d388744d0ea5a4dab227f997a27c2226112",
+      "matches": true
+    },
+    {
+      "path": "utils/electromagnetics.py",
+      "source_sha256": "1cb2b650d7f93ef8ad8062a69db844d8b94411eac040b536240e7c85787b5bd4",
+      "installed_sha256": "1cb2b650d7f93ef8ad8062a69db844d8b94411eac040b536240e7c85787b5bd4",
+      "matches": true
+    },
+    {
+      "path": "utils/geometry.py",
+      "source_sha256": "7a427d82408ca62d104714e6e6cb7f94539adf78878288928cd92d2a431bc9d4",
+      "installed_sha256": "7a427d82408ca62d104714e6e6cb7f94539adf78878288928cd92d2a431bc9d4",
+      "matches": true
+    },
+    {
+      "path": "utils/hashing.py",
+      "source_sha256": "200fec57ead66eeb010d86b90071fa3a0d869022cd94e5b009ee9c839bfe4886",
+      "installed_sha256": "200fec57ead66eeb010d86b90071fa3a0d869022cd94e5b009ee9c839bfe4886",
+      "matches": true
+    },
+    {
+      "path": "utils/jones.py",
+      "source_sha256": "6b613706e73b5edf9d9fde354fcff51cd91a6ce795470ecaeb854c37a60ad54c",
+      "installed_sha256": "6b613706e73b5edf9d9fde354fcff51cd91a6ce795470ecaeb854c37a60ad54c",
+      "matches": true
+    },
+    {
+      "path": "utils/meshes.py",
+      "source_sha256": "d0711d27fc12ab074a273e4e281529e267b0d51413af4204356ecc105a151aaa",
+      "installed_sha256": "d0711d27fc12ab074a273e4e281529e267b0d51413af4204356ecc105a151aaa",
+      "matches": true
+    },
+    {
+      "path": "utils/misc.py",
+      "source_sha256": "305727bcb2c040ddfece35753e0eb961a7b98048fc84240fc6fd4bab8de0cc35",
+      "installed_sha256": "305727bcb2c040ddfece35753e0eb961a7b98048fc84240fc6fd4bab8de0cc35",
+      "matches": true
+    },
+    {
+      "path": "utils/ray_tracing.py",
+      "source_sha256": "54e20c11f30bae5020b57f14838b41e55e62cfa75dace39d78cebfadad2ec200",
+      "installed_sha256": "54e20c11f30bae5020b57f14838b41e55e62cfa75dace39d78cebfadad2ec200",
+      "matches": true
+    },
+    {
+      "path": "utils/render.py",
+      "source_sha256": "af7c23fc8da1b51f1c2a6e475a0e3ed0173fb0eb566e9faca575d379ad0772e0",
+      "installed_sha256": "af7c23fc8da1b51f1c2a6e475a0e3ed0173fb0eb566e9faca575d379ad0772e0",
+      "matches": true
+    },
+    {
+      "path": "utils/wedges.py",
+      "source_sha256": "5ec9333ced2099105d7255c74f62627d7fef315ee6f0df459ed5f366a69f46ae",
+      "installed_sha256": "5ec9333ced2099105d7255c74f62627d7fef315ee6f0df459ed5f366a69f46ae",
+      "matches": true
+    }
+  ],
+  "all_python_sources_match": true,
+  "packages": [
+    {
+      "name": "asttokens",
+      "version": "3.0.2",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/d4/2b/04b8a15f3a1c77bc79ddf5c73875327f34b4fa75982df2b76e45e402d364/asttokens-3.0.2-py3-none-any.whl",
+      "wheel_sha256": "9da13157f5b28becde0bd374fc677dcd3c290614264eff096f167c469cd9f933",
+      "project_urls": [
+        "Documentation, https://asttokens.readthedocs.io/en/latest/index.html",
+        "Issue Tracker, https://github.com/gristlabs/asttokens/issues"
+      ],
+      "license_declared": "Apache 2.0",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "asttokens-3.0.2.dist-info/METADATA",
+          "sha256": "8b3567b29654e6e9a60ab50fde2c317899152790acadaab7868a708bf931c3d3"
+        },
+        {
+          "path": "asttokens-3.0.2.dist-info/RECORD",
+          "sha256": "fd608855fb46331ba8006a2a6595a1bfdfb69a635d40145abf6a597262eb69b7"
+        },
+        {
+          "path": "asttokens-3.0.2.dist-info/WHEEL",
+          "sha256": "2b6eb4118ce7cd7b09601406aa623c553c4476265836f0d9c16f5c061f7efcc0"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "asttokens-3.0.2.dist-info/licenses/LICENSE",
+          "sha256": "62fb8a3a9621dc2388174caaabe9c2317b694bb9a1d46c98bcf5655b68f51be3"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "comm",
+      "version": "0.2.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl",
+      "wheel_sha256": "c615d91d75f7f04f095b30d1c1711babd43bdc6419c1be9886a85f2f4e489417",
+      "project_urls": [
+        "Homepage, https://github.com/ipython/comm"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "comm-0.2.3.dist-info/METADATA",
+          "sha256": "e475291f8fdedbecbbfd788a2c5de9c912424d23574aba7b9fc51985d7158878"
+        },
+        {
+          "path": "comm-0.2.3.dist-info/RECORD",
+          "sha256": "f1635482b875362e7ffa0d622cc5da94eb4e10a06bf309ec1a0e6d276105b73b"
+        },
+        {
+          "path": "comm-0.2.3.dist-info/WHEEL",
+          "sha256": "aad0b0a12256807936d52d4a6f88a1773236ae527564a688bab4e3fe780e8724"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "comm-0.2.3.dist-info/licenses/LICENSE",
+          "sha256": "97a7e0a142b7c1dcd26461b20fc13980988b4449b7446ed776928826fd2ca9c4"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "contourpy",
+      "version": "1.3.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/53/3e/405b59cfa13021a56bba395a6b3aca8cec012b45bf177b0eaf7a202cde2c/contourpy-1.3.3-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheel_sha256": "556dba8fb6f5d8742f2923fe9457dbdd51e1049c4a43fd3986a0b14a1d815fc6",
+      "project_urls": [
+        "Homepage, https://github.com/contourpy/contourpy",
+        "Changelog, https://contourpy.readthedocs.io/en/latest/changelog.html",
+        "Documentation, https://contourpy.readthedocs.io",
+        "Repository, https://github.com/contourpy/contourpy"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "contourpy-1.3.3.dist-info/METADATA",
+          "sha256": "c43cef86baef09cff9c77975e578fa8cca0c9454df40dc176938b499a63de54a"
+        },
+        {
+          "path": "contourpy-1.3.3.dist-info/RECORD",
+          "sha256": "f993322e24fd4212d6918deebbc7aa6fdcc6c14202054e1be5d0722eab05df30"
+        },
+        {
+          "path": "contourpy-1.3.3.dist-info/WHEEL",
+          "sha256": "1a77459ac1909217ac24c074f71779c72d4915ac0a2650d9b7a00c320a89f8fc"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "contourpy-1.3.3.dist-info/LICENSE",
+          "sha256": "34170979fc64f4f5e6dfa66ef27dec314ffffc5852000c60f4836ec1dfbf156e"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "contourpy/_contourpy.cpython-312-darwin.so",
+          "sha256": "98d71a7ae9c368e0eb7c9b86b5701a7b448f66c009328c09b8bab47fa85a2b00"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "cycler",
+      "version": "0.12.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl",
+      "wheel_sha256": "85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30",
+      "project_urls": [
+        "homepage, https://matplotlib.org/cycler/",
+        "repository, https://github.com/matplotlib/cycler"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "cycler-0.12.1.dist-info/METADATA",
+          "sha256": "23289e19b76f1e01394227696e6af2b6cd1ce79e89731209bf9195148b18ed36"
+        },
+        {
+          "path": "cycler-0.12.1.dist-info/RECORD",
+          "sha256": "4cb77b5408ae7bd44e1d184653e7c85e492346d53f5570110dad54a5ba111210"
+        },
+        {
+          "path": "cycler-0.12.1.dist-info/WHEEL",
+          "sha256": "c903798389a0e00c9b4639208bef72cb889010589b1909a5cfbf0f8a4e4eafe0"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "cycler-0.12.1.dist-info/LICENSE",
+          "sha256": "f1218143d766da3fea66f13396b7f15df46a83303f29bf96ba6e98eb4d42f408"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "drjit",
+      "version": "1.3.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/b1/c6/5db4c4bfa35d4e88278990164fa55096242b5b95a5e813f975d2c4d94482/drjit-1.3.1-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheel_sha256": "8533ba00f2b1c116475631c7a74072436eaa9504833e3d35ebe18cbf73f83b05",
+      "project_urls": [
+        "Homepage, https://github.com/mitsuba-renderer/drjit"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "drjit-1.3.1.dist-info/METADATA",
+          "sha256": "d6c5add2e74988571873770f719a7c2ab4c62b7005c7debce4c45ca8c919b5dc"
+        },
+        {
+          "path": "drjit-1.3.1.dist-info/RECORD",
+          "sha256": "6db17c2c06732f37345fed9a18e1644e3a9f0c27a8f84df2cbde05d0b53cd9bf"
+        },
+        {
+          "path": "drjit-1.3.1.dist-info/WHEEL",
+          "sha256": "ef7e40d7b806e528722f090857c0270c6d21a9972c904ae1772fb711c9057c37"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "drjit-1.3.1.dist-info/licenses/LICENSE",
+          "sha256": "a855e7bff0b6ebbc4caffbe2050d220226b1cc25913975cbeda53cfb432f38c9"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "drjit/_drjit_ext.cpython-312-darwin.so",
+          "sha256": "0680ba86d29324b10fd87083cca879c59e7eebbe94237d3ab21a585c1625e611"
+        },
+        {
+          "path": "drjit/libdrjit-core.dylib",
+          "sha256": "0436f0ad1d11a5ef7e231a07d19ac4a5b0134ea46de972866018a68d1621d27c"
+        },
+        {
+          "path": "drjit/libdrjit-extra.dylib",
+          "sha256": "f609900189348c5d1ff53ac8d5f95fb931cb466bef3998e6ab17d483901d6d9f"
+        },
+        {
+          "path": "drjit/libnanothread.dylib",
+          "sha256": "2897afe98e3cec20c98ec5bb1e524048de11fae34ba50954532c5503fdf27c42"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "executing",
+      "version": "2.2.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl",
+      "wheel_sha256": "760643d3452b4d777d295bb167ccc74c64a81df23fb5e08eff250c425a4b2017",
+      "project_urls": [],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "executing-2.2.1.dist-info/METADATA",
+          "sha256": "d7586d1ae225bee126c4237eb0c4d7699a8580b81eb558cc500c263d29a633ff"
+        },
+        {
+          "path": "executing-2.2.1.dist-info/RECORD",
+          "sha256": "80dd30d2ee8662aa2c0ac97734e53d1effa346b10f46c90bf6754b1cd8cd8524"
+        },
+        {
+          "path": "executing-2.2.1.dist-info/WHEEL",
+          "sha256": "2e5ef68b2aadb7a45bc69f90ec549a7d80352de46ff7c5f5e71719591b051266"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "executing-2.2.1.dist-info/LICENSE.txt",
+          "sha256": "a476a2cb0ef4c41450340a577a28b91ac4c7f669136b2ee148047fabd5fc4181"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "fonttools",
+      "version": "4.64.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/82/23/4ea251977fef70ed14193785e1b2949355f1f5927dc0ef1dada675c0bbb2/fonttools-4.64.0-cp312-cp312-macosx_10_13_universal2.whl",
+      "wheel_sha256": "9ecb2b206b5b2386f6968721a0770226b66bdd54adc4279bfff3ddf62873eed8",
+      "project_urls": [],
+      "license_declared": "MIT",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "fonttools-4.64.0.dist-info/METADATA",
+          "sha256": "39fcfdbbbf0f14887cf15eb17aa86ef1a6486b8bde96345c1f7c861cda2c59b9"
+        },
+        {
+          "path": "fonttools-4.64.0.dist-info/RECORD",
+          "sha256": "64592a82819e7672d0be038ba0f5cb739aedb76942e78a7c6fd75482ab039b55"
+        },
+        {
+          "path": "fonttools-4.64.0.dist-info/WHEEL",
+          "sha256": "2b957c67c65d977995cea65bdb649575e54d164dab08c18224fae8bad08eea77"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "fonttools-4.64.0.dist-info/licenses/LICENSE",
+          "sha256": "6787208f83f659ccbc2223b2fde952ffa6f7e8aca62f1a8a2bf5bc51bb1b2383"
+        },
+        {
+          "path": "fonttools-4.64.0.dist-info/licenses/LICENSE.external",
+          "sha256": "94a83aaee0729a0f302d34acc4acecbd9d58366f262429075fe557e4a54b2e69"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "fontTools/cu2qu/cu2qu.cpython-312-darwin.so",
+          "sha256": "8ef5aa9d7117293cbe0379b666fffb4df40a98bb7ad5eae35daf22bfed214b35"
+        },
+        {
+          "path": "fontTools/feaLib/lexer.cpython-312-darwin.so",
+          "sha256": "fa95b3fb90ce19830c9e2a5f7a05801cd37b35db43b9e39593bf22ff1a3107c2"
+        },
+        {
+          "path": "fontTools/misc/bezierTools.cpython-312-darwin.so",
+          "sha256": "07f66e43360f8040dcf3f82520a672e9f8bf6abafa5a329d9323acc257c8500a"
+        },
+        {
+          "path": "fontTools/pens/momentsPen.cpython-312-darwin.so",
+          "sha256": "fbb663f6c8f02448e9f2943404dd44fef37deba206680a7c3c2f0f70642cb873"
+        },
+        {
+          "path": "fontTools/qu2cu/qu2cu.cpython-312-darwin.so",
+          "sha256": "1b3499b2b5c3606af129ca9d1637933e200e39f67261f1fc27e441d771f97e29"
+        },
+        {
+          "path": "fontTools/varLib/iup.cpython-312-darwin.so",
+          "sha256": "2b338771da60fc456df6bc6a00ab3a88081853511f144b2f7e6d8e7edebec856"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "importlib_resources",
+      "version": "7.1.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/8a/db/55a262f3606bebcae07cc14095338471ad7c0bbcaa37707e6f0ee49725b7/importlib_resources-7.1.0-py3-none-any.whl",
+      "wheel_sha256": "1bd7b48b4088eddb2cd16382150bb515af0bd2c70128194392725f82ad2c96a1",
+      "project_urls": [
+        "Source, https://github.com/python/importlib_resources"
+      ],
+      "license_declared": "Apache-2.0",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "importlib_resources-7.1.0.dist-info/METADATA",
+          "sha256": "ab47cc987f14054c1388b5180656d21fe9ff21a2dcd8d7a39bd7503c0e66d642"
+        },
+        {
+          "path": "importlib_resources-7.1.0.dist-info/RECORD",
+          "sha256": "d936a35b5898db5f745943795f4a0aae019c7985ca23f0c5f2362f2e225fe1dc"
+        },
+        {
+          "path": "importlib_resources-7.1.0.dist-info/WHEEL",
+          "sha256": "69e6228a0d35958183cc1812f07c565ce837b95eb51bd8a33acba9fa4f68d6c9"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "importlib_resources-7.1.0.dist-info/licenses/LICENSE",
+          "sha256": "e2f7bb0557e7a381499f15baa7c1d776d83d6616599179d71d3109b8e39f7b25"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl",
+      "wheel_sha256": "f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12",
+      "project_urls": [
+        "Homepage, https://github.com/pytest-dev/iniconfig"
+      ],
+      "license_declared": "MIT",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "iniconfig-2.3.0.dist-info/METADATA",
+          "sha256": "40d773f84e4e112f495bbf4f1be9cbd2d456c0aeb6ef5311f75d1bf322f2165b"
+        },
+        {
+          "path": "iniconfig-2.3.0.dist-info/RECORD",
+          "sha256": "13bd6a921fffdf4350ffff526d3b26581159c832d96e3ba8c3be0f5199e305c6"
+        },
+        {
+          "path": "iniconfig-2.3.0.dist-info/WHEEL",
+          "sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "iniconfig-2.3.0.dist-info/licenses/LICENSE",
+          "sha256": "3409fa91f7ace557894632676656e32264fe5ef7581535725dc9a23774551bd4"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "ipydatawidgets",
+      "version": "4.3.5",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/f1/5b/e63c877c4c94382b66de5045e08ec8cd960e8a4d22f0d62a4dfb1f9e5ac6/ipydatawidgets-4.3.5-py2.py3-none-any.whl",
+      "wheel_sha256": "d590cdb7c364f2f6ab346f20b9d2dd661d27a834ef7845bc9d7113118f05ec87",
+      "project_urls": [],
+      "license_declared": "BSD",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "ipydatawidgets-4.3.5.dist-info/METADATA",
+          "sha256": "c4ba125ce259563f1163cd875f3ba6cd3fd1f5a371e31fe8ec0a626a72bb370b"
+        },
+        {
+          "path": "ipydatawidgets-4.3.5.dist-info/RECORD",
+          "sha256": "19a39e05ed5248a2d38f240cac82e2bb37b0f9b846fa061a41135df3222ee4e7"
+        },
+        {
+          "path": "ipydatawidgets-4.3.5.dist-info/WHEEL",
+          "sha256": "6bece9151209cceab941fba10736e1880d5e1d3ccd0899fc39d46f85d357d119"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "../../../share/jupyter/labextensions/jupyterlab-datawidgets/static/511.22f7942246884696c751.js.LICENSE.txt",
+          "sha256": "47282a6fa1469e2d7bc8936d167c17ebf0fd800941104dd15097945208ccb501"
+        },
+        {
+          "path": "../../../share/jupyter/labextensions/jupyterlab-datawidgets/static/third-party-licenses.json",
+          "sha256": "9a82c5dd6fd6226a41ede869cc69e8753f9d5f1ce9f29160d58468487a39a0b1"
+        },
+        {
+          "path": "ipydatawidgets-4.3.5.dist-info/LICENSE.txt",
+          "sha256": "46b05c927f37b9f1d54fd2f1179f796a769f11a0b11dd5561556a6a04a824d8c"
+        },
+        {
+          "path": "ipydatawidgets/nbextension/static/index.js.LICENSE.txt",
+          "sha256": "47282a6fa1469e2d7bc8936d167c17ebf0fd800941104dd15097945208ccb501"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "ipython",
+      "version": "9.17.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/2d/1e/65b59cf518c106aa755e7f7da3099027738687a862ec785060702a481320/ipython-9.17.1-py3-none-any.whl",
+      "wheel_sha256": "6d1645743cfd1a07eb695d85aa2b5fa66721f8cbae9431d4049f7084bbf06509",
+      "project_urls": [
+        "Homepage, https://ipython.org",
+        "Documentation, https://ipython.readthedocs.io/",
+        "Funding, https://jupyter.org/about#donate",
+        "Source, https://github.com/ipython/ipython",
+        "Tracker, https://github.com/ipython/ipython/issues"
+      ],
+      "license_declared": "BSD-3-Clause",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "ipython-9.17.1.dist-info/METADATA",
+          "sha256": "e78cb2a71fde4012b32de9b2db8d3c50ba618a1bb1975acc1bf107453365a1be"
+        },
+        {
+          "path": "ipython-9.17.1.dist-info/RECORD",
+          "sha256": "41f6647218be153ee39c41a8d5efdc41b35ff3a0340a383dd0445d1eaff5f974"
+        },
+        {
+          "path": "ipython-9.17.1.dist-info/WHEEL",
+          "sha256": "5fc741e6f3e4768e4a573671de8b856db96cb349cc110801425852524a93c403"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "ipython-9.17.1.dist-info/licenses/COPYING.rst",
+          "sha256": "8387aac32433e5b121c355aa9e6ce2b9a399da7edd59ab94b19d4f5326b1ced0"
+        },
+        {
+          "path": "ipython-9.17.1.dist-info/licenses/LICENSE",
+          "sha256": "e0e390748ed440ab893ca1f135a88a920aaf5409dbb90a5b427c75c5e51268fb"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "ipython_pygments_lexers",
+      "version": "1.1.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/d9/33/1f075bf72b0b747cb3288d011319aaf64083cf2efef8354174e3ed4540e2/ipython_pygments_lexers-1.1.1-py3-none-any.whl",
+      "wheel_sha256": "a9462224a505ade19a605f71f8fa63c2048833ce50abc86768a0d81d876dc81c",
+      "project_urls": [
+        "Source, https://github.com/ipython/ipython-pygments-lexers"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "ipython_pygments_lexers-1.1.1.dist-info/METADATA",
+          "sha256": "6b38c0946bdbc4778f4e38e2298547cbd7d13aeba9979ec4e4a412eabfbdfadb"
+        },
+        {
+          "path": "ipython_pygments_lexers-1.1.1.dist-info/RECORD",
+          "sha256": "e29dec89d0e14b715d12eab98ad90d26433e1de5815cc7f385209c4c31e8fb25"
+        },
+        {
+          "path": "ipython_pygments_lexers-1.1.1.dist-info/WHEEL",
+          "sha256": "0a950253178741b44de54191407611268acee407fe432fdf1cc72d710f034862"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "ipython_pygments_lexers-1.1.1.dist-info/LICENSE",
+          "sha256": "b1d0dbc0fa79774d34b8e2d0aec91d50d8caf05f7b40fc22c3010a4bd9ad2bf9"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "ipywidgets",
+      "version": "8.1.9",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/c3/55/298e9b3b864a198234997e87a1471c1b17d7f3546ace6d18fb5cf1ce24b2/ipywidgets-8.1.9-py3-none-any.whl",
+      "wheel_sha256": "f2b8cbcaae10252b809fbe4d7470db75c09b769a32cbf816d20e5ca6d3c5a79d",
+      "project_urls": [],
+      "license_declared": "BSD 3-Clause License",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "ipywidgets-8.1.9.dist-info/METADATA",
+          "sha256": "aea2814e0dd68918a6e4a38c37faf17981525636a8a8ef023f0481e93cb8b8a7"
+        },
+        {
+          "path": "ipywidgets-8.1.9.dist-info/RECORD",
+          "sha256": "6c765e6acc1b7faa61865738142f3adf7830c8b10b38caa65771f7763ae5dd99"
+        },
+        {
+          "path": "ipywidgets-8.1.9.dist-info/WHEEL",
+          "sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "ipywidgets-8.1.9.dist-info/licenses/LICENSE",
+          "sha256": "e5ac2be30b2bcefe330ee9e5ad7fe5b0d1156fecb3555fcaaa908a8d29f9fded"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "jedi",
+      "version": "0.20.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/9a/93/242e2eab5fe682ffcb8b0084bde703a41d51e17ee0f3a31ff0d9d813620a/jedi-0.20.0-py2.py3-none-any.whl",
+      "wheel_sha256": "7bdd9c2634f56713299976f4cbd59cb3fa92165cc5e05ea811fb253480728b67",
+      "project_urls": [
+        "Documentation, https://jedi.readthedocs.io/en/latest/"
+      ],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "jedi-0.20.0.dist-info/METADATA",
+          "sha256": "436bd0fb249b82dee15e85e2fb91d08d8e797481a16af48a725b8e4fb5340478"
+        },
+        {
+          "path": "jedi-0.20.0.dist-info/RECORD",
+          "sha256": "f03c32b263a73a3fbadb1b125459560fedbb1ccf508f180f39ca7af16b157475"
+        },
+        {
+          "path": "jedi-0.20.0.dist-info/WHEEL",
+          "sha256": "f86fedd281ae13b503d03ad2a55667ab584730157d0c3d97912e6fed7a664e79"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "jedi-0.20.0.dist-info/LICENSE.txt",
+          "sha256": "78e60cd0b8f28694f30195482c33d76908d846b0d15278deb7332aa22ba8e412"
+        },
+        {
+          "path": "jedi/third_party/django-stubs/LICENSE.txt",
+          "sha256": "235e993965d399a25e7d493d25c8622f78718510884b9c051f1f1866b6f34e9d"
+        },
+        {
+          "path": "jedi/third_party/typeshed/LICENSE",
+          "sha256": "295f8538c94ae5c3043301cf7cff1c852dab6a786a8ddee471e061b40d5ecabe"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "jupyterlab_widgets",
+      "version": "3.0.17",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/33/ef/6d27fc118f58cb24886da413545a7efb0853d405fddbfd8b2d9ac09fbed4/jupyterlab_widgets-3.0.17-py3-none-any.whl",
+      "wheel_sha256": "40ac1e9955acf116c4d995d9bfa082d86ad9ec6d91c4f134827cf5e0a5eb75e0",
+      "project_urls": [
+        "Homepage, https://github.com/jupyter-widgets/ipywidgets"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "jupyterlab_widgets-3.0.17.dist-info/METADATA",
+          "sha256": "4afc9ec69f8ecf916f2620116b0906efccda8e29a2f1940bedd8632237fadcac"
+        },
+        {
+          "path": "jupyterlab_widgets-3.0.17.dist-info/RECORD",
+          "sha256": "0120d681102febf69d4f50514d69c7d2a2c354db170c7b6e195537f690e775b9"
+        },
+        {
+          "path": "jupyterlab_widgets-3.0.17.dist-info/WHEEL",
+          "sha256": "ccec20e2307acd7da453dd7437e70c6b08e2bc3ead3bc3445af135da37b56d59"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "../../../share/jupyter/labextensions/@jupyter-widgets/jupyterlab-manager/static/third-party-licenses.json",
+          "sha256": "7b699a8e11a07e748cc62217f87ccc5b2140a3e84667505d17f5f572a89e6ebf"
+        },
+        {
+          "path": "jupyterlab_widgets-3.0.17.dist-info/licenses/LICENSE",
+          "sha256": "19e95347fe7dc0777fa312c22cfcd76fd1a15d46e1cde68f12e6e539ddd6b421"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "kiwisolver",
+      "version": "1.5.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/84/e5/bdb34e21523e01dceda064d63713f3bdec91388af24fba1eca7ea5e85864/kiwisolver-1.5.1-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheel_sha256": "1798e83840c3f627246104c4d8a9639c60fa068adf9ce92b61791781fa8a68c1",
+      "project_urls": [
+        "homepage, https://github.com/nucleic/kiwi",
+        "documentation, https://kiwisolver.readthedocs.io/en/latest/",
+        "repository, https://github.com/nucleic/kiwi",
+        "changelog, https://github.com/nucleic/kiwi/blob/main/releasenotes.rst"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "kiwisolver-1.5.1.dist-info/METADATA",
+          "sha256": "f07b7b6c0c9c2a624c8a31f931e16712f2cf3490e7dfd51643d68e9d42d4b2c9"
+        },
+        {
+          "path": "kiwisolver-1.5.1.dist-info/RECORD",
+          "sha256": "29fa2f318a654a2d353d5c560af96dc43d7a715b870e15b28f4c1de6ac594f1a"
+        },
+        {
+          "path": "kiwisolver-1.5.1.dist-info/WHEEL",
+          "sha256": "7156dcce88ca058d4e5118bde8900f7f0cacc719d55b67b78cb6de2362e7dbdb"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "kiwisolver-1.5.1.dist-info/licenses/LICENSE",
+          "sha256": "529c40e5f67f2f88904657a9f7879ae2f8dc76bc9bfef9cb10d988b48804ed61"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "kiwisolver/_cext.cpython-312-darwin.so",
+          "sha256": "e8e129fe112f08d8ba4a863e2cdbeca88b4a9e431bda778f2c046ee35d99531c"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "matplotlib",
+      "version": "3.11.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/eb/f8/6d0c312c8d9738e7d9677f09fe5c986b3239e651a7b73a2deb38b65e4a71/matplotlib-3.11.1-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheel_sha256": "21a67b961a6d597bca54fae826cd20695ba4a6e4d05424a08da6e13e3176fd6b",
+      "project_urls": [
+        "Homepage, https://matplotlib.org",
+        "Download, https://matplotlib.org/stable/install/index.html",
+        "Documentation, https://matplotlib.org",
+        "Source Code, https://github.com/matplotlib/matplotlib",
+        "Bug Tracker, https://github.com/matplotlib/matplotlib/issues",
+        "Forum, https://discourse.matplotlib.org/",
+        "Donate, https://numfocus.org/donate-to-matplotlib"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: Python Software Foundation License"
+      ],
+      "metadata_files": [
+        {
+          "path": "matplotlib-3.11.1.dist-info/METADATA",
+          "sha256": "e42a4867d0c790804bce9ccd38972e1e71e24a81f2dbc9633efc71e63ce69f59"
+        },
+        {
+          "path": "matplotlib-3.11.1.dist-info/RECORD",
+          "sha256": "62a51ad05d9fc3f628875945642316e38a5bd2de6eb418cd5d11f089f190bff7"
+        },
+        {
+          "path": "matplotlib-3.11.1.dist-info/WHEEL",
+          "sha256": "1a77459ac1909217ac24c074f71779c72d4915ac0a2650d9b7a00c320a89f8fc"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "matplotlib-3.11.1.dist-info/LICENSE",
+          "sha256": "822e8e528147569a41975592aee19c11992ab667ba50451cd929031d5fc74491"
+        },
+        {
+          "path": "matplotlib/mpl-data/fonts/ttf/LICENSE_DEJAVU",
+          "sha256": "d75938dec098f06f0ac3c00853065d94f020be1c3c62ef1dc2975ba15b4d9b0e"
+        },
+        {
+          "path": "matplotlib/mpl-data/fonts/ttf/LICENSE_STIX",
+          "sha256": "bab3d31dfef07f483624f2f65f2711e76065b8e7273278b1c071ede1041c9959"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "matplotlib/_c_internal_utils.cpython-312-darwin.so",
+          "sha256": "fe3d736649e1f7b8999821979b4246a77a8047ff51588d151d3d77ae8579f15f"
+        },
+        {
+          "path": "matplotlib/_image.cpython-312-darwin.so",
+          "sha256": "5c8cceed33a55696242c24c88307d300b3a088c526a4c515eee8bbd7db577aef"
+        },
+        {
+          "path": "matplotlib/_path.cpython-312-darwin.so",
+          "sha256": "2083137a5e93d87c510ef3b8b00d54289650356f3ac93f0f383416888dedd72e"
+        },
+        {
+          "path": "matplotlib/_qhull.cpython-312-darwin.so",
+          "sha256": "d50224126931adf31dece74ff1217e63876b8b7882c30f00565d1b9a91e0a529"
+        },
+        {
+          "path": "matplotlib/_tri.cpython-312-darwin.so",
+          "sha256": "fb5a204528e3e86f38c23b0aa740002ee96bb5d3c138f0df48c55e592f0c50a3"
+        },
+        {
+          "path": "matplotlib/backends/_backend_agg.cpython-312-darwin.so",
+          "sha256": "2ace35a26014de524ba7b67123f919b273eaefa94fe3070d71e1d42b907c2eb8"
+        },
+        {
+          "path": "matplotlib/backends/_macosx.cpython-312-darwin.so",
+          "sha256": "6ccc9b66a9780ca0dc0773059c48e453a006e96ba2f8eb4c60c3e440e69f0e8a"
+        },
+        {
+          "path": "matplotlib/backends/_tkagg.cpython-312-darwin.so",
+          "sha256": "447752b2aff3042c904e8550a0bc52023825b4438dd3b8d5d43a8cdf3cac5e6b"
+        },
+        {
+          "path": "matplotlib/ft2font.cpython-312-darwin.so",
+          "sha256": "e106054018098a8829b8dceecb4c17e0234fe78f1346f4c6b2d2c496b701b3be"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "matplotlib-inline",
+      "version": "0.2.2",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/41/09/5b161152e2d90f7b87f781c2e1267494aef9c32498df793f73ad0a0a494a/matplotlib_inline-0.2.2-py3-none-any.whl",
+      "wheel_sha256": "3c821cf1c209f59fb2d2d64abbf5b23b67bcb2210d663f9918dd851c6da1fcf6",
+      "project_urls": [
+        "Homepage, https://github.com/ipython/matplotlib-inline"
+      ],
+      "license_declared": "BSD-3-Clause",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "matplotlib_inline-0.2.2.dist-info/METADATA",
+          "sha256": "fedb3d587ec2d3fa4b0a81fd5353df697d2534c8ee714dbf050009afc60bcab7"
+        },
+        {
+          "path": "matplotlib_inline-0.2.2.dist-info/RECORD",
+          "sha256": "c576a8e6e0de0d62b862616d844eec72ca78587d8b9c2544b3828595229012e6"
+        },
+        {
+          "path": "matplotlib_inline-0.2.2.dist-info/WHEEL",
+          "sha256": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "matplotlib_inline-0.2.2.dist-info/licenses/LICENSE",
+          "sha256": "8521b036c6448e0e0aa7213d4713b6fdee0f4c64c9f320450f77346bf5c0e8e4"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "mitsuba",
+      "version": "3.8.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/1b/f0/0198ac7d1dc8769a4b6a8d6bcee1cfa598bee2c77cd8da412ed73b763ca4/mitsuba-3.8.0-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheel_sha256": "c3b15649b81d85d9796ad27a25b4beaf4139a776e0c02cdb6a1461a62b887416",
+      "project_urls": [
+        "Homepage, https://github.com/mitsuba-renderer/mitsuba3"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "mitsuba-3.8.0.dist-info/METADATA",
+          "sha256": "ff59330d1911e44a644c0e548ccd73457bbcbdb7e60352616efa47cb3f972a66"
+        },
+        {
+          "path": "mitsuba-3.8.0.dist-info/RECORD",
+          "sha256": "1e95b0f4994283f2fc280609bfe09df00f1d321dfa4721f65684225a7a280741"
+        },
+        {
+          "path": "mitsuba-3.8.0.dist-info/WHEEL",
+          "sha256": "ef7e40d7b806e528722f090857c0270c6d21a9972c904ae1772fb711c9057c37"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "mitsuba-3.8.0.dist-info/licenses/LICENSE",
+          "sha256": "8f9d91002eabbe1667a2394b51e28b38162ff5889aca3245179d0e8aa153fa2c"
+        },
+        {
+          "path": "mitsuba/data/sunsky/LICENSE",
+          "sha256": "035fce773acc40e73f20076caa26b04a87310193e5b6826e694e350cf502c245"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "mitsuba/libHalf-mitsuba.dylib",
+          "sha256": "db5e5350a137fb163c503aa4df10932db34e2401cd09ee6624e6027290f41eb4"
+        },
+        {
+          "path": "mitsuba/libIex-mitsuba.dylib",
+          "sha256": "8d2d064e3c51e66a358e1bc785e444349d0eacd9b76ca177892128b22836ab1e"
+        },
+        {
+          "path": "mitsuba/libIexMath-mitsuba.dylib",
+          "sha256": "e55ad1d2c7f4ea0f8b0c3f90542b18c546f68b50f18d64579ea175ce69df02b4"
+        },
+        {
+          "path": "mitsuba/libIlmImf-mitsuba.dylib",
+          "sha256": "dc89b5fff65237c9056cef9a9f7cc4fd1c2e4d57fef1e8eacff9b411db344ed0"
+        },
+        {
+          "path": "mitsuba/libIlmImfUtil-mitsuba.dylib",
+          "sha256": "b4a783298fa242a93fd769e96fb1044be7202c8cca8cec1efcdb43c9a05f342a"
+        },
+        {
+          "path": "mitsuba/libIlmThread-mitsuba.dylib",
+          "sha256": "504f4ec4f99e8b225e1205dfb3dc23ef0849416e41e5ce8a47caf3862247f45b"
+        },
+        {
+          "path": "mitsuba/libImath-mitsuba.dylib",
+          "sha256": "9bcacd1573787df70e55efa8f6b08de19908beefed644b63976e94f657609912"
+        },
+        {
+          "path": "mitsuba/libembree3.dylib",
+          "sha256": "c22585d48b25963da760824a06bf7a5498f3091a114610db5555ec1fa673fc65"
+        },
+        {
+          "path": "mitsuba/libjpeg-mitsuba.dylib",
+          "sha256": "33a47292cc0a8a4daf436899f74cff61245439e5ea6a9284d87ff6b265fc877e"
+        },
+        {
+          "path": "mitsuba/libmitsuba.dylib",
+          "sha256": "1c974f9c6fe83ce635ea2a982c9086934fc3f10714990a8947b15dda0fe6328e"
+        },
+        {
+          "path": "mitsuba/libnanobind-drjit.dylib",
+          "sha256": "ac90c0fd888adfab03aae309814ed5656ca1c858148088921795b3cc7a5eacaa"
+        },
+        {
+          "path": "mitsuba/libpng-mitsuba.dylib",
+          "sha256": "dab4d1ede4b25295fa99b7a3918d5015a1fa8feb92d0bf6751552240779ad3ad"
+        },
+        {
+          "path": "mitsuba/libpugixml.dylib",
+          "sha256": "202a8dfe8d9a4028b5818f2c2fcafcf6ff9067e7bcf32e147d6df7c18bfde706"
+        },
+        {
+          "path": "mitsuba/llvm_ad_mono.cpython-312-darwin.so",
+          "sha256": "3b9738e01a88f70ff540d429659463e29df66b07d1594d83486e2bb3234e69e4"
+        },
+        {
+          "path": "mitsuba/llvm_ad_mono_polarized.cpython-312-darwin.so",
+          "sha256": "fda07a34a6a5aede8b2b05259f85727265f3be80df8cdb6bde3439ceaf84dcec"
+        },
+        {
+          "path": "mitsuba/llvm_ad_rgb.cpython-312-darwin.so",
+          "sha256": "b980210992dc599876f32838e107a7772b3f3595ae9a2f58cca27624bad8c19b"
+        },
+        {
+          "path": "mitsuba/llvm_ad_spectral.cpython-312-darwin.so",
+          "sha256": "713f553eb9e54d4fe08d5352254a2cd969207abebb2cfa6904a49e3308fb5c9a"
+        },
+        {
+          "path": "mitsuba/llvm_ad_spectral_polarized.cpython-312-darwin.so",
+          "sha256": "20fa3a450da869f3d4bc342c77cf409bb8b08ec2e74f769ecc9ecfc0176a09ac"
+        },
+        {
+          "path": "mitsuba/mitsuba_alias.cpython-312-darwin.so",
+          "sha256": "912a29af2f18641adbd218a18c95a5cc135a9ebfa3021fd8a63ed1c20b2077bd"
+        },
+        {
+          "path": "mitsuba/mitsuba_ext.cpython-312-darwin.so",
+          "sha256": "c71e5d3c219997bf0bde98d2cf50dffc2c31376263e12393ea807096e84ecc4f"
+        },
+        {
+          "path": "mitsuba/plugins/aov.dylib",
+          "sha256": "be8c1aafd0675e277e28e48338114b2c7c3498cb87a460681cf0511ce6b5ce69"
+        },
+        {
+          "path": "mitsuba/plugins/area.dylib",
+          "sha256": "272344341ba110b56b4d71e76a1fb7141b1c93bea44306d17900f87ac2db9893"
+        },
+        {
+          "path": "mitsuba/plugins/batch.dylib",
+          "sha256": "d19be1dbff3dd2865fedfb216bce5ebfe91c92d08cada02e186f034fd76be2ab"
+        },
+        {
+          "path": "mitsuba/plugins/bitmap.dylib",
+          "sha256": "3a936572a725b039dd324cedca8ec29e3d06e8a41d9c88a69dc099ba5e1aa782"
+        },
+        {
+          "path": "mitsuba/plugins/blackbody.dylib",
+          "sha256": "d9f1d219bb8873d8ea27d3ec3745e971f039e25bd3a506bc5fb2610209d7b122"
+        },
+        {
+          "path": "mitsuba/plugins/blendbsdf.dylib",
+          "sha256": "dc8fa39ffd94e0f0099981da9562a8f439fd128857445fac48fa9e61bb868aa8"
+        },
+        {
+          "path": "mitsuba/plugins/blender.dylib",
+          "sha256": "82769694069005a668b94737e6bfcfc77e610dc82691d0e468d102cf7eb4071e"
+        },
+        {
+          "path": "mitsuba/plugins/blendphase.dylib",
+          "sha256": "d9d31e683e2ef357b45cf24a690d9b4137c19b6ce964c71609d84ad34bb87d42"
+        },
+        {
+          "path": "mitsuba/plugins/box.dylib",
+          "sha256": "df665bf4afe5ff0b50850ab602f8c58f862d40d27a357e8eff7cb38b2f4ea053"
+        },
+        {
+          "path": "mitsuba/plugins/bsplinecurve.dylib",
+          "sha256": "9bb96554ce14ff53bf71d774fbc977aef6ad46d9900c701158e9b2272d5c54a3"
+        },
+        {
+          "path": "mitsuba/plugins/bumpmap.dylib",
+          "sha256": "d4a51d6bb37634e838446e2dd379b87e2182b36c4c8b3dcadf15a4affc762e1e"
+        },
+        {
+          "path": "mitsuba/plugins/catmullrom.dylib",
+          "sha256": "2dac0bc94d01079ad0a6a6bbbc29b36d9bca4fb06aeda6caadc3d7d1414be82b"
+        },
+        {
+          "path": "mitsuba/plugins/checkerboard.dylib",
+          "sha256": "dd17a1eb0580f59dfd01970886716d8a7c3bec852e7d210e986b7bc33b43a0b1"
+        },
+        {
+          "path": "mitsuba/plugins/circular.dylib",
+          "sha256": "c9d9ddcf48019ebbb4630a922f3307d66579596431b6c992fd3739a2bb578310"
+        },
+        {
+          "path": "mitsuba/plugins/conductor.dylib",
+          "sha256": "c1f4231ea427c05ed88a241bb64aa8dec3e709f84c82d53fd28e251e01b4b98b"
+        },
+        {
+          "path": "mitsuba/plugins/constant.dylib",
+          "sha256": "180a26b4b6d818014e6b320c2f5c906adec4c4d012ac462e0076c3da12b51234"
+        },
+        {
+          "path": "mitsuba/plugins/constvolume.dylib",
+          "sha256": "7376e7724a0110b4863dfed940018050804aa43113230cc980fe5be2f2894664"
+        },
+        {
+          "path": "mitsuba/plugins/cube.dylib",
+          "sha256": "8f1f04d9550879db7b7c1c6c49738af211db58a6658b922dc267016897477b2c"
+        },
+        {
+          "path": "mitsuba/plugins/cylinder.dylib",
+          "sha256": "cb9fff44e1252c56ca1e6b5ee50e44b83b0c1bf5ded21e3ed073d7f30b75fc65"
+        },
+        {
+          "path": "mitsuba/plugins/d65.dylib",
+          "sha256": "bef161acc49ffa83fac91d0185c4afb5e814b3f56d1fabf161d53eb6c169001e"
+        },
+        {
+          "path": "mitsuba/plugins/depth.dylib",
+          "sha256": "a05d0afd356f885918f6a75c85c0245a7d6fd91959604c3b25c284d5eac9b207"
+        },
+        {
+          "path": "mitsuba/plugins/dielectric.dylib",
+          "sha256": "740926576dc15c03d3fec2c4c20c1e06796fe13b9593c0c92c7e37a232b1ec4d"
+        },
+        {
+          "path": "mitsuba/plugins/diffuse.dylib",
+          "sha256": "673e83940b6e783413b76410f428d89859cb1af600819e2cf4e0bd449ce9359c"
+        },
+        {
+          "path": "mitsuba/plugins/direct.dylib",
+          "sha256": "35cbc5dca43dab42c2ef8524c48335e7510a8b60b78c0c5b203d2ddae11c680d"
+        },
+        {
+          "path": "mitsuba/plugins/directional.dylib",
+          "sha256": "402d8948df5a6aba66c4dd3ca33713710fda060f3e8ba2aa5ef71366cceac756"
+        },
+        {
+          "path": "mitsuba/plugins/directionalarea.dylib",
+          "sha256": "21345a5998aa4d640a0363b4cdafdf518c69a8da6b70531d3290852379a21008"
+        },
+        {
+          "path": "mitsuba/plugins/disk.dylib",
+          "sha256": "3d4f17b0e0d41a20c857ae427426273685047be9310efb2cce56eaad056415ff"
+        },
+        {
+          "path": "mitsuba/plugins/distant.dylib",
+          "sha256": "92ff603a5a1b64fed6108f22e1e5126a877e79dfe626903c8053d2954dc6501d"
+        },
+        {
+          "path": "mitsuba/plugins/ellipsoids.dylib",
+          "sha256": "7caf95917a9fa9c4cb6a7794de47d2683ea3b42acc87db6b928faeef35d194e0"
+        },
+        {
+          "path": "mitsuba/plugins/ellipsoidsmesh.dylib",
+          "sha256": "5236e9e74cd8e43b16873912c1dcf754cb5b9d2c2fa3f44317878ff560bd5466"
+        },
+        {
+          "path": "mitsuba/plugins/envmap.dylib",
+          "sha256": "98af51766a70570033c53ead64ea4517ca4c45b46f39ea7e18c4519f4203ca2c"
+        },
+        {
+          "path": "mitsuba/plugins/gaussian.dylib",
+          "sha256": "015e47832a193beb67aaaed2bc8f138e2282935028d1d7688bfdc63b324b820f"
+        },
+        {
+          "path": "mitsuba/plugins/gridvolume.dylib",
+          "sha256": "75860e346e2958ee45c90712a19a0d2b507edd622b9ddfbeb0b61f6c6efdc38d"
+        },
+        {
+          "path": "mitsuba/plugins/hair.dylib",
+          "sha256": "114ffba152622298a3ae365b11d6f6465ce9716052128935c67ce23c7a21d821"
+        },
+        {
+          "path": "mitsuba/plugins/hdrfilm.dylib",
+          "sha256": "b8a2619effc84995754017b6bf45d3102e2768161b5a2d227967252bd74df9c8"
+        },
+        {
+          "path": "mitsuba/plugins/heterogeneous.dylib",
+          "sha256": "ba7976ac4370d5d578d293a45eb01f216fb18a5d8feaabd94c46d77f87cdf634"
+        },
+        {
+          "path": "mitsuba/plugins/hg.dylib",
+          "sha256": "11f4e0c8fd58abc4db4fcfb9c0016c80739b227f8337d41f49567fe65d5b90d0"
+        },
+        {
+          "path": "mitsuba/plugins/homogeneous.dylib",
+          "sha256": "340d661f2dfb162909b66cf7ddeb71cea768cc6a912d58169384398380c2b4c4"
+        },
+        {
+          "path": "mitsuba/plugins/independent.dylib",
+          "sha256": "a453e5ccebeb6443e7471ae77858f28f2e493d31d3906a00e3d51d15c466b16d"
+        },
+        {
+          "path": "mitsuba/plugins/instance.dylib",
+          "sha256": "0a1b1c26467df36b709931a5628cc157c2ddd84b4dbbc16e0bbed9ce9b688385"
+        },
+        {
+          "path": "mitsuba/plugins/irradiancemeter.dylib",
+          "sha256": "9ae7c389ecacf0a65482ad424694860e8484dda5a6e81d050e5b5add1918801e"
+        },
+        {
+          "path": "mitsuba/plugins/irregular.dylib",
+          "sha256": "e7c535f5aa4c07ec23c19c400e336cb80b3bd98ce1f8da4da6b3823f6d53476a"
+        },
+        {
+          "path": "mitsuba/plugins/isotropic.dylib",
+          "sha256": "ffa200b96659d00924276d9826a59877652ea22ca273ddfb7a8f3938851552b7"
+        },
+        {
+          "path": "mitsuba/plugins/lanczos.dylib",
+          "sha256": "425a543bc5a29554b13696fbf838163092dc4626bb0e3a1bab8714d9a2bb65e0"
+        },
+        {
+          "path": "mitsuba/plugins/ldsampler.dylib",
+          "sha256": "06767560867abbbaa1b054eb06e1b634aa993001220164f21fbb0954e7ea1345"
+        },
+        {
+          "path": "mitsuba/plugins/linearcurve.dylib",
+          "sha256": "715d5298e37e0c3eec518248929c949fd4361db71370a41d60005891a2854913"
+        },
+        {
+          "path": "mitsuba/plugins/mask.dylib",
+          "sha256": "6a6eaee4a561c66262dc86d48f4f08505841b39debb1f43ec7f2a60794825b0b"
+        },
+        {
+          "path": "mitsuba/plugins/measured.dylib",
+          "sha256": "6759c029bcfbacc74b05aeb9e0746502360e2e6691fbeec9fa750b681bcedb0e"
+        },
+        {
+          "path": "mitsuba/plugins/measured_polarized.dylib",
+          "sha256": "5c1da878a737f5317fa26a7dc8820abfe23f1779f3cbab85e49d78497a9c7b7f"
+        },
+        {
+          "path": "mitsuba/plugins/merge.dylib",
+          "sha256": "20f85908987ea5c7ffaa4474b7460d637117380c01451e02fa6307d56456cd41"
+        },
+        {
+          "path": "mitsuba/plugins/mesh_attribute.dylib",
+          "sha256": "be033c3ed8389b37821ecda762fd3b9e3d09b71ca36d005cfeb07246906dd84a"
+        },
+        {
+          "path": "mitsuba/plugins/mitchell.dylib",
+          "sha256": "697bb41144f138189af57f7d8414a99479dee763076ad34b214540175ba35ee2"
+        },
+        {
+          "path": "mitsuba/plugins/moment.dylib",
+          "sha256": "bc09f4efd6a0a6438eca769fee4a1cbe73c64cdc25c37f6d35d9e3a464d992c6"
+        },
+        {
+          "path": "mitsuba/plugins/multijitter.dylib",
+          "sha256": "59d3f4ef16ca9385de2b573298d3936c4a8f3c82d080e43346f2d68582f0b6c2"
+        },
+        {
+          "path": "mitsuba/plugins/normalmap.dylib",
+          "sha256": "64ea944ac14e160fd76c943428d411836af1b179716569b195840583006efdc2"
+        },
+        {
+          "path": "mitsuba/plugins/null.dylib",
+          "sha256": "8c27fe9088805b08edf29422e02f3d53d677aca8703f12b114d4b543b4a50c4d"
+        },
+        {
+          "path": "mitsuba/plugins/obj.dylib",
+          "sha256": "e1c3918bf10671527389407980bc2f50b3f0e1e57a1fd4d4d12a7e461c11c572"
+        },
+        {
+          "path": "mitsuba/plugins/orthogonal.dylib",
+          "sha256": "43b29af159fe06f2f26c4ccda71c5ad759c45ae3924c2ca1d36520db97e9ca37"
+        },
+        {
+          "path": "mitsuba/plugins/orthographic.dylib",
+          "sha256": "0a91002a754e7ec3a54b9ce1518d07d97d8165cdbca9cbdae723d6fe9224989e"
+        },
+        {
+          "path": "mitsuba/plugins/path.dylib",
+          "sha256": "d9329545a90a1e35148a67057ff1c5e513d3a22523df7ff6626f9bc4426b7d0b"
+        },
+        {
+          "path": "mitsuba/plugins/perspective.dylib",
+          "sha256": "01b9d03184a6598ad5ec742adf283939262e628fdf3a4aa7a74c3d5556cf71da"
+        },
+        {
+          "path": "mitsuba/plugins/plastic.dylib",
+          "sha256": "98c154c878e7653e1f88e585a58503b277bae77af354d00af6b909e5a7637253"
+        },
+        {
+          "path": "mitsuba/plugins/ply.dylib",
+          "sha256": "1b58ad4af6e1c2c70ba0d71253e97c14edbc41ec608d3241df4046ccb457c754"
+        },
+        {
+          "path": "mitsuba/plugins/point.dylib",
+          "sha256": "de10fa94309d8c7ce519622ab700eb1d57c426d36c24c51698890c3fddb17fa6"
+        },
+        {
+          "path": "mitsuba/plugins/polarizer.dylib",
+          "sha256": "2d0b5a2768a0973792e9b3261efe4e84cb2e273b1ddce72aa28505157a189d5d"
+        },
+        {
+          "path": "mitsuba/plugins/pplastic.dylib",
+          "sha256": "48416b3dd5bfe891ae5e8fe830e328f3c5dcc3c27e4deec65ef495b297e655bb"
+        },
+        {
+          "path": "mitsuba/plugins/principled.dylib",
+          "sha256": "88b6a2a8dc87526393b905b094a87555f87144c0242e5bddca25e3d5f8723dea"
+        },
+        {
+          "path": "mitsuba/plugins/principledthin.dylib",
+          "sha256": "61e9a2f8cb5e2af6b03e49f9f5a33b143c6d47ff0f67694a74ac0be6d2137a0c"
+        },
+        {
+          "path": "mitsuba/plugins/projector.dylib",
+          "sha256": "4d42950911a2d1f821e98833ba48d65afd20088bf1a433e4e83de6eb69035cfa"
+        },
+        {
+          "path": "mitsuba/plugins/ptracer.dylib",
+          "sha256": "4ee59652500a7874cc568691654fdfc8cfa41bc7381de16350abdd562013a8e6"
+        },
+        {
+          "path": "mitsuba/plugins/radiancemeter.dylib",
+          "sha256": "858a981aad10630dd39c0127261421d54c935c6dc69a66803ef860fc3e1a40c8"
+        },
+        {
+          "path": "mitsuba/plugins/rawconstant.dylib",
+          "sha256": "e0f91f75f99e5c3f2d1f4ae67e0812f8f4b169f6eac7f7c348d87206c109a356"
+        },
+        {
+          "path": "mitsuba/plugins/rayleigh.dylib",
+          "sha256": "8b47dba9e3072a5f0df4d305d68d562f9592a82ad04efee02aa47bb037e99ac8"
+        },
+        {
+          "path": "mitsuba/plugins/rectangle.dylib",
+          "sha256": "a08b23d8c5d16645628a2b16d56e8cf96ccd9d0376adec0f785e6f70b1505c83"
+        },
+        {
+          "path": "mitsuba/plugins/regular.dylib",
+          "sha256": "00f47f0ab53f0c8cfe7122e20f88e2024cad78098c92c9bdcc0889fa37faaff6"
+        },
+        {
+          "path": "mitsuba/plugins/retarder.dylib",
+          "sha256": "934cf786b427fc0667881cf6c23c99ae6993d159876a2875dc84088be068c2c8"
+        },
+        {
+          "path": "mitsuba/plugins/roughconductor.dylib",
+          "sha256": "70e9d1f3e8f891ccaeb5e84e316eb69a5b53c2176272cc5a54054709ef6522e2"
+        },
+        {
+          "path": "mitsuba/plugins/roughdielectric.dylib",
+          "sha256": "3975a1f3b5fcdf3affdbfa169267ccab1740ce2da0b0a70e44446362dbaf7df9"
+        },
+        {
+          "path": "mitsuba/plugins/roughplastic.dylib",
+          "sha256": "51b18f3a60a80d099be614b19693df6fb5eecfdd52f71ebc41b5bdcbcb1a0d8f"
+        },
+        {
+          "path": "mitsuba/plugins/sdfgrid.dylib",
+          "sha256": "e0de66abe60cc873b02c19b3680049fe46e8064634af52cfd996c1c7089cba7e"
+        },
+        {
+          "path": "mitsuba/plugins/serialized.dylib",
+          "sha256": "ccd7cc25d3298dde1ba5f0d83ee1aef4e6792c6cb93982ef214b65004ebc186b"
+        },
+        {
+          "path": "mitsuba/plugins/sggx.dylib",
+          "sha256": "a867a6f674e6daae8a7232c386356011eb36c0e91865b34ea110191509c6f5bf"
+        },
+        {
+          "path": "mitsuba/plugins/shapegroup.dylib",
+          "sha256": "a810e98529b2a9d7e95f7a8e31de7d4fc4a06e7815e43fe09ee00661759e7927"
+        },
+        {
+          "path": "mitsuba/plugins/specfilm.dylib",
+          "sha256": "9026923ac5ddef21f5d7f414148c70e2c37950c660bce3b78bab7672a355b9dd"
+        },
+        {
+          "path": "mitsuba/plugins/sphere.dylib",
+          "sha256": "83c021dc4867b57da6d38632153c6a96818cd0d4b79e6719ff2455e6d67e19de"
+        },
+        {
+          "path": "mitsuba/plugins/spot.dylib",
+          "sha256": "97f9c4ca3e0e7e102f695df57c001bc49f119b2136cd442667369629dc64d9fe"
+        },
+        {
+          "path": "mitsuba/plugins/srgb.dylib",
+          "sha256": "fa8e0090edb3a4e1d0e1515cefba512cdba91b037452070c2f722bca14b3c6ce"
+        },
+        {
+          "path": "mitsuba/plugins/stokes.dylib",
+          "sha256": "81e6cf4a51bfbd546a19d1c3a61bc615ef2fd7c2768504e6428d8faad86f4fd7"
+        },
+        {
+          "path": "mitsuba/plugins/stratified.dylib",
+          "sha256": "79b7058b76e4dea1d85f2a02bdc0862da0ed5342096c8bed0e5f6b5756adb6c2"
+        },
+        {
+          "path": "mitsuba/plugins/sunsky.dylib",
+          "sha256": "2be7cd731642a15779ef13a959732a6ec2c2a8262ede8175c41c905c88921d9a"
+        },
+        {
+          "path": "mitsuba/plugins/tabphase.dylib",
+          "sha256": "a1c71c8b41d6dc7e6a3ecae3cfff19722c9d7c163dc3ba8279213b3edc136034"
+        },
+        {
+          "path": "mitsuba/plugins/tent.dylib",
+          "sha256": "dcb6e41b714f2ddff677da6caff902d75c5146973fd1f4f5aa830796a9271251"
+        },
+        {
+          "path": "mitsuba/plugins/thindielectric.dylib",
+          "sha256": "134f8feb2cec2cad7c8d8d6646abdb08d3ac0bdaf581bdc742131280ff6d7af4"
+        },
+        {
+          "path": "mitsuba/plugins/thinlens.dylib",
+          "sha256": "3626b5734e890f68db5e01a28c6152d32d71003ffab011c7c5c602b68293d7e6"
+        },
+        {
+          "path": "mitsuba/plugins/timed_sunsky.dylib",
+          "sha256": "f6fda2f194b86bae2f2ab60c0b390e31ddd940a44682577d6f7591348ee2b6a5"
+        },
+        {
+          "path": "mitsuba/plugins/twosided.dylib",
+          "sha256": "954ae1840797bd23cfe6a923d47ea7046026a8493c177790b19d4633c83771fb"
+        },
+        {
+          "path": "mitsuba/plugins/uniform.dylib",
+          "sha256": "03315f0bb70767c95121ac00df7aec5e56d43c9cb86a14e3c4c945a640ccf619"
+        },
+        {
+          "path": "mitsuba/plugins/volpath.dylib",
+          "sha256": "89b4fd04e55b5f269ff64f7961165a172aef24d7b83345962c639651f85be823"
+        },
+        {
+          "path": "mitsuba/plugins/volpathmis.dylib",
+          "sha256": "3c64da0aa42ed1c74254b6264c78cf6ff48314f921a0860918a2f4e217317ef5"
+        },
+        {
+          "path": "mitsuba/plugins/volume.dylib",
+          "sha256": "011650bc6b58ae963bd8e59786eafdd17ced940f62b1f59bb6bf5c32ad9d70ef"
+        },
+        {
+          "path": "mitsuba/scalar_rgb.cpython-312-darwin.so",
+          "sha256": "dd6e1dcf27b58efe28e5219281b3c72b31fd98eaf50947075bc727047898c24a"
+        },
+        {
+          "path": "mitsuba/scalar_spectral.cpython-312-darwin.so",
+          "sha256": "0852a580e1d33837ee07a3b6639d2ce9ae070d44eb117c5fe82a3e04c9f90e9d"
+        },
+        {
+          "path": "mitsuba/scalar_spectral_polarized.cpython-312-darwin.so",
+          "sha256": "aab0bc497090942a5d0936784e62d896998d195e1b7a7bc900cc20baa255cbac"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "numpy",
+      "version": "2.5.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/9c/59/a312e95696e5f601914dd8b6dd844692ba61670807417e24b68e337b5c70/numpy-2.5.3-cp312-cp312-macosx_14_0_arm64.whl",
+      "wheel_sha256": "a72f874bc9e10e4b8f80426fb49716d5141f64442a0c8418065093ec8017fbb0",
+      "project_urls": [
+        "homepage, https://numpy.org",
+        "documentation, https://numpy.org/doc/",
+        "source, https://github.com/numpy/numpy",
+        "download, https://pypi.org/project/numpy/#files",
+        "tracker, https://github.com/numpy/numpy/issues",
+        "release notes, https://numpy.org/doc/stable/release"
+      ],
+      "license_declared": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "numpy-2.5.3.dist-info/METADATA",
+          "sha256": "451a9b8028000588e66b0b415587b6aef0bbc51a96d8e8a0cba0dc23acf64f99"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/RECORD",
+          "sha256": "0b5205f4574a972b298ad0a44ca57abe30d8243875dd5fdcf708706dd62ba4e3"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/WHEEL",
+          "sha256": "26726246f91715a154e07973ca8a82029674ee3cba86914a77f2e47c1a566739"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/LICENSE.txt",
+          "sha256": "649a589ab31076e79e9ce62ba24eae9959598124176640dbc95f87bd10f34fcf"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+          "sha256": "fbc539f47d0cf83bc61378080fb873d5c14630126cacbfe754035c3926daa5ec"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+          "sha256": "3f2c1ffa76383a55ae0aac01c9737cd70050dff63e1f026694fbe9d662573c98"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+          "sha256": "e340270d4f64384569a91d546acb5b094d69ce47f0c015db77abb74dc6f815af"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+          "sha256": "f7b14309e5f54e5022b26448eefd419988ada2aec01d3c1162d84a0ea8f21f2c"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+          "sha256": "211e7d737d6179a08f791ebb0a99897ce7cd2457410c542876d125576edfe910"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+          "sha256": "c17011467b4fe6e20fbfbeda4df09e58c2bca5480a063e55735a4000a379aad9"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+          "sha256": "a85ca13fdf90160b64a0698215868c13b74d835ad0a4e2ba44713b8c5058a056"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+          "sha256": "a14cc25e10d40a3aa705b7de2fb764a6535d8ee9b2db4e1724900585457dfd55"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/ma/LICENSE",
+          "sha256": "05f3b88351988ecfad10abe92c0c50e5875c6452d5009a0084cc291551ffcca6"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/LICENSE.md",
+          "sha256": "103166b62b80443afb9eb3488e052ea06be0cff566b908f199e561fde49af19f"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+          "sha256": "469778be8f33d54e1bcaab28c281cc472916d2d273f835e55bc487d30503face"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+          "sha256": "0e111337b25494a773106695f0e799f642b8567aaacca4f116a74a8177179156"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+          "sha256": "e7d4f4fb20358f314210a892ae17351e04993813646f697ec387385ca2a36918"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+          "sha256": "6f5828a57223d4cc7f8ea505a2623e7b978b242752c1515e355f46ba2cec1800"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+          "sha256": "9d4098846018319cd68e228ee6220361787f73bccbf00237a85e4fc9621b998f"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+          "sha256": "268b0ca06759d31ea3ca68dd35f20e877916e927b1c2a835e4592a3c4354b1f9"
+        },
+        {
+          "path": "numpy/_core/include/numpy/random/LICENSE.txt",
+          "sha256": "fbc539f47d0cf83bc61378080fb873d5c14630126cacbfe754035c3926daa5ec"
+        },
+        {
+          "path": "numpy/ma/LICENSE",
+          "sha256": "05f3b88351988ecfad10abe92c0c50e5875c6452d5009a0084cc291551ffcca6"
+        },
+        {
+          "path": "numpy/random/LICENSE.md",
+          "sha256": "103166b62b80443afb9eb3488e052ea06be0cff566b908f199e561fde49af19f"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "numpy/_core/_multiarray_tests.cpython-312-darwin.so",
+          "sha256": "083ab89907471d9d6af7337ae44f6acbde5e5e23ef173394dc6251c925fc08ba"
+        },
+        {
+          "path": "numpy/_core/_multiarray_umath.cpython-312-darwin.so",
+          "sha256": "3432cd9093d7e84b4080015b6a889598fea4c305da967063cb916215193bf85d"
+        },
+        {
+          "path": "numpy/_core/_operand_flag_tests.cpython-312-darwin.so",
+          "sha256": "e910e6642301f2f28a986d819a3249d5d1013b2ee6ce4e5e9a95082ecc4d3627"
+        },
+        {
+          "path": "numpy/_core/_rational_tests.cpython-312-darwin.so",
+          "sha256": "73d0f8c90654dd97fa2b0ed6c45882eb8fe83a8c4256e38bfc31713e5e07841b"
+        },
+        {
+          "path": "numpy/_core/_simd.cpython-312-darwin.so",
+          "sha256": "e78efa667e9cd2d0f319968a7feae06adf7f0945efde8bbcad3bd0f75e199541"
+        },
+        {
+          "path": "numpy/_core/_struct_ufunc_tests.cpython-312-darwin.so",
+          "sha256": "24218eec682f48246b450903e270be19eca1c6c2d828235ddef29949f2cc8950"
+        },
+        {
+          "path": "numpy/_core/_umath_tests.cpython-312-darwin.so",
+          "sha256": "1c55454c29a1a5f500fc22cf095e862b0af0f17e14c2a1fbe7140832c21a0d66"
+        },
+        {
+          "path": "numpy/fft/_pocketfft_umath.cpython-312-darwin.so",
+          "sha256": "51add49e0b523ae7b20a10a879a77e0998afb795d6d233ef8936f0a58ce4e36f"
+        },
+        {
+          "path": "numpy/linalg/_umath_linalg.cpython-312-darwin.so",
+          "sha256": "dbaefc13a7379c877dee2618ea6f96d69560743d3ad392d57f3a866f1378728d"
+        },
+        {
+          "path": "numpy/linalg/lapack_lite.cpython-312-darwin.so",
+          "sha256": "a7895a9c0d4afdf3fbbdc2456e016590aa0fbd8d7e203079debee39bd0269b5c"
+        },
+        {
+          "path": "numpy/random/_bounded_integers.cpython-312-darwin.so",
+          "sha256": "1215997585debe5651a77a52563dc32508e67414ef35761c49afa150ce1f8e1f"
+        },
+        {
+          "path": "numpy/random/_common.cpython-312-darwin.so",
+          "sha256": "884ecb8d16bbb1572816a89fff6b2b5722bb8210273ff744ec0db5c0496de5fd"
+        },
+        {
+          "path": "numpy/random/_generator.cpython-312-darwin.so",
+          "sha256": "87a6dfcf15b6107936915f76e1a52b00d68f2e539169aee194af7a3e5bbacc1b"
+        },
+        {
+          "path": "numpy/random/_mt19937.cpython-312-darwin.so",
+          "sha256": "9779d38f6e586d845f2ee652959f3edf1acb44fbeff6f4ee16ec7fb58f23dd6d"
+        },
+        {
+          "path": "numpy/random/_pcg64.cpython-312-darwin.so",
+          "sha256": "39fbdcf07c23901f4ae0b6ab3be3e05829a83495819a69cda8ddbd11d06ff136"
+        },
+        {
+          "path": "numpy/random/_philox.cpython-312-darwin.so",
+          "sha256": "5a74868b1a98c3d0a776cf275c88959871376bab0ff15ef0d882229ddd5a2a56"
+        },
+        {
+          "path": "numpy/random/_sfc64.cpython-312-darwin.so",
+          "sha256": "6bb290611b7fa2304d28f3c8ddb0156f435ead1aa0f5a997ddfe4e8a6762c200"
+        },
+        {
+          "path": "numpy/random/bit_generator.cpython-312-darwin.so",
+          "sha256": "88bbb27d3f58e12c9be2ff6af6eff4e409599a3e6cece3b4144d4aa8878b149b"
+        },
+        {
+          "path": "numpy/random/mtrand.cpython-312-darwin.so",
+          "sha256": "0e52c63a090850119f67a570ae2fd094861fcff3a0bad00cbf3a0c86faa82510"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+      "wheel_sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "project_urls": [
+        "Documentation, https://packaging.pypa.io/",
+        "Source, https://github.com/pypa/packaging"
+      ],
+      "license_declared": "Apache-2.0 OR BSD-2-Clause",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "packaging-26.3.dist-info/METADATA",
+          "sha256": "70fdb89fc4d4a9a043bf7372b8972bcc883fddff34ab55e9cf80d73875384763"
+        },
+        {
+          "path": "packaging-26.3.dist-info/RECORD",
+          "sha256": "fd59b791119d91d0602060c81541e41118992995c6a0070e411a5ea3c6b1ebb2"
+        },
+        {
+          "path": "packaging-26.3.dist-info/WHEEL",
+          "sha256": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "packaging-26.3.dist-info/licenses/LICENSE",
+          "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+        },
+        {
+          "path": "packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        },
+        {
+          "path": "packaging-26.3.dist-info/licenses/LICENSE.BSD",
+          "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5"
+        },
+        {
+          "path": "packaging/licenses/__init__.py",
+          "sha256": "590d12eee73ddbec53b4e9ee5bfc64d9cb3aacb4940e8ebcba260757ce56740b"
+        },
+        {
+          "path": "packaging/licenses/__pycache__/__init__.cpython-312.pyc",
+          "sha256": "628b332a1bdff802ac1ba2b595365a64667e410093a782fb49fd53d2b0a20804"
+        },
+        {
+          "path": "packaging/licenses/__pycache__/_spdx.cpython-312.pyc",
+          "sha256": "ef723cbbf2239380f5a3b416f8061789961413efa3f4e7c6fbd6b9b373ff4669"
+        },
+        {
+          "path": "packaging/licenses/_spdx.py",
+          "sha256": "596ec35e2ca0ebcba9fd8343ff0a51625af548786257815f24b41f7e08613314"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "parso",
+      "version": "0.8.7",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/99/5d/8268b644392ee874ee82a635cd0df1773de230bde356c38de28e298392cc/parso-0.8.7-py2.py3-none-any.whl",
+      "wheel_sha256": "a8926eb2a1b915486941fdbd31e86a4baf88fe8c210f25f2f35ecec5b574ca1c",
+      "project_urls": [],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "parso-0.8.7.dist-info/METADATA",
+          "sha256": "2fd8c9f8209218163a6c086ba8075d177122430645fea770cc02c53cd426119d"
+        },
+        {
+          "path": "parso-0.8.7.dist-info/RECORD",
+          "sha256": "92254b968016f4ba02c594a2b95f781ec76529df1cf07eadde4c0f5da9e7031a"
+        },
+        {
+          "path": "parso-0.8.7.dist-info/WHEEL",
+          "sha256": "f86fedd281ae13b503d03ad2a55667ab584730157d0c3d97912e6fed7a664e79"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "parso-0.8.7.dist-info/LICENSE.txt",
+          "sha256": "fa67973073753d17624caf8684d5ee816d70c89d912c5bca7ca0f08e7b150edb"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pexpect",
+      "version": "4.9.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl",
+      "wheel_sha256": "7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523",
+      "project_urls": [
+        "Bug Tracker, https://github.com/pexpect/pexpect/issues",
+        "Documentation, https://pexpect.readthedocs.io/",
+        "Source Code, https://github.com/pexpect/pexpect",
+        "History, https://pexpect.readthedocs.io/en/stable/history.html"
+      ],
+      "license_declared": "ISC license",
+      "license_classifiers": [
+        "License :: OSI Approved :: ISC License (ISCL)"
+      ],
+      "metadata_files": [
+        {
+          "path": "pexpect-4.9.0.dist-info/METADATA",
+          "sha256": "2d7c5ac5fdefde4a0194ec522fbcc0ca70e99e1a2a956eea444168f8591650aa"
+        },
+        {
+          "path": "pexpect-4.9.0.dist-info/RECORD",
+          "sha256": "108c38047a7dda41f47c6667f34929ba66a0685366dd59c5e565bc46cfac3782"
+        },
+        {
+          "path": "pexpect-4.9.0.dist-info/WHEEL",
+          "sha256": "6dbd8eb7db1c7251ca30e2c310763a076b227163a0ba08c529a26c4fbbf0310a"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pexpect-4.9.0.dist-info/LICENSE",
+          "sha256": "4a483ae1c4dc738a6c8b73feb49074e1835da02ab5aa686f2675029906fa364d"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pillow",
+      "version": "12.3.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/d8/66/9a386a92561f402389a4fc70c18838bf6d35eb5eb5c6850b4b2dc64f5048/pillow-12.3.0-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheel_sha256": "ffd0c5368496f41b0944be820fcb7a838aa6e623d250b01acf2643939c3f99d7",
+      "project_urls": [
+        "Release notes, https://pillow.readthedocs.io/en/stable/releasenotes/index.html",
+        "Changelog, https://github.com/python-pillow/Pillow/releases",
+        "Documentation, https://pillow.readthedocs.io",
+        "Funding, https://tidelift.com/subscription/pkg/pypi-pillow?utm_source=pypi-pillow&utm_medium=pypi",
+        "Homepage, https://python-pillow.github.io",
+        "Mastodon, https://fosstodon.org/@pillow",
+        "Source, https://github.com/python-pillow/Pillow"
+      ],
+      "license_declared": "MIT-CMU",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "pillow-12.3.0.dist-info/METADATA",
+          "sha256": "8fc07146cab33ef7582361dab6eac596d340b03ec648f18217da7894f73838c8"
+        },
+        {
+          "path": "pillow-12.3.0.dist-info/RECORD",
+          "sha256": "e9fe50a7b7df02bd63a7dff85951ab0172b27b28e88798fa7e8c666139bc89bb"
+        },
+        {
+          "path": "pillow-12.3.0.dist-info/WHEEL",
+          "sha256": "70c6dd511e0cb89c0a4e4fdc7254cd728f8e5bab03ad06f067a32548cb65ac8e"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pillow-12.3.0.dist-info/licenses/LICENSE",
+          "sha256": "dda12a98c1979cf3d94df1cff45d27a4cb3f04a60c76f76902ac54cac03ec0ce"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "PIL/.dylibs/libXau.6.dylib",
+          "sha256": "002a604dc76919d6606c610be703a6547d78dd0f401639c9e95e5a79227190bf"
+        },
+        {
+          "path": "PIL/.dylibs/libavif.16.4.2.dylib",
+          "sha256": "ee0124cb07fb6419ed743cf9658b25211f7cc87d9081ad3e9416100db02c3c09"
+        },
+        {
+          "path": "PIL/.dylibs/libbrotlicommon.1.2.0.dylib",
+          "sha256": "3f4843c17f3cccc986279a4c9ac8a11dc3077c412fd856d1bad8231bf027a25f"
+        },
+        {
+          "path": "PIL/.dylibs/libbrotlidec.1.2.0.dylib",
+          "sha256": "351fa4a2f4faed4147dfead81a8b0f5500ada31db64f74c8368bc1ab894f0dd1"
+        },
+        {
+          "path": "PIL/.dylibs/libfreetype.6.dylib",
+          "sha256": "996f9be86f5cee9a44924dba75e3db7ad8a1e83ec1695505c60d314f269b6109"
+        },
+        {
+          "path": "PIL/.dylibs/libharfbuzz.0.dylib",
+          "sha256": "7e6800c210dcc2b6faa1e05ef42d1d4fdd0bb0dc88cd4640c7cd86ac715c51fd"
+        },
+        {
+          "path": "PIL/.dylibs/libjpeg.62.4.0.dylib",
+          "sha256": "cf7c4e5c2d2c007fc51afcb95b649415cfe0bc4d7137ace897a6eff6550fa967"
+        },
+        {
+          "path": "PIL/.dylibs/liblcms2.2.dylib",
+          "sha256": "6c472f0956c937e85747a4f7c5987dec7c54a6c807006f50fe2e1df1e82ec5e5"
+        },
+        {
+          "path": "PIL/.dylibs/liblzma.5.dylib",
+          "sha256": "a978dfb290d948f53867b6e3915fff71800062c770f176419391ccc95defd53b"
+        },
+        {
+          "path": "PIL/.dylibs/libopenjp2.2.5.4.dylib",
+          "sha256": "ad0cb293fe3da9efcd8e3c5128c37e012d5abc88289f43c2721020e9cf408bdd"
+        },
+        {
+          "path": "PIL/.dylibs/libpng16.16.dylib",
+          "sha256": "92d120e199c0981bc26d71af66450cb1fc4f0764ce3ceb18369881e6e1c5861c"
+        },
+        {
+          "path": "PIL/.dylibs/libsharpyuv.0.dylib",
+          "sha256": "6b2d464413fc35783c79936f1e6be631585448a37765cf79c238be2ea5e5505b"
+        },
+        {
+          "path": "PIL/.dylibs/libtiff.6.dylib",
+          "sha256": "e8988717b7470394a47d5ccd343130796b24ee70b6d885d3818e0e0b53238be1"
+        },
+        {
+          "path": "PIL/.dylibs/libwebp.7.dylib",
+          "sha256": "0a2ba0179e6bcc1bccc1a88c38b7d8efd0302d45a1bfc1eb4cf1f1f03ede73f0"
+        },
+        {
+          "path": "PIL/.dylibs/libwebpdemux.2.dylib",
+          "sha256": "f5ec6b6750ee91ff032ba62b18afc5f37c7bc842bfc9b2d325df41bc656ea066"
+        },
+        {
+          "path": "PIL/.dylibs/libwebpmux.3.dylib",
+          "sha256": "f9c291035190c3af29494ce9fb62987c25ee78c4365c92c323ccc5ec8740143d"
+        },
+        {
+          "path": "PIL/.dylibs/libxcb.1.1.0.dylib",
+          "sha256": "d7929b6650537224be0161cee998a0bf44f6d05b547ca86cbfbf6e93368726fd"
+        },
+        {
+          "path": "PIL/.dylibs/libz.1.3.1.zlib-ng.dylib",
+          "sha256": "39ffbe6a87460a579cf414c3ee668e449b32c2cdc2cc0b64921d53fd59cb56ed"
+        },
+        {
+          "path": "PIL/_avif.cpython-312-darwin.so",
+          "sha256": "6e014a729a8127062ae9f88729a22ec38aa47e1033cc9033c77802a21cbe6178"
+        },
+        {
+          "path": "PIL/_imaging.cpython-312-darwin.so",
+          "sha256": "ee754300d3bda6413b80ddabe3a7ed7b419e1b0468bf2830e2b19fe68f14be42"
+        },
+        {
+          "path": "PIL/_imagingcms.cpython-312-darwin.so",
+          "sha256": "292f96c5464a5607e2674dae85d9739436c9f22b17590625f7d674ddcff59849"
+        },
+        {
+          "path": "PIL/_imagingft.cpython-312-darwin.so",
+          "sha256": "dde5db0339f044b53f15abc9deb1093021cd59787b58b073cb90a4bdb8a3d31c"
+        },
+        {
+          "path": "PIL/_imagingmath.cpython-312-darwin.so",
+          "sha256": "2e3922ab8e63b3260996a3c676431396d85b1ad5adb0aba4607a443d77818448"
+        },
+        {
+          "path": "PIL/_imagingmorph.cpython-312-darwin.so",
+          "sha256": "24d8534d10301f367d37b99352e410ae266258e9f149dd5da30e7b5de194ad19"
+        },
+        {
+          "path": "PIL/_imagingtk.cpython-312-darwin.so",
+          "sha256": "9e889cbafba6ddc60872d2307de7d73fca1e4867267dabdc8503e2aa4ece4ba1"
+        },
+        {
+          "path": "PIL/_webp.cpython-312-darwin.so",
+          "sha256": "cbc1d7bcf28753fc8a4c3bc220e50ffcc56328b6c9199194e96dea6089525c35"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pip",
+      "version": "25.0.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/c9/bc/b7db44f5f39f9d0494071bddae6880eb645970366d0a200022a1a93d57f5/pip-25.0.1-py3-none-any.whl",
+      "wheel_sha256": "c46efd13b6aa8279f33f2864459c8ce587ea6a1a59ee20de055868d8f7688f7f",
+      "project_urls": [
+        "Homepage, https://pip.pypa.io/",
+        "Documentation, https://pip.pypa.io",
+        "Source, https://github.com/pypa/pip",
+        "Changelog, https://pip.pypa.io/en/stable/news/"
+      ],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "pip-25.0.1.dist-info/METADATA",
+          "sha256": "4fa7318cf30f979db7cec45c12cbbc2b4f88a15f12eefbf59a6291d0a03af926"
+        },
+        {
+          "path": "pip-25.0.1.dist-info/RECORD",
+          "sha256": "977de9357561aa1916fbbf3c3449a8178fd8fa19473c00358de5e13c12014772"
+        },
+        {
+          "path": "pip-25.0.1.dist-info/WHEEL",
+          "sha256": "227f454cdc5e3fad0a9d3906c3bc24ea624f61dfdd4128c46665dd05d30223ef"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pip-25.0.1.dist-info/LICENSE.txt",
+          "sha256": "634300a669d49aeae65b12c6c48c924c51a4cdf3d1ff086dc3456dc8bcaa2104"
+        },
+        {
+          "path": "pip/_vendor/packaging/licenses/__init__.py",
+          "sha256": "035d7af85538f7f0f3e35eb6338cb5b8089937846075cf3717135df048e57ea2"
+        },
+        {
+          "path": "pip/_vendor/packaging/licenses/__pycache__/__init__.cpython-312.pyc",
+          "sha256": "26f0c7caabc737a52ce3938d271a4cdec9451ecab9b4037cf05ef4bc339f2cc0"
+        },
+        {
+          "path": "pip/_vendor/packaging/licenses/__pycache__/_spdx.cpython-312.pyc",
+          "sha256": "cff14261a452d9e1f41298ed368096a99d994f71e6024ee907f6de971649060d"
+        },
+        {
+          "path": "pip/_vendor/packaging/licenses/_spdx.py",
+          "sha256": "a009b5ced3c5c25b2608a7bb94002cbff38839f4b57160eef5b34191ebbeda7b"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pluggy",
+      "version": "1.6.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
+      "wheel_sha256": "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746",
+      "project_urls": [],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "pluggy-1.6.0.dist-info/METADATA",
+          "sha256": "7438c35ee25a095eb7416f84b461c2d74425c5e734ad54c3912453c65244e01c"
+        },
+        {
+          "path": "pluggy-1.6.0.dist-info/RECORD",
+          "sha256": "e74c84c006b998695cf9aaf46b4ef25e2e6ed343592dfd71065e33fab061b570"
+        },
+        {
+          "path": "pluggy-1.6.0.dist-info/WHEEL",
+          "sha256": "370dfa0e3ba1ff9543ba42b41fbf10cce5fefc5404a3a577ee6de7926f7a82d5"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pluggy-1.6.0.dist-info/licenses/LICENSE",
+          "sha256": "d6b65e6c213a5d0b577911d34d6e5949b9f59d76c238c5071a2f3fc16cfb2606"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "prompt_toolkit",
+      "version": "3.0.53",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/54/6f/84908cad2d6aa5144abcf7b42709fe4fdb459bc640ec7ac5786e7693dabc/prompt_toolkit-3.0.53-py3-none-any.whl",
+      "wheel_sha256": "01c0891d7f9237d5e339f7d3e42cdae80b7534abb1c7c0e3352efba6231492f2",
+      "project_urls": [
+        "Homepage, https://github.com/prompt-toolkit/python-prompt-toolkit",
+        "Documentation, https://python-prompt-toolkit.readthedocs.io/en/stable/"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "prompt_toolkit-3.0.53.dist-info/METADATA",
+          "sha256": "d04994e4401b88abf884ca54fb3b85e50a8b4fb1fde1ed7eb3ece9d8bf5459a9"
+        },
+        {
+          "path": "prompt_toolkit-3.0.53.dist-info/RECORD",
+          "sha256": "b2371c3b3370848af04c93c1c9171b275e9ab3b68ab30884dd7f2d409e6882d4"
+        },
+        {
+          "path": "prompt_toolkit-3.0.53.dist-info/WHEEL",
+          "sha256": "2b6eb4118ce7cd7b09601406aa623c553c4476265836f0d9c16f5c061f7efcc0"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "prompt_toolkit-3.0.53.dist-info/licenses/AUTHORS.rst",
+          "sha256": "d3dc62c6bc8436658495ab89aea37511e7fa9391d282657239c9cfb80dbd42e5"
+        },
+        {
+          "path": "prompt_toolkit-3.0.53.dist-info/licenses/LICENSE",
+          "sha256": "303574d9bdd85c757d6025017942bf17baeedf2778f62bd7f425d07d880f4c4a"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "psutil",
+      "version": "7.2.2",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/80/c4/f5af4c1ca8c1eeb2e92ccca14ce8effdeec651d5ab6053c589b074eda6e1/psutil-7.2.2-cp36-abi3-macosx_11_0_arm64.whl",
+      "wheel_sha256": "1a7b04c10f32cc88ab39cbf606e117fd74721c831c98a27dc04578deb0c16979",
+      "project_urls": [],
+      "license_declared": "BSD-3-Clause",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "psutil-7.2.2.dist-info/METADATA",
+          "sha256": "525f8ba78523cf7bc3759d62a105e7c57fd679ea702402b9449fb0746aa0217f"
+        },
+        {
+          "path": "psutil-7.2.2.dist-info/RECORD",
+          "sha256": "bbf09706e72b06979d838dde373278f8903fc3e4b7b08c226ecbc2d7bf3dd442"
+        },
+        {
+          "path": "psutil-7.2.2.dist-info/WHEEL",
+          "sha256": "51e27ab3fc49cf96c9613fae02157c7539c5fb5cff359293443ce280e85e4bf0"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "psutil-7.2.2.dist-info/LICENSE",
+          "sha256": "b89c063b3786e28e0c0a38f1931db61fed35e69dd2a2966fbecffee0f46c8d10"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "psutil/_psutil_osx.abi3.so",
+          "sha256": "ff4568b9187ca7b37c5134aaf614ffb061e7fedccebd84158343afb05991b8e2"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "ptyprocess",
+      "version": "0.7.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/22/a6/858897256d0deac81a172289110f31629fc4cee19b6f01283303e18c8db3/ptyprocess-0.7.0-py2.py3-none-any.whl",
+      "wheel_sha256": "4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35",
+      "project_urls": [],
+      "license_declared": "UNKNOWN",
+      "license_classifiers": [
+        "License :: OSI Approved :: ISC License (ISCL)"
+      ],
+      "metadata_files": [
+        {
+          "path": "ptyprocess-0.7.0.dist-info/METADATA",
+          "sha256": "c3c2b96b5d9a55da5958c34d08c18a0849f56609026cc46d5c95b8b77fcf3e0c"
+        },
+        {
+          "path": "ptyprocess-0.7.0.dist-info/RECORD",
+          "sha256": "d109a74aa457aaba9c4d54718775e6c08bf12c0a595868477757569abacb8db7"
+        },
+        {
+          "path": "ptyprocess-0.7.0.dist-info/WHEEL",
+          "sha256": "34baa6b31f99159ea00dabd8821da81f465237e2919a971d1172190e7632f4f8"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "ptyprocess-0.7.0.dist-info/LICENSE",
+          "sha256": "c822d385b1a73329846241799becf18690b5d44764c1bed69300b536a405030a"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pure_eval",
+      "version": "0.2.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl",
+      "wheel_sha256": "1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0",
+      "project_urls": [],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "pure_eval-0.2.3.dist-info/METADATA",
+          "sha256": "97cdad3355bf3083668e8a5e98ad2a958cd68839b369a35b171e372ab48ee986"
+        },
+        {
+          "path": "pure_eval-0.2.3.dist-info/RECORD",
+          "sha256": "98eda277d6c0afbcea68ef71d4be8a809dcc07a30f0c449ace8ac0b8d416c346"
+        },
+        {
+          "path": "pure_eval-0.2.3.dist-info/WHEEL",
+          "sha256": "ad6c6606da7b84452a54b3a74da0ce3e947e719a420e4ce185c05c7be6727799"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pure_eval-0.2.3.dist-info/LICENSE.txt",
+          "sha256": "a476a2cb0ef4c41450340a577a28b91ac4c7f669136b2ee148047fabd5fc4181"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "Pygments",
+      "version": "2.21.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/71/46/17f022dd3e953bf20a04a028a21ec746d942f8d2af30fa0f124fa0e6a684/pygments-2.21.0-py3-none-any.whl",
+      "wheel_sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+      "project_urls": [
+        "Homepage, https://pygments.org",
+        "Documentation, https://pygments.org/docs",
+        "Source, https://github.com/pygments/pygments",
+        "Bug Tracker, https://github.com/pygments/pygments/issues",
+        "Changelog, https://github.com/pygments/pygments/blob/master/CHANGES"
+      ],
+      "license_declared": "BSD-2-Clause",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "pygments-2.21.0.dist-info/METADATA",
+          "sha256": "1dde075570136774c706bf0009183a793fe0ee262e4a5590cc6eff8453eedd43"
+        },
+        {
+          "path": "pygments-2.21.0.dist-info/RECORD",
+          "sha256": "43bb3d6056d99fcdfc94d795e0d56a55f365cd9f4991583de38062fb5bc5d9e9"
+        },
+        {
+          "path": "pygments-2.21.0.dist-info/WHEEL",
+          "sha256": "ccec20e2307acd7da453dd7437e70c6b08e2bc3ead3bc3445af135da37b56d59"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pygments-2.21.0.dist-info/licenses/AUTHORS",
+          "sha256": "71a83872ad82f57be692cf827e048e2cd51d45169cfa1ea3f28706d97a872c0f"
+        },
+        {
+          "path": "pygments-2.21.0.dist-info/licenses/LICENSE",
+          "sha256": "a9d66f1d526df02e29dce73436d34e56e8632f46c275bbdffc70569e882f9f17"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pyparsing",
+      "version": "3.3.2",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/10/bd/c038d7cc38edc1aa5bf91ab8068b63d4308c66c4c8bb3cbba7dfbc049f9c/pyparsing-3.3.2-py3-none-any.whl",
+      "wheel_sha256": "850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d",
+      "project_urls": [
+        "Documentation, https://pyparsing-docs.readthedocs.io/en/latest/",
+        "Homepage, https://github.com/pyparsing/pyparsing/",
+        "Source, https://github.com/pyparsing/pyparsing.git"
+      ],
+      "license_declared": "MIT",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "pyparsing-3.3.2.dist-info/METADATA",
+          "sha256": "3311a8b949d70f71a2b9788a9327f11d9d5a6a8012d6c046ca254ad2de877f45"
+        },
+        {
+          "path": "pyparsing-3.3.2.dist-info/RECORD",
+          "sha256": "32e90c95ab878e2375fac93593baa110db77acc976e2d31fd449fb1be1099ce1"
+        },
+        {
+          "path": "pyparsing-3.3.2.dist-info/WHEEL",
+          "sha256": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pyparsing-3.3.2.dist-info/licenses/LICENSE",
+          "sha256": "a5425f9dc14ac74d4c5f0b679e941f2442e32cca7452a4418d5b1a49893ebe4e"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pytest",
+      "version": "8.3.5",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/30/3d/64ad57c803f1fa1e963a7946b6e0fea4a70df53c1a7fed304586539c2bac/pytest-8.3.5-py3-none-any.whl",
+      "wheel_sha256": "c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820",
+      "project_urls": [
+        "Changelog, https://docs.pytest.org/en/stable/changelog.html",
+        "Contact, https://docs.pytest.org/en/stable/contact.html",
+        "Funding, https://docs.pytest.org/en/stable/sponsor.html",
+        "Homepage, https://docs.pytest.org/en/latest/",
+        "Source, https://github.com/pytest-dev/pytest",
+        "Tracker, https://github.com/pytest-dev/pytest/issues"
+      ],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "pytest-8.3.5.dist-info/METADATA",
+          "sha256": "a54cbabd23e0bd941349ffb37b851a7e07b8bfe76a3b1588fc47c012c57a8688"
+        },
+        {
+          "path": "pytest-8.3.5.dist-info/RECORD",
+          "sha256": "af8148e3db93643eb1462f7289eb30198af52c56fa756c7995ee2f66ca2491a3"
+        },
+        {
+          "path": "pytest-8.3.5.dist-info/WHEEL",
+          "sha256": "8c1ef367737d84833d69d5bbaa54c0cb270b616f67a5a58a2d1cdaa1570b29c3"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "pytest-8.3.5.dist-info/LICENSE",
+          "sha256": "ca836a5f9ecca3b2f350230faa20a48fb8b145653b5568d784862df864706b9b"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+      "wheel_sha256": "a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427",
+      "project_urls": [
+        "Documentation, https://dateutil.readthedocs.io/en/stable/",
+        "Source, https://github.com/dateutil/dateutil"
+      ],
+      "license_declared": "Dual License",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "metadata_files": [
+        {
+          "path": "python_dateutil-2.9.0.post0.dist-info/METADATA",
+          "sha256": "a9d436da322be808332f98d88325998e87cb693a678a9969feb4cfad729a6e93"
+        },
+        {
+          "path": "python_dateutil-2.9.0.post0.dist-info/RECORD",
+          "sha256": "244ea30267733198717f5d8fa2ca6e0e5f3cfdcc66d78a552ecdf819f296a014"
+        },
+        {
+          "path": "python_dateutil-2.9.0.post0.dist-info/WHEEL",
+          "sha256": "f86fedd281ae13b503d03ad2a55667ab584730157d0c3d97912e6fed7a664e79"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "python_dateutil-2.9.0.post0.dist-info/LICENSE",
+          "sha256": "ba00f51a0d92823b5a1cde27d8b5b9d2321e67ed8da9bc163eff96d5e17e577e"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "pythreejs",
+      "version": "2.4.2",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/d8/8b/e2bbeb42068f0c48899e8eddd34902afc0f7429d4d2a152d2dc2670dc661/pythreejs-2.4.2-py3-none-any.whl",
+      "wheel_sha256": "8418807163ad91f4df53b58c4e991b26214852a1236f28f1afeaadf99d095818",
+      "project_urls": [],
+      "license_declared": "BSD-3-Clause",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "pythreejs-2.4.2.dist-info/METADATA",
+          "sha256": "5bd5640acae491b21150dc0a171e3eb1cb47696889075765b8e849582da38a24"
+        },
+        {
+          "path": "pythreejs-2.4.2.dist-info/RECORD",
+          "sha256": "7b3db21935ff76c4f1991995d0e8fc1a3d45162a737550b38a308926083e1075"
+        },
+        {
+          "path": "pythreejs-2.4.2.dist-info/WHEEL",
+          "sha256": "1b5e87e00dc87a84269cead8578b9e6462928e18a95f1f3373c9eef451a5bcc0"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "../../../share/jupyter/labextensions/jupyter-threejs/static/212.28988830f14c6406a07b.js.LICENSE.txt",
+          "sha256": "2355fa961337587bcf330cdd5fffa4bc73fb8758b9a62b43cfb618aea465f125"
+        },
+        {
+          "path": "../../../share/jupyter/labextensions/jupyter-threejs/static/270.f09e82a7948794e8fe7c.js.LICENSE.txt",
+          "sha256": "5786da09c3975e7e7088dc8fd334ff819d8a4d3973de53bfe7dd7ac98bfc7227"
+        },
+        {
+          "path": "../../../share/jupyter/labextensions/jupyter-threejs/static/624.12b52bd1c970e314e741.js.LICENSE.txt",
+          "sha256": "3bbf1195c0f05fa8930c65c7ece848eed5ec401ce8777e354964d94cf0bb3d9d"
+        },
+        {
+          "path": "../../../share/jupyter/labextensions/jupyter-threejs/static/861.5d5b0ba33675d668ca0c.js.LICENSE.txt",
+          "sha256": "47282a6fa1469e2d7bc8936d167c17ebf0fd800941104dd15097945208ccb501"
+        },
+        {
+          "path": "../../../share/jupyter/labextensions/jupyter-threejs/static/third-party-licenses.json",
+          "sha256": "c874c7dfd92128006a17aa5feb19ab16a3e17ecb090f5416ec5eac0f7f8ebe47"
+        },
+        {
+          "path": "pythreejs-2.4.2.dist-info/LICENSE",
+          "sha256": "79c1a8171d4e65fbc146aea90f4575d40e1e9b694950f73a8d49ad3b5d90f42b"
+        },
+        {
+          "path": "pythreejs/labextension/static/212.28988830f14c6406a07b.js.LICENSE.txt",
+          "sha256": "2355fa961337587bcf330cdd5fffa4bc73fb8758b9a62b43cfb618aea465f125"
+        },
+        {
+          "path": "pythreejs/labextension/static/270.f09e82a7948794e8fe7c.js.LICENSE.txt",
+          "sha256": "5786da09c3975e7e7088dc8fd334ff819d8a4d3973de53bfe7dd7ac98bfc7227"
+        },
+        {
+          "path": "pythreejs/labextension/static/624.12b52bd1c970e314e741.js.LICENSE.txt",
+          "sha256": "3bbf1195c0f05fa8930c65c7ece848eed5ec401ce8777e354964d94cf0bb3d9d"
+        },
+        {
+          "path": "pythreejs/labextension/static/861.5d5b0ba33675d668ca0c.js.LICENSE.txt",
+          "sha256": "47282a6fa1469e2d7bc8936d167c17ebf0fd800941104dd15097945208ccb501"
+        },
+        {
+          "path": "pythreejs/labextension/static/third-party-licenses.json",
+          "sha256": "c874c7dfd92128006a17aa5feb19ab16a3e17ecb090f5416ec5eac0f7f8ebe47"
+        },
+        {
+          "path": "pythreejs/static/index.js.LICENSE.txt",
+          "sha256": "5786da09c3975e7e7088dc8fd334ff819d8a4d3973de53bfe7dd7ac98bfc7227"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "scipy",
+      "version": "1.18.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/a5/f6/a5b82f8abbe14d134691b8b903696f701d25a081353a29dc655c364d9e62/scipy-1.18.1-cp312-cp312-macosx_14_0_arm64.whl",
+      "wheel_sha256": "7bbf207c4453ce1ad2e00b17313852b33310b83090c2311bdaf97f93c0380d12",
+      "project_urls": [
+        "homepage, https://scipy.org/",
+        "documentation, https://docs.scipy.org/doc/scipy/",
+        "source, https://github.com/scipy/scipy",
+        "download, https://github.com/scipy/scipy/releases",
+        "tracker, https://github.com/scipy/scipy/issues"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "scipy-1.18.1.dist-info/METADATA",
+          "sha256": "1adfbde8be136cbf348b889c51028e7e1824cdb90d29a26d8e81501948864fae"
+        },
+        {
+          "path": "scipy-1.18.1.dist-info/RECORD",
+          "sha256": "c638a1ce10e23254f783dd5cfc8009094769bfcab7856d64f177c98819bbb96a"
+        },
+        {
+          "path": "scipy-1.18.1.dist-info/WHEEL",
+          "sha256": "26726246f91715a154e07973ca8a82029674ee3cba86914a77f2e47c1a566739"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "scipy-1.18.1.dist-info/LICENSE.txt",
+          "sha256": "09a1b9e19573045b0784a181cc4bef677039d4f2111631c747bf72b7f19017d4"
+        },
+        {
+          "path": "scipy/_lib/_uarray/LICENSE",
+          "sha256": "c80c39b5fce06ba4897e14e0b0a88b54458334d951eb1361402ffad2cfb863b4"
+        },
+        {
+          "path": "scipy/fft/_duccfft/LICENSE.md",
+          "sha256": "c254b2b5fd30ae3c89d36ba061730563b9760fca04f1b746a1b2c3157da2c789"
+        },
+        {
+          "path": "scipy/integrate/LICENSE_DOP",
+          "sha256": "ed9bf58c6d74d3fad9d92d1d67d9bff8141d8ab60de784516b0711364fd43357"
+        },
+        {
+          "path": "scipy/spatial/qhull_src/COPYING_QHULL.txt",
+          "sha256": "106d55c931fd6a84822e5345d900273d059f1c27310d02567ccb313c5d18c55d"
+        }
+      ],
+      "native_libraries": [
+        {
+          "path": "scipy/.dylibs/libgcc_s.1.1.dylib",
+          "sha256": "76ef5f8847dbf656bc2b2cb91f8a08f47589259151e809b11fb30334485503a9"
+        },
+        {
+          "path": "scipy/.dylibs/libgfortran.5.dylib",
+          "sha256": "309aa581ea231790ecd99932f5be4b77e99e3fb820d2b127ab8ec3993160095f"
+        },
+        {
+          "path": "scipy/.dylibs/libquadmath.0.dylib",
+          "sha256": "240cd8c9bc65a7f61f8f0c69db2699eb1fdb7f5dc226ebfce01559f9a33ade6d"
+        },
+        {
+          "path": "scipy/_cyutility.cpython-312-darwin.so",
+          "sha256": "c48927d1c3b75d3715df4470cbd4c12f0d49d5f9dd3ff375248927048d3498c8"
+        },
+        {
+          "path": "scipy/_lib/_ccallback_c.cpython-312-darwin.so",
+          "sha256": "3495ad924881f2ad827ba0d74a91f9184c6696a16fce71e4d265b929ff54df96"
+        },
+        {
+          "path": "scipy/_lib/_fpumode.cpython-312-darwin.so",
+          "sha256": "7402df5e1a2197acbf6fc8b7558d72e30b9116fdb7aa204f2ac9278fa90cc56f"
+        },
+        {
+          "path": "scipy/_lib/_test_ccallback.cpython-312-darwin.so",
+          "sha256": "d459b377de85187cb09df2b02af86e896f186628ba946a864895d3a5468215ad"
+        },
+        {
+          "path": "scipy/_lib/_test_deprecation_call.cpython-312-darwin.so",
+          "sha256": "167fd48a00d90af0f579a2c5b36f2b9124bdf312e3968eeb3a3132d51200932f"
+        },
+        {
+          "path": "scipy/_lib/_test_deprecation_def.cpython-312-darwin.so",
+          "sha256": "90aef02368898a3e4f1d7b61fecd3a6c2d8125886e2bcef924a5064d68fe2436"
+        },
+        {
+          "path": "scipy/_lib/_uarray/_uarray.cpython-312-darwin.so",
+          "sha256": "9047dbd782d4d3a95c337a45951ebfa14dfc115ae14b366b028fe067b8549961"
+        },
+        {
+          "path": "scipy/_lib/messagestream.cpython-312-darwin.so",
+          "sha256": "51c9ff6f33fa4671f8094247ce16d1a961fdf37bab28642dd3e0535110813400"
+        },
+        {
+          "path": "scipy/cluster/hierarchy/_hierarchy.cpython-312-darwin.so",
+          "sha256": "4a57fe6ef2f4e16b8dbd5f55eb3e7f0ab6df093a6603f2ae329dabb646f6c7d8"
+        },
+        {
+          "path": "scipy/cluster/hierarchy/_optimal_leaf_ordering.cpython-312-darwin.so",
+          "sha256": "b04c19bd6d5ca1a614239c33f1f727dd9c1b7f0506460ecd486b03b7e30b79c9"
+        },
+        {
+          "path": "scipy/cluster/vq/_vq.cpython-312-darwin.so",
+          "sha256": "7ebfbd7a6ab8fa0dea9a2d7bf309cfbcfccb9e876227f70166407abb01ab4724"
+        },
+        {
+          "path": "scipy/fft/_duccfft/pyduccfft.cpython-312-darwin.so",
+          "sha256": "1d38cbdec88af07005a72f70b295ef85e9bdacc0f035f3e44cd8ce4b67263cdb"
+        },
+        {
+          "path": "scipy/fftpack/convolve.cpython-312-darwin.so",
+          "sha256": "da0844f732ff40768fc36d9f9d0db5c023d7ca092d1a6706123490ca4b198bb4"
+        },
+        {
+          "path": "scipy/integrate/_dop.cpython-312-darwin.so",
+          "sha256": "72c4e031e1c563439c57afd57393b3a07a2e623255a2e224019b58ea44d784a6"
+        },
+        {
+          "path": "scipy/integrate/_odepack.cpython-312-darwin.so",
+          "sha256": "c449592a4819ec6e38077cd0317eb4ef895384c34970af3c2dd5e9afc872defa"
+        },
+        {
+          "path": "scipy/integrate/_quadpack.cpython-312-darwin.so",
+          "sha256": "7858f1e79afc97eb2004eae6bffc73c7a3c11671216d22d5037123f5ffe2b414"
+        },
+        {
+          "path": "scipy/integrate/_test_multivariate.cpython-312-darwin.so",
+          "sha256": "8afd6032c31c8f54b566f80888e22a1a75921f919878cb46e6bcdeefddf7b7d9"
+        },
+        {
+          "path": "scipy/integrate/_vode.cpython-312-darwin.so",
+          "sha256": "731f47738d8da5d86181d4a1f8389bda96be23c789cc9fb753b27dc797d62c87"
+        },
+        {
+          "path": "scipy/interpolate/_dierckx.cpython-312-darwin.so",
+          "sha256": "094e7392d78cea32d8fb6ba94e26a45f8c3f788af3c5c31bdf629be6cec5fbe6"
+        },
+        {
+          "path": "scipy/interpolate/_fitpack.cpython-312-darwin.so",
+          "sha256": "da383717421eea2dd08541449e651ad667f660ac75e68fb3320dd4436f477434"
+        },
+        {
+          "path": "scipy/interpolate/_interpnd.cpython-312-darwin.so",
+          "sha256": "3a3867ba342d277ddf8da8430295d9821787bdd5792a3e221c612548fb18f968"
+        },
+        {
+          "path": "scipy/interpolate/_ppoly.cpython-312-darwin.so",
+          "sha256": "c8139dcb012c867067a514fa2ca0f264459aad6f43e0a5e77f72201bf483b50d"
+        },
+        {
+          "path": "scipy/interpolate/_rbfinterp_pythran.cpython-312-darwin.so",
+          "sha256": "a95e09931139a11c910f8844f81cfdf971df0d57c53cc18fbcdd15dd755a431e"
+        },
+        {
+          "path": "scipy/interpolate/_rgi_cython.cpython-312-darwin.so",
+          "sha256": "713f34d6a7984ab50e1c4c608c0ec804889e03b144740d7133ce114d5997405b"
+        },
+        {
+          "path": "scipy/io/_fast_matrix_market/_fmm_core.cpython-312-darwin.so",
+          "sha256": "6cf17722e80f93a95b1ef571d04a82a440187b11f188fb33a40676d1474de9b4"
+        },
+        {
+          "path": "scipy/io/matlab/_mio5_utils.cpython-312-darwin.so",
+          "sha256": "a4f4fadb35a77aa6ff3d0848933c9063f5070d2b6e11c6829bc8685778c87b14"
+        },
+        {
+          "path": "scipy/io/matlab/_mio_utils.cpython-312-darwin.so",
+          "sha256": "ebc11d51d7d5c99e45b1f0cf8fd1155c12108e326fb33d3bb7b769b093d50275"
+        },
+        {
+          "path": "scipy/io/matlab/_streams.cpython-312-darwin.so",
+          "sha256": "ab594111cf87c55ff4dcc9c8a48a1fc0d1d5501165999d9781528813b1b3fc68"
+        },
+        {
+          "path": "scipy/linalg/_batched_linalg.cpython-312-darwin.so",
+          "sha256": "f343ce939a78ac27ed272569e3a52756e01ccdbaaf7b118c1fd37c0850b2e0d0"
+        },
+        {
+          "path": "scipy/linalg/_cythonized_array_utils.cpython-312-darwin.so",
+          "sha256": "c506ebb3d3353437e81a7ea769ef387faaddda6d2fef6560d25952b9176e58ac"
+        },
+        {
+          "path": "scipy/linalg/_decomp_interpolative.cpython-312-darwin.so",
+          "sha256": "3f87c958e79023b933a42f33110aa1408b8a8e75dd76d578f4898fb2340defdc"
+        },
+        {
+          "path": "scipy/linalg/_decomp_update.cpython-312-darwin.so",
+          "sha256": "d1ea68338dc2dff4056f9c661f7ee2fb913a6479173639f177d7ffeb975806ea"
+        },
+        {
+          "path": "scipy/linalg/_fblas.cpython-312-darwin.so",
+          "sha256": "6502e4e093d03932479317d45bfea018ef0999bc5c4bd46687253322c13e9448"
+        },
+        {
+          "path": "scipy/linalg/_flapack.cpython-312-darwin.so",
+          "sha256": "430d25bffa6a2d20794bd36289064101af7d58b77a5a9d3ce561df60329eff7b"
+        },
+        {
+          "path": "scipy/linalg/_internal_matfuncs.cpython-312-darwin.so",
+          "sha256": "3fb1cf17a2ade6a5f2964ed94f74dab63afe0b69c38ec7b9221118cb05790ddc"
+        },
+        {
+          "path": "scipy/linalg/_linalg_pythran.cpython-312-darwin.so",
+          "sha256": "6a70990106c015360f7eb78309e9b5a135c9ae301fc7fa04828b19948abb6bc5"
+        },
+        {
+          "path": "scipy/linalg/_matfuncs_sqrtm_triu.cpython-312-darwin.so",
+          "sha256": "bab23faa3dadfbf9c824ef4c881970b7a2763518441444f277238f71bd30a002"
+        },
+        {
+          "path": "scipy/linalg/_solve_toeplitz.cpython-312-darwin.so",
+          "sha256": "a886584cdde82f9c9b8b65506f05428880b6324a68457d564e76e02dad203fe8"
+        },
+        {
+          "path": "scipy/linalg/cython_blas.cpython-312-darwin.so",
+          "sha256": "6656ce3f6cd5ab1244b41b680854a18670a7e45828560cb715024f64eb915bb8"
+        },
+        {
+          "path": "scipy/linalg/cython_lapack.cpython-312-darwin.so",
+          "sha256": "66c2350107d731ce312499b03e065d5b4d8fa7005f792866770fc66a392c313f"
+        },
+        {
+          "path": "scipy/ndimage/_ctest.cpython-312-darwin.so",
+          "sha256": "fd7ba01631b021fe76c3a0566f3de4a5f0d265571bb3515c25a2e2e57d224a32"
+        },
+        {
+          "path": "scipy/ndimage/_cytest.cpython-312-darwin.so",
+          "sha256": "35e1dcc2fc3a3f8575f271e6b2dd53a0b4fa5802b61d0e882a564d41c956d9a2"
+        },
+        {
+          "path": "scipy/ndimage/_nd_image.cpython-312-darwin.so",
+          "sha256": "e6b5ecf24ffe8b3bcac97c6c12eab10cf8e94019c2e92a2a0093d57489e44f65"
+        },
+        {
+          "path": "scipy/ndimage/_ni_label.cpython-312-darwin.so",
+          "sha256": "1441ae26438bc3ee2bed0c61a8fc91e42a7b790afb2a218782886010d9cd80e8"
+        },
+        {
+          "path": "scipy/ndimage/_rank_filter_1d.cpython-312-darwin.so",
+          "sha256": "5dea8cfe0d83943cdd25362a8ca5c144a46d3160bd2d18a7f2ff280739875ae0"
+        },
+        {
+          "path": "scipy/odr/__odrpack.cpython-312-darwin.so",
+          "sha256": "eea05ea0bf1c74a3ab859a6ed582baafaa91727e88844432f7c57ca8d352d330"
+        },
+        {
+          "path": "scipy/optimize/_bglu_dense.cpython-312-darwin.so",
+          "sha256": "7d14b39b46639462bd7137c4e942e215a3dc0368a14085a686ac93eb4b5b7092"
+        },
+        {
+          "path": "scipy/optimize/_direct.cpython-312-darwin.so",
+          "sha256": "74d47eaafd6e4c2341674f88214e6943f4a8a21772f1d8cf244956a77058c419"
+        },
+        {
+          "path": "scipy/optimize/_group_columns.cpython-312-darwin.so",
+          "sha256": "362f28ad7e39f3c7207221cd1fcc9ba5f342f7e4993ccaee7781018924c38b8c"
+        },
+        {
+          "path": "scipy/optimize/_highspy/_core.cpython-312-darwin.so",
+          "sha256": "83964acedc1180ffb9cdab9b45bf5c2dba9dcf388cfbaf83bb325b0a9dc82fb0"
+        },
+        {
+          "path": "scipy/optimize/_highspy/_highs_options.cpython-312-darwin.so",
+          "sha256": "d804f80e2780cb1f52f568e63a05a57a6beba48c791667b1526d2b23111fedaa"
+        },
+        {
+          "path": "scipy/optimize/_lbfgsb.cpython-312-darwin.so",
+          "sha256": "24a8a24d2fa62c723161f800a86662f15300acbf35b16b3d3749047896b552f9"
+        },
+        {
+          "path": "scipy/optimize/_lsap.cpython-312-darwin.so",
+          "sha256": "7733b54e306c7f5512b81c6a52519dfdf3469e6eda6a55affe7bb11430085f74"
+        },
+        {
+          "path": "scipy/optimize/_lsq/givens_elimination.cpython-312-darwin.so",
+          "sha256": "8f1240a454a49bd7a99976b76d617db1d6a97d87a4f295c648a93140422585f7"
+        },
+        {
+          "path": "scipy/optimize/_minpack.cpython-312-darwin.so",
+          "sha256": "80425cb08edfeb4851e905eaa12eea6b2daa739b306ae4a3ac1711c95318067a"
+        },
+        {
+          "path": "scipy/optimize/_moduleTNC.cpython-312-darwin.so",
+          "sha256": "a2774cfe0545caac44389e8619e11b11bdb9d916e0929169b5795f17b8f249c1"
+        },
+        {
+          "path": "scipy/optimize/_pava_pybind.cpython-312-darwin.so",
+          "sha256": "f42f7b1fcad7a7b0a5f8927e0af3ec065229b79ad0603266c677e772f0288969"
+        },
+        {
+          "path": "scipy/optimize/_slsqplib.cpython-312-darwin.so",
+          "sha256": "89a69a2839997f291abbd03bae7dfbdf71ba11995d4675cc501ddfb3c648a771"
+        },
+        {
+          "path": "scipy/optimize/_trlib/_trlib.cpython-312-darwin.so",
+          "sha256": "d0dd10d19d1a36f3feebf0a2d8ca8dd2262f44d74fd5db5692a18219b6859c0c"
+        },
+        {
+          "path": "scipy/optimize/_zeros.cpython-312-darwin.so",
+          "sha256": "9e293a938b43eb7b4ad4a194c1d8df3fc491df464397df93d5e852ea5961cb32"
+        },
+        {
+          "path": "scipy/optimize/cython_optimize/_zeros.cpython-312-darwin.so",
+          "sha256": "0f289317770fb71afc34a5a5a9ef78e78115b32d46ef3b1655a3275e76b9a385"
+        },
+        {
+          "path": "scipy/signal/_max_len_seq_inner.cpython-312-darwin.so",
+          "sha256": "58d6a07d534999bff2ab6fb79a8e59a7818a730a5008169a25d2ef5c2be959a3"
+        },
+        {
+          "path": "scipy/signal/_peak_finding_utils.cpython-312-darwin.so",
+          "sha256": "f1c879f266f7893034f022124f69ae41e5397abf6151bb3cf69f243b54fc777c"
+        },
+        {
+          "path": "scipy/signal/_sigtools.cpython-312-darwin.so",
+          "sha256": "ef178698287fc0ff2cd4ded9308aba9b34cd50abc426efc18eee9bae4d693099"
+        },
+        {
+          "path": "scipy/signal/_sosfilt.cpython-312-darwin.so",
+          "sha256": "24b924b997b2cdf58ab67a508795aac22e8f6439a313e36f780a3ac2624509c1"
+        },
+        {
+          "path": "scipy/signal/_spline.cpython-312-darwin.so",
+          "sha256": "53635f1ff5cc1c191898681d92a03c4e7a48f3dfe98aad771782d25fd75c7147"
+        },
+        {
+          "path": "scipy/signal/_upfirdn_apply.cpython-312-darwin.so",
+          "sha256": "7473575ea92fecd7a2e3bb92155bbdb78ad92ceb79de45c04279a2c6f9d8fbc6"
+        },
+        {
+          "path": "scipy/sparse/_csparsetools.cpython-312-darwin.so",
+          "sha256": "0e944ca7fc2141e371baac9775845fa7a0ea473cdd7acf8aac635b03a8bf6746"
+        },
+        {
+          "path": "scipy/sparse/_sparsetools.cpython-312-darwin.so",
+          "sha256": "077b33d61dc1a677cb56bb4835572623986f7f0a1c0d35d6eaf85fc0df5dade2"
+        },
+        {
+          "path": "scipy/sparse/csgraph/_flow.cpython-312-darwin.so",
+          "sha256": "08661ba1bfeb7c5b71ee189617152f3cd9724c20a4868cfa546ed922af8d62ee"
+        },
+        {
+          "path": "scipy/sparse/csgraph/_matching.cpython-312-darwin.so",
+          "sha256": "15f78e1f7a9387816e24353fa6af16858f20e4340d9d920b7600901459e0712c"
+        },
+        {
+          "path": "scipy/sparse/csgraph/_min_spanning_tree.cpython-312-darwin.so",
+          "sha256": "875042dfb3e93a84f3bde8bfd65fbfbd917191691971206067598bc1a8fa0c11"
+        },
+        {
+          "path": "scipy/sparse/csgraph/_reordering.cpython-312-darwin.so",
+          "sha256": "2b517693aaaebf37965a57cecac87e0db783ee52c5507e3e1e5b4508affe7a51"
+        },
+        {
+          "path": "scipy/sparse/csgraph/_shortest_path.cpython-312-darwin.so",
+          "sha256": "8f4085fd2186bc33b6be281733e8fb5245459a3972359b9892aafceea3b72078"
+        },
+        {
+          "path": "scipy/sparse/csgraph/_tools.cpython-312-darwin.so",
+          "sha256": "02005754ec402765999ae4466a7b8cd80f0faccabb4d389d65941b81f33f7d7c"
+        },
+        {
+          "path": "scipy/sparse/csgraph/_traversal.cpython-312-darwin.so",
+          "sha256": "b4e7126a2c3ba555a5a50ebf86c436d5c0544c19d657f2ba3dc2c10cf73375c4"
+        },
+        {
+          "path": "scipy/sparse/linalg/_dsolve/_superlu.cpython-312-darwin.so",
+          "sha256": "dc5797bee155da521013ae2621cfc6537886a8be3243dd788d31dbfe271e30c6"
+        },
+        {
+          "path": "scipy/sparse/linalg/_eigen/arpack/_arpacklib.cpython-312-darwin.so",
+          "sha256": "f8981e4e514d32d62dd635d980d6f84661254ec720ed670fbda83239a17512b3"
+        },
+        {
+          "path": "scipy/sparse/linalg/_propack.cpython-312-darwin.so",
+          "sha256": "4da33c45714432e639cfaf725e9a0e463f8a756bc87b94846d5b1f3d671d094b"
+        },
+        {
+          "path": "scipy/spatial/_ckdtree.cpython-312-darwin.so",
+          "sha256": "9302bfa863405a8dc0a817d576bb4a0ed6d0c460c4c1ce903463dd343af56563"
+        },
+        {
+          "path": "scipy/spatial/_distance_pybind.cpython-312-darwin.so",
+          "sha256": "53e72cb821c61d61edc3624ee701423b1a115fe5b2ae6d761e732078c2cefba8"
+        },
+        {
+          "path": "scipy/spatial/_distance_wrap.cpython-312-darwin.so",
+          "sha256": "9d0f38bd8075a6782c62ec2301c0ab850fff412892d3fcfc5b7cf8a14a824410"
+        },
+        {
+          "path": "scipy/spatial/_hausdorff.cpython-312-darwin.so",
+          "sha256": "9882f3084c0c8752cc596bd5882398bd31f0d53d0c9a9710e922e1897bc96313"
+        },
+        {
+          "path": "scipy/spatial/_qhull.cpython-312-darwin.so",
+          "sha256": "da32b9a670f98b404049e28015c7dff4ce748ef0ee25ad789342906d5d3b1600"
+        },
+        {
+          "path": "scipy/spatial/_voronoi.cpython-312-darwin.so",
+          "sha256": "870c16b551c8a066c634c99ff2042afd4301fe151cf78346976c9e006ca49905"
+        },
+        {
+          "path": "scipy/spatial/transform/_rigid_transform_cy.cpython-312-darwin.so",
+          "sha256": "eb062daa4abf7e4dad280781785e5eb943f059753fd55979fd1654b12d88e63a"
+        },
+        {
+          "path": "scipy/spatial/transform/_rotation_cy.cpython-312-darwin.so",
+          "sha256": "5a5913d8c8700fc7b96951b14f1c65a9d946a9c368589bf47052839873f04bba"
+        },
+        {
+          "path": "scipy/special/_comb.cpython-312-darwin.so",
+          "sha256": "5d99a20baf57660f7c3ac5c57db51bc8ed139cff380b578bb8f6ae73f58cf8ab"
+        },
+        {
+          "path": "scipy/special/_ellip_harm_2.cpython-312-darwin.so",
+          "sha256": "6998b9aa6b5133b08c53d5595b706d7e809c1c6c1b92626f604c0ecddc2216da"
+        },
+        {
+          "path": "scipy/special/_gufuncs.cpython-312-darwin.so",
+          "sha256": "c6656783e3049fe4abfcd81c13a903517e4be0e43f14fdaaa99d43d232ea3b2d"
+        },
+        {
+          "path": "scipy/special/_specfun.cpython-312-darwin.so",
+          "sha256": "500d21e44a4c226258bd898ad1dbdfca3174ae2c35383a22a976094a0c4561ec"
+        },
+        {
+          "path": "scipy/special/_special_ufuncs.cpython-312-darwin.so",
+          "sha256": "651f24f15864d5a3e14ac9c8eafb697154fcd46aa3ef539da3746a67bcc3bbc3"
+        },
+        {
+          "path": "scipy/special/_test_internal.cpython-312-darwin.so",
+          "sha256": "9219e7c9e669e5607abce8d001aad06f540ab714a7a8c2e0c2025f8c6c99c041"
+        },
+        {
+          "path": "scipy/special/_ufuncs.cpython-312-darwin.so",
+          "sha256": "a0889d5c82454d79d4cd4cc8a589a62a382d667da8e2b030e637f58708bd340c"
+        },
+        {
+          "path": "scipy/special/_ufuncs_cxx.cpython-312-darwin.so",
+          "sha256": "eb2112f8a8dd431d07e44b3e7bd5e8d9652278271d17d5fb7841cdd68dcdd27f"
+        },
+        {
+          "path": "scipy/special/cython_special.cpython-312-darwin.so",
+          "sha256": "0c0d6e920fee7bb8968442b50a27f546e3e087c7e4122b6cfe86d7fe5fc733f8"
+        },
+        {
+          "path": "scipy/stats/_ansari_swilk_statistics.cpython-312-darwin.so",
+          "sha256": "adec9f596fc5ab40cd18c805dd30721ceae4feeae3440b08e38bf835480763f6"
+        },
+        {
+          "path": "scipy/stats/_biasedurn.cpython-312-darwin.so",
+          "sha256": "e62705b640b283bc74b0cc78a8d19132e712cdc245ecee795a42d53cf56ddf4a"
+        },
+        {
+          "path": "scipy/stats/_levy_stable/levyst.cpython-312-darwin.so",
+          "sha256": "707a83df6dd93d96ebba2e3c1274cedf8da78628078b9fabd70751ab39d91fea"
+        },
+        {
+          "path": "scipy/stats/_qmc_cy.cpython-312-darwin.so",
+          "sha256": "382403aa52b3cd69415e68cdf364a211d6071527856ceee198fb4e15b5387beb"
+        },
+        {
+          "path": "scipy/stats/_qmvnt_cy.cpython-312-darwin.so",
+          "sha256": "79e9a893f928c1fb9305841680aaf1f673deaa0f0f3b5484277b453e5828db9a"
+        },
+        {
+          "path": "scipy/stats/_rcont/rcont.cpython-312-darwin.so",
+          "sha256": "c340036ec9b76d64143e563b5aa071637221bab0416b1df9bcc48aadb2642049"
+        },
+        {
+          "path": "scipy/stats/_sobol.cpython-312-darwin.so",
+          "sha256": "426dbc8990840ad5bf1cc0658c67fc0167518e924ccb78db00d550860ef017f7"
+        },
+        {
+          "path": "scipy/stats/_stats.cpython-312-darwin.so",
+          "sha256": "9f058c77fda23a33d9df51b42c805526f49d6248667725c804e786b60497ffeb"
+        },
+        {
+          "path": "scipy/stats/_stats_pythran.cpython-312-darwin.so",
+          "sha256": "3445197046b1f7870012c6cc38188fb8d085d76024a2aafe4d97e4c67c89fa42"
+        },
+        {
+          "path": "scipy/stats/_unuran/unuran_wrapper.cpython-312-darwin.so",
+          "sha256": "b6603dae7e3c12168c120fe78bfc9f04fbc2647bcb77ac3ccb729e1c244b084a"
+        }
+      ],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "setuptools",
+      "version": "80.9.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl",
+      "wheel_sha256": "062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922",
+      "project_urls": [
+        "Source, https://github.com/pypa/setuptools",
+        "Documentation, https://setuptools.pypa.io/",
+        "Changelog, https://setuptools.pypa.io/en/stable/history.html"
+      ],
+      "license_declared": "MIT",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "setuptools-80.9.0.dist-info/METADATA",
+          "sha256": "7f890ca8dbc16b63b568c89312ed6a7f9f0a79d0b2b7f3c83bf796ac3d930615"
+        },
+        {
+          "path": "setuptools-80.9.0.dist-info/RECORD",
+          "sha256": "4fcabc308b8a9a70065915c40b912dd79855831aec55b5a5320b97660b021bb8"
+        },
+        {
+          "path": "setuptools-80.9.0.dist-info/WHEEL",
+          "sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b"
+        },
+        {
+          "path": "setuptools/_vendor/autocommand-2.2.2.dist-info/METADATA",
+          "sha256": "3800d9b91dceea2065a6ed6279383362e97ac38b8e56b9343f404ee531860099"
+        },
+        {
+          "path": "setuptools/_vendor/autocommand-2.2.2.dist-info/RECORD",
+          "sha256": "822bba66b41526fa547186b80221f85da50d652bee5493dbfe5d14085112f0c3"
+        },
+        {
+          "path": "setuptools/_vendor/autocommand-2.2.2.dist-info/WHEEL",
+          "sha256": "db07a93359e4e034b8785a58ad6d534ea3dca0635f1e184efe2e66e1c3a299ba"
+        },
+        {
+          "path": "setuptools/_vendor/backports.tarfile-1.2.0.dist-info/METADATA",
+          "sha256": "8215c54ead77d9dc5a108a25c6bdc72b5999aa6f62c9499a440359412afa5a51"
+        },
+        {
+          "path": "setuptools/_vendor/backports.tarfile-1.2.0.dist-info/RECORD",
+          "sha256": "258a1f1c849e1175069a55a5d6ce357afdd04e34cd5de27093e4acec7a9d2ce1"
+        },
+        {
+          "path": "setuptools/_vendor/backports.tarfile-1.2.0.dist-info/WHEEL",
+          "sha256": "189eedfe4581172c1b6a02b97a8f48a14c0b5baa3239e4ca990fbd8871553714"
+        },
+        {
+          "path": "setuptools/_vendor/importlib_metadata-8.0.0.dist-info/METADATA",
+          "sha256": "6a7b90effee1e09d5b484cdf7232016a43e2d9cc9543bcbb8e494b1ec05e1f59"
+        },
+        {
+          "path": "setuptools/_vendor/importlib_metadata-8.0.0.dist-info/RECORD",
+          "sha256": "0d8d3c6eeb9ebbe86cac7d60861552433c329da9ea51248b61d02be2e5e64030"
+        },
+        {
+          "path": "setuptools/_vendor/importlib_metadata-8.0.0.dist-info/WHEEL",
+          "sha256": "9a0b8c95618c5fe5479cca4a3a38d089d228d6cb1194216ee1ae26069cf5b363"
+        },
+        {
+          "path": "setuptools/_vendor/inflect-7.3.1.dist-info/METADATA",
+          "sha256": "66030d634580651b3e53cc19895d9231f8d22aa06b327817c8332cfc20303308"
+        },
+        {
+          "path": "setuptools/_vendor/inflect-7.3.1.dist-info/RECORD",
+          "sha256": "5d7834ac1ba2612c6801050fde57a7b98b0f36acf88c3c2d4f376fd8911b3091"
+        },
+        {
+          "path": "setuptools/_vendor/inflect-7.3.1.dist-info/WHEEL",
+          "sha256": "cb8997f92397e1f6089289ec0060393743b2fbcfe0238157c391cd235c6abd68"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.collections-5.1.0.dist-info/METADATA",
+          "sha256": "20c51a96236c0395f53b1f4c5d458e6a0721e51e16c1bff733b7aba76f5d06d8"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.collections-5.1.0.dist-info/RECORD",
+          "sha256": "1e9b62bd70e4a5fa26e9594cbb80860ffeca3debfee8773daefa774cd259ca06"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.collections-5.1.0.dist-info/WHEEL",
+          "sha256": "31d8bd3c3370119a6d3a34e551c02d87b5c90c5b4aac761a40c3ee9597810a24"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.context-5.3.0.dist-info/METADATA",
+          "sha256": "c43b60b897a3d2d37d8845c252fc44261d9aef171e21154111a9012d2afffed6"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.context-5.3.0.dist-info/RECORD",
+          "sha256": "55197b88a78443297bb2d827a75baae740b33896251d872835d4b4c75ec2f57e"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.context-5.3.0.dist-info/WHEEL",
+          "sha256": "189eedfe4581172c1b6a02b97a8f48a14c0b5baa3239e4ca990fbd8871553714"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.functools-4.0.1.dist-info/METADATA",
+          "sha256": "8b86946900d7fa38dd1102b9c1ebe17a0cb1f09c8b7e29f61f2bda4a4dc51eca"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.functools-4.0.1.dist-info/RECORD",
+          "sha256": "632aa7c04f7c4bcc01c027af5b9bc76fe8958f4a181035b957a3bd3014ba248b"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.functools-4.0.1.dist-info/WHEEL",
+          "sha256": "189eedfe4581172c1b6a02b97a8f48a14c0b5baa3239e4ca990fbd8871553714"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.text-3.12.1.dist-info/METADATA",
+          "sha256": "03359d9ba56231f0ce3e840c7cb5a7db380141218949ccaa78ddbd4dcb965d52"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.text-3.12.1.dist-info/RECORD",
+          "sha256": "816d945741dca246099388ca3eed74fc0667acbaa36f70b559b2494c3979b1f6"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.text-3.12.1.dist-info/WHEEL",
+          "sha256": "189eedfe4581172c1b6a02b97a8f48a14c0b5baa3239e4ca990fbd8871553714"
+        },
+        {
+          "path": "setuptools/_vendor/more_itertools-10.3.0.dist-info/METADATA",
+          "sha256": "0453bdd0ef9f2cd89540ca63ee8212e73b73809514419dd3037d8fe471f737e0"
+        },
+        {
+          "path": "setuptools/_vendor/more_itertools-10.3.0.dist-info/RECORD",
+          "sha256": "77c8e73e018dc0fd7e9ed6c80b05a4404545f641fb085220ce42b368b59aa3d3"
+        },
+        {
+          "path": "setuptools/_vendor/more_itertools-10.3.0.dist-info/WHEEL",
+          "sha256": "ad282afc9a4717d7c7475971e77ab083fd7ed8bca9644fea99cb976d552af78f"
+        },
+        {
+          "path": "setuptools/_vendor/packaging-24.2.dist-info/METADATA",
+          "sha256": "a211fceacea4e6621f4316364d2d0b7127c00de3856b8062082f9bc5957ea4db"
+        },
+        {
+          "path": "setuptools/_vendor/packaging-24.2.dist-info/RECORD",
+          "sha256": "6380eb5ccd0a63402b7f385b0046b52d814fc16dd612011e2f8882a977be03e3"
+        },
+        {
+          "path": "setuptools/_vendor/packaging-24.2.dist-info/WHEEL",
+          "sha256": "0a950253178741b44de54191407611268acee407fe432fdf1cc72d710f034862"
+        },
+        {
+          "path": "setuptools/_vendor/platformdirs-4.2.2.dist-info/METADATA",
+          "sha256": "ce6b227b4d46d4cb57474c2022fe57a557933bb89daf4596bdf9b12ac296b869"
+        },
+        {
+          "path": "setuptools/_vendor/platformdirs-4.2.2.dist-info/RECORD",
+          "sha256": "4c211d76d42ed40efc3acfcc866d8912a718afbca2b7e51849442366d6e99fe8"
+        },
+        {
+          "path": "setuptools/_vendor/platformdirs-4.2.2.dist-info/WHEEL",
+          "sha256": "cc431c46bf4aaf4df1d68cc6c20e6ff4d4012a7de49dda7a2d2a1295583e8e15"
+        },
+        {
+          "path": "setuptools/_vendor/tomli-2.0.1.dist-info/METADATA",
+          "sha256": "ccf0dc78a98fc0918b5ad67292b1e2c4bed65575a6246cd9d63c914f9942a0f2"
+        },
+        {
+          "path": "setuptools/_vendor/tomli-2.0.1.dist-info/RECORD",
+          "sha256": "0cb9f9a451a1e365ac54b4c88662e1da0cb54a72d16a5258fb0abff9d3e1c022"
+        },
+        {
+          "path": "setuptools/_vendor/tomli-2.0.1.dist-info/WHEEL",
+          "sha256": "8cf311fc3ce47385f889c42d9b3f35967358fe402c7e883baf2eeaa11bd82d7c"
+        },
+        {
+          "path": "setuptools/_vendor/typeguard-4.3.0.dist-info/METADATA",
+          "sha256": "cf675c1c0a744f08580855390de87cc77d676b312582e8d4cfdb5bb8fd298d21"
+        },
+        {
+          "path": "setuptools/_vendor/typeguard-4.3.0.dist-info/RECORD",
+          "sha256": "48a51959582478352275428ceecd78ef77d79ac9dae796e39a2eaf2540282552"
+        },
+        {
+          "path": "setuptools/_vendor/typeguard-4.3.0.dist-info/WHEEL",
+          "sha256": "189eedfe4581172c1b6a02b97a8f48a14c0b5baa3239e4ca990fbd8871553714"
+        },
+        {
+          "path": "setuptools/_vendor/typing_extensions-4.12.2.dist-info/METADATA",
+          "sha256": "05e51021af1c9d86eb8d6c7e37c4cece733d5065b91a6d8389c5690ed440f16d"
+        },
+        {
+          "path": "setuptools/_vendor/typing_extensions-4.12.2.dist-info/RECORD",
+          "sha256": "7710002d81971e632aa6a2fc33dc5d74aaf5d7caae22040a65d3e31503b05ee9"
+        },
+        {
+          "path": "setuptools/_vendor/typing_extensions-4.12.2.dist-info/WHEEL",
+          "sha256": "1196c6921ec87b83e865f450f08d19b8ff5592537f4ef719e83484e546abe33e"
+        },
+        {
+          "path": "setuptools/_vendor/wheel-0.45.1.dist-info/METADATA",
+          "sha256": "98acfce07ee6ee3b31272cde21c4d53918936f434f315dfd2af3886211a09a30"
+        },
+        {
+          "path": "setuptools/_vendor/wheel-0.45.1.dist-info/RECORD",
+          "sha256": "d639f1ac7c993c3715bd42f27c616189b6b86792fdfd1b17afd77170d6e16984"
+        },
+        {
+          "path": "setuptools/_vendor/wheel-0.45.1.dist-info/WHEEL",
+          "sha256": "0a950253178741b44de54191407611268acee407fe432fdf1cc72d710f034862"
+        },
+        {
+          "path": "setuptools/_vendor/zipp-3.19.2.dist-info/METADATA",
+          "sha256": "508ae4fe43081c64b0b0a2828588b3a8cc3430c6693d1676662569400b0dfdb1"
+        },
+        {
+          "path": "setuptools/_vendor/zipp-3.19.2.dist-info/RECORD",
+          "sha256": "f316f2e03fd9ade7ebbc0b154706848e2bb8fd568b90935109f0d8e3ce2b9bfe"
+        },
+        {
+          "path": "setuptools/_vendor/zipp-3.19.2.dist-info/WHEEL",
+          "sha256": "189eedfe4581172c1b6a02b97a8f48a14c0b5baa3239e4ca990fbd8871553714"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "setuptools-80.9.0.dist-info/licenses/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE",
+          "sha256": "ade78d04982d69972d444a8e14a94f87a2334dd3855cc80348ea8e240aa0df2d"
+        },
+        {
+          "path": "setuptools/_vendor/backports.tarfile-1.2.0.dist-info/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/_vendor/importlib_metadata-8.0.0.dist-info/LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "path": "setuptools/_vendor/inflect-7.3.1.dist-info/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.collections-5.1.0.dist-info/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.context-5.3.0.dist-info/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.functools-4.0.1.dist-info/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/_vendor/jaraco.text-3.12.1.dist-info/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/_vendor/more_itertools-10.3.0.dist-info/LICENSE",
+          "sha256": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46"
+        },
+        {
+          "path": "setuptools/_vendor/packaging-24.2.dist-info/LICENSE",
+          "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+        },
+        {
+          "path": "setuptools/_vendor/packaging-24.2.dist-info/LICENSE.APACHE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        },
+        {
+          "path": "setuptools/_vendor/packaging-24.2.dist-info/LICENSE.BSD",
+          "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5"
+        },
+        {
+          "path": "setuptools/_vendor/packaging/licenses/__init__.py",
+          "sha256": "d71e4cd671188dc83011b2edd1d5f0cf6ba48ebd7c0e20b30b4b2b690a89f96c"
+        },
+        {
+          "path": "setuptools/_vendor/packaging/licenses/__pycache__/__init__.cpython-312.pyc",
+          "sha256": "39bb6c56877c8c21ef16625b50411023335d663f699ea4d5e90cbb74945801a9"
+        },
+        {
+          "path": "setuptools/_vendor/packaging/licenses/__pycache__/_spdx.cpython-312.pyc",
+          "sha256": "8ae4815b485cb9f2f7ccec4f6573be7589bb6e0573e10dda8ad955f91f863e44"
+        },
+        {
+          "path": "setuptools/_vendor/packaging/licenses/_spdx.py",
+          "sha256": "a009b5ced3c5c25b2608a7bb94002cbff38839f4b57160eef5b34191ebbeda7b"
+        },
+        {
+          "path": "setuptools/_vendor/platformdirs-4.2.2.dist-info/licenses/LICENSE",
+          "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6"
+        },
+        {
+          "path": "setuptools/_vendor/tomli-2.0.1.dist-info/LICENSE",
+          "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe"
+        },
+        {
+          "path": "setuptools/_vendor/typeguard-4.3.0.dist-info/LICENSE",
+          "sha256": "6163f7987dfb38d6bc320ce2b70b2f02b862bc41126516d552ef1cd43247e758"
+        },
+        {
+          "path": "setuptools/_vendor/typing_extensions-4.12.2.dist-info/LICENSE",
+          "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+        },
+        {
+          "path": "setuptools/_vendor/wheel-0.45.1.dist-info/LICENSE.txt",
+          "sha256": "30c23618679108f3e8ea1d2a658c7ca417bdfc891c98ef1a89fa4ff0c9828654"
+        },
+        {
+          "path": "setuptools/_vendor/wheel/vendored/packaging/LICENSE",
+          "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+        },
+        {
+          "path": "setuptools/_vendor/wheel/vendored/packaging/LICENSE.APACHE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        },
+        {
+          "path": "setuptools/_vendor/wheel/vendored/packaging/LICENSE.BSD",
+          "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5"
+        },
+        {
+          "path": "setuptools/_vendor/zipp-3.19.2.dist-info/LICENSE",
+          "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741"
+        },
+        {
+          "path": "setuptools/config/NOTICE",
+          "sha256": "2dddf08818297a3b89d43d95ff659d8da85741108c9136dfa3a4d856c0623bd8"
+        },
+        {
+          "path": "setuptools/config/_validate_pyproject/NOTICE",
+          "sha256": "5d300dbfa643138b013b75ac9caeee591f951b8b0ee24288c34ccd926c4780c8"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "sionna-rt",
+      "version": "2.0.1",
+      "source": "installed Python distribution metadata",
+      "download_url": ".tools/sionna-wheels/sionna_rt-2.0.1-py3-none-any.whl",
+      "wheel_sha256": "daa2396a79571cdcc4261f904cbae3bba608cd74db017e0c4482435a8e859ada",
+      "project_urls": [
+        "source, https://github.com/nvlabs/sionna-rt/",
+        "documentation, https://nvlabs.github.io/sionna/",
+        "issues, https://github.com/nvlabs/sionna/issues"
+      ],
+      "license_declared": "Apache-2.0",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "sionna_rt-2.0.1.dist-info/METADATA",
+          "sha256": "9310824cbf6571119e86137e0e6b5d6a5f919045e22379837e78e6bf7f4d7f83"
+        },
+        {
+          "path": "sionna_rt-2.0.1.dist-info/RECORD",
+          "sha256": "19e75cbbcde8935be8db43de84cca0e3aa1c89be87f970634d1976ff50f09044"
+        },
+        {
+          "path": "sionna_rt-2.0.1.dist-info/WHEEL",
+          "sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "sionna_rt-2.0.1.dist-info/licenses/LICENSE",
+          "sha256": "e0eec81c33dc324e01555d55d4b040650cd6372ce7193ccdfd3be0815dcf9c58"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "six",
+      "version": "1.17.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl",
+      "wheel_sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+      "project_urls": [],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "six-1.17.0.dist-info/METADATA",
+          "sha256": "562042078c2752549f6d8a7c86dbc5dd708088a7be6d80672ec7b07100b72468"
+        },
+        {
+          "path": "six-1.17.0.dist-info/RECORD",
+          "sha256": "9f1c0d6da86acfde698b1a0a31931cba957b2896a49bce80c4b0e3cac9d03aef"
+        },
+        {
+          "path": "six-1.17.0.dist-info/WHEEL",
+          "sha256": "a7178d5f925db427b9f0f51260ff6ea6673b8dd44f82f4f41a6f646f5487955c"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "six-1.17.0.dist-info/LICENSE",
+          "sha256": "4375ba20e2b9c6c4e7cad2940a628fd90e95cc3d50ee92aae755715d8ba1fbd0"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "stack-data",
+      "version": "0.6.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/f1/7b/ce1eafaf1a76852e2ec9b22edecf1daa58175c090266e9f6c64afcd81d91/stack_data-0.6.3-py3-none-any.whl",
+      "wheel_sha256": "d5558e0c25a4cb0853cddad3d77da9891a08cb85dd9f9f91b9f8cd66e511e695",
+      "project_urls": [],
+      "license_declared": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "metadata_files": [
+        {
+          "path": "stack_data-0.6.3.dist-info/METADATA",
+          "sha256": "f28a66f2adde54e7031355e09a166e437bc0d023a31c10c973ac494288ca4c6f"
+        },
+        {
+          "path": "stack_data-0.6.3.dist-info/RECORD",
+          "sha256": "853ae89e6fd6cc82bdc14ef97c5db50610c5634154cdd7f6240710f310f265bf"
+        },
+        {
+          "path": "stack_data-0.6.3.dist-info/WHEEL",
+          "sha256": "c903798389a0e00c9b4639208bef72cb889010589b1909a5cfbf0f8a4e4eafe0"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "stack_data-0.6.3.dist-info/LICENSE.txt",
+          "sha256": "a476a2cb0ef4c41450340a577a28b91ac4c7f669136b2ee148047fabd5fc4181"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "traitlets",
+      "version": "5.16.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/ad/66/0d785f0bc5e4315a96c989bb476d0fc07ea4f85132550c7b156ca2035d52/traitlets-5.16.1-py3-none-any.whl",
+      "wheel_sha256": "f775618166caa0396c8e337099240f2bd3e5e917d203b2e6fbe21a58d3cb1f6b",
+      "project_urls": [
+        "Homepage, https://github.com/ipython/traitlets",
+        "Documentation, https://traitlets.readthedocs.io",
+        "Source, https://github.com/ipython/traitlets",
+        "Tracker, https://github.com/ipython/traitlets/issues"
+      ],
+      "license_declared": "See installed license files and metadata",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "traitlets-5.16.1.dist-info/METADATA",
+          "sha256": "e42b503240c058625ffb30c390818d72933117840cb25060614cb24f0be9e587"
+        },
+        {
+          "path": "traitlets-5.16.1.dist-info/RECORD",
+          "sha256": "718436a963edfdcd58348bc8a79383ad03ce5edeb358c694a9b22de23e961314"
+        },
+        {
+          "path": "traitlets-5.16.1.dist-info/WHEEL",
+          "sha256": "942926c567d0b1273d09f20295879abd37507845f6b683eab9f87d808df91100"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "traitlets-5.16.1.dist-info/licenses/LICENSE",
+          "sha256": "2f51727d9063b54856773cb51388bdb79f2936ee4a1b692ef553d8c4201311ab"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "traittypes",
+      "version": "0.2.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/8d/c0/fdf9d3ee103ce66a55f0532835ad5e154226c5222423c6636ba049dc42fc/traittypes-0.2.3-py2.py3-none-any.whl",
+      "wheel_sha256": "49016082ce740d6556d9bb4672ee2d899cd14f9365f17cbb79d5d96b47096d4e",
+      "project_urls": [],
+      "license_declared": "BSD",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "traittypes-0.2.3.dist-info/METADATA",
+          "sha256": "abd3dfa7262758f2dcc359d120666207bbd11486f1486ac7199fa86f90f18874"
+        },
+        {
+          "path": "traittypes-0.2.3.dist-info/RECORD",
+          "sha256": "5b0714d146be27eb2d2443f8a76670780347a0700f3cd11b40d39e4a749ea5ff"
+        },
+        {
+          "path": "traittypes-0.2.3.dist-info/WHEEL",
+          "sha256": "24d5a1d459b551dc08415d3be609429f8315b8246cd2ca2d248abe27aadbc425"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "traittypes-0.2.3.dist-info/licenses/LICENSE",
+          "sha256": "221976dfad5db283a2669efe8607e24c9c9aecca8453d6beba045e665c2f88a1"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+      "wheel_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "project_urls": [
+        "Bug Tracker, https://github.com/python/typing_extensions/issues",
+        "Changes, https://github.com/python/typing_extensions/blob/main/CHANGELOG.md",
+        "Documentation, https://typing-extensions.readthedocs.io/",
+        "Home, https://github.com/python/typing_extensions",
+        "Q & A, https://github.com/python/typing/discussions",
+        "Repository, https://github.com/python/typing_extensions"
+      ],
+      "license_declared": "PSF-2.0",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "typing_extensions-4.16.0.dist-info/METADATA",
+          "sha256": "b05084ca1d50879865178d9fff9fabeab61bdfb1f361bfbde95421ffc8f9be46"
+        },
+        {
+          "path": "typing_extensions-4.16.0.dist-info/RECORD",
+          "sha256": "9861cb1104df8ec0ce0e5de06999ed8540a156766893cf404a41e9adb275afff"
+        },
+        {
+          "path": "typing_extensions-4.16.0.dist-info/WHEEL",
+          "sha256": "1b68144734c4b66791f27add5d425f3620775585718a03d0f9b110ba3a4d88db"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "typing_extensions-4.16.0.dist-info/licenses/LICENSE",
+          "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "wcwidth",
+      "version": "0.8.3",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/c4/0e/57f6bb3024a597b2e8ec4aee710ffe62ddc95af2e2bb1ee7a7abdc22c68c/wcwidth-0.8.3-py3-none-any.whl",
+      "wheel_sha256": "d5b73dba6158a595ec9370350e7f2637bcac8d6c5e4fde34f30fcffb6103a5e4",
+      "project_urls": [
+        "Homepage, https://github.com/jquast/wcwidth"
+      ],
+      "license_declared": "MIT",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "wcwidth-0.8.3.dist-info/METADATA",
+          "sha256": "fbb263da460e71ab9b46a61cae1078343151fa9da5cbefd928aa67f9e4b42033"
+        },
+        {
+          "path": "wcwidth-0.8.3.dist-info/RECORD",
+          "sha256": "ca1aad9235dc4765c941ba2fed56bd33bbbc9612db9cae8b951ee0de068caadf"
+        },
+        {
+          "path": "wcwidth-0.8.3.dist-info/WHEEL",
+          "sha256": "ccec20e2307acd7da453dd7437e70c6b08e2bc3ead3bc3445af135da37b56d59"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "wcwidth-0.8.3.dist-info/licenses/LICENSE",
+          "sha256": "70b98a95a2144eb70af8017fa8c6d95ce247e40867436e8bc649e137fe13d21a"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    {
+      "name": "widgetsnbextension",
+      "version": "4.0.16",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/34/95/40e17e20046b7bc820d29d09ae84ec157ec8dd6e6f6cd722626292c31b2e/widgetsnbextension-4.0.16-py3-none-any.whl",
+      "wheel_sha256": "a31a8774885b96fe825462f5d6496166f0c7cae111195b6465c801d230eb5a4e",
+      "project_urls": [],
+      "license_declared": "BSD 3-Clause License",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "metadata_files": [
+        {
+          "path": "widgetsnbextension-4.0.16.dist-info/METADATA",
+          "sha256": "d8a9a76b9ad68a2a105fe37e05c6e2258e37c33175f73cec4d7b1cb62008b894"
+        },
+        {
+          "path": "widgetsnbextension-4.0.16.dist-info/RECORD",
+          "sha256": "7d30fb8a0b66c689cbc02cbfa7f5825863cefba7f84aa1d952321752b200c312"
+        },
+        {
+          "path": "widgetsnbextension-4.0.16.dist-info/WHEEL",
+          "sha256": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "../../../share/jupyter/nbextensions/jupyter-js-widgets/extension.js.LICENSE.txt",
+          "sha256": "cef9b25a484c3a1e90710a1eb64e867be4b2059dd21f62af1bea001ac892fd87"
+        },
+        {
+          "path": "widgetsnbextension-4.0.16.dist-info/licenses/LICENSE",
+          "sha256": "e5ac2be30b2bcefe330ee9e5ad7fe5b0d1156fecb3555fcaaa908a8d29f9fded"
+        },
+        {
+          "path": "widgetsnbextension/static/extension.js.LICENSE.txt",
+          "sha256": "cef9b25a484c3a1e90710a1eb64e867be4b2059dd21f62af1bea001ac892fd87"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    }
+  ],
+  "assets": {
+    "upstream_scene_assets_used": false,
+    "worker_scene": "original empty-space coordinates; no material catalog or mesh asset",
+    "installed_upstream_assets": "present transitively; not copied into source or licensed by this ledger"
+  },
+  "release_sbom_complete": false,
+  "remaining_review": [
+    "Python standalone bundled native libraries",
+    "LLVM bottle and native transitive notices",
+    "Sionna packaged example assets",
+    "platform packaging and redistribution review"
+  ],
+  "source_archive_sha256": "05a54afd05fc8c3be3d2bc482233952b382637d58b1c12e0e46d555afba95526",
+  "pypi_wheel_mismatch": {
+    "version": "2.0.1",
+    "differing_python_files": [
+      {
+        "path": "radio_materials/itu.py",
+        "source_sha256": "32a8d904ecdbffea08b73980ea1646dd8bbeb2235022200967b1b8cfe8264d08",
+        "installed_sha256": "3ecc828d18657643d37c76866db8d6167492496f679ed6e6fd974dd321e2881c",
+        "matches": false
+      },
+      {
+        "path": "radio_materials/itu_material.py",
+        "source_sha256": "bda625a0fcdefa9b517f1211226f26738d0e1db641eb4b01e2d1e6ac1a991b88",
+        "installed_sha256": "8885a355f7dad8bc85f8b0ae8464cadcfdc34fb010ec7fdaa67ee5c9d27933dc",
+        "matches": false
+      },
+      {
+        "path": "radio_materials/radio_material.py",
+        "source_sha256": "90700a03b472b3a43b172ae48fec9038eb7bc3bb4181ea2b625489bf4bfd7492",
+        "installed_sha256": "fa26b0a1a0930dd551a9f09a15205bca214259c8075ae73df8385eb2dd17664b",
+        "matches": false
+      },
+      {
+        "path": "utils/electromagnetics.py",
+        "source_sha256": "1cb2b650d7f93ef8ad8062a69db844d8b94411eac040b536240e7c85787b5bd4",
+        "installed_sha256": "15678b9786709c699055dd78fa0aa304351fe342338ffbcd748e1b7a06e6037c",
+        "matches": false
+      }
+    ],
+    "pypi_wheel": {
+      "name": "sionna-rt",
+      "version": "2.0.1",
+      "source": "installed Python distribution metadata",
+      "download_url": "https://files.pythonhosted.org/packages/23/6d/80784cf05ea6e5c8c33dac44980ee7abef8ede54913845cf3a0165ff2834/sionna_rt-2.0.1-py3-none-any.whl",
+      "wheel_sha256": "63d7bdf168f2c7740a4eb7be5bcd680677fbf22f4576324544ffa066eaa8398f",
+      "project_urls": [
+        "source, https://github.com/nvlabs/sionna-rt/",
+        "documentation, https://nvlabs.github.io/sionna/",
+        "issues, https://github.com/nvlabs/sionna/issues"
+      ],
+      "license_declared": "Apache-2.0",
+      "license_classifiers": [],
+      "metadata_files": [
+        {
+          "path": "sionna_rt-2.0.1.dist-info/METADATA",
+          "sha256": "9310824cbf6571119e86137e0e6b5d6a5f919045e22379837e78e6bf7f4d7f83"
+        },
+        {
+          "path": "sionna_rt-2.0.1.dist-info/RECORD",
+          "sha256": "c44d51d8ca30a3cbcc91a692adb8a1d73c2f45f32cabfaf0e8dbdb059bf68c80"
+        },
+        {
+          "path": "sionna_rt-2.0.1.dist-info/WHEEL",
+          "sha256": "69e6228a0d35958183cc1812f07c565ce837b95eb51bd8a33acba9fa4f68d6c9"
+        }
+      ],
+      "license_files": [
+        {
+          "path": "sionna_rt-2.0.1.dist-info/licenses/LICENSE",
+          "sha256": "e0eec81c33dc324e01555d55d4b040650cd6372ce7193ccdfd3be0815dcf9c58"
+        }
+      ],
+      "native_libraries": [],
+      "redistribution_review": "pending; metadata is evidence, not a license grant"
+    },
+    "resolution": "Build exact audited commit; no claim that PyPI version identity establishes source equivalence."
+  },
+  "external_native_packages": [
+    {
+      "name": "llvm@18",
+      "installed_prefix": "/opt/homebrew/Cellar/llvm@18/18.1.8",
+      "receipt": {
+        "homebrew_version": "5.0.14-59-g45db1ce",
+        "used_options": [],
+        "unused_options": [],
+        "built_as_bottle": true,
+        "poured_from_bottle": true,
+        "loaded_from_api": true,
+        "loaded_from_internal_api": true,
+        "installed_on_request": true,
+        "changed_files": [
+          "lib/python3.10/site-packages/clang/cindex.py",
+          "lib/python3.11/site-packages/clang/cindex.py",
+          "lib/python3.12/site-packages/clang/cindex.py",
+          "lib/python3.13/site-packages/clang/cindex.py",
+          "lib/python3.14/site-packages/clang/cindex.py",
+          "lib/python3.9/site-packages/clang/cindex.py"
+        ],
+        "time": 1788760751,
+        "source_modified_time": 1718472092,
+        "compiler": "clang",
+        "aliases": [],
+        "runtime_dependencies": [
+          {
+            "full_name": "lz4",
+            "version": "1.10.0",
+            "revision": 0,
+            "bottle_rebuild": 2,
+            "pkg_version": "1.10.0",
+            "declared_directly": false
+          },
+          {
+            "full_name": "xz",
+            "version": "5.8.3",
+            "revision": 0,
+            "bottle_rebuild": 0,
+            "pkg_version": "5.8.3",
+            "declared_directly": false
+          },
+          {
+            "full_name": "zstd",
+            "version": "1.5.7",
+            "revision": 1,
+            "bottle_rebuild": 0,
+            "pkg_version": "1.5.7_1",
+            "declared_directly": true
+          }
+        ],
+        "source": {
+          "spec": "stable",
+          "versions": {
+            "stable": "18.1.8",
+            "head": null,
+            "version_scheme": 0,
+            "compatibility_version": null
+          },
+          "path": "/Users/vincent/Library/Caches/Homebrew/api/internal/packages.arm64_tahoe.jws.json",
+          "tap_git_head": null,
+          "tap": "homebrew/core"
+        },
+        "arch": "arm64",
+        "built_on": {
+          "os": "Macintosh",
+          "os_version": "macOS 26",
+          "cpu_family": "dunno",
+          "xcode": "26.2",
+          "clt": "26.2.0.0.1.1764812424",
+          "preferred_perl": "5.34"
+        }
+      },
+      "receipt_sha256": "5025f09ad3084617e245693d971abda0953292d22ea1e520469c8e44f8c8a171",
+      "formula_sha256": "6e16f9aa028c29c552f1202b1c4fe596d21f78734f210f7e6b9049c00d0f0eae",
+      "source_url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/llvm-project-18.1.8.src.tar.xz",
+      "declared_license_formula": "license \"Apache-2.0\" => { with: \"LLVM-exception\" }",
+      "native_libraries": [
+        {
+          "path": "lib/libClangdXPCLib.dylib",
+          "sha256": "89ff1c43768610c37215ec6e4cc33561bfa4be3b63e33309ab03db52544f7391"
+        },
+        {
+          "path": "lib/libLLVM-C.dylib",
+          "sha256": "ee5a3fff2b4cf1bf1565a2a3908d5416db631e832297c390cda43c65adff0187"
+        },
+        {
+          "path": "lib/libLLVM.dylib",
+          "sha256": "216da8c3053a215eeaab8e56aadf20d33d6efd3f35d19069a54505a663eec316"
+        },
+        {
+          "path": "lib/libLTO.dylib",
+          "sha256": "3003714889b2f3676908a166b46211cfb77ba6e7fa1c80029d5558c97549ac12"
+        },
+        {
+          "path": "lib/libMLIR.dylib",
+          "sha256": "14193d8c65bea0eef588f56bd01bdbef30006f15a26cf75be3d300aad3be314c"
+        },
+        {
+          "path": "lib/libRemarks.dylib",
+          "sha256": "1d4ff98bdd3dbfbe5dca01c02e8a981ae671991f4d8ddc9fb45fc1d1fc746f75"
+        },
+        {
+          "path": "lib/libclang-cpp.dylib",
+          "sha256": "d09c0d16eac52f50d961efb8781918f0cf1e070aed6ec43472b06a4368ed5657"
+        },
+        {
+          "path": "lib/libclang.dylib",
+          "sha256": "396e89b9a7aea786a953d838eef7875b86633fb72535da947e5fa1256c7ea103"
+        },
+        {
+          "path": "lib/libmlir_arm_runner_utils.dylib",
+          "sha256": "2971db2667d9f19993ef6f03925c3a6f2ee3e3f40c6080dd3bcbcb414b3aa9e8"
+        },
+        {
+          "path": "lib/libmlir_arm_sme_abi_stubs.dylib",
+          "sha256": "5fe2bfa1409cb274ae5068900e7c046c5965d52f2f56d9320f805d824dcfaad8"
+        },
+        {
+          "path": "lib/libmlir_async_runtime.dylib",
+          "sha256": "c39919ae7af4cbc1863809278456d893865f438b88c13ffc52492ce07bf428ca"
+        },
+        {
+          "path": "lib/libmlir_c_runner_utils.dylib",
+          "sha256": "d7da8bbae39957f2b84d3012e811f654a7b9b0695a6ce5895f568d87279b989b"
+        },
+        {
+          "path": "lib/libmlir_float16_utils.dylib",
+          "sha256": "036b1f78fb6cfcea2a401fbd2fa3b9609d9e4a6ebc6fb9f0ee49544749010939"
+        },
+        {
+          "path": "lib/libmlir_runner_utils.dylib",
+          "sha256": "341e98832e085f36fbb7d9dc9f3619e03554e58adb054aff1ca55d3e10d8ccbf"
+        },
+        {
+          "path": "lib/libunwind.1.0.dylib",
+          "sha256": "feb4f4d4dd471138c9cde9d63c46f11960c7bde76742da41713bdafffb835b3a"
+        }
+      ],
+      "redistribution_review": "pending; installed Homebrew metadata only"
+    },
+    {
+      "name": "lz4",
+      "installed_prefix": "/opt/homebrew/Cellar/lz4/1.10.0",
+      "receipt": {
+        "homebrew_version": "6.0.21-28-gfd18738",
+        "used_options": [],
+        "unused_options": [],
+        "built_as_bottle": true,
+        "poured_from_bottle": true,
+        "loaded_from_api": true,
+        "loaded_from_internal_api": true,
+        "installed_on_request": false,
+        "changed_files": [
+          "lib/pkgconfig/liblz4.pc"
+        ],
+        "linkage_files": [
+          "lib/liblz4.1.10.0.dylib"
+        ],
+        "binary_relocation_files": [],
+        "time": 1788760750,
+        "source_modified_time": 1721582989,
+        "compiler": "clang",
+        "aliases": [],
+        "runtime_dependencies": [],
+        "source": {
+          "spec": "stable",
+          "versions": {
+            "stable": "1.10.0",
+            "head": null,
+            "version_scheme": 0,
+            "compatibility_version": null
+          },
+          "path": "/Users/vincent/Library/Caches/Homebrew/api/internal/packages.arm64_tahoe.jws.json",
+          "tap_git_head": null,
+          "tap": "homebrew/core"
+        },
+        "arch": "arm64",
+        "built_on": {
+          "os": "Macintosh",
+          "os_version": "macOS 26",
+          "cpu_family": "dunno",
+          "xcode": "26.6",
+          "clt": "26.6.0.0.1781586589",
+          "preferred_perl": "5.34"
+        }
+      },
+      "receipt_sha256": "0d686ec1c03c5b18b8a02f868fa197e2501d65b200e06734e23bcbf032a470aa",
+      "formula_sha256": "2f57b3c054c670968e16ed6786f464b6b994c15b956e9b8f73ffab3c2103adcd",
+      "source_url": "https://github.com/lz4/lz4/archive/refs/tags/v1.10.0.tar.gz",
+      "declared_license_formula": "license \"BSD-2-Clause\"",
+      "native_libraries": [
+        {
+          "path": "lib/liblz4.1.10.0.dylib",
+          "sha256": "836df66ea7d530c5739b9d902fb9ad11fe1ac83a6e2d8f316866d4086c8d3f6a"
+        }
+      ],
+      "redistribution_review": "pending; installed Homebrew metadata only"
+    },
+    {
+      "name": "xz",
+      "installed_prefix": "/opt/homebrew/Cellar/xz/5.8.3",
+      "receipt": {
+        "homebrew_version": "5.1.3-4-g8fbdcb7",
+        "used_options": [],
+        "unused_options": [],
+        "built_as_bottle": true,
+        "poured_from_bottle": true,
+        "loaded_from_api": true,
+        "loaded_from_internal_api": true,
+        "installed_on_request": false,
+        "changed_files": [
+          "lib/pkgconfig/liblzma.pc"
+        ],
+        "time": 1788760750,
+        "source_modified_time": 1774970846,
+        "compiler": "clang",
+        "aliases": [],
+        "runtime_dependencies": [],
+        "source": {
+          "spec": "stable",
+          "versions": {
+            "stable": "5.8.3",
+            "head": null,
+            "version_scheme": 1,
+            "compatibility_version": null
+          },
+          "path": "/Users/vincent/Library/Caches/Homebrew/api/internal/packages.arm64_tahoe.jws.json",
+          "tap_git_head": null,
+          "tap": "homebrew/core"
+        },
+        "arch": "arm64",
+        "built_on": {
+          "os": "Macintosh",
+          "os_version": "macOS 26.3",
+          "cpu_family": "dunno",
+          "xcode": "26.3",
+          "clt": "26.3.0.0.1.1771626560",
+          "preferred_perl": "5.34"
+        }
+      },
+      "receipt_sha256": "1b2ed3db24b7d38c357bdbba0cda98d680fea65d6d563532abb50f1edf3340a1",
+      "formula_sha256": "0812ffeca3c6631a261e87c76ff26368eee0df6ecedfe0f458d67494fdf6e9cc",
+      "source_url": "https://github.com/tukaani-project/xz/releases/download/v5.8.3/xz-5.8.3.tar.gz",
+      "declared_license_formula": "license all_of: [",
+      "native_libraries": [
+        {
+          "path": "lib/liblzma.5.dylib",
+          "sha256": "606a5184911c876c7446f932685183d8b348f5c9a95f764b01607be0e40b64ea"
+        }
+      ],
+      "redistribution_review": "pending; installed Homebrew metadata only"
+    },
+    {
+      "name": "zstd",
+      "installed_prefix": "/opt/homebrew/Cellar/zstd/1.5.7_1",
+      "receipt": {
+        "homebrew_version": "5.0.13-24-g70b5921",
+        "used_options": [],
+        "unused_options": [],
+        "built_as_bottle": true,
+        "poured_from_bottle": true,
+        "loaded_from_api": true,
+        "loaded_from_internal_api": true,
+        "installed_on_request": false,
+        "changed_files": [
+          "lib/pkgconfig/libzstd.pc"
+        ],
+        "time": 1788760750,
+        "source_modified_time": 1739923464,
+        "compiler": "clang",
+        "aliases": [
+          "pzstd"
+        ],
+        "runtime_dependencies": [
+          {
+            "full_name": "lz4",
+            "version": "1.10.0",
+            "revision": 0,
+            "bottle_rebuild": 2,
+            "pkg_version": "1.10.0",
+            "declared_directly": true
+          },
+          {
+            "full_name": "xz",
+            "version": "5.8.3",
+            "revision": 0,
+            "bottle_rebuild": 0,
+            "pkg_version": "5.8.3",
+            "declared_directly": true
+          }
+        ],
+        "source": {
+          "spec": "stable",
+          "versions": {
+            "stable": "1.5.7",
+            "head": null,
+            "version_scheme": 0,
+            "compatibility_version": null
+          },
+          "path": "/Users/vincent/Library/Caches/Homebrew/api/internal/packages.arm64_tahoe.jws.json",
+          "tap_git_head": null,
+          "tap": "homebrew/core"
+        },
+        "arch": "arm64",
+        "built_on": {
+          "os": "Macintosh",
+          "os_version": "macOS 26",
+          "cpu_family": "dunno",
+          "xcode": "26.2",
+          "clt": "26.2.0.0.1.1764812424",
+          "preferred_perl": "5.34"
+        }
+      },
+      "receipt_sha256": "33aeb6fb84a2fe4d931e420aed734b19b94a543d0b985716bf7ccc643b68dbfe",
+      "formula_sha256": "9a9b0183896886e82b915af4db576f27d34d1cee7757d6c5beb0e1eb74c68e0d",
+      "source_url": "https://github.com/facebook/zstd/archive/refs/tags/v1.5.7.tar.gz",
+      "declared_license_formula": "license all_of: [",
+      "native_libraries": [
+        {
+          "path": "lib/libzstd.1.5.7.dylib",
+          "sha256": "602d50cbe6fad0f0da6d1b73284ae3f75316015aea482ebd55614b6df2406b43"
+        }
+      ],
+      "redistribution_review": "pending; installed Homebrew metadata only"
+    }
+  ]
+}
