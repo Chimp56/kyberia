@@ -165625,14 +165625,51 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "spatial analysis",
+      "owner": "/root/spatial_analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Nearest and IDW independent synthetic weighted-value baseline",
+        "Permutation/translation/convex-bound properties; duplicate locations and unknown support",
+        "Explicit cancellation, bounded work, deterministic tiles and numerical inspection"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
+          "revision": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd",
+          "sha256": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd"
+        },
+        {
+          "path": "crates/spatial-analysis/src/tile.rs",
+          "description": "Pure tile planes with original inputs and grid provenance",
+          "revision": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646",
+          "sha256": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/ingestion-spatial-iteration-3.md",
+          "description": "Integrated spatial synthetic numerical baseline",
+          "revision": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "sha256": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "command": "cargo test --locked -p kyberia-spatial-analysis",
+          "scope": "numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/spatial-baseline-review.md",
+          "description": "Independent numerical/adversarial/performance review",
+          "revision": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "sha256": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "reviewer": "/root/rf_numerical_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:715a4a51da0e83b78896:1",
@@ -165667,15 +165704,52 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "spatial analysis",
+      "status": "VALIDATED",
+      "owner": "/root/spatial_analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Nearest and IDW independent synthetic weighted-value baseline",
+        "Permutation/translation/convex-bound properties; duplicate locations and unknown support",
+        "Explicit cancellation, bounded work, deterministic tiles and numerical inspection"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
+          "revision": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd",
+          "sha256": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd"
+        },
+        {
+          "path": "crates/spatial-analysis/src/tile.rs",
+          "description": "Pure tile planes with original inputs and grid provenance",
+          "revision": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646",
+          "sha256": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/ingestion-spatial-iteration-3.md",
+          "description": "Integrated spatial synthetic numerical baseline",
+          "revision": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "sha256": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "command": "cargo test --locked -p kyberia-spatial-analysis",
+          "scope": "numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/spatial-baseline-review.md",
+          "description": "Independent numerical/adversarial/performance review",
+          "revision": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "sha256": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "reviewer": "/root/rf_numerical_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:715a4a51da0e83b78896:1",
@@ -169455,12 +169529,28 @@
       "implementation": [
         {
           "path": "crates/kismet-adapter/src/database.rs",
-          "description": "Immutable snapshot KismetDB5–10 metadata reader; PCAPNG/canonical replay still open",
+          "description": "Immutable snapshot KismetDB5–10 metadata reader; canonical replay still open",
           "revision": "743bc5336340a70b34cbd6f677c17a18ab717be83ed90df251ada395ba18348a",
           "sha256": "743bc5336340a70b34cbd6f677c17a18ab717be83ed90df251ada395ba18348a"
+        },
+        {
+          "path": "crates/packet-import/src/pcapng.rs",
+          "description": "Bounded PCAPNG packets and exact timestamp metadata; legacy/canonical/source custom mapping open",
+          "revision": "3fd9d3e4856fa8128c2b1a264c08ca1c7cf1bf0a560d29a56e8caa5f4efb485f",
+          "sha256": "3fd9d3e4856fa8128c2b1a264c08ca1c7cf1bf0a560d29a56e8caa5f4efb485f"
         }
       ],
-      "validation": [],
+      "validation": [
+        {
+          "path": "docs/validation/ingestion-spatial-iteration-3.md",
+          "description": "Bounded packet container tests and integration checks",
+          "revision": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "sha256": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "command": "cargo test --locked -p kyberia-packet-import",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
       "reviews": [
         {
           "path": "docs/reviews/kismet-database-review.md",
@@ -169473,6 +169563,21 @@
             {
               "severity": "MAJOR",
               "description": "Generated columns could shadow pagination identity; table_xinfo rejects them",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/pcapng-container-review.md",
+          "description": "Independent PCAPNG review with corrected EOF cancellation",
+          "revision": "9e8a21c956cf00b14740f6a5037e96e3b23c2e907c7b8af3ee3195dccb53b159",
+          "sha256": "9e8a21c956cf00b14740f6a5037e96e3b23c2e907c7b8af3ee3195dccb53b159",
+          "reviewer": "/root/rf_numerical_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "PCAP-001: EOF read could publish success after cancellation or deadline; post-read and publication checks independently verified",
               "resolution": "RESOLVED"
             }
           ]
@@ -229425,15 +229530,52 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "spatial analysis",
+      "status": "IN_PROGRESS",
+      "owner": "/root/spatial_analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Nearest and IDW independent synthetic weighted-value baseline",
+        "Permutation/translation/convex-bound properties; duplicate locations and unknown support",
+        "Explicit cancellation, bounded work, deterministic tiles and numerical inspection"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
+          "revision": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd",
+          "sha256": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd"
+        },
+        {
+          "path": "crates/spatial-analysis/src/tile.rs",
+          "description": "Pure tile planes with original inputs and grid provenance",
+          "revision": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646",
+          "sha256": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/ingestion-spatial-iteration-3.md",
+          "description": "Integrated spatial synthetic numerical baseline",
+          "revision": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "sha256": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "command": "cargo test --locked -p kyberia-spatial-analysis",
+          "scope": "numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/spatial-baseline-review.md",
+          "description": "Independent numerical/adversarial/performance review",
+          "revision": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "sha256": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "reviewer": "/root/rf_numerical_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
@@ -229554,15 +229696,52 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "spatial analysis",
+      "status": "IN_PROGRESS",
+      "owner": "/root/spatial_analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Nearest and IDW independent synthetic weighted-value baseline",
+        "Permutation/translation/convex-bound properties; duplicate locations and unknown support",
+        "Explicit cancellation, bounded work, deterministic tiles and numerical inspection"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
+          "revision": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd",
+          "sha256": "35d383d138d526300384c1514edc037584c350bba743fcc380d6fbbf8e88ecfd"
+        },
+        {
+          "path": "crates/spatial-analysis/src/tile.rs",
+          "description": "Pure tile planes with original inputs and grid provenance",
+          "revision": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646",
+          "sha256": "34b3f0c265787ba42dafbd87c673da033500b4c67e01c179960b6fa6fd2b0646"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/ingestion-spatial-iteration-3.md",
+          "description": "Integrated spatial synthetic numerical baseline",
+          "revision": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "sha256": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
+          "command": "cargo test --locked -p kyberia-spatial-analysis",
+          "scope": "numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/spatial-baseline-review.md",
+          "description": "Independent numerical/adversarial/performance review",
+          "revision": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "sha256": "3084bf900709a437f95661811cc96631d581b9876fd3498d98c85623997e2d07",
+          "reviewer": "/root/rf_numerical_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
