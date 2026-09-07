@@ -9,7 +9,7 @@ Inventory: 3335 leaf obligations; 433 obligation groups; 1624 coverage-only bloc
 
 Source SHA-256: `57b6bb686456a567f882a8e4a1eec7bcdcfafea843dd060f224e76c7122328ea`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 28 | NOT_STARTED: 3305 | VALIDATED: 2
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 29 | NOT_STARTED: 3304 | VALIDATED: 2
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3578,7 +3578,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 28 | NO
 | `backlog:FND-005:1` | [L4220](../../plan.md#L4220) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-005 &#124; P0 &#124; SQLite schema/migrations &#124; Upgrade fixtures from every schema version &#124; | obligation | IN_PROGRESS | [implementation](../../crates/project-store/src/sqlite_guard.rs), [reviews](../../docs/reviews/storage-schema-guard-review.md) |
 | `backlog:FND-006:1` | [L4221](../../plan.md#L4221) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-006 &#124; P0 &#124; Parquet chunk writer/reader &#124; Crash-safe append/finalization and hash checks &#124; | obligation | IN_PROGRESS | [implementation](../../research/storage/engines.py), [validation](../../research/storage/evidence/macos-arm64.json), [reviews](../../docs/reviews/storage-proof-review.md), [reviews](../../docs/reviews/storage-provenance-correction-review.md) |
 | `backlog:FND-007:1` | [L4222](../../plan.md#L4222) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-007 &#124; P0 &#124; Content-addressed asset store &#124; Duplicate suppression and integrity verification &#124; | obligation | NOT_STARTED |  |
-| `backlog:FND-008:1` | [L4223](../../plan.md#L4223) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-008 &#124; P0 &#124; Analysis manifest/hash &#124; Deterministic canonicalization tests &#124; | obligation | NOT_STARTED |  |
+| `backlog:FND-008:1` | [L4223](../../plan.md#L4223) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-008 &#124; P0 &#124; Analysis manifest/hash &#124; Deterministic canonicalization tests &#124; | obligation | IN_PROGRESS |  |
 | `backlog:FND-009:1` | [L4224](../../plan.md#L4224) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-009 &#124; P0 &#124; Coordinate-frame graph &#124; Calibration and transform property tests &#124; | obligation | IN_PROGRESS |  |
 | `backlog:FND-010:1` | [L4225](../../plan.md#L4225) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-010 &#124; P0 &#124; Metric registry &#124; One source for UI help, units, and compute contract &#124; | obligation | NOT_STARTED |  |
 | `backlog:FND-011:1` | [L4226](../../plan.md#L4226) RF Atlas / 18. Prioritized engineering backlog / 18.1 Foundations — &#124; FND-011 &#124; P0 &#124; Operation log/undo model &#124; Merge and inverse-operation fixtures &#124; | obligation | IN_PROGRESS |  |

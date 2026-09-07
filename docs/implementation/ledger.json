@@ -162066,7 +162066,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],

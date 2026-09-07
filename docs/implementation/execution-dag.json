@@ -594,6 +594,18 @@
         "backlog:MAPB-001:1"
       ],
       "acceptance": "Gate B comparable actual browser workloads, numeric/mask correctness, measured frame/memory evidence and explicit unsupported runtime states"
+    },
+    {
+      "id": "iteration-4-analysis-manifest",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "architecture/domain",
+      "requirements": [
+        "backlog:FND-008:1"
+      ],
+      "acceptance": "Immutable input and algorithm provenance, typed bounded parameters/grid, canonical bytes and golden hashes, cache invalidation tests, independent review"
     }
   ]
 }
