@@ -1,13 +1,12 @@
 use crate::manifest::{MAX_ARTIFACT_BYTES, MAX_MANIFEST_BYTES, SCHEMA_VERSION, validate_hash};
-use crate::{ArtifactEntry, BundleManifest, Result, StoreError, content_hash};
+use crate::{ArtifactEntry, BundleManifest, Result, StoreError, content_hash, sqlite_guard};
 use kyberia_domain::identity::ProjectId;
-use rusqlite::{Connection, OpenFlags, TransactionBehavior, limits::Limit};
+use rusqlite::{Connection, OpenFlags, TransactionBehavior};
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OpenMode {
@@ -81,23 +80,38 @@ fn atomic_projection(root: &Path, manifest: &BundleManifest) -> Result<()> {
     sync_directory(root)
 }
 
-fn configure(connection: &Connection, writable: bool) -> Result<()> {
-    connection.busy_timeout(Duration::from_secs(3))?;
-    connection.set_limit(Limit::SQLITE_LIMIT_LENGTH, MAX_MANIFEST_BYTES as i32)?;
-    connection.set_limit(Limit::SQLITE_LIMIT_SQL_LENGTH, 64 * 1024)?;
-    connection.execute_batch("PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON;")?;
-    if writable {
-        connection.execute_batch("PRAGMA synchronous=FULL; PRAGMA journal_mode=DELETE;")?;
+fn configure_writable(connection: &Connection) -> Result<()> {
+    connection.execute_batch("PRAGMA synchronous=FULL; PRAGMA journal_mode=DELETE;")?;
+    Ok(())
+}
+
+fn database_size(root: &Path) -> Result<()> {
+    let path = root.join("project.sqlite");
+    regular(&path, false)?;
+    if fs::metadata(path)?.len() > sqlite_guard::MAX_DATABASE_BYTES {
+        return Err(StoreError::Invalid(
+            "metadata database exceeds 64 MiB read budget".into(),
+        ));
     }
     Ok(())
 }
 
 fn load_manifest(connection: &Connection) -> Result<BundleManifest> {
-    let (revision, bytes): (i64, Vec<u8>) = connection.query_row(
-        "SELECT revision, body FROM bundle_manifest WHERE singleton=1",
-        [],
-        |r| Ok((r.get(0)?, r.get(1)?)),
-    )?;
+    sqlite_guard::validate_schema(connection)?;
+    let mut statement =
+        connection.prepare("SELECT singleton,revision,body FROM main.bundle_manifest LIMIT 2")?;
+    let mut rows = statement.query([])?;
+    let row = rows
+        .next()?
+        .ok_or_else(|| StoreError::Corrupt("missing singleton manifest".into()))?;
+    let singleton: i64 = row.get(0)?;
+    let revision: i64 = row.get(1)?;
+    let bytes: Vec<u8> = row.get(2)?;
+    if singleton != 1 || rows.next()?.is_some() {
+        return Err(StoreError::Corrupt(
+            "exactly one singleton manifest required".into(),
+        ));
+    }
     if bytes.len() as u64 > MAX_MANIFEST_BYTES {
         return Err(StoreError::Corrupt("oversized database manifest".into()));
     }
@@ -133,14 +147,17 @@ impl Bundle {
         fs::create_dir(root)?;
         fs::create_dir(root.join("artifacts"))?;
         let mut connection = Connection::open(root.join("project.sqlite"))?;
-        configure(&connection, true)?;
+        sqlite_guard::initialize(&connection)?;
+        configure_writable(&connection)?;
         let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
-        transaction.execute_batch("CREATE TABLE bundle_manifest (singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL CHECK(revision>=0), body BLOB NOT NULL); PRAGMA user_version=1;")?;
+        transaction.execute_batch(sqlite_guard::CREATE_MANIFEST)?;
+        transaction.execute_batch("PRAGMA user_version=1")?;
         transaction.execute(
             "INSERT INTO bundle_manifest VALUES (1, ?1, ?2)",
             (0, manifest.encode()?),
         )?;
         transaction.commit()?;
+        sqlite_guard::restrict(&connection, true)?;
         atomic_projection(root, &manifest)?;
         sync_directory(root)?;
         Ok(Self {
@@ -152,14 +169,15 @@ impl Bundle {
 
     pub fn open(root: &Path, mode: OpenMode) -> Result<Self> {
         regular(root, true)?;
-        regular(&root.join("project.sqlite"), false)?;
+        database_size(root)?;
         regular(&root.join("artifacts"), true)?;
         let flags = match mode {
             OpenMode::ReadOnly => OpenFlags::SQLITE_OPEN_READ_ONLY,
             OpenMode::ReadWrite => OpenFlags::SQLITE_OPEN_READ_WRITE,
         };
         let connection = Connection::open_with_flags(root.join("project.sqlite"), flags)?;
-        configure(&connection, false)?;
+        sqlite_guard::initialize(&connection)?;
+        sqlite_guard::restrict(&connection, mode == OpenMode::ReadWrite)?;
         let bundle = Self {
             root: root.to_path_buf(),
             connection,
@@ -172,13 +190,23 @@ impl Bundle {
             return Err(StoreError::UnsupportedVersion(manifest.schema_version));
         }
         if mode == OpenMode::ReadWrite {
-            configure(&bundle.connection, true)?;
+            configure_writable(&bundle.connection)?;
         }
         Ok(bundle)
     }
 
+    fn start_operation(&self) -> Result<()> {
+        database_size(&self.root)?;
+        sqlite_guard::start_operation(&self.connection)
+    }
+
     pub fn manifest(&self) -> Result<BundleManifest> {
-        load_manifest(&self.connection)
+        self.start_operation()?;
+        let transaction =
+            rusqlite::Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
+        let manifest = load_manifest(&transaction)?;
+        transaction.commit()?;
+        Ok(manifest)
     }
 
     /// Imports an immutable artifact then registers it transactionally. A crash
@@ -192,6 +220,7 @@ impl Bundle {
         if self.mode == OpenMode::ReadOnly {
             return Err(StoreError::ReadOnly);
         }
+        self.start_operation()?;
         entry.validate()?;
         if bytes.len() as u64 != entry.bytes {
             return Err(StoreError::Invalid(
@@ -248,14 +277,32 @@ impl Bundle {
                 .ok_or_else(|| StoreError::Invalid("revision exhausted".into()))?;
             manifest.updated_utc_ms = utc_ms;
         }
-        transaction.execute(
+        let encoded = manifest.encode()?;
+        let revision = i64::try_from(manifest.revision)
+            .map_err(|_| StoreError::Invalid("revision exhausted".into()))?;
+        let changed = transaction.execute(
             "UPDATE bundle_manifest SET revision=?1, body=?2 WHERE singleton=1",
-            (
-                i64::try_from(manifest.revision)
-                    .map_err(|_| StoreError::Invalid("revision exhausted".into()))?,
-                manifest.encode()?,
-            ),
+            (revision, &encoded),
         )?;
+        if changed != 1 {
+            return Err(StoreError::Corrupt(
+                "manifest update did not affect exactly one row".into(),
+            ));
+        }
+        // Check the actual authoritative values before publishing the projection.
+        // The supported schema forbids triggers; readback also protects this
+        // invariant if a later reviewed migration changes that schema policy.
+        let committed = load_manifest(&transaction)?;
+        let stored: Vec<u8> = transaction.query_row(
+            "SELECT body FROM bundle_manifest WHERE singleton=1",
+            [],
+            |r| r.get(0),
+        )?;
+        if committed != manifest || stored != encoded {
+            return Err(StoreError::Corrupt(
+                "manifest update failed authoritative readback".into(),
+            ));
+        }
         // Serialize projection publication with all other writers. If publishing
         // fails, the transaction rolls back. A crash after publication but before
         // commit leaves a detectable stale projection, not ambiguous committed input.
@@ -290,9 +337,10 @@ impl Bundle {
         if self.mode == OpenMode::ReadOnly {
             return Err(StoreError::ReadOnly);
         }
+        self.start_operation()?;
         let transaction =
             rusqlite::Transaction::new_unchecked(&self.connection, TransactionBehavior::Immediate)?;
-        let manifest = self.manifest()?;
+        let manifest = load_manifest(&transaction)?;
         if manifest.schema_version != SCHEMA_VERSION || !manifest.required_features.is_empty() {
             return Err(StoreError::UnsupportedVersion(manifest.schema_version));
         }
@@ -302,7 +350,10 @@ impl Bundle {
     }
 
     pub fn verify(&self) -> Result<Verification> {
-        let manifest = self.manifest()?;
+        self.start_operation()?;
+        let transaction =
+            rusqlite::Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
+        let manifest = load_manifest(&transaction)?;
         let integrity: String = self
             .connection
             .query_row("PRAGMA quick_check(1)", [], |r| r.get(0))?;
@@ -321,6 +372,7 @@ impl Bundle {
                 failures.push(error.to_string());
             }
         }
+        transaction.commit()?;
         Ok(Verification {
             schema_version: manifest.schema_version,
             artifact_count: manifest.artifacts.len(),
@@ -328,5 +380,57 @@ impl Bundle {
             projection_current,
             failures,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ArtifactKind;
+    use rusqlite::hooks::{AuthAction, AuthContext, Authorization};
+
+    #[test]
+    fn successful_sql_row_count_is_not_a_substitute_for_authoritative_readback() {
+        let retained = tempfile::tempdir().unwrap().keep();
+        let root = retained.join("readback-fault");
+        let mut bundle = Bundle::create(
+            &root,
+            ProjectId::from_bytes([1; 16]).unwrap(),
+            "Readback".into(),
+            1,
+        )
+        .unwrap();
+        let before = bundle.manifest().unwrap();
+        let projection = fs::read(root.join("manifest.json")).unwrap();
+        // Independent fault injection: SQLite reports the matched row, but an
+        // authorizer substitutes no-ops for column updates. This bypasses the
+        // ordinary guard only in this private test and exercises readback itself.
+        bundle
+            .connection
+            .authorizer(Some(|context: AuthContext<'_>| match context.action {
+                AuthAction::Update {
+                    table_name: "bundle_manifest",
+                    ..
+                } => Authorization::Ignore,
+                _ => Authorization::Allow,
+            }))
+            .unwrap();
+        let error = bundle
+            .put_artifact(
+                b"map",
+                ArtifactEntry {
+                    kind: ArtifactKind::MapSource,
+                    bytes: 3,
+                    media_type: "image/svg+xml".into(),
+                    provenance_id: "test:readback-fault".into(),
+                },
+                2,
+            )
+            .unwrap_err();
+        assert!(
+            matches!(error, StoreError::Corrupt(message) if message == "manifest update failed authoritative readback")
+        );
+        assert_eq!(bundle.manifest().unwrap(), before);
+        assert_eq!(fs::read(root.join("manifest.json")).unwrap(), projection);
     }
 }

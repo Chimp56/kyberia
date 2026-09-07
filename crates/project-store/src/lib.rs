@@ -2,6 +2,7 @@
 //! human-readable manifest is a recoverable projection, never a second truth.
 mod bundle;
 mod manifest;
+mod sqlite_guard;
 
 pub use bundle::{Bundle, OpenMode, Verification};
 pub use manifest::{ArtifactEntry, ArtifactKind, BundleManifest, content_hash};
