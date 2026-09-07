@@ -161688,7 +161688,7 @@
       "implementation": [
         {
           "path": "crates/domain/src/observation.rs",
-          "description": "Canonical V2 envelope; additive receipt exports under separate review, full normalization still in progress",
+          "description": "Canonical V2 envelope and independently reviewed receipt exports; full adapter normalization still in progress",
           "revision": "bf81161a1076f6858aed74979f62fa2284938df97beafc8070a7aff1622dec59",
           "sha256": "bf81161a1076f6858aed74979f62fa2284938df97beafc8070a7aff1622dec59"
         },
@@ -161697,6 +161697,12 @@
           "description": "Explicit typed legacy/current decoder",
           "revision": "a1c7fca68117e203e1618d2e55b2b9409202dabf1bf553c50114d16c7b5eb017",
           "sha256": "a1c7fca68117e203e1618d2e55b2b9409202dabf1bf553c50114d16c7b5eb017"
+        },
+        {
+          "path": "crates/domain/src/observation/reception.rs",
+          "description": "Source response/API timing remains distinct from actual RF capture",
+          "revision": "05f6f2375eb09f46c5492b3b064269a922da1a60566c0c6308f18cd0e08372a5",
+          "sha256": "05f6f2375eb09f46c5492b3b064269a922da1a60566c0c6308f18cd0e08372a5"
         }
       ],
       "validation": [],
@@ -161707,6 +161713,15 @@
           "revision": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
           "sha256": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/source-response-timing-review.md",
+          "description": "Independent clock, wire and evidence review",
+          "revision": "44a77e17b6090b59dba723017fb16ba0f40bfbed09f59afc690fb06f197f168f",
+          "sha256": "44a77e17b6090b59dba723017fb16ba0f40bfbed09f59afc690fb06f197f168f",
+          "reviewer": "/root/sionna_rt",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -164997,7 +165012,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "active measurement",
       "phase": 1,
       "depends_on": [],
@@ -169708,9 +169723,42 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "workers/sionna/rfatlas_sionna/contract.py",
+          "description": "Strict versioned bounded CPU proof contract; full engine support remains open",
+          "revision": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb",
+          "sha256": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb"
+        },
+        {
+          "path": "docs/adapters/sionna.md",
+          "description": "Exact audited installation, process boundary, scope and runtime procedure",
+          "revision": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1",
+          "sha256": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1"
+        }
+      ],
+      "validation": [
+        {
+          "path": "workers/sionna/evidence/cpu-proof.json",
+          "description": "34 actual CPU checks; empty-space LOS only",
+          "revision": "de63f7b1770e6ec4c6105d52861d4974734a8abfd7f343d114bd082d7ee41172",
+          "sha256": "de63f7b1770e6ec4c6105d52861d4974734a8abfd7f343d114bd082d7ee41172",
+          "command": "DRJIT_LIBLLVM_PATH=/opt/homebrew/opt/llvm@18/lib/libLLVM.dylib MPLCONFIGDIR=.tools/matplotlib workers/sionna/.venv-audited/bin/python workers/sionna/acceptance.py --output workers/sionna/evidence/cpu-proof.json",
+          "result": "PASS: 34 checks",
+          "scope": "Audited macOS ARM64 CPU empty-space proof, not full Gate I; run in author worktree with fresh audited environment"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/sionna-cpu-review.md",
+          "description": "Independent source, asymmetric numerical and malformed-result review",
+          "revision": "31625b78457032b5bf22dba3644ed2c65fabdf85ddb4535da86d301e3831c9f5",
+          "sha256": "31625b78457032b5bf22dba3644ed2c65fabdf85ddb4535da86d301e3831c9f5",
+          "reviewer": "/root/storage_data",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",
@@ -169794,9 +169842,42 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "workers/sionna/rfatlas_sionna/contract.py",
+          "description": "Strict versioned bounded CPU proof contract; full engine support remains open",
+          "revision": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb",
+          "sha256": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb"
+        },
+        {
+          "path": "docs/adapters/sionna.md",
+          "description": "Exact audited installation, process boundary, scope and runtime procedure",
+          "revision": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1",
+          "sha256": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1"
+        }
+      ],
+      "validation": [
+        {
+          "path": "workers/sionna/evidence/cpu-proof.json",
+          "description": "34 actual CPU checks; empty-space LOS only",
+          "revision": "de63f7b1770e6ec4c6105d52861d4974734a8abfd7f343d114bd082d7ee41172",
+          "sha256": "de63f7b1770e6ec4c6105d52861d4974734a8abfd7f343d114bd082d7ee41172",
+          "command": "DRJIT_LIBLLVM_PATH=/opt/homebrew/opt/llvm@18/lib/libLLVM.dylib MPLCONFIGDIR=.tools/matplotlib workers/sionna/.venv-audited/bin/python workers/sionna/acceptance.py --output workers/sionna/evidence/cpu-proof.json",
+          "result": "PASS: 34 checks",
+          "scope": "Audited macOS ARM64 CPU empty-space proof, not full Gate I; run in author worktree with fresh audited environment"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/sionna-cpu-review.md",
+          "description": "Independent source, asymmetric numerical and malformed-result review",
+          "revision": "31625b78457032b5bf22dba3644ed2c65fabdf85ddb4535da86d301e3831c9f5",
+          "sha256": "31625b78457032b5bf22dba3644ed2c65fabdf85ddb4535da86d301e3831c9f5",
+          "reviewer": "/root/storage_data",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",
@@ -170003,7 +170084,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration",
       "phase": 0,
       "depends_on": [],
