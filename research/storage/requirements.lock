@@ -1,0 +1,4 @@
+# CPython 3.12 macOS ARM64 proof environment; research only.
+pyarrow==25.0.1 --hash=sha256:df961f2e7ae9cf496459259d798652c70625f6c080650d6952f8c04053c58ee9
+duckdb==1.5.5 --hash=sha256:f0b88535a5d86fdd63dba6ea02ab68c003dfb9e4892b11256ef24c4da208baae
+ruff==0.14.14 --hash=sha256:026c1d25996818f0bf498636686199d9bd0d9d6341c9c2c3b62e2a0198b758de

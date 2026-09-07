@@ -1,0 +1,117 @@
+{
+  "schema": "kyberia.storage-research-sources/1",
+  "packages": [
+    {
+      "source": "https://github.com/apache/arrow",
+      "name": "pyarrow",
+      "version": "25.0.1",
+      "license": "Apache-2.0 plus bundled third-party notices",
+      "redistribution_status": "Research-only installed dependency; not bundled into Kyberia; preserve wheel license/notice files if separately redistributed; not a distributable SBOM.",
+      "wheel_url": "https://files.pythonhosted.org/packages/a6/e2/9ab15b88cbfac28e16419ce5439ec29234c5172cb8259301b4ba639bdec0/pyarrow-25.0.1-cp312-cp312-macosx_12_0_arm64.whl",
+      "wheel_sha256": "df961f2e7ae9cf496459259d798652c70625f6c080650d6952f8c04053c58ee9",
+      "license_notice_files": [
+        {
+          "path": "pyarrow-25.0.1.dist-info/licenses/LICENSE.txt",
+          "sha256": "d1c981370f1ffd4edcdd2fb3565c8939cc40c75e24e1f92d581d04e54f0dff81"
+        },
+        {
+          "path": "pyarrow-25.0.1.dist-info/licenses/NOTICE.txt",
+          "sha256": "afd895d61a00101f6d5a41cf518c83865d815e8109e956f512a0ce4ea9738c06"
+        }
+      ],
+      "transformation": "Unmodified published binary wheel; no source copied into canonical core.",
+      "provenance": "pip install --only-binary=:all: --report, local installed metadata and license files, September 7 2026",
+      "update_procedure": "Review release notes and complete wheel/native notices, replace pin and wheel hash together, create a fresh isolated environment, rerun semantic/failure/abrupt-exit/migration tests and all benchmark sizes. Add other platform wheel hashes only after testing."
+    },
+    {
+      "source": "https://github.com/duckdb/duckdb-python",
+      "name": "duckdb",
+      "version": "1.5.5",
+      "license": "MIT plus bundled third-party notices",
+      "redistribution_status": "Research-only installed dependency; not bundled into Kyberia; preserve wheel license/notice files if separately redistributed; not a distributable SBOM.",
+      "wheel_url": "https://files.pythonhosted.org/packages/bf/5c/bf02da0b354fe83cca4f95a4fbf762181af466f7d551ab2a093f7698882a/duckdb-1.5.5-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheel_sha256": "f0b88535a5d86fdd63dba6ea02ab68c003dfb9e4892b11256ef24c4da208baae",
+      "license_notice_files": [
+        {
+          "path": "duckdb-1.5.5.dist-info/licenses/LICENSE",
+          "sha256": "075c33400ffcb0c586dd106a029d3e733e9da3693f8fcb9cebfc651c8a2f14e3"
+        }
+      ],
+      "transformation": "Unmodified published binary wheel; no source copied into canonical core.",
+      "provenance": "pip install --only-binary=:all: --report, local installed metadata and license files, September 7 2026",
+      "update_procedure": "Review release notes and complete wheel/native notices, replace pin and wheel hash together, create a fresh isolated environment, rerun semantic/failure/abrupt-exit/migration tests and all benchmark sizes. Add other platform wheel hashes only after testing."
+    },
+    {
+      "source": "https://github.com/astral-sh/ruff",
+      "name": "ruff",
+      "version": "0.14.14",
+      "license": "MIT plus bundled third-party notices",
+      "redistribution_status": "Research-only installed dependency; not bundled into Kyberia; preserve wheel license/notice files if separately redistributed; not a distributable SBOM.",
+      "wheel_url": "https://files.pythonhosted.org/packages/b8/7c/3c1db59a10e7490f8f6f8559d1db8636cbb13dccebf18686f4e3c9d7c772/ruff-0.14.14-py3-none-macosx_11_0_arm64.whl",
+      "wheel_sha256": "026c1d25996818f0bf498636686199d9bd0d9d6341c9c2c3b62e2a0198b758de",
+      "license_notice_files": [
+        {
+          "path": "ruff-0.14.14.dist-info/licenses/LICENSE",
+          "sha256": "2597d854122b77ddc71971564ca2350a37608575ce324adc5650a2b2051c8f18"
+        }
+      ],
+      "transformation": "Unmodified published binary wheel; no source copied into canonical core.",
+      "provenance": "pip install --only-binary=:all: --report, local installed metadata and license files, September 7 2026",
+      "update_procedure": "Review release notes and complete wheel/native notices, replace pin and wheel hash together, create a fresh isolated environment, rerun semantic/failure/abrupt-exit/migration tests and all benchmark sizes. Add other platform wheel hashes only after testing."
+    }
+  ],
+  "native_versions": {
+    "arrow_cpp": {
+      "version": "25.0.1",
+      "version_info": [
+        25,
+        0,
+        1
+      ],
+      "so_version": "2500",
+      "full_so_version": "2500.1.0",
+      "compiler_id": "AppleClang",
+      "compiler_version": "15.0.0.15000309",
+      "compiler_flags": " -fno-aligned-new  -Qunused-arguments -fcolor-diagnostics  -Wall -Wno-unknown-warning-option -Wno-pass-failed -march=armv8-a ",
+      "git_id": "beccec0d0c451b7aa3e4530416ac431b3c035c69",
+      "git_description": "apache-arrow-25.0.1-rc1",
+      "package_kind": "python-wheel-macos",
+      "build_type": "release"
+    },
+    "duckdb_sql": [
+      [
+        "v1.5.5",
+        "d8cdaa33fd",
+        "Variegata"
+      ]
+    ],
+    "python_sqlite": "3.50.4"
+  },
+  "runtime": {
+    "python": "3.12.12 (main, Feb 12 2026, 00:42:34) [Clang 21.1.4 ]",
+    "license": "PSF-2.0 and bundled component licenses",
+    "source": "https://github.com/astral-sh/python-build-standalone",
+    "provenance": "Reused installed CPython 3.12.12 executable from the isolated Sionna proof to create a separate venv; no Sionna package imported. Runtime archive provenance belongs to the Sionna proof source ledger.",
+    "redistribution_status": "Development interpreter only, not redistributed by this proof",
+    "update_procedure": "Recreate a fresh venv with an explicitly pinned interpreter; preserve Python and native SQLite version evidence; rerun all storage tests.",
+    "executable_sha256": "3874a935f7242b660e652d35c25a1b87415fcfea3ee191ff262fcca5c50102c5"
+  },
+  "sqlite": {
+    "source": "https://sqlite.org/copyright.html",
+    "version": "3.50.4",
+    "license": "Public domain",
+    "redistribution_status": "Already bundled in development Python; not bundled by Kyberia proof",
+    "transformation": "Unmodified Python sqlite3 binding and native library",
+    "provenance": "sqlite3.sqlite_version; differs from Rust project-store SQLite 3.53.2, so results are not a direct Rust-library benchmark",
+    "update_procedure": "Update interpreter/native engine with fixture/migration/performance reruns"
+  },
+  "fixture": {
+    "source": "Original research/storage/model.py generator",
+    "version": "1",
+    "license": "NOASSERTION pending repository license decision",
+    "redistribution_status": "Original generated synthetic evidence only; no real MAC/SSID/site or competitor data",
+    "transformation": "Seeded LCG coordinates and signals, typed projection, columnization into each engine",
+    "provenance": "Generator inputs and hashes in benchmark evidence; all rows explicitly synthetic, uncalibrated, covariance not measured",
+    "update_procedure": "Change method version when semantics change; retain old input manifest and compare full row digests."
+  }
+}
