@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "semantics": "Dependencies order implementation/delivery. External validation may stay open while independent proofs and subsequent implementation proceed; it never implies a phase passed.",
+  "nodes": [
+    {
+      "id": "contracts",
+      "kind": "prerequisite_proof",
+      "depends_on": [],
+      "owner": "architecture/domain",
+      "acceptance": "Unit-safe schemas, explicit unknowns, dependency tests",
+      "requirements": [
+        "backlog:FND-001:1",
+        "backlog:FND-002:1",
+        "backlog:FND-003:1",
+        "backlog:OSS-012:1"
+      ]
+    },
+    {
+      "id": "storage-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "storage/data",
+      "acceptance": "Real SQLite bundle/CLI, corruption/recovery and analytical-storage benchmarks",
+      "requirements": [
+        "backlog:FND-004:1",
+        "backlog:FND-005:1",
+        "backlog:FND-006:1",
+        "backlog:FND-007:1",
+        "backlog:FND-008:1"
+      ]
+    },
+    {
+      "id": "native-capability-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "capture/platform",
+      "acceptance": "Running native probes and fixture contracts; isolate unavailable OS/hardware gates",
+      "requirements": [
+        "backlog:COL-001:1",
+        "backlog:COL-002:1",
+        "backlog:COL-004:1",
+        "backlog:COL-010:1",
+        "backlog:COL-011:1"
+      ]
+    },
+    {
+      "id": "kismet-offline-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "Kismet integration",
+      "acceptance": "KismetDB/PCAPNG deterministic normalization and malformed-input tests",
+      "requirements": [
+        "backlog:OSS-002:1"
+      ]
+    },
+    {
+      "id": "kismet-live-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "kismet-offline-proof"
+      ],
+      "owner": "Kismet integration",
+      "acceptance": "Authentication, capabilities, source/dwell/drop context; separate live-radio gates",
+      "requirements": [
+        "backlog:OSS-001:1"
+      ]
+    },
+    {
+      "id": "spatial-renderer-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "spatial/UI",
+      "acceptance": "Calibration and honest numerical renderer; renderer/geometry benchmark gates",
+      "requirements": [
+        "backlog:MAPB-001:1",
+        "backlog:MAPB-002:1",
+        "backlog:ANA-001:1",
+        "backlog:OSS-010:1"
+      ]
+    },
+    {
+      "id": "active-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "active measurement",
+      "acceptance": "Authenticated endpoint and topology-specific bounded probes",
+      "requirements": [
+        "backlog:ACTB-001:1",
+        "backlog:ACTB-002:1",
+        "backlog:ACTB-003:1",
+        "backlog:ACTB-004:1"
+      ]
+    },
+    {
+      "id": "sionna-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "Sionna RT",
+      "acceptance": "Pinned CPU scene/result round trip; distinct CUDA and measured gates",
+      "requirements": [
+        "backlog:OSS-004:1",
+        "backlog:OSS-005:1",
+        "backlog:OSS-006:1"
+      ]
+    },
+    {
+      "id": "interchange-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "architecture/documentation",
+      "acceptance": "Neutral schema and independent deterministic round trips",
+      "requirements": [
+        "backlog:OSS-007:1"
+      ]
+    },
+    {
+      "id": "phase-0",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "contracts",
+        "storage-proof",
+        "native-capability-proof",
+        "kismet-offline-proof",
+        "kismet-live-proof",
+        "spatial-renderer-proof",
+        "active-proof",
+        "sionna-proof",
+        "interchange-proof"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:282df4efb234e8d43080:1",
+        "source:spacing:01ba4719c80b6fe911b0:969",
+        "source:paragraph:f929b8f8f232a2394d8e:1",
+        "source:spacing:01ba4719c80b6fe911b0:970",
+        "source:paragraph:41f5ed7d0a29a6a5e576:1",
+        "source:spacing:01ba4719c80b6fe911b0:971",
+        "source:list_item:9f1ab8681145d819aa5b:1",
+        "source:list_item:fa03e31844a3550bd37b:1",
+        "source:list_item:81dad3a289af438bec05:1",
+        "source:list_item:f5ff8914a56a23d9d7bc:1",
+        "source:list_item:83e9ad494df0237bfc98:1",
+        "source:list_item:e32aedfa49b3327368c0:1",
+        "source:list_item:77365857ed40d682f3e3:1",
+        "source:list_item:803fb28e10d97209e732:1",
+        "source:list_item:b58f71ca04fdd589a998:1",
+        "source:list_item:61ba89f124d7ed1ec52e:1",
+        "source:list_item:efd2c03e18227561a45a:1",
+        "source:list_item:9172e56231ea36c1c716:1",
+        "source:list_item:1647d884c193dfe4e7a6:1",
+        "source:list_item:c9584482b89c9361032d:1",
+        "source:list_item:1288b53786d83a2f3357:1",
+        "source:list_item:494e7ffb1fdeb9fa8707:1",
+        "source:spacing:01ba4719c80b6fe911b0:972",
+        "source:paragraph:65b2199c16e5856476fd:1",
+        "source:spacing:01ba4719c80b6fe911b0:973",
+        "source:list_item:30f18d7a9d056aa46ef1:1",
+        "source:list_item:bfb60ef8fcdbac7090ae:1",
+        "source:list_item:e9cf86a426ec36cbcd9c:1",
+        "source:list_item:14f87dc946621af3befc:1",
+        "source:spacing:01ba4719c80b6fe911b0:974"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-1",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-0"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:7a5888525836ebc85df4:1",
+        "source:spacing:01ba4719c80b6fe911b0:975",
+        "source:paragraph:59d12fadf0734f68d1af:1",
+        "source:spacing:01ba4719c80b6fe911b0:976",
+        "source:paragraph:41f5ed7d0a29a6a5e576:2",
+        "source:spacing:01ba4719c80b6fe911b0:977",
+        "source:list_item:422f1331a4be4bbecbf2:1",
+        "source:list_item:f5b9b41868b0161301f7:1",
+        "source:list_item:3f9ee5bfe108c53ff965:1",
+        "source:list_item:0a2944ed6197c7d538a0:1",
+        "source:list_item:07ec638b10a3b1b75f3d:1",
+        "source:list_item:a68da2007be3d5e2e942:1",
+        "source:list_item:b56aa3cd19745d31ef4f:1",
+        "source:list_item:2bdb5ed45a66331ac9c6:1",
+        "source:list_item:dfba9433a241510024f3:1",
+        "source:list_item:5e391c3551002984b47d:1",
+        "source:spacing:01ba4719c80b6fe911b0:978",
+        "source:paragraph:65b2199c16e5856476fd:2",
+        "source:spacing:01ba4719c80b6fe911b0:979",
+        "source:list_item:cf2d6240ca2b4c02849b:1",
+        "source:list_item:77e826be60734d920c21:1",
+        "source:list_item:a8b2f10f7c3fcf32603e:1",
+        "source:spacing:01ba4719c80b6fe911b0:980"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-2",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-1"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:127b34061e3d4c941a66:1",
+        "source:spacing:01ba4719c80b6fe911b0:981",
+        "source:paragraph:97c227c655e102cbea41:1",
+        "source:spacing:01ba4719c80b6fe911b0:982",
+        "source:paragraph:41f5ed7d0a29a6a5e576:3",
+        "source:spacing:01ba4719c80b6fe911b0:983",
+        "source:list_item:37fefee3607089d68e90:1",
+        "source:list_item:68126cafbbbc51c2f0a3:1",
+        "source:list_item:b48e6bae41706fc6d616:1",
+        "source:list_item:0572162f5d398f21459e:1",
+        "source:list_item:2742a498ddbaa105be96:1",
+        "source:list_item:609f1e53b96377a575cb:1",
+        "source:list_item:e8ddc54b0070c89372df:1",
+        "source:list_item:698d2e37039dbb89d580:1",
+        "source:list_item:a14397ac805ea23eddc4:1",
+        "source:list_item:a9bc0855324d3ec60801:1",
+        "source:list_item:eab314269dee3886eb5c:1",
+        "source:list_item:8a49a10395f431a06f8b:1",
+        "source:list_item:e26e5966eb67730a0036:1",
+        "source:list_item:9c8763080e8d62fc4d8c:1",
+        "source:list_item:627fb30441c44277528a:1",
+        "source:spacing:01ba4719c80b6fe911b0:984",
+        "source:paragraph:65b2199c16e5856476fd:3",
+        "source:spacing:01ba4719c80b6fe911b0:985",
+        "source:list_item:46561ea86979f4400614:1",
+        "source:list_item:de1f0b65ed0af3fc57c1:1",
+        "source:list_item:6544a9a4c1c74a642428:1",
+        "source:list_item:af15b4e76cca9b6a3e6e:1",
+        "source:spacing:01ba4719c80b6fe911b0:986"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-3",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-2"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:ba966b35db2867786ae4:1",
+        "source:spacing:01ba4719c80b6fe911b0:987",
+        "source:paragraph:442c5f38cc8bd8548777:1",
+        "source:spacing:01ba4719c80b6fe911b0:988",
+        "source:paragraph:41f5ed7d0a29a6a5e576:4",
+        "source:spacing:01ba4719c80b6fe911b0:989",
+        "source:list_item:a2781e2bf91bf73623e5:1",
+        "source:list_item:2e090b538bd380b4f07e:1",
+        "source:list_item:759cf63e1303312d24b3:1",
+        "source:list_item:119719db3f7ece4dc033:1",
+        "source:list_item:9859797728bf02f5e5ff:1",
+        "source:list_item:b5f80534d8e12689607e:1",
+        "source:list_item:a2a84f6921ea87a3c0e8:1",
+        "source:list_item:23a41c43092b0e87c500:1",
+        "source:list_item:3a14226c91e01ddada50:1",
+        "source:list_item:c2ff717de1a0f4b38ba5:1",
+        "source:list_item:8d3a6190707873135c23:1",
+        "source:list_item:a57428aa9cd759ae458f:1",
+        "source:spacing:01ba4719c80b6fe911b0:990",
+        "source:paragraph:65b2199c16e5856476fd:4",
+        "source:spacing:01ba4719c80b6fe911b0:991",
+        "source:list_item:74a8a4ecc8008388a70e:1",
+        "source:list_item:33fe1747443cb835ee4e:1",
+        "source:list_item:5b0ea5c063c60084fc30:1",
+        "source:spacing:01ba4719c80b6fe911b0:992"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-4",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-3"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:c90e214e8562a1382c78:1",
+        "source:spacing:01ba4719c80b6fe911b0:993",
+        "source:paragraph:e4b50d5865e768bf0dee:1",
+        "source:spacing:01ba4719c80b6fe911b0:994",
+        "source:paragraph:41f5ed7d0a29a6a5e576:5",
+        "source:spacing:01ba4719c80b6fe911b0:995",
+        "source:list_item:dee44d1961c63e46c27e:1",
+        "source:list_item:98bfa8a18ab94be6ed7a:1",
+        "source:list_item:175029cd1c1a2b0f218e:1",
+        "source:list_item:866f419183b0c9611ce9:1",
+        "source:list_item:1237553f340bc194e781:1",
+        "source:list_item:b6d3973de9489ffb539a:1",
+        "source:list_item:92ac8e840a1d476a7e25:1",
+        "source:list_item:86c4a3346ce5881b194f:1",
+        "source:list_item:5e0aecc2096f48ad919b:1",
+        "source:spacing:01ba4719c80b6fe911b0:996",
+        "source:paragraph:65b2199c16e5856476fd:5",
+        "source:spacing:01ba4719c80b6fe911b0:997",
+        "source:list_item:f6b479088d6e53e306ba:1",
+        "source:list_item:a745e45081366a10f3c9:1",
+        "source:list_item:f8f85965563a904f7fb7:1",
+        "source:list_item:6dc48ecf2b7ebfbcfdea:1",
+        "source:spacing:01ba4719c80b6fe911b0:998"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-5",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-4"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:2d30360f27285860c291:1",
+        "source:spacing:01ba4719c80b6fe911b0:999",
+        "source:paragraph:0b1cd666a5580acde466:1",
+        "source:spacing:01ba4719c80b6fe911b0:1000",
+        "source:paragraph:41f5ed7d0a29a6a5e576:6",
+        "source:spacing:01ba4719c80b6fe911b0:1001",
+        "source:list_item:9b9f7abb92fb77665eae:1",
+        "source:list_item:5b59ef3b13c0e0eeba7f:1",
+        "source:list_item:da16cba42c3f1f4af7b9:1",
+        "source:list_item:bbb474e8a9960a93235c:1",
+        "source:list_item:3c3f5508f5baa01d354d:1",
+        "source:list_item:2f30132746bfc784331c:1",
+        "source:list_item:9ff026b428eb6fff20fe:1",
+        "source:list_item:9c53f8ee20e8ec3589ad:1",
+        "source:spacing:01ba4719c80b6fe911b0:1002",
+        "source:paragraph:65b2199c16e5856476fd:6",
+        "source:spacing:01ba4719c80b6fe911b0:1003",
+        "source:list_item:3f881e1de8605e4106a7:1",
+        "source:list_item:c990b4f80b09ec74c02a:1",
+        "source:list_item:cedb981eebedcd0dad87:1",
+        "source:spacing:01ba4719c80b6fe911b0:1004"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-6",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-5"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:3e4ca35b355bb8685eb6:1",
+        "source:spacing:01ba4719c80b6fe911b0:1005",
+        "source:paragraph:87a94a54371a16772f04:1",
+        "source:spacing:01ba4719c80b6fe911b0:1006",
+        "source:paragraph:41f5ed7d0a29a6a5e576:7",
+        "source:spacing:01ba4719c80b6fe911b0:1007",
+        "source:list_item:479fea19f1db3cfe61ee:1",
+        "source:list_item:42ed30cdc01fc9fb2c93:1",
+        "source:list_item:a06f1a9877a7b7803ef1:1",
+        "source:list_item:fa300cadf8f4b76d4aa2:1",
+        "source:list_item:577e4df6e152d6f5e967:1",
+        "source:list_item:f543462b50fd197d6b52:1",
+        "source:list_item:75df8a28b22d8453b619:1",
+        "source:spacing:01ba4719c80b6fe911b0:1008",
+        "source:paragraph:65b2199c16e5856476fd:7",
+        "source:spacing:01ba4719c80b6fe911b0:1009",
+        "source:list_item:4d8ade1d9ef26c514f54:1",
+        "source:list_item:2af4aa7cf47fe9843154:1",
+        "source:list_item:b8dbdb8d4ced6210160c:1",
+        "source:spacing:01ba4719c80b6fe911b0:1010"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-7",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-6"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:66df6bddc47f2e0c0973:1",
+        "source:spacing:01ba4719c80b6fe911b0:1011",
+        "source:paragraph:c6a84e42142be01d4b41:1",
+        "source:spacing:01ba4719c80b6fe911b0:1012",
+        "source:paragraph:41f5ed7d0a29a6a5e576:8",
+        "source:spacing:01ba4719c80b6fe911b0:1013",
+        "source:list_item:b435c8cb9d8437bad256:1",
+        "source:list_item:2a40f30eebb94216f8a6:1",
+        "source:list_item:e08049d1e67fce28723e:1",
+        "source:list_item:feffe905049bd8f60c4c:1",
+        "source:list_item:b1da67fd3f6f966d9a2c:1",
+        "source:list_item:42a61fa424534c172e0b:1",
+        "source:list_item:7fee073beb0b969506bc:1",
+        "source:list_item:ef7c852bda354dc7d0ca:1",
+        "source:list_item:6b3bf4eec5b44345c684:1",
+        "source:spacing:01ba4719c80b6fe911b0:1014",
+        "source:paragraph:65b2199c16e5856476fd:8",
+        "source:spacing:01ba4719c80b6fe911b0:1015",
+        "source:list_item:3b96010efc703f06c241:1",
+        "source:list_item:fbc04b6d142c8d37f44b:1",
+        "source:list_item:5967a25ed7c7d60aafaf:1",
+        "source:list_item:cf6081f2cfb6ef925773:1",
+        "source:list_item:4899c2edf5da93291e11:1",
+        "source:spacing:01ba4719c80b6fe911b0:1016"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "phase-8",
+      "kind": "delivery_gate",
+      "depends_on": [
+        "phase-7"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "source:heading:d8876b48adc95579c8bd:1",
+        "source:spacing:01ba4719c80b6fe911b0:1017",
+        "source:paragraph:160f0ef6faa7e97db9ac:1",
+        "source:spacing:01ba4719c80b6fe911b0:1018",
+        "source:paragraph:41f5ed7d0a29a6a5e576:9",
+        "source:spacing:01ba4719c80b6fe911b0:1019",
+        "source:list_item:5716ff431d7a1cf37bfd:1",
+        "source:list_item:730c104b22a35d581a1c:1",
+        "source:list_item:c3006c31a1f56e43d6ca:1",
+        "source:list_item:eb71dd40130cfe52202b:1",
+        "source:list_item:f7187cff4c8c6ca01227:1",
+        "source:list_item:768a999d1af0cc661657:1",
+        "source:list_item:579928b670936308ef40:1",
+        "source:spacing:01ba4719c80b6fe911b0:1020",
+        "source:paragraph:65b2199c16e5856476fd:9",
+        "source:spacing:01ba4719c80b6fe911b0:1021",
+        "source:list_item:62633b165eaacfa43376:1",
+        "source:list_item:3bcb58c4547e2e83c8b8:1",
+        "source:spacing:01ba4719c80b6fe911b0:1022",
+        "source:separator:f52d711103d50a437830:19",
+        "source:spacing:01ba4719c80b6fe911b0:1023"
+      ],
+      "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    }
+  ]
+}
