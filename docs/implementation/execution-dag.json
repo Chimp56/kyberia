@@ -449,6 +449,73 @@
         "source:spacing:01ba4719c80b6fe911b0:1023"
       ],
       "acceptance": "All applicable phase deliverables and exit criteria independently reviewed; external runtime gates remain explicit."
+    },
+    {
+      "id": "iteration-2-project-calibration",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "architecture/domain",
+      "requirements": [
+        "backlog:FND-009:1",
+        "backlog:FND-011:1",
+        "backlog:MAPB-002:1"
+      ],
+      "owned_paths": [
+        "crates/domain/src/project",
+        "crates/domain/src/spatial/calibration.rs"
+      ],
+      "acceptance": "Independent framed-transform, invalid hierarchy and operation-replay tests; full editor undo remains open"
+    },
+    {
+      "id": "iteration-2-native-macos",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "capture/platform",
+      "requirements": [
+        "backlog:COL-004:1"
+      ],
+      "owned_paths": [
+        "collectors/macos"
+      ],
+      "acceptance": "Native signed collector process, honest permission/capability states, bounded protocol, malformed fixtures and actual probe; authorized scan separate"
+    },
+    {
+      "id": "iteration-2-automation",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "integration/release",
+      "requirements": [
+        "backlog:OSS-012:1",
+        "backlog:FND-012:1"
+      ],
+      "owned_paths": [
+        "tools/dev.py",
+        "tools/architecture.py",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance": "Portable commands execute actual suites; dependency direction fails on forbidden imports; hosted execution remains a distinct gate"
+    },
+    {
+      "id": "iteration-2-point-survey",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts",
+        "iteration-2-project-calibration"
+      ],
+      "owner": "survey/positioning",
+      "requirements": [
+        "backlog:MAPB-003:1"
+      ],
+      "owned_paths": [
+        "crates/survey"
+      ],
+      "acceptance": "Evidence-based point completion, source/time/pose admission, pause/cancel/error contracts; UI acceptance remains open"
     }
   ]
 }

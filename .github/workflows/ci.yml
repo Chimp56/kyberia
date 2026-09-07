@@ -1,0 +1,25 @@
+name: Foundation validation
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          clean: false
+      - name: Bootstrap locked toolchain and dependencies
+        run: python tools/dev.py bootstrap
+      - name: Compile foundation and CLI
+        run: python tools/dev.py build
+      - name: Validate implementation, evidence, and source boundaries
+        run: python tools/dev.py check

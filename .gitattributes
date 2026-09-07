@@ -1,0 +1,2 @@
+# Evidence checks hash source bytes; keep text identical across platform checkouts.
+* text=auto eol=lf
