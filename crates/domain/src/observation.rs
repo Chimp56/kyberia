@@ -2,7 +2,9 @@
 //! Unknown values retain reasons; derived predictions cannot enter scan payloads.
 use crate::{ValidationError, evidence::*, identity::*, spatial::PoseReference, time::*, units::*};
 use serde::{Deserialize, Serialize};
+mod reception;
 mod wire;
+pub use reception::{ReceivedObservation, ReceptionSchemaVersion, SourceResponseTiming};
 pub use wire::{DecodedObservation, ObservationDecodeReceipt, ObservationInputVersion};
 
 /// Current observation schema only. Other domain contracts retain their own V1.
