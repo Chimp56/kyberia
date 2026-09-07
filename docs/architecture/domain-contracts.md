@@ -1,0 +1,160 @@
+# Canonical evidence contracts, version 1
+
+`crates/domain` is the inward, side-effect-free boundary required by plan sections
+3, 7.1–7.7, 10.5/10.9/10.12/10.16, 11.4–11.6, 14.2–14.5 and Appendix I.
+Its only production dependency is Serde. It does not acquire measurements,
+generate IDs, read clocks, access files, or understand an external application’s
+schema. Platform adapters construct validated values; application commands admit
+complete envelopes to immutable stores.
+
+## Units and identity
+
+All numeric quantity constructors and deserializers reject NaN and infinity.
+Durations, throughput and distances are nonnegative; frequencies are positive;
+probabilities lie in [0, 1], percentages in [0, 100]. Signed spatial coordinates
+are `CoordinateMeters`, distinct from nonnegative `Meters` lengths and signed
+`Pixels` image coordinates. A coordinate only acquires meaning with its frame ID.
+Signed zero is canonicalized to positive zero.
+
+`Dbm` is absolute logarithmic power referenced to 1 mW. `Db` is a ratio.
+`Dbm::difference` returns a `Db`; `apply_gain` consumes a `Db`. Both reject
+overflow. There is deliberately no addition of two dBm powers. The future RF
+metrics crate owns linear-power aggregation. Explicit EIRP, conducted-power and
+power-spectral-density wrappers further distinguish radio power contexts.
+Conversion methods use `TryFrom` because scale conversion can overflow or
+underflow outside a destination’s physical domain. Angles use right-handed
+radians or degrees, with no implicit normalization.
+
+IDs are distinct Rust types backed by nonzero 128-bit values, serialized as
+32 lowercase hexadecimal digits. The application must generate
+collision-resistant IDs, for example UUIDv7 bytes, and enforce uniqueness in
+storage; the pure domain does not claim to establish global uniqueness.
+`ContentHash` contains SHA-256 bytes and serializes as 64 lowercase hex digits.
+It identifies content, not a path. Hash calculation and integrity verification
+belong to outer storage. A MAC address is six-octet evidence and never the
+canonical physical-device ID. SSIDs retain up to 32 arbitrary octets, including
+empty and non-UTF8 values. `Text` permits 1–1024 UTF-8 bytes, excludes controls
+and all-whitespace strings; it does not sanitize HTML or certify a version.
+
+## Unknown and schema compatibility
+
+Every optionally observable measurement uses `Evidence<T>`:
+
+```json
+{"state":"known","detail":-62.5}
+```
+
+```json
+{"state":"unknown","detail":"not_observable"}
+```
+
+Omission, null, not measured, not advertised, not applicable, not observable,
+redacted, not retained, failed test and outside support have distinct semantics.
+Unknown has no conversion to a numeric value. `EvidenceClass` distinguishes
+observed, calibrated, inferred, interpolated, extrapolated and simulated derived
+products; the v1 scan/frame payload contains reported evidence only.
+
+`SchemaVersion::V1` serializes as the string `"1"`. Missing required fields and
+unknown versions/enum variants fail deserialization. Additive object members are
+ignored and cannot affect existing semantics. A producer must change the schema
+version for semantic additions, new enum variants or changed units; these must
+never be hidden in optional fields. Future-version raw bytes can be retained by
+outer importers without admitting them as validated canonical observations.
+No older wire version existed before v1; tests cover v1 round trips, extra object
+fields, missing fields, and rejection of version 2.
+
+## Time and spatial uncertainty
+
+UTC is signed nanoseconds since the POSIX Unix epoch; the representation is
+limited to approximately 1677–2262 and does not encode leap seconds. UTC source,
+precision, and uncertainty remain explicit. A monotonic timestamp holds an epoch
+ID and unsigned nanoseconds. Restarting a source requires a fresh epoch ID.
+`elapsed_since` rejects cross-epoch comparison and reversed time, while retaining
+nanoseconds until the final conversion to a floating-point duration. Epoch IDs
+must be unique across sources; a source ID alone is insufficient after reboot.
+
+Clock models retain reference UTC/monotonic values, offset, drift, error and
+method version. Offsets are signed seconds added to source UTC to estimate
+reference UTC. This contract does not yet implement synchronization fitting or
+distributed pose fusion.
+
+Position covariance is a symmetric 3×3 matrix in square meters packed as
+`[xx, xy, xz, yy, yz, zz]`. Construction uses diagonal-pivoted LDL elimination
+after scaling by the greatest absolute entry to prevent overflow. Negative
+variances and a zero variance paired with nonzero covariance fail. Residual
+pivots/entries tolerate roundoff up to 64 machine epsilons in scaled units;
+tolerance is never applied to squared principal minors or the determinant,
+which could conceal a materially negative eigenvalue in a small subspace.
+Singular positive-semidefinite covariance is valid. This numerical acceptance
+tolerance is not sensor uncertainty and does not establish calibration.
+
+Cartesian metric frames are right-handed with +z up. Orientation is intrinsic
+Z-Y-X yaw/pitch/roll with the right-hand rule. Pose references retain frame,
+assignment revision, method, covariance and optional orientation. Editing a path
+must create a new assignment, preserving original observations and timestamps.
+Frame graph transformations, georeferencing, quaternion conversion, orientation
+covariance and six-degree-of-freedom fusion are subsequent spatial work; the
+present contract does not claim those capabilities.
+
+## Envelope admission
+
+`EnvelopeData` is a serializable staging record. Only
+`ObservationEnvelope::new(data)` or deserialization to `ObservationEnvelope`
+performs cross-field admission checks; stores must not accept `EnvelopeData`
+directly. The envelope is immutable through its API (`data()` yields a shared
+reference; `into_data()` consumes the envelope and requires fresh validation
+after any edit).
+
+The envelope retains observation/session/source identity, physical sensor and
+adapter where known, source/adapter/parser/schema/driver/OS versions, capture
+time, revisable pose reference, reported channel and tuned dwell context, privacy
+state, quality flags, raw content reference, and typed scan/frame/health payload.
+Calibration references do not mean a correction was applied: reported RSSI
+stays raw. Outside-calibration-range state is explicit. Noise is unknown when
+unobservable. Future calibration output must be a separate derived artifact.
+
+Admission rejects mismatched clock model epochs, capture times outside a known
+dwell window, duplicate chain indices, more than 16 chains or 32 quality flags,
+invalid frame type/subtype values, and synthetic sources without a synthetic
+quality flag. Dwell windows independently reject reversed or cross-epoch bounds.
+Dwell can describe another channel from an advertised BSS’s operating channel;
+these are intentionally separate. Nominal channel claims are retained as source
+evidence; region, band/center/width/puncturing consistency belongs to the Wi-Fi
+normalizer, not inferred by this container.
+
+Privacy state records identifier handling and payload disposition. Retention
+requires an authorization reference and deadline, but this pure contract does
+not authenticate consent or perform pseudonymization. Application/privacy
+services must enforce these policies before persistence. Artifact references
+may be metadata records even when packet payloads were discarded.
+
+The caller must bound serialized input size and nesting before deserialization.
+The envelope’s admission limits prevent oversized canonical collections, but
+Serde may allocate staging strings/vectors first. IPC/import adapters own input
+framing, resource quotas, authentication, replay protection and error remediation.
+
+## Capability negotiation
+
+Capability documents retain collector identity/version, probe time, typed
+capabilities, supporting evidence or conditions, and raw payload policy.
+An absent capability is unknown. Conditional availability does not satisfy
+`require_available`. Capability claims are evidence, not authorization tokens;
+permission checks remain in platform adapters. The domain contains no table
+assuming an operating system always supports a measurement.
+
+## Validation and current scope
+
+Run `cargo test --manifest-path crates/domain/Cargo.toml` and
+`cargo clippy --manifest-path crates/domain/Cargo.toml --all-targets -- -D warnings`.
+Compile-fail examples protect unit/identity/time separation. Property tests cover
+unit round trips, Gram-matrix covariance, IDs and arbitrary byte decoding.
+Adversarial cases test nonfinite deserialization, covariance determinants,
+overflow, clock restart/reversal, schema drift, metadata bounds, unknown noise,
+non-UTF8 SSIDs, duplicate chains and conditional capability rejection.
+
+This increment implements foundational value invariants and the scan/frame/
+health contract, not the complete domain graph. Active, spectrum, GPS and
+controller payload schemas, operations/jobs, full identity graph, calibration
+execution, metric registry and migration policy still require their own reviewed
+increments. No hardware availability or RF accuracy claim follows from these
+contract tests.
