@@ -6,7 +6,7 @@ license = "Apache-2.0 OR MIT"
 description = "Deterministic bounded numerical RSSI interpolation tiles"
 
 [dependencies]
-kyberia-domain = { path = "../domain" }
+kyberia-domain = { version = "=0.1.0", path = "../domain" }
 serde = { version = "=1.0.228", features = ["derive"] }
 
 [dev-dependencies]
