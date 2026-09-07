@@ -34460,15 +34460,47 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "survey/positioning",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "path": "crates/survey/src/state.rs",
+          "description": "Pure evidence-driven lifecycle; UI/capture/storage synchronization remains open",
+          "revision": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8",
+          "sha256": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8"
+        }
+      ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-point-review.md",
+          "description": "Independent initial state-machine review",
+          "revision": "e06792a28d814c2cd4a82c8819f5e9866ade4789c83dff937721e454caf42cd4",
+          "sha256": "e06792a28d814c2cd4a82c8819f5e9866ade4789c83dff937721e454caf42cd4",
+          "reviewer": "/root/qa_spec_audit",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Capture timestamp no longer treated as retrieval timestamp",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/observation-v2-review.md",
+          "description": "Independent receipt-schema migration review",
+          "revision": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
+          "sha256": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:3ae603c45088cc463dc2:1",
@@ -161653,9 +161685,32 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "path": "crates/domain/src/observation.rs",
+          "description": "Canonical V2 observations with explicit unknown upstream versions",
+          "revision": "d0674a0411a6f090051cd4ae1101b637eb3df377b775d8a54a0d8a1be8aed2ad",
+          "sha256": "d0674a0411a6f090051cd4ae1101b637eb3df377b775d8a54a0d8a1be8aed2ad"
+        },
+        {
+          "path": "crates/domain/src/observation/wire.rs",
+          "description": "Explicit typed legacy/current decoder",
+          "revision": "a1c7fca68117e203e1618d2e55b2b9409202dabf1bf553c50114d16c7b5eb017",
+          "sha256": "a1c7fca68117e203e1618d2e55b2b9409202dabf1bf553c50114d16c7b5eb017"
+        }
+      ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-v2-review.md",
+          "description": "Independent V2 migration review",
+          "revision": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
+          "sha256": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:e06648333b04880af91d:1",
@@ -161819,7 +161874,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture/domain",
       "phase": 0,
       "depends_on": [],
@@ -162440,7 +162495,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "capture/platform",
       "phase": 0,
       "depends_on": [],
@@ -162488,10 +162543,52 @@
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Real CoreWLAN probe and capability/permission states; bounded versioned process contract",
+        "Authorized measurements and supported OS field matrix remain open"
+      ],
+      "implementation": [
+        {
+          "path": "collectors/macos/Sources/main.swift",
+          "description": "Actual native process; canonical normalization still open",
+          "revision": "3e1c57327aa3bbfabbb60c877b8263c9ab411543c19a271cd4d326d43be9976d",
+          "sha256": "3e1c57327aa3bbfabbb60c877b8263c9ab411543c19a271cd4d326d43be9976d"
+        },
+        {
+          "path": "collectors/macos/contract.py",
+          "description": "Defensive versioned adapter decoder",
+          "revision": "528d05fd1c0017ea1bfb9fa8d962905117654ec815ba49b3f166b34e7e00b716",
+          "sha256": "528d05fd1c0017ea1bfb9fa8d962905117654ec815ba49b3f166b34e7e00b716"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/adapters/macos.md",
+          "description": "21 contract/native lifecycle tests; authorized RF and full Gate A are not validated",
+          "revision": "4466872b7705a02a12aabea963b8b11c9c4f47cd8552f1cc99978fc9d107bf68",
+          "sha256": "4466872b7705a02a12aabea963b8b11c9c4f47cd8552f1cc99978fc9d107bf68",
+          "command": "KYBERIA_MACOS_NATIVE_TESTS=1 python3 -m unittest discover -s tests -p test_macos_contract.py -v",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/macos-collector-review.md",
+          "description": "Independent approval of corrected initial collector only",
+          "revision": "5127510dfe30d98f1207ad68fe7fbfd3eb40d59e6a6dfff31aab1bf8bd1a61b5",
+          "sha256": "5127510dfe30d98f1207ad68fe7fbfd3eb40d59e6a6dfff31aab1bf8bd1a61b5",
+          "reviewer": "/root/qa_spec_audit",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Impossible consent transition and missing Foundation callbacks corrected",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:cf352232ab1963fd170b:1",
@@ -165527,7 +165624,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spatial analysis",
       "phase": 2,
       "depends_on": [],
@@ -165570,7 +165667,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spatial analysis",
       "phase": 2,
       "depends_on": [],
@@ -169349,15 +169446,38 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "path": "crates/kismet-adapter/src/database.rs",
+          "description": "Immutable snapshot KismetDB5–10 metadata reader; PCAPNG/canonical replay still open",
+          "revision": "743bc5336340a70b34cbd6f677c17a18ab717be83ed90df251ada395ba18348a",
+          "sha256": "743bc5336340a70b34cbd6f677c17a18ab717be83ed90df251ada395ba18348a"
+        }
+      ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/kismet-database-review.md",
+          "description": "Independent reader approval after generated-rowid correction",
+          "revision": "f451606c339c54b772d61680148ec18c589d253bacc8dfd87e534ca44e4b9c8e",
+          "sha256": "f451606c339c54b772d61680148ec18c589d253bacc8dfd87e534ca44e4b9c8e",
+          "reviewer": "/root/qa_spec_audit",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Generated columns could shadow pagination identity; table_xinfo rejects them",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",
@@ -169435,7 +169555,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration",
       "phase": 0,
       "depends_on": [],
@@ -169521,7 +169641,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration",
       "phase": 0,
       "depends_on": [],
@@ -227983,15 +228103,47 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "survey/positioning",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "path": "crates/survey/src/state.rs",
+          "description": "Pure evidence-driven lifecycle; UI/capture/storage synchronization remains open",
+          "revision": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8",
+          "sha256": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8"
+        }
+      ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-point-review.md",
+          "description": "Independent initial state-machine review",
+          "revision": "e06792a28d814c2cd4a82c8819f5e9866ade4789c83dff937721e454caf42cd4",
+          "sha256": "e06792a28d814c2cd4a82c8819f5e9866ade4789c83dff937721e454caf42cd4",
+          "reviewer": "/root/qa_spec_audit",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Capture timestamp no longer treated as retrieval timestamp",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/observation-v2-review.md",
+          "description": "Independent receipt-schema migration review",
+          "revision": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
+          "sha256": "9293d71e6916da20cb1c10592b1cf37ed18b3e074410029a9ad5f4d0caf36053",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",

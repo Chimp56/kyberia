@@ -19,7 +19,8 @@
       "id": "storage-proof",
       "kind": "prerequisite_proof",
       "depends_on": [
-        "contracts"
+        "contracts",
+        "iteration-3-analytical-storage"
       ],
       "owner": "storage/data",
       "acceptance": "Real SQLite bundle/CLI, corruption/recovery and analytical-storage benchmarks",
@@ -516,6 +517,31 @@
         "crates/survey"
       ],
       "acceptance": "Evidence-based point completion, source/time/pose admission, pause/cancel/error contracts; UI acceptance remains open"
+    },
+    {
+      "id": "iteration-3-spatial-numerics",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "spatial analysis",
+      "requirements": [
+        "backlog:ANA-001:1",
+        "backlog:ANA-002:1"
+      ],
+      "acceptance": "Deterministic numerical tiles and nearest/IDW with explicit support, unknown uncertainty, cancellation, property tests and benchmarks; separate independent review."
+    },
+    {
+      "id": "iteration-3-analytical-storage",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "storage/data",
+      "requirements": [
+        "backlog:FND-006:1"
+      ],
+      "acceptance": "Real SQLite-only, SQLite+Parquet and embedded analytical engine comparison with semantic parity, pinned sources and reproducible workload evidence; Gate C review."
     }
   ]
 }
