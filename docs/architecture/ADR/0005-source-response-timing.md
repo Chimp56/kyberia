@@ -1,6 +1,6 @@
 # ADR-0005: Preserve source response timing separately from capture
 
-Status: Accepted after independent domain review by `/root/sionna_rt`; native adapter and storage integration remain open.
+Status: Accepted after independent domain review by `/root/sionna_rt`; native normalization is independently reviewed and integrated. Storage and survey composition remain open.
 
 ## Context
 
