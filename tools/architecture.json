@@ -2,6 +2,8 @@
   "schema_version": 1,
   "packages": {
     "kyberia-domain": {"layer": "domain", "external_dependencies": ["serde"]},
+    "kyberia-survey": {"layer": "application", "external_dependencies": ["serde"]},
+    "kyberia-kismet-adapter": {"layer": "adapter", "external_dependencies": ["rusqlite", "sha2", "tempfile"]},
     "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["rusqlite", "serde", "serde_json", "sha2", "tempfile"]},
     "kyberia-cli": {"layer": "composition", "external_dependencies": ["serde_json", "uuid"]}
   },

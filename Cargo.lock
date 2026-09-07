@@ -257,6 +257,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-kismet-adapter"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "rusqlite",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "kyberia-project-store"
 version = "0.1.0"
 dependencies = [
@@ -266,6 +276,16 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+]
+
+[[package]]
+name = "kyberia-survey"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "proptest",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

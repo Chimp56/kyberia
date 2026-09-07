@@ -1,0 +1,15 @@
+[package]
+name = "kyberia-kismet-adapter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kyberia-domain = { path = "../domain" }
+rusqlite = { version = "=0.40.2", features = ["bundled", "limits", "hooks"] }
+sha2 = "=0.10.9"
+
+tempfile = "=3.23.0"
+
+[lints]
+workspace = true
