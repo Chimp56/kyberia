@@ -16,4 +16,6 @@ Routine Git inspection, staging, new commits and reviewed cherry-picks are autho
 
 The user authorizes and requests subagent orchestration. Assign bounded scopes, relevant plan sections, file ownership, architectural constraints, acceptance tests and a ten-field handoff. Use isolated Git worktrees; agents must never edit the same working tree concurrently. Ordinary `/private/tmp` file edits use normal sandbox access, which is already writable. Network and protected Git metadata are separate permission boundaries.
 
+Subagents must use absolute paths inside their assigned worktree for every patch target. A shell command’s `workdir` does not change the patch tool’s base directory. Set `workdir` explicitly for every shell command and keep package-manager stores and generated outputs inside the assigned worktree. Check both worktree and integration Git status after initial edits; stop and report any routing mistake before continuing.
+
 Implementation authors cannot be the sole reviewer. Resolve BLOCKER findings and either fix MAJOR findings or record an accepted evidence-backed ADR before integration. Do not promote a product feature based on mocks, static fixtures or backend code alone.
