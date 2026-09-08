@@ -11,3 +11,11 @@ Root author checks passed:
 
 WASM compilation is not runtime validation. Independent adversarial numerical
 review is running; no acceptance or Gate E completion is claimed here.
+
+Root also passed the pinned cargo-deny 0.20.2 workspace audit against this
+candidate: advisories, bans, licenses and sources all passed. The first run
+failed to locate the relative advisory database from the isolated worktree;
+the successful run used an ignored copy of the main deny.toml changing only
+`advisories.db-path` to the existing main absolute database path. No allowlist,
+advisory severity, source policy or dependency version was relaxed. The local
+log is retained at the candidate's `target/geometry-dependency-review.log`.
