@@ -86,14 +86,40 @@ fn configure_writable(connection: &Connection) -> Result<()> {
 }
 
 fn database_size(root: &Path) -> Result<()> {
-    let path = root.join("project.sqlite");
-    regular(&path, false)?;
-    if fs::metadata(path)?.len() > sqlite_guard::MAX_DATABASE_BYTES {
+    const SIDECAR_SUFFIXES: [&str; 3] = ["-wal", "-journal", "-shm"];
+    let database = root.join("project.sqlite");
+    regular(&database, false)?;
+    let mut lengths = vec![fs::metadata(&database)?.len()];
+    for suffix in SIDECAR_SUFFIXES {
+        let sidecar = root.join(format!("project.sqlite{suffix}"));
+        let metadata = match fs::symlink_metadata(&sidecar) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => return Err(error.into()),
+        };
+        if metadata.file_type().is_symlink() || !metadata.is_file() {
+            return Err(StoreError::Invalid(format!(
+                "expected nonsymlink SQLite sidecar file: {}",
+                sidecar.display()
+            )));
+        }
+        lengths.push(metadata.len());
+    }
+    let total = checked_database_total(lengths)?;
+    if total > sqlite_guard::MAX_DATABASE_BYTES {
         return Err(StoreError::Invalid(
-            "metadata database exceeds 64 MiB read budget".into(),
+            "metadata database and SQLite sidecars exceed 64 MiB read budget".into(),
         ));
     }
     Ok(())
+}
+
+fn checked_database_total(lengths: impl IntoIterator<Item = u64>) -> Result<u64> {
+    lengths.into_iter().try_fold(0_u64, |total, length| {
+        total
+            .checked_add(length)
+            .ok_or_else(|| StoreError::Invalid("metadata database size overflow".into()))
+    })
 }
 
 fn load_manifest(connection: &Connection) -> Result<BundleManifest> {
@@ -388,6 +414,33 @@ mod tests {
     use super::*;
     use crate::ArtifactKind;
     use rusqlite::hooks::{AuthAction, AuthContext, Authorization};
+
+    #[test]
+    fn database_and_sidecars_share_an_exact_checked_budget() {
+        let retained = tempfile::tempdir().unwrap().keep();
+        let database = retained.join("project.sqlite");
+        let wal = retained.join("project.sqlite-wal");
+        let half = sqlite_guard::MAX_DATABASE_BYTES / 2;
+        File::create(&database).unwrap().set_len(half).unwrap();
+        File::create(&wal).unwrap().set_len(half).unwrap();
+        assert!(database_size(&retained).is_ok());
+
+        File::options()
+            .write(true)
+            .open(&database)
+            .unwrap()
+            .set_len(half + 1)
+            .unwrap();
+        assert!(matches!(
+            database_size(&retained),
+            Err(StoreError::Invalid(message))
+                if message == "metadata database and SQLite sidecars exceed 64 MiB read budget"
+        ));
+        assert!(matches!(
+            checked_database_total([u64::MAX, 1]),
+            Err(StoreError::Invalid(message)) if message == "metadata database size overflow"
+        ));
+    }
 
     #[test]
     fn successful_sql_row_count_is_not_a_substitute_for_authoritative_readback() {

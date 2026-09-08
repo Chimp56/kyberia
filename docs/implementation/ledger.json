@@ -112563,8 +112563,8 @@
           "level": 2
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "IN_PROGRESS",
+      "owner": "/root/storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
@@ -112657,8 +112657,8 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "IN_PROGRESS",
+      "owner": "/root/storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
@@ -113097,8 +113097,8 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "IN_PROGRESS",
+      "owner": "/root/storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
@@ -161872,20 +161872,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "/root/storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "Combined SQLite main/WAL/journal/SHM file-type, exact-size, overflow and recovery-sidecar validation"
+      ],
       "implementation": [
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Canonical physical-schema validation, disabled executable schema and cooperative SQL limits",
           "revision": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002",
           "sha256": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Bounded transactional bundle and combined SQLite sidecar envelope",
+          "revision": "07aa55aab40d9e7571cb8958c9afd91af71d657367a9057a05b6ae0edf8f6d82",
+          "sha256": "07aa55aab40d9e7571cb8958c9afd91af71d657367a9057a05b6ae0edf8f6d82"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Adversarial schema, sidecar, exact-boundary and recovery regressions",
+          "revision": "49ebabde6f2dff92a5d729cd908894dfc7bc568c2df0122dc90114b7a119a59f",
+          "sha256": "49ebabde6f2dff92a5d729cd908894dfc7bc568c2df0122dc90114b7a119a59f"
         }
       ],
-      "validation": [],
+      "validation": [
+        {
+          "path": "docs/validation/project-store-sidecar-budget.md",
+          "description": "SQLite sidecar budget and recovery validation",
+          "revision": "058749dd55d56a8f51df6ad5daddb6d62fa9103e7a7b1ee8546601fbf5c3ad07",
+          "sha256": "058749dd55d56a8f51df6ad5daddb6d62fa9103e7a7b1ee8546601fbf5c3ad07",
+          "command": "cargo test -p kyberia-project-store --locked --offline && cargo clippy -p kyberia-project-store --all-targets --locked --offline -- -D warnings",
+          "scope": "security_recovery",
+          "result": "PASS"
+        }
+      ],
       "reviews": [
         {
           "path": "docs/reviews/storage-schema-guard-review.md",
@@ -161895,6 +161919,35 @@
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
+        },
+        {
+          "path": "docs/reviews/project-store-sidecar-review.md",
+          "description": "Independent SQLite sidecar budget, recovery and boundary review",
+          "revision": "35f303997e8deb07abdcb685bd951cbe24f0c619e2bed0a10e5659d0a02aeea0",
+          "sha256": "35f303997e8deb07abdcb685bd951cbe24f0c619e2bed0a10e5659d0a02aeea0",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Exact combined sub-limit files and checked-add overflow were initially untested",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Initial bounded WAL regression did not prove WAL-only state consumption",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Writable bounded rollback sidecar behavior was initially untested",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "NIT",
+              "description": "Filesystem replacement races remain outside the documented non-concurrent bundle boundary"
+            }
+          ]
         }
       ],
       "blocker": null,

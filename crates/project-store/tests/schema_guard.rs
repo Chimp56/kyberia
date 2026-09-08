@@ -1,5 +1,5 @@
 use kyberia_domain::identity::ProjectId;
-use kyberia_project_store::{ArtifactEntry, ArtifactKind, Bundle, OpenMode};
+use kyberia_project_store::{ArtifactEntry, ArtifactKind, Bundle, OpenMode, StoreError};
 use rusqlite::Connection;
 use std::{fs, path::PathBuf};
 
@@ -21,6 +21,17 @@ fn entry() -> ArtifactEntry {
         bytes: 8,
         media_type: "image/svg+xml".into(),
         provenance_id: "test:original-schema-guard".into(),
+    }
+}
+
+fn assert_sidecar_budget_error(result: kyberia_project_store::Result<Bundle>) {
+    match result {
+        Err(StoreError::Invalid(message)) => assert!(
+            message == "metadata database and SQLite sidecars exceed 64 MiB read budget",
+            "unexpected validation error: {message}"
+        ),
+        Ok(_) => panic!("oversized SQLite envelope was accepted"),
+        Err(error) => panic!("unexpected error before budget check: {error}"),
     }
 }
 
@@ -123,6 +134,111 @@ fn oversized_sparse_database_is_rejected_without_reading_its_contents() {
         .set_len(64 * 1024 * 1024 + 1)
         .unwrap();
     assert!(Bundle::open(&root, OpenMode::ReadOnly).is_err());
+}
+
+#[test]
+fn sqlite_sidecars_are_regular_and_share_the_database_read_budget() {
+    const LIMIT: u64 = 64 * 1024 * 1024;
+    for suffix in ["-wal", "-journal", "-shm"] {
+        let (root, bundle) = fixture();
+        drop(bundle);
+        fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(root.join(format!("project.sqlite{suffix}")))
+            .unwrap()
+            .set_len(LIMIT)
+            .unwrap();
+        assert_sidecar_budget_error(Bundle::open(&root, OpenMode::ReadOnly));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn sqlite_sidecar_symlinks_are_rejected_before_sqlite_opens() {
+    use std::os::unix::fs::symlink;
+
+    let (root, bundle) = fixture();
+    drop(bundle);
+    symlink("project.sqlite", root.join("project.sqlite-wal")).unwrap();
+    match Bundle::open(&root, OpenMode::ReadOnly) {
+        Err(StoreError::Invalid(message)) => assert!(message.contains("nonsymlink SQLite sidecar")),
+        Ok(_) => panic!("SQLite sidecar symlink was accepted"),
+        Err(error) => panic!("unexpected error before sidecar type check: {error}"),
+    }
+}
+
+#[test]
+fn valid_oversized_wal_cannot_bypass_the_combined_budget() {
+    const LIMIT: u64 = 64 * 1024 * 1024;
+    let (root, bundle) = fixture();
+    drop(bundle);
+    let raw = Connection::open(root.join("project.sqlite")).unwrap();
+    raw.execute_batch(
+        "PRAGMA journal_mode=WAL;
+         PRAGMA synchronous=OFF;
+         PRAGMA wal_autocheckpoint=100000000;
+         CREATE TEMP TABLE original(body BLOB);
+         INSERT INTO original SELECT body FROM bundle_manifest;",
+    )
+    .unwrap();
+    let padding = " ".repeat(1024 * 1024);
+    for _ in 0..80 {
+        raw.execute(
+            "UPDATE bundle_manifest SET body=(SELECT body FROM original) || ?1",
+            [&padding],
+        )
+        .unwrap();
+        raw.execute(
+            "UPDATE bundle_manifest SET body=(SELECT body FROM original)",
+            [],
+        )
+        .unwrap();
+        if fs::metadata(root.join("project.sqlite-wal")).unwrap().len() > LIMIT {
+            break;
+        }
+    }
+    let wal_bytes = fs::metadata(root.join("project.sqlite-wal")).unwrap().len();
+    assert!(
+        wal_bytes > LIMIT,
+        "test failed to construct an oversized WAL"
+    );
+    assert_sidecar_budget_error(Bundle::open(&root, OpenMode::ReadOnly));
+}
+
+#[test]
+fn bounded_valid_wal_remains_available_for_sqlite_recovery() {
+    const LIMIT: u64 = 64 * 1024 * 1024;
+    let (root, bundle) = fixture();
+    let mut expected = bundle.manifest().unwrap();
+    expected.revision = 1;
+    expected.updated_utc_ms = 2;
+    expected.validate().unwrap();
+    let expected_body = serde_json::to_vec_pretty(&expected).unwrap();
+    drop(bundle);
+    let raw = Connection::open(root.join("project.sqlite")).unwrap();
+    raw.execute_batch("PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=100000000;")
+        .unwrap();
+    raw.execute(
+        "UPDATE bundle_manifest SET revision=1, body=?1",
+        [&expected_body],
+    )
+    .unwrap();
+    let wal_bytes = fs::metadata(root.join("project.sqlite-wal")).unwrap().len();
+    assert!(wal_bytes > 0 && wal_bytes < LIMIT);
+    let opened = Bundle::open(&root, OpenMode::ReadOnly).unwrap();
+    assert_eq!(opened.manifest().unwrap(), expected);
+}
+
+#[test]
+fn bounded_non_hot_rollback_sidecar_allows_readwrite_open() {
+    let (root, bundle) = fixture();
+    drop(bundle);
+    // A zero header is explicitly not a hot journal according to SQLite's
+    // recovery predicate; it is still part of the checked bundle envelope.
+    fs::write(root.join("project.sqlite-journal"), [0_u8; 512]).unwrap();
+    let writable = Bundle::open(&root, OpenMode::ReadWrite).unwrap();
+    assert_eq!(writable.manifest().unwrap().revision, 0);
 }
 
 #[test]
