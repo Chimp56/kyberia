@@ -14,6 +14,8 @@ pub(crate) const CREATE_SURVEY_SNAPSHOTS: &str = "CREATE TABLE survey_snapshots 
 pub(crate) const CREATE_SURVEY_SNAPSHOT_HISTORY: &str = "CREATE TABLE survey_snapshot_history (revision INTEGER PRIMARY KEY CHECK(revision>=0), snapshot_id TEXT NOT NULL CHECK(length(snapshot_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), point_id TEXT NOT NULL CHECK(length(point_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), collector_id TEXT NOT NULL CHECK(length(collector_id)=32), artifact_hash TEXT NOT NULL CHECK(length(artifact_hash)=64), input_schema TEXT NOT NULL, output_schema TEXT NOT NULL, decoder_version TEXT NOT NULL, source_version TEXT NOT NULL, operation TEXT NOT NULL, committed_utc_ms INTEGER NOT NULL CHECK(committed_utc_ms>=0))";
 pub(crate) const CREATE_OPERATION_LOG_STATE: &str = "CREATE TABLE operation_log_state (singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL CHECK(length(project_id)=32), project_revision INTEGER NOT NULL CHECK(project_revision>=0))";
 pub(crate) const CREATE_OPERATIONS: &str = "CREATE TABLE project_operations (operation_id TEXT PRIMARY KEY CHECK(length(operation_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), project_revision INTEGER NOT NULL CHECK(project_revision>0), logical_time INTEGER NOT NULL CHECK(logical_time>0), causal_depth INTEGER NOT NULL CHECK(causal_depth>=0), content_hash TEXT NOT NULL CHECK(length(content_hash)=64), canonical_bytes BLOB NOT NULL CHECK(length(canonical_bytes)>0 AND length(canonical_bytes)<=32768), wire_bytes BLOB NOT NULL CHECK(length(wire_bytes)>0 AND length(wire_bytes)<=49152))";
+pub(crate) const CREATE_OBSERVATION_CHUNKS: &str = "CREATE TABLE observation_chunks (chunk_hash TEXT PRIMARY KEY CHECK(length(chunk_hash)=64), bytes INTEGER NOT NULL CHECK(bytes>0), media_type TEXT NOT NULL, schema_version INTEGER NOT NULL CHECK(schema_version>0), codec_version INTEGER NOT NULL CHECK(codec_version>0), row_count INTEGER NOT NULL CHECK(row_count>0), first_observation_id TEXT NOT NULL CHECK(length(first_observation_id)=32), last_observation_id TEXT NOT NULL CHECK(length(last_observation_id)=32), known_utc_count INTEGER NOT NULL CHECK(known_utc_count>=0 AND known_utc_count<=row_count), first_utc_ns INTEGER, last_utc_ns INTEGER, first_source_id TEXT NOT NULL CHECK(length(first_source_id)=32), last_source_id TEXT NOT NULL CHECK(length(last_source_id)=32), first_session_id TEXT NOT NULL CHECK(length(first_session_id)=32), last_session_id TEXT NOT NULL CHECK(length(last_session_id)=32), provenance_id TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>0), CHECK((known_utc_count=0 AND first_utc_ns IS NULL AND last_utc_ns IS NULL) OR (known_utc_count>0 AND first_utc_ns IS NOT NULL AND last_utc_ns IS NOT NULL AND first_utc_ns<=last_utc_ns)))";
+pub(crate) const CREATE_OBSERVATION_CHUNK_MEMBERS: &str = "CREATE TABLE observation_chunk_members (chunk_hash TEXT NOT NULL CHECK(length(chunk_hash)=64), observation_id TEXT PRIMARY KEY CHECK(length(observation_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), ordinal INTEGER NOT NULL CHECK(ordinal>=0), FOREIGN KEY(chunk_hash) REFERENCES observation_chunks(chunk_hash))";
 pub(crate) const MAX_DATABASE_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_SCHEMA_OBJECTS: usize = 64;
 const MAX_VM_OPERATIONS: u64 = 2_000_000;
@@ -34,7 +36,7 @@ pub(crate) fn initialize(connection: &Connection) -> Result<()> {
     for (limit, value) in [
         (Limit::SQLITE_LIMIT_LENGTH, MAX_MANIFEST_BYTES as i32),
         (Limit::SQLITE_LIMIT_SQL_LENGTH, 16 * 1024),
-        (Limit::SQLITE_LIMIT_COLUMN, 16),
+        (Limit::SQLITE_LIMIT_COLUMN, 32),
         (Limit::SQLITE_LIMIT_EXPR_DEPTH, 32),
         (Limit::SQLITE_LIMIT_VDBE_OP, 100_000),
         (Limit::SQLITE_LIMIT_ATTACHED, 0),
@@ -79,6 +81,8 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                             "survey_snapshot_history",
                             "operation_log_state",
                             "project_operations",
+                            "observation_chunks",
+                            "observation_chunk_members",
                         ]
                         .contains(&table_name)
                 }
@@ -87,7 +91,9 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                         "survey_snapshots"
                         | "survey_snapshot_history"
                         | "operation_log_state"
-                        | "project_operations",
+                        | "project_operations"
+                        | "observation_chunks"
+                        | "observation_chunk_members",
                 } => writable,
                 AuthAction::Update {
                     table_name: "operation_log_state",
@@ -129,7 +135,7 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
 /// actually written; an older manifest-only bundle remains readable and is
 /// upgraded by the writable open path before snapshot operations are attempted.
 pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
-    // A canonical bundle has at most five user tables and their SQLite-owned
+    // A canonical bundle has at most seven user tables and their SQLite-owned
     // autoindexes. Read a bounded inventory so malformed schema input cannot
     // allocate from an unbounded sqlite_schema result.
     let mut statement = connection
@@ -186,6 +192,18 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
         "project_operations",
         Some(CREATE_OPERATIONS),
     );
+    let expected_chunks = (
+        "table",
+        "observation_chunks",
+        "observation_chunks",
+        Some(CREATE_OBSERVATION_CHUNKS),
+    );
+    let expected_members = (
+        "table",
+        "observation_chunk_members",
+        "observation_chunk_members",
+        Some(CREATE_OBSERVATION_CHUNK_MEMBERS),
+    );
     let manifest_valid = entries.iter().any(|entry| {
         entry.0 == expected_manifest.0
             && entry.1 == expected_manifest.1
@@ -195,6 +213,7 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
     let optional_groups = [
         [expected_snapshots, expected_history],
         [expected_operation_state, expected_operations],
+        [expected_chunks, expected_members],
     ];
     let mut known_objects = usize::from(manifest_valid);
     let groups_valid = optional_groups.iter().all(|group| {
@@ -220,12 +239,12 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
         known_objects += present;
         true
     });
-    // Optional table groups are validated independently. This keeps future
-    // additive groups composable while still rejecting partial groups and any
-    // unrecognized schema object.
+    // Optional table groups are validated independently. This admits every
+    // historical additive combination while rejecting partial groups and all
+    // unrecognized schema objects.
     if !manifest_valid || !groups_valid || entries.len() != known_objects {
         return Err(StoreError::Corrupt(
-            "unsupported physical metadata schema; expected canonical manifest, survey, or operation tables"
+            "unsupported physical metadata schema; expected canonical manifest, survey, operation, or observation tables"
                 .into(),
         ));
     }
@@ -258,6 +277,22 @@ pub(crate) fn has_operation_schema(connection: &Connection) -> Result<bool> {
         match row.get::<_, String>(0)?.as_str() {
             "operation_log_state" => names[0] = true,
             "project_operations" => names[1] = true,
+            _ => {}
+        }
+    }
+    Ok(names.into_iter().all(|present| present))
+}
+
+pub(crate) fn has_observation_chunk_schema(connection: &Connection) -> Result<bool> {
+    let mut statement = connection.prepare(
+        "SELECT name FROM main.sqlite_schema WHERE type='table' AND name IN ('observation_chunks','observation_chunk_members')",
+    )?;
+    let mut rows = statement.query([])?;
+    let mut names = [false; 2];
+    while let Some(row) = rows.next()? {
+        match row.get::<_, String>(0)?.as_str() {
+            "observation_chunks" => names[0] = true,
+            "observation_chunk_members" => names[1] = true,
             _ => {}
         }
     }

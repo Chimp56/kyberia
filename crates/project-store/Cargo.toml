@@ -8,6 +8,10 @@ license.workspace = true
 kyberia-domain = { version = "=0.1.0", path = "../domain" }
 kyberia-operation-log = { version = "=0.1.0", path = "../operation-log" }
 kyberia-survey = { version = "=0.1.0", path = "../survey" }
+arrow-array = "=59.3.0"
+arrow-schema = "=59.3.0"
+bytes = "=1.12.1"
+parquet = { version = "=59.3.0", default-features = false, features = ["arrow"] }
 rusqlite = { version = "=0.40.2", features = ["bundled", "limits", "hooks"] }
 serde = { version = "=1.0.228", features = ["derive"] }
 serde_json = "=1.0.149"

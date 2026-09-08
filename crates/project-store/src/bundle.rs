@@ -1,5 +1,7 @@
 use crate::manifest::{MAX_ARTIFACT_BYTES, MAX_MANIFEST_BYTES, SCHEMA_VERSION, validate_hash};
-use crate::{ArtifactEntry, BundleManifest, Result, StoreError, content_hash, sqlite_guard};
+use crate::{
+    ArtifactEntry, ArtifactKind, BundleManifest, Result, StoreError, content_hash, sqlite_guard,
+};
 use kyberia_domain::identity::{ProjectId, SnapshotId};
 use rusqlite::{Connection, OpenFlags, TransactionBehavior};
 use serde::Serialize;
@@ -214,6 +216,8 @@ impl Bundle {
         transaction.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOT_HISTORY)?;
         transaction.execute_batch(sqlite_guard::CREATE_OPERATION_LOG_STATE)?;
         transaction.execute_batch(sqlite_guard::CREATE_OPERATIONS)?;
+        transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNKS)?;
+        transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNK_MEMBERS)?;
         transaction.execute_batch("PRAGMA user_version=1")?;
         transaction.execute(
             "INSERT INTO bundle_manifest VALUES (1, ?1, ?2)",
@@ -278,9 +282,10 @@ impl Bundle {
         sqlite_guard::validate_schema(&connection)?;
         if mode == OpenMode::ReadWrite
             && (!sqlite_guard::has_survey_snapshot_schema(&connection)?
-                || !sqlite_guard::has_operation_schema(&connection)?)
+                || !sqlite_guard::has_operation_schema(&connection)?
+                || !sqlite_guard::has_observation_chunk_schema(&connection)?)
         {
-            // V1 bundles predate one or both optional metadata table groups.
+            // V1 bundles predate one or more optional metadata table groups.
             // This additive migration is performed before the authorizer is
             // installed and never rewrites the manifest or its revision.
             let migration = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -300,6 +305,10 @@ impl Bundle {
                             .project_id,
                     )],
                 )?;
+            }
+            if !sqlite_guard::has_observation_chunk_schema(&migration)? {
+                migration.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNKS)?;
+                migration.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNK_MEMBERS)?;
             }
             migration.commit()?;
         }
@@ -382,6 +391,11 @@ impl Bundle {
     ) -> Result<String> {
         if self.mode == OpenMode::ReadOnly {
             return Err(StoreError::ReadOnly);
+        }
+        if matches!(entry.kind, ArtifactKind::NormalizedObservations) {
+            return Err(StoreError::Invalid(
+                "normalized observations require publish_observation_chunk".into(),
+            ));
         }
         self.start_operation()?;
         entry.validate()?;
@@ -572,6 +586,9 @@ impl Bundle {
         if sqlite_guard::has_operation_schema(&self.connection)?
             && let Err(error) = self.operation_store_state()
         {
+            failures.push(error.to_string());
+        }
+        if let Err(error) = self.verify_observation_chunks() {
             failures.push(error.to_string());
         }
         Ok(Verification {

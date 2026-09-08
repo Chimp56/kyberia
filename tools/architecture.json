@@ -8,7 +8,7 @@
     "kyberia-survey": {"layer": "application", "external_dependencies": ["serde"]},
     "kyberia-kismet-adapter": {"layer": "adapter", "external_dependencies": ["rusqlite", "sha2", "tempfile"]},
     "kyberia-packet-import": {"layer": "adapter", "external_dependencies": ["pcap-parser", "sha2"]},
-    "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["rusqlite", "serde", "serde_json", "sha2", "tempfile"]},
+    "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["arrow-array", "arrow-schema", "bytes", "parquet", "rusqlite", "serde", "serde_json", "sha2", "tempfile"]},
     "kyberia-capture-adapter": {"layer": "adapter", "external_dependencies": ["base64", "time", "serde", "serde_json", "sha2"]},
     "kyberia-cli": {"layer": "composition", "external_dependencies": ["serde_json", "uuid"]}
   },

@@ -1,8 +1,104 @@
 {
   "schema_version": 1,
   "scope": "All resolved targets and development dependencies; not a shipped-binary SBOM",
-  "cargo_lock_sha256": "8f2fdf3fa55d770fd953bdbe69b56d5600a3865a5418568a6ef6a5c4f6b28119",
+  "cargo_lock_sha256": "9ec399b16d103dd274ae828b983ea0cd05282ca84b7722fe21be711a0ef41fa8",
   "packages": [
+    {
+      "name": "ahash",
+      "version": "0.8.12",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/tkaitchuck/ahash",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "android_system_properties",
+      "version": "0.1.6",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/nical/android_system_properties",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "ae221649c9976a6f6c56ae1facf410f3ddb33cc661c4b7b61020a912d4237fbc",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "arrow-array",
+      "version": "59.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/apache/arrow-rs",
+      "license_declared": "Apache-2.0 AND MIT",
+      "archive_sha256": "1e5f6adeffdf587d7a31db5d2266189624b526730cd3627f9ff9fedae97ad584",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "arrow-buffer",
+      "version": "59.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/apache/arrow-rs",
+      "license_declared": "Apache-2.0",
+      "archive_sha256": "097d193003ce7995d5d087089069ec2a6e0187faf5a6f8c9f38af2645d987182",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "arrow-data",
+      "version": "59.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/apache/arrow-rs",
+      "license_declared": "Apache-2.0",
+      "archive_sha256": "9ba2f832eaeca24b8f26143dba750e42ee4ab51cf7d65e701ca9607cfda9f358",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "arrow-ipc",
+      "version": "59.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/apache/arrow-rs",
+      "license_declared": "Apache-2.0",
+      "archive_sha256": "dcc41681ea80f521df14c36725b74d4c60702c47f0793af2be469c04527e2599",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "arrow-schema",
+      "version": "59.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/apache/arrow-rs",
+      "license_declared": "Apache-2.0",
+      "archive_sha256": "10fab8d4563491417ba801fab29d205104d20d4bdf37bda6cd1cf425cff598cd",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "arrow-select",
+      "version": "59.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/apache/arrow-rs",
+      "license_declared": "Apache-2.0",
+      "archive_sha256": "fc58569193c2525915f3cc6310edba3792f1200f65d6e9ed330aa33e691493b8",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
     {
       "name": "autocfg",
       "version": "1.5.1",
@@ -22,6 +118,18 @@
       "repository": "https://github.com/marshallpierce/rust-base64",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "base64",
+      "version": "0.23.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/marshallpierce/rust-base64",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -88,6 +196,18 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "bytes",
+      "version": "1.12.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/tokio-rs/bytes",
+      "license_declared": "MIT",
+      "archive_sha256": "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "cc",
       "version": "1.4.5",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -112,6 +232,18 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "chrono",
+      "version": "0.4.45",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/chronotope/chrono",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "circular",
       "version": "0.3.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -124,12 +256,60 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "const-random",
+      "version": "0.1.18",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/tkaitchuck/constrandom",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "87e00182fe74b066627d63b85fd550ac2998d4b0bd86bfed477a0ae4c7c71359",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "const-random-macro",
+      "version": "0.1.16",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/tkaitchuck/constrandom",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "f9d839f2a20b0aee515dc581a6172f2321f96cab76c1a38a4c584a194955390e",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "core-foundation-sys",
+      "version": "0.8.7",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/servo/core-foundation-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "cpufeatures",
       "version": "0.2.17",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
       "repository": "https://github.com/RustCrypto/utils",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "crunchy",
+      "version": "0.2.4",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/eira-fransham/crunchy",
+      "license_declared": "MIT",
+      "archive_sha256": "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -232,6 +412,18 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "flatbuffers",
+      "version": "25.12.19",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/google/flatbuffers",
+      "license_declared": "Apache-2.0",
+      "archive_sha256": "35f6839d7b3b98adde531effaf34f0c2badc6f4735d26fe74709d8e513a96ef3",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "fnv",
       "version": "1.0.7",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -305,6 +497,18 @@
     },
     {
       "name": "getrandom",
+      "version": "0.2.17",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rust-random/getrandom",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "ff2abc00be7fca6ebc474524697ae276ad847ad0a6b3faa4bcb027e9a4614ad0",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "getrandom",
       "version": "0.3.4",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
       "repository": "https://github.com/rust-random/getrandom",
@@ -322,6 +526,18 @@
       "repository": "https://github.com/rust-random/getrandom",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "half",
+      "version": "2.7.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/VoidStarKat/half-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "6ea2d84b969582b4b1864a92dc5d27cd2b77b622a8d79306834f1be5ba20d84b",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -364,6 +580,30 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "iana-time-zone",
+      "version": "0.1.65",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/strawlab/iana-time-zone",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "e31bc9ad994ba00e440a8aa5c9ef0ec67d5cb5e5cb0cc7f8b744a35b389cc470",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "iana-time-zone-haiku",
+      "version": "0.1.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/strawlab/iana-time-zone",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "f31827a206f56af32e590ba56d5d2d085f558508192593743f16b2306495269f",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "itoa",
       "version": "1.0.18",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -400,6 +640,18 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "libm",
+      "version": "0.2.16",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rust-lang/compiler-builtins",
+      "license_declared": "MIT",
+      "archive_sha256": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "libsqlite3-sys",
       "version": "0.38.2",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -418,6 +670,18 @@
       "repository": "https://github.com/sunfishcode/linux-raw-sys",
       "license_declared": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
       "archive_sha256": "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "log",
+      "version": "0.4.34",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rust-lang/log",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -448,12 +712,48 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "num-bigint",
+      "version": "0.5.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rust-num/num-bigint",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "93e7820bc0a80a0238e650327316f929ba18d5be054b647490a3a6a339f3e7c0",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "num-complex",
+      "version": "0.4.6",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rust-num/num-complex",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "73f88a1307638156682bada9d7604135552957b7818057dcef22705b4d509495",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "num-conv",
       "version": "0.2.2",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
       "repository": "https://github.com/jhpratt/num-conv",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "521739c6d2bac4aa25192232afe6841231376b2b26d4d9fae5ecf8ca5772e441",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "num-integer",
+      "version": "0.1.47",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/rust-num/num-integer",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "7ce2d95d4b3734dc35aa2f45e1aa22cd416814592a4f9d9205e11affd5b8e10b",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -478,6 +778,18 @@
       "repository": "https://github.com/matklad/once_cell",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "parquet",
+      "version": "59.3.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/apache/arrow-rs",
+      "license_declared": "Apache-2.0",
+      "archive_sha256": "ff322f54b1a0f9288e614ed1f2d329b380af5476420db19f46ffb865e1163d73",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -700,6 +1012,18 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "rustc_version",
+      "version": "0.4.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/djc/rustc-version-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "rusticata-macros",
       "version": "5.0.0",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -742,6 +1066,30 @@
       "repository": "https://github.com/altsysrq/rusty-fork",
       "license_declared": "MIT/Apache-2.0",
       "archive_sha256": "cc6bf79ff24e648f6da1f8d1f011e9cac26491b619e6b9280f2b47f1774e6ee2",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "semver",
+      "version": "1.0.28",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/dtolnay/semver",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "8a7852d02fc848982e0c167ef163aaff9cd91dc640ba85e263cb1ce46fae51cd",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "seq-macro",
+      "version": "0.3.6",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/dtolnay/seq-macro",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "1bc711410fbe7399f390ca1c3b60ad0f53f80e95c5eb935e52268a0e2cd49acc",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
@@ -952,6 +1300,30 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "tiny-keccak",
+      "version": "2.0.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": null,
+      "license_declared": "CC0-1.0",
+      "archive_sha256": "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "twox-hash",
+      "version": "2.1.4",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/shepmaster/twox-hash",
+      "license_declared": "MIT",
+      "archive_sha256": "5283634e518fe9e82c7b20520bb4bc209009fd16c82077c802f8111ecbb0117a",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "typenum",
       "version": "1.20.1",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1036,6 +1408,18 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "wasi",
+      "version": "0.11.1+wasi-snapshot-preview1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/bytecodealliance/wasi",
+      "license_declared": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "archive_sha256": "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "wasip2",
       "version": "1.0.4+wasi-0.2.12",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1096,12 +1480,72 @@
       "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
     },
     {
+      "name": "windows-core",
+      "version": "0.62.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "b8e83a14d34d0623b51dce9581199302a221863196a1dde71a7663a4c2be9deb",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "windows-implement",
+      "version": "0.60.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "053e2e040ab57b9dc951b72c264860db7eb3b0200ba345b4e4c3b14f67855ddf",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "windows-interface",
+      "version": "0.59.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "3f316c4a2570ba26bbec722032c4099d8c8bc095efccdc15688708623367e358",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
       "name": "windows-link",
       "version": "0.2.1",
       "source": "registry+https://github.com/rust-lang/crates.io-index",
       "repository": "https://github.com/microsoft/windows-rs",
       "license_declared": "MIT OR Apache-2.0",
       "archive_sha256": "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "windows-result",
+      "version": "0.4.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "7781fa89eaf60850ac3d2da7af8e5242a5ea78d1a11c49bf2910bb5a73853eb5",
+      "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
+      "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
+      "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",
+      "update_procedure": "Review new upstream version/license, update lock, regenerate inventory, run affected tests and dependency audit"
+    },
+    {
+      "name": "windows-strings",
+      "version": "0.5.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "repository": "https://github.com/microsoft/windows-rs",
+      "license_declared": "MIT OR Apache-2.0",
+      "archive_sha256": "7837d08f69c77cf6b07689544538e017c1bfcf57e34b4c0ff58e6c2cd3b37091",
       "redistribution": "Source inventory only; retain upstream licenses and review bundled native notices before distribution",
       "transformation": "Unmodified registry package; compiled by Cargo when selected by target/features",
       "provenance": "Cargo.lock, Cargo metadata and SHA-256 of downloaded registry .crate archive",

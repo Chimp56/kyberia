@@ -8,7 +8,7 @@ Plan §11 and §20 Gate C recommend SQLite metadata plus Parquet observations, s
 
 ## Proposed decision
 
-Retain SQLite as project metadata and operation authority. Continue implementing a Rust port for immutable typed Parquet observation chunks, with transactional content references and a defined live append/finalization policy. Keep DuckDB as a research comparison and potential optional analytical query adapter; do not make its database format canonical or its runtime a mandatory product dependency on this proof alone.
+Retain SQLite as project metadata and operation authority. The project-store now has a narrow inward observation-chunk port backed by the pinned Apache Arrow Rust `parquet` 59.3.0 implementation with only its `arrow` feature enabled. Finalized chunks are real Parquet files with a deterministic fixed nullable V2 superset schema (`kyberia-envelope-v2-fixed-superset-1`), explicit schema metadata, complete nested Arrow `Field` validation, uncompressed bounded row groups and complete envelope reconstruction; JSON is an in-memory structural bridge and is not persisted in the artifact. A conservative decoded Arrow allocation budget is checked from footer value counts before a batch reader is built, including bounded expansion for repeated string values encoded with dictionary or RLE pages. Content references and observation-ID uniqueness are committed transactionally after the durable artifact is finalized. A native framed representation remains a separately labeled live-spool option and is not accepted as the analytical chunk format. Keep DuckDB as a research comparison and potential optional analytical query adapter; do not make its database format canonical or its runtime a mandatory product dependency on this proof alone.
 
 ## Alternatives
 
@@ -28,8 +28,8 @@ Canonical observations and schema semantics remain Kyberia-owned. Chunk finaliza
 
 ## Reversibility
 
-The production port remains replaceable behind inward contracts. Immutable normalized exports allow reconstruction without DuckDB or a specific query engine. A future benchmark can select a different spool/query adapter without changing canonical observation semantics or rewriting raw evidence.
+The production port remains replaceable behind inward contracts. Immutable normalized exports allow reconstruction without DuckDB or a specific query engine. A future benchmark can select a different spool/query adapter without changing canonical observation semantics or rewriting raw evidence. Arrow and Parquet objects do not cross the adapter boundary, and generic artifact import rejects the normalized-observation kind so the native spool media type cannot become committed analytical evidence by accident.
 
 ## Validation plan
 
-The experiment and required-provenance correction have independent review. Implement the production Rust writer/reader and compare against these fixtures; verify complete envelope parity and source provenance; exercise process crash, disk full, cancellation and migration backups; benchmark sustained live workloads and production queries; run at least Windows and macOS portability tests. Assess dependency notices and distributable footprint before accepting a new mandatory runtime. Gate C is not passed by this proposed ADR.
+The experiment and required-provenance correction have independent review. The production Rust writer/reader now includes deterministic schema, metadata-budget, cancellation-window and SQLite-authority evidence, plus an independent PyArrow 25.0.1 interoperability oracle. Remaining validation must exercise process crash and disk full beyond deterministic rollback, adversarial Parquet fuzzing, sustained live workloads and production queries, and at least Windows and macOS portability. Assess dependency notices and distributable footprint before accepting a new mandatory runtime. Gate C is not passed by this proposed ADR.
