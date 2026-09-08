@@ -169079,8 +169079,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7",
-          "sha256": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7"
+          "revision": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d",
+          "sha256": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -176604,22 +176604,32 @@
         {
           "path": "crates/kismet-adapter/src/live.rs",
           "description": "Reviewed bounded authenticated read-only status projection; real-server and live evidence gates remain open",
-          "revision": "97dd4ca37885aad48a14368d62344187f3e79c6d806e51dd8a47a93e0657dcdd",
-          "sha256": "97dd4ca37885aad48a14368d62344187f3e79c6d806e51dd8a47a93e0657dcdd"
+          "revision": "eec4ebce8601b236db6d5832ef91892199cead1a30b2333f8cc9faa27a2c2eda",
+          "sha256": "eec4ebce8601b236db6d5832ef91892199cead1a30b2333f8cc9faa27a2c2eda"
         }
       ],
       "validation": [
         {
           "path": "crates/kismet-adapter/tests/live_status.rs",
           "description": "Five independent real loopback HTTP transport tests including deadline, authentication, redirects and body limits",
-          "revision": "882bede7e8c286e0fe11a732a314d18745fdde6a606124273e6f3370c9b8e44c",
-          "sha256": "882bede7e8c286e0fe11a732a314d18745fdde6a606124273e6f3370c9b8e44c",
+          "revision": "88c876025e4704a75bee16e78be0b285cba03029d3cc66a7aceaa4c5714f4371",
+          "sha256": "88c876025e4704a75bee16e78be0b285cba03029d3cc66a7aceaa4c5714f4371",
           "command": "cargo test -p kyberia-kismet-adapter --locked --offline",
           "scope": "local_transport_contract",
           "result": "PASS"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/kismet-live-status-review.md",
+          "description": "Independent bounded transport correction review; external server runtime remains open",
+          "revision": "73ffdf0cff52152ead63476f354fa32f98a73c94692659ebcbb19b15e245a395",
+          "sha256": "73ffdf0cff52152ead63476f354fa32f98a73c94692659ebcbb19b15e245a395",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",
@@ -176666,8 +176676,8 @@
         {
           "path": "crates/kismet-adapter/src/database.rs",
           "description": "Reviewed bounded KismetDB5–10 canonical metadata normalization, deterministic identities and atomic no-follow snapshot acquisition",
-          "revision": "7614031cb2b10c82098cc66faecff8603763a26d7ff552adaa3394b642e8b6d3",
-          "sha256": "7614031cb2b10c82098cc66faecff8603763a26d7ff552adaa3394b642e8b6d3"
+          "revision": "170b323b4823ec8d29b02a80f60f050c718fec7e8fcd2961c6c4e36222ab53ec",
+          "sha256": "170b323b4823ec8d29b02a80f60f050c718fec7e8fcd2961c6c4e36222ab53ec"
         },
         {
           "path": "crates/packet-import/src/pcapng.rs",
@@ -177206,8 +177216,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7",
-          "sha256": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7"
+          "revision": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d",
+          "sha256": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",

@@ -1,3 +1,19 @@
+# Current transport correction disposition
+
+APPROVED for the bounded status adapter contract at `f826a18` (candidate
+`f84e13d`). Root independently inspected the explicit-address admission,
+reqwest configuration, response limits, error mapping and retained test
+helpers. All 40 adapter tests passed both in the candidate and integration
+checkout; one database benchmark remains intentionally ignored. Candidate
+formatting, all-target Clippy and architecture checks passed. Source inventory
+regeneration verifies 223 locked external packages. The author reports passing
+cargo-deny gates; this paragraph does not substitute for release-wide auditing.
+
+No unresolved BLOCKER or MAJOR findings in this transport correction. Real
+Kismet-server parity, automatic DNS acquisition and prompt in-flight token
+cancellation remain open. Cancellation during a request is bounded by the
+request timeout. The historical failed reviews below are retained as evidence.
+
 # Kismet live status review
 
 Follow-up MAJOR, independently reproduced on proposed DNS correction
