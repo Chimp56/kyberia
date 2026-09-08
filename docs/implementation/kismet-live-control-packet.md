@@ -1,8 +1,10 @@
 # Kismet live control/status implementation packet
 
-Status: IN_PROGRESS in isolated `feat/kismet-live-status`; primary-document investigation completed 2026-09-08.
+Status: bounded read-only status implementation in `kyberia-kismet-adapter`; real-server/runtime gate remains open. Primary-document investigation completed 2026-09-08.
 Scope: plan Appendix I required adapter designs, live control/status input; backlog OSS-001.
-This is an executable work specification, not evidence of implemented functionality.
+The packet remains the executable work specification; the bounded implementation
+and its local fixture evidence are recorded below, while the real-server gate
+remains open.
 
 ## Verified upstream contract
 
@@ -14,7 +16,7 @@ Datasource listing reports configured sources and their state. `/datasource/list
 
 ## Bounded implementation task
 
-Implement authenticated transport and deterministic versioned status decoding inside the outward Kismet adapter. Select/pin a mature HTTP/TLS library after dependency review; do not implement HTTP or crypto. Keep secrets outside serializable/debuggable DTOs. Disable cross-origin redirects and never put API tokens into query strings or provenance. Bound response bytes, nesting, datasource count, connection/read/total duration, retry count and backoff. Support cancellation and expose authentication, transport, unsupported-schema and malformed-payload failures distinctly.
+The bounded implementation uses authenticated transport and deterministic versioned status decoding inside the outward Kismet adapter. It selects/pins a mature HTTP/TLS library after dependency review; it does not implement HTTP or crypto. Secrets stay outside serializable/debuggable DTOs. Cross-origin redirects are disabled and API tokens never enter query strings or provenance. Response bytes, nesting, datasource count, overall attempt duration, shared poll deadline, retry count and backoff are bounded. Cancellation is supported and authentication, transport, unsupported-schema and malformed-payload failures remain distinct.
 
 Negotiate supported producer versions using real pinned server output and public field definitions before evidence ingestion. Preserve source version and field availability; a database schema version is not a producer version. Missing channel/dwell/calibration/time facts remain unknown. Datasource/device status aggregates must never become packet observations. Model disconnect/reconnect and dropped-event telemetry explicitly when live evidence consumption is added.
 
@@ -27,7 +29,20 @@ Negotiate supported producer versions using real pinned server output and public
 5. Golden fixtures are independently constructed and carry fixture provenance. They cover local/remote sources and unknown optional channel/clock facts without claiming real-server parity.
 6. A separate real-server gate records binary version, source commit, authentication mode, exact endpoint contract, field capabilities and controlled datasource results. No capture control or privileged helper installation occurs implicitly.
 
-The live transport implementation is assigned but not yet integrated or validated. KismetDB normalization and no-follow source-open tests are independently reviewed offline capabilities. Their approval does not close this packet or the complete Kismet runtime gate.
+Before this increment the repository had no live transport implementation.
+KismetDB normalization and no-follow source-open tests are independently
+reviewed offline capabilities. Their approval does not close this packet or
+the complete Kismet runtime gate.
+
+The bounded implementation now lives in `crates/kismet-adapter/src/live.rs`.
+It uses pinned ureq 2.12.1 with rustls, requests only the three read-only
+resources above, and emits the versioned secret-free
+`LiveStatusSnapshot`. Local fixture evidence is recorded in
+`docs/validation/kismet-live-status.md`; no real Kismet binary or privileged
+capture helper has been run. Compatibility is deliberately restricted to the
+inspected acceptance tuple `2026.09.0` plus Kismet source identity `2d25ad0`
+(or its full pinned commit); build-date versions are not treated as a broad
+API compatibility promise.
 
 ## Local runtime preparation
 

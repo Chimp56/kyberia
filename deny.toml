@@ -12,7 +12,21 @@ unsound = "all"
 
 [licenses]
 confidence-threshold = 0.93
-allow = ["MIT", "Apache-2.0", "Unicode-3.0", "Zlib"]
+# ISC, BSD-3-Clause and CDLA-Permissive-2.0 are introduced by the pinned
+# rustls/webpki-roots TLS closure used by the Kismet live-status adapter.
+# CC0-1.0 is already present in the Arrow hashing closure.  All are
+# redistributable permissive/public-domain-style licenses; exact package
+# declarations and archives remain in docs/licenses/cargo-sources.json.
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "Unicode-3.0",
+  "Zlib",
+  "ISC",
+  "BSD-3-Clause",
+  "CDLA-Permissive-2.0",
+  "CC0-1.0",
+]
 
 [bans]
 multiple-versions = "warn"

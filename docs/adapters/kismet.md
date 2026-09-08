@@ -1,6 +1,49 @@
 # Kismet adapter
 
-Kismet remains an external GPL integration. Kyberia owns canonical observations and Wi-Fi semantics. This increment implements a read-only KismetDB packet-metadata reader and bounded normalizer for the currently supported database/table shapes in `crates/kismet-adapter`; it does not decode PCAPNG, consume the authenticated API, or validate the full Kismet runtime gate.
+Kismet remains an external GPL integration. Kyberia owns canonical observations and Wi-Fi semantics. The adapter contains a read-only KismetDB packet-metadata reader and bounded normalizer plus a bounded live REST status/capability client. It does not decode PCAPNG, consume event streams, invoke capture helpers, change Kismet configuration, or validate the full Kismet runtime gate.
+
+## Live status and capability boundary
+
+`live::KismetLiveClient` uses the pinned `ureq` 2.12.1 blocking HTTP client
+with its rustls TLS feature. Its agent has redirects disabled, environment
+proxy discovery disabled by the selected feature set, and a bounded overall
+attempt timeout; each request also receives the remaining shared poll budget.
+The client requests exactly
+`/system/status.json`, `/datasource/types.json`, and
+`/datasource/all_sources.json` with an API token in the `KISMET` cookie. It
+never calls `/session/check_session` (that endpoint validates browser login
+sessions, not API keys), `/datasource/list_interfaces.json`, or a mutating
+route. Redirects are reported as an error and cannot forward the cookie.
+
+The token and endpoint are opaque, non-serializable values. Their debug
+representations and every public error omit secret and URL details. Response
+bytes, JSON depth, source/type/list counts, string lengths, retries and
+backoff are bounded. A global poll deadline is shared across all three
+requests; the underlying socket is bounded by ureq's attempt timeout, while
+cooperative cancellation is checked before each request and during retry
+backoff. A syscall already blocked in a socket read can finish at that
+timeout before cancellation is observed.
+
+The supported producer version is the inspected acceptance tuple from the
+pinned Kismet source (`2026.09.0` with source identity `2d25ad0`, or its full
+40-character commit). Kismet's date version is a build date, so a future or
+otherwise syntactically valid version is rejected until a new pinned server
+review adds it. Missing or malformed versions/source identities, duplicate
+JSON object keys, unsupported root shapes and wrong known-field types fail
+closed. Unknown additive Kismet fields are not copied into Kyberia; the
+result records the known field names actually available. Missing channel,
+hop, source-error and server-clock fields remain `null`/unknown. Source error
+packet counts are operational counters, not packet observations or
+transport-drop measurements. Datasource inventory is sorted by UUID/type
+before canonical serialization and is never deduplicated across physical
+radios.
+
+`LiveStatusSnapshot::canonical_bytes` and `canonical_sha256` provide a stable,
+secret-free status receipt. The receipt is an operational capability snapshot,
+not a capture authorization, observation envelope, clock synchronization
+proof, channel legality claim, or measurement result. A real Kismet server
+parity gate remains open; the retained local TCP fixture proves transport and
+decoder behavior only.
 
 ## Database evidence boundary
 
