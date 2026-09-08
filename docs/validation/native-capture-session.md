@@ -34,8 +34,8 @@ checks that an included stream is rejected for a redacted scan request before
 the adapter mapping callback or durable publication. The owned-infrastructure
 mapping regression uses the same included stream and proves the callback is
 never reached. The limit/interface test builds a bounded two-observation
-stream and checks both requested observation limits and the active observed
-interface before mapping.
+stream from two active interfaces and checks both requested observation limits
+and rejection of a mixed active-source result before mapping.
 
 The unit tests in the `process` module cover typed option bounds, injection-like
 interface rejection, trusted-path checks and the complete terminal/exit

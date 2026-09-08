@@ -435,9 +435,9 @@ where
         if let Some(requested) = expected_interface {
             let observed = stream.observation_sources().collect::<Vec<_>>();
             if !observed.is_empty()
-                && !observed
+                && observed
                     .iter()
-                    .any(|(_, interface)| *interface == requested)
+                    .any(|(_, interface)| *interface != requested)
             {
                 return Err(NativeCaptureSessionError::InterfaceProvenanceMismatch);
             }

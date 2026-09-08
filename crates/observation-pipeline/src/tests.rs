@@ -249,12 +249,12 @@ fn synthetic_collector(
         SyntheticCollectorBehavior::Hang => "#!/bin/sh\n/bin/sleep 30\n".to_owned(),
         SyntheticCollectorBehavior::DescendantHoldingPipe => {
             format!(
-                "#!/bin/sh\n/bin/cat '{fixture_path}'\n/usr/bin/python3 -c 'import os,time; pid=os.fork(); os._exit(0) if pid else time.sleep(30)' &\nexit 0\n"
+                "#!/bin/sh\n/bin/cat '{fixture_path}'\n/usr/bin/python3 -c 'import os,time; pid=os.fork(); os._exit(0) if pid else time.sleep(30)'\nexit 0\n"
             )
         }
         SyntheticCollectorBehavior::EscapedDescendant => {
             format!(
-                "#!/bin/sh\n/bin/cat '{fixture_path}'\n/usr/bin/python3 -c 'import os,time; pid=os.fork(); os._exit(0) if pid else (os.setsid(),time.sleep(1))' &\nexit 0\n"
+                "#!/bin/sh\n/bin/cat '{fixture_path}'\n/usr/bin/python3 -c 'import os,time; pid=os.fork(); os._exit(0) if pid else (os.setsid(),time.sleep(1))'\nexit 0\n"
             )
         }
         SyntheticCollectorBehavior::Malformed => {
@@ -1332,25 +1332,31 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
 
     let (_script, flood_stdout) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::FloodStdout);
+    let flood_stdout_result = run(
+        &mut bundle,
+        &flood_stdout,
+        // Give the reader a scheduling margin under the default parallel
+        // suite; the producer remains unbounded until the byte guard fires.
+        CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    );
     assert!(matches!(
-        run(
-            &mut bundle,
-            &flood_stdout,
-            CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
-        ),
+        flood_stdout_result,
         Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stdout))
     ));
 
     let (_script, flood_stderr) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::FloodStderr);
+    let flood_stderr_result = run(
+        &mut bundle,
+        &flood_stderr,
+        // Give the reader a scheduling margin under the default parallel
+        // suite; the producer remains unbounded until the byte guard fires.
+        CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    );
     assert!(matches!(
-        run(
-            &mut bundle,
-            &flood_stderr,
-            CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
-        ),
+        flood_stderr_result,
         Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stderr))
     ));
 
@@ -1539,24 +1545,60 @@ fn supervised_process_rejects_included_identifiers_for_redacted_request_before_o
 
 #[cfg(unix)]
 #[test]
-fn supervised_process_binds_requested_limit_and_active_interface_before_mapping() {
-    let mut fixture = String::from_utf8(VALID.to_vec()).unwrap();
-    fixture = fixture.replacen("\"max_observations\":1", "\"max_observations\":2", 1);
-    let observation = fixture
+fn supervised_process_binds_requested_limit_and_mixed_active_interfaces_before_mapping() {
+    let fixture_text = String::from_utf8(VALID.to_vec()).unwrap();
+    let mut records = fixture_text
         .lines()
-        .nth(3)
+        .map(|line| serde_json::from_str::<serde_json::Value>(line).unwrap())
+        .collect::<Vec<_>>();
+    records[0]["max_observations"] = serde_json::Value::from(2);
+
+    let mut second_source = records[1]["sources"][0].clone();
+    second_source["source_id"] =
+        serde_json::Value::String("00000000-0000-4000-8000-000000000001:en1".to_owned());
+    second_source["interface_name"] = serde_json::Value::String("en1".to_owned());
+    records[1]["sources"]
+        .as_array_mut()
         .unwrap()
-        .replace(
-            "00000000-0000-4000-8000-000000000003",
-            "00000000-0000-4000-8000-000000000004",
-        )
-        .replace("\"sequence\":3", "\"sequence\":4");
-    let mut lines = fixture.lines().map(str::to_owned).collect::<Vec<_>>();
-    lines[4] = lines[4]
-        .replace("\"observation_count\":1", "\"observation_count\":2")
-        .replace("\"sequence\":4", "\"sequence\":5");
-    lines.insert(4, observation);
-    let fixture = lines.join("\n") + "\n";
+        .push(second_source);
+
+    let mut second_start = records[2].clone();
+    second_start["scan_id"] =
+        serde_json::Value::String("00000000-0000-4000-8000-000000000004".to_owned());
+    second_start["source_id"] =
+        serde_json::Value::String("00000000-0000-4000-8000-000000000001:en1".to_owned());
+    second_start["api_started_monotonic_ns"] = serde_json::Value::String("5000".to_owned());
+    second_start["sequence"] = serde_json::Value::from(4);
+    second_start["time"]["receipt_monotonic_ns"] = serde_json::Value::String("5000".to_owned());
+    records.insert(4, second_start);
+
+    let mut second_observation = records[3].clone();
+    second_observation["observation_id"] =
+        serde_json::Value::String("00000000-0000-4000-8000-000000000004".to_owned());
+    second_observation["scan_id"] =
+        serde_json::Value::String("00000000-0000-4000-8000-000000000004".to_owned());
+    second_observation["sequence"] = serde_json::Value::from(5);
+    second_observation["api_window"]["start_monotonic_ns"] =
+        serde_json::Value::String("5000".to_owned());
+    second_observation["api_window"]["end_monotonic_ns"] =
+        serde_json::Value::String("5500".to_owned());
+    second_observation["source"]["source_id"] =
+        serde_json::Value::String("00000000-0000-4000-8000-000000000001:en1".to_owned());
+    second_observation["source"]["interface_name"] = serde_json::Value::String("en1".to_owned());
+    second_observation["time"]["receipt_monotonic_ns"] =
+        serde_json::Value::String("6000".to_owned());
+    records.insert(5, second_observation);
+
+    records[6]["observation_count"] = serde_json::Value::from(2);
+    records[6]["sequence"] = serde_json::Value::from(6);
+    records[6]["time"]["receipt_monotonic_ns"] = serde_json::Value::String("7000".to_owned());
+    let fixture = records
+        .iter()
+        .map(serde_json::to_string)
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap()
+        .join("\n")
+        + "\n";
 
     let cases = [
         (
@@ -1590,7 +1632,10 @@ fn supervised_process_binds_requested_limit_and_active_interface_before_mapping(
             &request(129 + index as u8),
             &NeverCancel,
         );
-        assert!(matches!(result, Err(error) if error == expected));
+        assert!(
+            matches!(result, Err(ref error) if error == &expected),
+            "result: {result:?}"
+        );
         assert!(!mapping_called.get());
         assert!(
             bundle
