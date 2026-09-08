@@ -312,20 +312,25 @@ impl ReceivedObservationBatch {
         } else {
             RawSourceDisposition::NotRetained
         };
-        let source_reference_set = source_records
-            .iter()
-            .map(|record| record.reference.sha256)
-            .collect::<BTreeSet<_>>();
         let mut observation_ids = BTreeSet::new();
         for observation in &capture.observations {
             let data = observation.envelope().data();
             if !observation_ids.insert(data.id) {
                 return Err(BatchError::DuplicateObservation(data.id));
             }
-            if let Evidence::Known(reference) = &data.raw_source
-                && !source_reference_set.contains(&reference.sha256)
-            {
-                return Err(BatchError::MissingRawReference);
+            if let Evidence::Known(reference) = &data.raw_source {
+                if !source_records
+                    .iter()
+                    .any(|record| record.reference().sha256 == reference.sha256)
+                {
+                    return Err(BatchError::MissingRawReference);
+                }
+                if !source_records
+                    .iter()
+                    .any(|record| record.reference() == reference)
+                {
+                    return Err(BatchError::SourceReferenceMismatch);
+                }
             }
         }
 
@@ -561,14 +566,212 @@ pub trait CapturePersistencePort {
 }
 
 pub struct CapturePersistenceRequest<'a> {
-    pub manifest: &'a CaptureManifest,
-    pub raw_records: &'a [RawCaptureRecord],
-    pub observations: &'a [ObservationEnvelope],
-    pub snapshot_id: SnapshotId,
-    pub survey: &'a PointSurvey,
-    pub provenance_id: &'a Text,
-    pub published_utc_ms: i64,
-    pub cancel: &'a dyn Cancellation,
+    manifest: &'a CaptureManifest,
+    raw_records: &'a [RawCaptureRecord],
+    observations: &'a [ObservationEnvelope],
+    snapshot_id: SnapshotId,
+    survey: &'a PointSurvey,
+    provenance_id: &'a Text,
+    published_utc_ms: i64,
+    cancel: &'a dyn Cancellation,
+}
+
+impl<'a> CapturePersistenceRequest<'a> {
+    /// Construct a request only after checking the cross-object invariants
+    /// that must hold before an adapter can publish anything. The fields are
+    /// private so replaceable persistence ports cannot be bypassed with a
+    /// mismatched manifest, observation list or raw-record closure.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        manifest: &'a CaptureManifest,
+        raw_records: &'a [RawCaptureRecord],
+        observations: &'a [ObservationEnvelope],
+        snapshot_id: SnapshotId,
+        survey: &'a PointSurvey,
+        provenance_id: &'a Text,
+        published_utc_ms: i64,
+        cancel: &'a dyn Cancellation,
+    ) -> Result<Self, PortError> {
+        let request = Self {
+            manifest,
+            raw_records,
+            observations,
+            snapshot_id,
+            survey,
+            provenance_id,
+            published_utc_ms,
+            cancel,
+        };
+        request.validate()?;
+        Ok(request)
+    }
+
+    /// Revalidate at the adapter boundary as defense in depth for
+    /// crate-internal construction and future code changes. This method is
+    /// deliberately pure: it does no I/O and cannot mutate a bundle.
+    pub fn validate(&self) -> Result<(), PortError> {
+        if self.observations.len() > MAX_BATCH_OBSERVATIONS {
+            return Err(PortError::new(
+                PortErrorKind::Invalid,
+                "capture persistence observation limit exceeded",
+            ));
+        }
+        if self.manifest.source_records().len() > MAX_SOURCE_RECORDS {
+            return Err(PortError::new(
+                PortErrorKind::Invalid,
+                "capture persistence source-record limit exceeded",
+            ));
+        }
+        if self.published_utc_ms < 0 {
+            return Err(PortError::new(
+                PortErrorKind::Invalid,
+                "capture persistence time must be UTC",
+            ));
+        }
+        if usize::from(self.manifest.completion().observation_count()) != self.observations.len()
+            || self.manifest.observation_ids_in_source_order().len() != self.observations.len()
+        {
+            return Err(PortError::new(
+                PortErrorKind::Corrupt,
+                "capture manifest observation count differs from request",
+            ));
+        }
+
+        let mut observation_ids = BTreeSet::new();
+        for (index, observation) in self.observations.iter().enumerate() {
+            let id = observation.data().id;
+            if !observation_ids.insert(id)
+                || self.manifest.observation_ids_in_source_order()[index] != id
+            {
+                return Err(PortError::new(
+                    PortErrorKind::Corrupt,
+                    "capture manifest observation identity/order differs from request",
+                ));
+            }
+        }
+
+        let mut source_hashes = BTreeSet::new();
+        for source in self.manifest.source_records() {
+            if source.reference().byte_length > MAX_SOURCE_RECORD_BYTES as u64
+                || !source_hashes.insert(source.reference().sha256)
+            {
+                return Err(PortError::new(
+                    PortErrorKind::Corrupt,
+                    "capture manifest has an invalid or duplicate source reference",
+                ));
+            }
+        }
+        for observation in self.observations {
+            if let Evidence::Known(reference) = &observation.data().raw_source
+                && !self
+                    .manifest
+                    .source_records()
+                    .iter()
+                    .any(|source| source.reference() == reference)
+            {
+                return Err(PortError::new(
+                    PortErrorKind::Corrupt,
+                    "observation raw-source metadata has no manifest source record",
+                ));
+            }
+        }
+
+        let expected_retained = matches!(
+            self.manifest.raw_source_disposition(),
+            RawSourceDisposition::Retained
+        );
+        let observation_retention = self
+            .observations
+            .iter()
+            .map(|observation| {
+                matches!(
+                    observation.data().privacy.payload,
+                    PayloadRetention::Retained { .. }
+                )
+            })
+            .collect::<BTreeSet<_>>();
+        if observation_retention.len() > 1
+            || (!observation_retention.is_empty()
+                && observation_retention.first().copied() != Some(expected_retained))
+        {
+            return Err(PortError::new(
+                PortErrorKind::Corrupt,
+                "capture manifest retention disposition differs from observations",
+            ));
+        }
+        if self.raw_records.len()
+            != if expected_retained {
+                self.manifest.source_records().len()
+            } else {
+                0
+            }
+            || self
+                .raw_records
+                .iter()
+                .any(|record| record.bytes().len() > MAX_SOURCE_RECORD_BYTES)
+            || self.raw_records.iter().any(|record| {
+                record.reference().byte_length != record.bytes().len() as u64
+                    || record.reference().sha256
+                        != ContentHash::from_sha256(Sha256::digest(record.bytes()).into())
+                    || !self
+                        .manifest
+                        .source_records()
+                        .iter()
+                        .any(|source| source.reference() == record.reference())
+            })
+        {
+            return Err(PortError::new(
+                PortErrorKind::Corrupt,
+                "raw capture records do not match the manifest source closure",
+            ));
+        }
+        if expected_retained
+            && self.manifest.source_records().iter().any(|source| {
+                !self
+                    .raw_records
+                    .iter()
+                    .any(|record| record.reference() == source.reference())
+            })
+        {
+            return Err(PortError::new(
+                PortErrorKind::Corrupt,
+                "manifest source closure is missing a retained record",
+            ));
+        }
+        Ok(())
+    }
+
+    pub const fn manifest(&self) -> &'a CaptureManifest {
+        self.manifest
+    }
+
+    pub const fn raw_records(&self) -> &'a [RawCaptureRecord] {
+        self.raw_records
+    }
+
+    pub const fn observations(&self) -> &'a [ObservationEnvelope] {
+        self.observations
+    }
+
+    pub const fn snapshot_id(&self) -> SnapshotId {
+        self.snapshot_id
+    }
+
+    pub const fn survey(&self) -> &'a PointSurvey {
+        self.survey
+    }
+
+    pub const fn provenance_id(&self) -> &'a Text {
+        self.provenance_id
+    }
+
+    pub const fn published_utc_ms(&self) -> i64 {
+        self.published_utc_ms
+    }
+
+    pub const fn cancel(&self) -> &'a dyn Cancellation {
+        self.cancel
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -645,29 +848,29 @@ where
         return Err(PipelineError::Cancelled);
     }
 
-    let publication = port
-        .persist_capture(CapturePersistenceRequest {
-            manifest: &batch.manifest,
-            raw_records: &batch.raw_records,
-            observations: &envelopes,
-            snapshot_id: request.snapshot_id,
-            survey: &next,
-            provenance_id: &request.provenance_id,
-            published_utc_ms: request.published_utc_ms,
-            cancel,
-        })
-        .map_err(|error| {
-            if error.kind() == PortErrorKind::Cancelled && error.progress().is_none() {
-                PipelineError::Cancelled
-            } else if let Some(progress) = error.progress().cloned() {
-                PipelineError::Partial {
-                    progress: Box::new(progress),
-                    error,
-                }
-            } else {
-                PipelineError::Storage(error)
+    let persistence_request = CapturePersistenceRequest::new(
+        &batch.manifest,
+        &batch.raw_records,
+        &envelopes,
+        request.snapshot_id,
+        &next,
+        &request.provenance_id,
+        request.published_utc_ms,
+        cancel,
+    )
+    .map_err(PipelineError::Storage)?;
+    let publication = port.persist_capture(persistence_request).map_err(|error| {
+        if error.kind() == PortErrorKind::Cancelled && error.progress().is_none() {
+            PipelineError::Cancelled
+        } else if let Some(progress) = error.progress().cloned() {
+            PipelineError::Partial {
+                progress: Box::new(progress),
+                error,
             }
-        })?;
+        } else {
+            PipelineError::Storage(error)
+        }
+    })?;
     let expected_manifest_hash = ContentHash::from_sha256(
         Sha256::digest(&batch.manifest.canonical_bytes().map_err(|error| {
             PipelineError::Storage(PortError::new(PortErrorKind::Invalid, error))

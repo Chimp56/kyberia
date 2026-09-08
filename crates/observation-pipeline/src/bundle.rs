@@ -62,6 +62,7 @@ impl CapturePersistencePort for Bundle {
         &mut self,
         request: CapturePersistenceRequest<'_>,
     ) -> Result<PublicationProgress, PortError> {
+        request.validate()?;
         let CapturePersistenceRequest {
             manifest,
             raw_records,

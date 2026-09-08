@@ -699,3 +699,42 @@ fn future_wire_and_duplicate_observations_fail_closed() {
     wire["schema_version"] = serde_json::json!("2");
     assert!(serde_json::from_value::<PipelineRequest>(wire).is_err());
 }
+
+#[test]
+fn public_port_rejects_manifest_observation_mismatch_before_publication() {
+    let batch = batch();
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let req = request(60);
+    let result = bundle.persist_capture(CapturePersistenceRequest {
+        manifest: batch.manifest(),
+        raw_records: &[],
+        observations: &[],
+        snapshot_id: req.snapshot_id(),
+        survey: &survey,
+        provenance_id: &req.provenance_id,
+        published_utc_ms: req.published_utc_ms,
+        cancel: &NeverCancel,
+    });
+    assert!(result.is_err());
+    assert_eq!(bundle.manifest().unwrap().revision, 0);
+}
+
+#[test]
+fn raw_reference_metadata_must_match_the_referenced_source_record() {
+    let mut capture = normalized_capture(VALID, false);
+    let (envelope, response) = capture.observations[0].clone().into_parts();
+    let mut data = envelope.into_data();
+    let Evidence::Known(reference) = &mut data.raw_source else {
+        panic!("fixture must have a raw reference");
+    };
+    reference.byte_length += 1;
+    capture.observations[0] =
+        ReceivedObservation::new(ObservationEnvelope::new(data).unwrap(), response).unwrap();
+    assert!(matches!(
+        ReceivedObservationBatch::from_normalized_capture(capture),
+        Err(BatchError::SourceReferenceMismatch)
+    ));
+}
