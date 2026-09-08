@@ -1,0 +1,19 @@
+{
+  "name": "rfatlas-renderer-proof",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Deterministic browser renderer proof harness for RF Atlas Gate B",
+  "scripts": {
+    "serve": "vite --host 127.0.0.1 --port 4173",
+    "check": "node --check renderer.js && node --check benchmark.mjs && node --check package-inventory.mjs",
+    "test": "node --test fixture.test.mjs"
+  },
+  "dependencies": {
+    "ol": "10.10.0"
+  },
+  "devDependencies": {
+    "playwright": "1.60.0",
+    "vite": "8.1.5"
+  }
+}

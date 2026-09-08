@@ -1,0 +1,1424 @@
+{
+  "schema": "rfatlas-renderer-source-ledger-v1",
+  "generated": "2026-09-07",
+  "scope": "Phase 0 Gate B renderer research harness",
+  "redistribution": "No external map tiles, vendor assets, real captures, or copied source are redistributed by the harness.",
+  "sources": [
+    {
+      "id": "openlayers-api-10.10.0",
+      "kind": "primary-documentation",
+      "name": "OpenLayers API index",
+      "url": "https://openlayers.org/en/latest/apidoc/",
+      "revision": "10.10.0 documentation observed 2026-09-07",
+      "use": "Mature mapping candidate: map/view/layer/source/projection capabilities.",
+      "license": "BSD-2-Clause",
+      "redistribution": "The harness does not copy OpenLayers source; package installation remains external and pinned.",
+      "update": "Re-run the renderer proof and review API/lockfile/license changes on any version update."
+    },
+    {
+      "id": "openlayers-package-10.10.0",
+      "kind": "primary-package-metadata",
+      "name": "OpenLayers 10.10.0 package metadata",
+      "url": "https://raw.githubusercontent.com/openlayers/openlayers/v10.10.0/package.json",
+      "revision": "v10.10.0",
+      "use": "Pinned package version and declared dependency/license metadata.",
+      "license": "BSD-2-Clause",
+      "redistribution": "No package files are committed in this research artifact.",
+      "update": "Resolve and lock transitive dependencies before capture; review the upstream package metadata and notices."
+    },
+    {
+      "id": "openlayers-webgl-points",
+      "kind": "primary-documentation",
+      "name": "OpenLayers WebGL points example",
+      "url": "https://openlayers.org/en/latest/examples/webgl-points-layer.html",
+      "revision": "10.9/10.10 documentation family observed 2026-09-07",
+      "use": "Evidence that OpenLayers supplies a WebGL-optimized large-point layer; the proof uses its stable vector API for a controlled comparison.",
+      "license": "BSD-2-Clause (project; examples carry project terms)",
+      "redistribution": "No example source or assets copied.",
+      "update": "Recheck the supported WebGL layer API when changing the pinned package."
+    },
+    {
+      "id": "maplibre-custom-layer-api",
+      "kind": "primary-documentation",
+      "name": "MapLibre GL JS CustomLayerInterface",
+      "url": "https://maplibre.org/maplibre-gl-js/docs/API/interfaces/CustomLayerInterface/",
+      "revision": "documentation observed 2026-09-07",
+      "use": "Alternative mature WebGL mapping stack and evidence for explicit 2D/3D custom-layer modes, context loss, and render hooks.",
+      "license": "MapLibre GL JS BSD-3-Clause",
+      "redistribution": "No MapLibre runtime or source copied.",
+      "update": "Revisit if OpenLayers lacks required vector-tile/3D behavior after measured proof."
+    },
+    {
+      "id": "khronos-webgl2",
+      "kind": "standard",
+      "name": "WebGL 2.0 specification",
+      "url": "https://registry.khronos.org/webgl/specs/latest/2.0/",
+      "revision": "latest specification page observed 2026-09-07",
+      "use": "API contract for the custom WebGL2 candidate.",
+      "license": "Khronos specification terms",
+      "redistribution": "No specification text copied into runtime source.",
+      "update": "Recheck browser capability and conformance assumptions when changing the runtime target."
+    },
+    {
+      "id": "mdn-performance-api",
+      "kind": "primary-documentation",
+      "name": "MDN Performance API data guidance",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Performance_data",
+      "revision": "documentation observed 2026-09-07",
+      "use": "Timing API provenance and limits for the browser proof.",
+      "license": "CC BY-SA 2.5 (documentation)",
+      "redistribution": "No documentation text copied.",
+      "update": "Record actual browser API availability in every benchmark result."
+    },
+    {
+      "id": "vite-package-8.1.5",
+      "kind": "primary-package-metadata",
+      "name": "Vite 8.1.5 package metadata",
+      "url": "https://www.npmjs.com/package/vite",
+      "revision": "8.1.5 pinned in package.json and pnpm-lock.yaml",
+      "use": "Local-only static module server so the browser resolves the pinned OpenLayers package without external map assets.",
+      "license": "MIT",
+      "redistribution": "Vite is installed from the package registry and no bundled runtime files are committed by this research artifact.",
+      "update": "Review the package license, lockfile integrity, and browser proof when changing the server version."
+    },
+    {
+      "id": "playwright-package-1.60.0",
+      "kind": "primary-package-metadata",
+      "name": "Playwright 1.60.0 package metadata",
+      "url": "https://www.npmjs.com/package/playwright",
+      "revision": "1.60.0 pinned in package.json and pnpm-lock.yaml",
+      "use": "Regular Playwright fallback for retained browser benchmark and screenshot capture because the Browser plugin was unavailable.",
+      "license": "Apache-2.0",
+      "redistribution": "Playwright package and browser payload remain local ignored tooling; no browser binary is committed or redistributed.",
+      "update": "Record Browser plugin availability, review package/browser notices, and rerun both viewport matrices on any update."
+    },
+    {
+      "id": "playwright-browsers-documentation",
+      "kind": "primary-documentation",
+      "name": "Playwright browser installation documentation",
+      "url": "https://playwright.dev/docs/browsers",
+      "revision": "documentation observed 2026-09-07",
+      "use": "Local Chromium acquisition procedure for the reproducible browser proof.",
+      "license": "Documentation and browser payload retain upstream terms; no payload is redistributed by this harness.",
+      "redistribution": "The downloaded Chromium/ffmpeg/headless-shell files remain ignored local evidence tooling.",
+      "update": "Recheck browser version, notices, and runtime provenance when refreshing Playwright browsers."
+    },
+    {
+      "id": "synthetic-fixture",
+      "kind": "original",
+      "name": "RF Atlas deterministic renderer fixture",
+      "url": "research/renderer/fixture.js",
+      "revision": "rfatlas-renderer-synthetic-v1 seed 0x6d2b79f5",
+      "use": "Original bounded raster/vector/layer/overlay/tile/floor workloads.",
+      "license": "Repository license and contributor terms",
+      "redistribution": "Original source may be reviewed and redistributed with the repository.",
+      "update": "Changing the seed or generator requires a new fixture ID and a fresh comparison."
+    }
+  ],
+  "lockfile": {
+    "path": "research/renderer/pnpm-lock.yaml",
+    "sha256": "7a1b6f9b90c7980e088707e877d968f95a5571de13336c9c5041e8bb1c82ea8c",
+    "packageCount": 72
+  },
+  "inventoryGenerator": "research/renderer/package-inventory.mjs",
+  "packages": [
+    {
+      "name": "@emnapi/core",
+      "version": "1.11.1",
+      "lockKey": "@emnapi/core@1.11.1",
+      "license": "MIT",
+      "source": "git+https://github.com/toyobayashi/emnapi.git",
+      "repository": "git+https://github.com/toyobayashi/emnapi.git",
+      "archive": "https://registry.npmjs.org/@emnapi/core/-/core-1.11.1.tgz",
+      "integrity": "sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ==",
+      "metadataSource": "https://registry.npmjs.org/@emnapi%2fcore#1.11.1",
+      "packageJsonSha256": "41e59336ff3e0018192eabf1f34c06cf7bde5838c5ce9e66972f6665658be096",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@emnapi/runtime",
+      "version": "1.11.1",
+      "lockKey": "@emnapi/runtime@1.11.1",
+      "license": "MIT",
+      "source": "git+https://github.com/toyobayashi/emnapi.git",
+      "repository": "git+https://github.com/toyobayashi/emnapi.git",
+      "archive": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.11.1.tgz",
+      "integrity": "sha512-vgj7R3y3Wgx24IQaGPA/R6YFXLHVMOZ0uVEyIQPaWs+rd1AzfEMXlAC22FYwO1XkKR6NPsq7mUandH8oIRdZFw==",
+      "metadataSource": "https://registry.npmjs.org/@emnapi%2fruntime#1.11.1",
+      "packageJsonSha256": "fc2fcb1f22050c841e8da5d7442992ee5ae4549ba915fcdf05382cfcc4219f8e",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@emnapi/wasi-threads",
+      "version": "1.2.2",
+      "lockKey": "@emnapi/wasi-threads@1.2.2",
+      "license": "MIT",
+      "source": "git+https://github.com/toyobayashi/emnapi.git",
+      "repository": "git+https://github.com/toyobayashi/emnapi.git",
+      "archive": "https://registry.npmjs.org/@emnapi/wasi-threads/-/wasi-threads-1.2.2.tgz",
+      "integrity": "sha512-c95qOXkHdydNKhscBTebqEC1CVAZpyqOfVfBzQ1qgzyl3gfeldUjIggDbIZgDKsHLgnsM+igH7TJ/eAasaVuMA==",
+      "metadataSource": "https://registry.npmjs.org/@emnapi%2fwasi-threads#1.2.2",
+      "packageJsonSha256": "03c875839c8a97e99400bc0796ee60d99c27dc514639431f9bad3d8ffd71ffc9",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@napi-rs/wasm-runtime",
+      "version": "1.2.3",
+      "lockKey": "@napi-rs/wasm-runtime@1.2.3",
+      "license": "MIT",
+      "source": "git+https://github.com/napi-rs/napi-rs.git",
+      "repository": "git+https://github.com/napi-rs/napi-rs.git",
+      "archive": "https://registry.npmjs.org/@napi-rs/wasm-runtime/-/wasm-runtime-1.2.3.tgz",
+      "integrity": "sha512-UMduMbqO5s5zF2NkNacMT/yK5Y5QiKvWr2+50bzIIxFDwVJ2h49b+oyjaCGPhJxd2/gC2x39EHv/gHVuu36x2Q==",
+      "metadataSource": "https://registry.npmjs.org/@napi-rs%2fwasm-runtime#1.2.3",
+      "packageJsonSha256": "b309affce158a19b30efe93a7e95a20f98440ca48e47fa416e93dd4072062e4d",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@oxc-project/types",
+      "version": "0.139.0",
+      "lockKey": "@oxc-project/types@0.139.0",
+      "license": "MIT",
+      "source": "git+https://github.com/oxc-project/oxc.git",
+      "repository": "git+https://github.com/oxc-project/oxc.git",
+      "archive": "https://registry.npmjs.org/@oxc-project/types/-/types-0.139.0.tgz",
+      "integrity": "sha512-r9gHphtCs+1M7J0pw6Sn/hh/Wpa/iQrOOkrNAlVLF/gHq+/CJmHIWKKUUhdWjcD6CIa8idarspCsASiXCXvFUw==",
+      "metadataSource": "node_modules/.pnpm/@oxc-project+types@0.139.0/node_modules/@oxc-project/types/package.json",
+      "packageJsonSha256": "eef6453e4c0def41a77c29c353d166a822a8e71cbd218e8135a7d3c48768673d",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@petamoriken/float16",
+      "version": "3.9.3",
+      "lockKey": "@petamoriken/float16@3.9.3",
+      "license": "MIT",
+      "source": "https://github.com/petamoriken/float16.git",
+      "repository": "https://github.com/petamoriken/float16.git",
+      "archive": "https://registry.npmjs.org/@petamoriken/float16/-/float16-3.9.3.tgz",
+      "integrity": "sha512-8awtpHXCx/bNpFt4mt2xdkgtgVvKqty8VbjHI/WWWQuEw+KLzFot3f4+LkQY9YmOtq7A5GdOnqoIC8Pdygjk2g==",
+      "metadataSource": "node_modules/.pnpm/@petamoriken+float16@3.9.3/node_modules/@petamoriken/float16/package.json",
+      "packageJsonSha256": "65395549aa323df64082656d04541a20be42775c8cfe0345dd9f04aebe7585d9",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-android-arm64",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-android-arm64@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-android-arm64/-/binding-android-arm64-1.1.5.tgz",
+      "integrity": "sha512-lZg8fqIv2v7FF237bwMgzGZEJvGL79/s5knJ/i6FmsGF4XXlzccZ4jb+TrFIxtSSxFtIpdsgrPZeMk1I9AFcyQ==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-android-arm64#1.1.5",
+      "packageJsonSha256": "50f9882e9d46aee08197a62dfa9b2f2d76661dd2cec848b063145c422fe98d34",
+      "conditions": {
+        "os": [
+          "android"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-darwin-arm64",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-darwin-arm64@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-darwin-arm64/-/binding-darwin-arm64-1.1.5.tgz",
+      "integrity": "sha512-51Bnx9pNiMRKSUNtBfySkNJ9vMU9Hh3I1ozDd6gyPPYzaXCfnptUcEZxXGYFn+ul2dtcMUiqGR1Yai2K10uoTw==",
+      "metadataSource": "node_modules/.pnpm/@rolldown+binding-darwin-arm64@1.1.5/node_modules/@rolldown/binding-darwin-arm64/package.json",
+      "packageJsonSha256": "565355206dfd30fb50602ad8e93b3338171751994e87e39c53016ae2cefb159f",
+      "conditions": {
+        "os": [
+          "darwin"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-darwin-x64",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-darwin-x64@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-darwin-x64/-/binding-darwin-x64-1.1.5.tgz",
+      "integrity": "sha512-Tm+gbfC0aHu1tBA/JvKQh32S0K6YgCHkiAF4/W6xX0K0RmNuc94VeK419dJoE65R5aRxmo+noZQSWrAMF6yb6g==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-darwin-x64#1.1.5",
+      "packageJsonSha256": "d99e400cfb59b83745a8a75f6140f9b78f1710df129750827bf9097a2bd62dcf",
+      "conditions": {
+        "os": [
+          "darwin"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-freebsd-x64",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-freebsd-x64@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-freebsd-x64/-/binding-freebsd-x64-1.1.5.tgz",
+      "integrity": "sha512-JMzDKCCXq93YccG5gz3hvOs1oXRKAf0XYpfOS88e+wZrC8Iugj6j68867vrYZkvpDDpKn/KoKORThmchMpF6TA==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-freebsd-x64#1.1.5",
+      "packageJsonSha256": "6a0bcd6c8d302d4400175b132a62a0593dc8c94712662540d0c9c2eb5c520015",
+      "conditions": {
+        "os": [
+          "freebsd"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-linux-arm-gnueabihf",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-linux-arm-gnueabihf@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-linux-arm-gnueabihf/-/binding-linux-arm-gnueabihf-1.1.5.tgz",
+      "integrity": "sha512-uML21j2K5TfPGutKxub+M+nLjZIrWjXQ5Grx4lCe/nimTj9B4L63zHpjXLl4y0L3mcm2htEQIb06oCG/szerNw==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-linux-arm-gnueabihf#1.1.5",
+      "packageJsonSha256": "9f6c1776e5f29f1f605364650a342602838ad9df0b5a8f51c45d24114154077b",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "arm"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-linux-arm64-gnu",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-linux-arm64-gnu@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-linux-arm64-gnu/-/binding-linux-arm64-gnu-1.1.5.tgz",
+      "integrity": "sha512-navSiuTMogvnQoZoM/v+l3ZWo50/NTwSHSzheABx/RCnmUPaKwq9qSo4Br2OYRs21+Fz8uFqITZM3H4opOB0/Q==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-linux-arm64-gnu#1.1.5",
+      "packageJsonSha256": "7c681bf8921b9b740ae9d24111491343ffbe5680957e08e24dedec88d2ffe61c",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "arm64"
+        ],
+        "libc": [
+          "glibc"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-linux-arm64-musl",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-linux-arm64-musl@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-linux-arm64-musl/-/binding-linux-arm64-musl-1.1.5.tgz",
+      "integrity": "sha512-lAryqH7IteztmCXQXk0etKj4wBQ7Gx5S6LjKhsgp9zb8I5bsuvU/2llH1hDQcjsFeqIsovMVN339/8pUDDBXxA==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-linux-arm64-musl#1.1.5",
+      "packageJsonSha256": "f4fd36d4584a027997e222f12fb6722c3af237d4f74a164f1cdc0eee3dbc9e80",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "arm64"
+        ],
+        "libc": [
+          "musl"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-linux-ppc64-gnu",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-linux-ppc64-gnu@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-linux-ppc64-gnu/-/binding-linux-ppc64-gnu-1.1.5.tgz",
+      "integrity": "sha512-fsK/sNBnxzBlL4O1JNrZakVQxPspqpED5dLtNsZS9oOKmtSpdNIzxH2kkol5HYTWJN47sE20ztMJPxfZ89qGOg==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-linux-ppc64-gnu#1.1.5",
+      "packageJsonSha256": "d4c972400c57a724cb0ed11d9f9a4ad45fd8d3f3d4025bcf14d057511142ee92",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "ppc64"
+        ],
+        "libc": [
+          "glibc"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-linux-s390x-gnu",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-linux-s390x-gnu@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-linux-s390x-gnu/-/binding-linux-s390x-gnu-1.1.5.tgz",
+      "integrity": "sha512-gLYb4BIadlfTOYT5gO503n8zQjXflgzpD0FcyKh0Mzx3rqCZKnHoJWV9xe1KXUJ5lx2JfcSHr/mhzS0PC/McAA==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-linux-s390x-gnu#1.1.5",
+      "packageJsonSha256": "d87e3a207806594beb15fe1e3865e380f98c09e7f9244a9fe9c21f127e0b3ed2",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "s390x"
+        ],
+        "libc": [
+          "glibc"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-linux-x64-gnu",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-linux-x64-gnu@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-linux-x64-gnu/-/binding-linux-x64-gnu-1.1.5.tgz",
+      "integrity": "sha512-FjcpEKUyJygHgs1o50VYNvkt5+7Le/VEdYt0AkRpkL33MnyQfwr8l5mXwMmfmTbyMPr5vJLC+8/Gd9gXnwU1QQ==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-linux-x64-gnu#1.1.5",
+      "packageJsonSha256": "99e99dd163ee4c046f3bb154b3e2b526bccf70975e547bc33ba0918c7c43c729",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "x64"
+        ],
+        "libc": [
+          "glibc"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-linux-x64-musl",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-linux-x64-musl@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-linux-x64-musl/-/binding-linux-x64-musl-1.1.5.tgz",
+      "integrity": "sha512-Me+PfPI2TMeOQk0gYWfLQZtTktrmzbr8cDboqX83XKc7UrgAi55gF+2dUkWdxd19n55Essp2yeca+O9N5rBxHg==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-linux-x64-musl#1.1.5",
+      "packageJsonSha256": "9e4f18b31c01d6b8f9c85092bd6da604b7cc0859c9d95ef07bf0409400315b03",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "x64"
+        ],
+        "libc": [
+          "musl"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-openharmony-arm64",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-openharmony-arm64@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-openharmony-arm64/-/binding-openharmony-arm64-1.1.5.tgz",
+      "integrity": "sha512-yc5WrLzXks6zCQfn9Oxr8pORKyl/pF+QjHmW/Qx3qu0oyrrNC+y2JLTU1E2rcWYAmzlnqngWXHQjy51VzW70Vw==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-openharmony-arm64#1.1.5",
+      "packageJsonSha256": "8566090c2daff6f78117614ef95090218503f619642759364fcd2e16eedd9a1f",
+      "conditions": {
+        "os": [
+          "openharmony"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-wasm32-wasi",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-wasm32-wasi@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-wasm32-wasi/-/binding-wasm32-wasi-1.1.5.tgz",
+      "integrity": "sha512-VbQGPX2b4r48TAMIM2cjgluIM1HYutm4pcTEJsle7iEP7sB1dFqtPLBVbdLAZCxy1txCcPxf4QFf4v8uvltPqA==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-wasm32-wasi#1.1.5",
+      "packageJsonSha256": "586f823353280d4f22d50038cf83062ec7042f7d4ec15d87927aaf70d4d94f39",
+      "conditions": {
+        "cpu": [
+          "wasm32"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-win32-arm64-msvc",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-win32-arm64-msvc@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-1.1.5.tgz",
+      "integrity": "sha512-gHv82k63z4qpV5+Q1y/12KrK0ltWBukVDI8nZcbT7Tt/ZlOIVwppazneq0F93oDxTo3IgAMEDIoQh3E2n6mVsw==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-win32-arm64-msvc#1.1.5",
+      "packageJsonSha256": "61d1c316dbe8f5ad62c7c179d3ea4e7f6458fb73d57319fce7adbbf309bfbb1c",
+      "conditions": {
+        "os": [
+          "win32"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/binding-win32-x64-msvc",
+      "version": "1.1.5",
+      "lockKey": "@rolldown/binding-win32-x64-msvc@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/@rolldown/binding-win32-x64-msvc/-/binding-win32-x64-msvc-1.1.5.tgz",
+      "integrity": "sha512-tTZuDBPw85tEN5PQi1pnEBzDy0Z49HtScLAbD5t6hyeU92A95pRWaSMw1GZZi/RwgSgUIl0xrSlXIT/9QzvYSA==",
+      "metadataSource": "https://registry.npmjs.org/@rolldown%2fbinding-win32-x64-msvc#1.1.5",
+      "packageJsonSha256": "abf155b998df49a08a03d9a12233173e3ba166d6bd42915de3b734e78b0fd6ee",
+      "conditions": {
+        "os": [
+          "win32"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@rolldown/pluginutils",
+      "version": "1.0.1",
+      "lockKey": "@rolldown/pluginutils@1.0.1",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/plugins.git",
+      "repository": "git+https://github.com/rolldown/plugins.git",
+      "archive": "https://registry.npmjs.org/@rolldown/pluginutils/-/pluginutils-1.0.1.tgz",
+      "integrity": "sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==",
+      "metadataSource": "node_modules/.pnpm/@rolldown+pluginutils@1.0.1/node_modules/@rolldown/pluginutils/package.json",
+      "packageJsonSha256": "81784a8dd668e3673dcaa8aebc4e245c8a51ed9170ae72fb4b0b4ed10c5018d3",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@tybys/wasm-util",
+      "version": "0.10.3",
+      "lockKey": "@tybys/wasm-util@0.10.3",
+      "license": "MIT",
+      "source": "git+https://github.com/toyobayashi/wasm-util.git",
+      "repository": "git+https://github.com/toyobayashi/wasm-util.git",
+      "archive": "https://registry.npmjs.org/@tybys/wasm-util/-/wasm-util-0.10.3.tgz",
+      "integrity": "sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==",
+      "metadataSource": "https://registry.npmjs.org/@tybys%2fwasm-util#0.10.3",
+      "packageJsonSha256": "ea082d884923ba7bed94862baec42dbe914dbe41ea6e77ee0dcb4700b6e510f9",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@types/rbush",
+      "version": "4.0.0",
+      "lockKey": "@types/rbush@4.0.0",
+      "license": "MIT",
+      "source": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "archive": "https://registry.npmjs.org/@types/rbush/-/rbush-4.0.0.tgz",
+      "integrity": "sha512-+N+2H39P8X+Hy1I5mC6awlTX54k3FhiUmvt7HWzGJZvF+syUAAxP/stwppS8JE84YHqFgRMv6fCy31202CMFxQ==",
+      "metadataSource": "node_modules/.pnpm/@types+rbush@4.0.0/node_modules/@types/rbush/package.json",
+      "packageJsonSha256": "0c7931e4155e02e19674fa94e2777c2d07a2a7083e8e34c8af807dc53e2ad10c",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "@zarrita/storage",
+      "version": "0.2.0",
+      "lockKey": "@zarrita/storage@0.2.0",
+      "license": "MIT",
+      "source": "https://github.com/manzt/zarrita.js",
+      "repository": "https://github.com/manzt/zarrita.js",
+      "archive": "https://registry.npmjs.org/@zarrita/storage/-/storage-0.2.0.tgz",
+      "integrity": "sha512-855ZXqtnds7spnT8vNvD+MXa3QExP1m2GqShe8yt7uZXHnQLgJHgkpVwFjE1B0KDDRO0ki09hmk6OboTaIfPsQ==",
+      "metadataSource": "node_modules/.pnpm/@zarrita+storage@0.2.0/node_modules/@zarrita/storage/package.json",
+      "packageJsonSha256": "451078395341625e9c827dc3d55a57e6e538810b2298467815a55a3e945caa81",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "detect-libc",
+      "version": "2.1.2",
+      "lockKey": "detect-libc@2.1.2",
+      "license": "Apache-2.0",
+      "source": "git://github.com/lovell/detect-libc.git",
+      "repository": "git://github.com/lovell/detect-libc.git",
+      "archive": "https://registry.npmjs.org/detect-libc/-/detect-libc-2.1.2.tgz",
+      "integrity": "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==",
+      "metadataSource": "node_modules/.pnpm/detect-libc@2.1.2/node_modules/detect-libc/package.json",
+      "packageJsonSha256": "d5268d28707ed5af2b760b3e30cfe4a5b471ec0692f7ac8e048ea8dffc18b3a6",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "earcut",
+      "version": "3.2.3",
+      "lockKey": "earcut@3.2.3",
+      "license": "ISC",
+      "source": "git://github.com/mapbox/earcut.git",
+      "repository": "git://github.com/mapbox/earcut.git",
+      "archive": "https://registry.npmjs.org/earcut/-/earcut-3.2.3.tgz",
+      "integrity": "sha512-vnS4AVwp1KHAF13i1vp1/2D5evWy3k5u/iW/B81QVsUZtV8cv2tU0b2VNFlqvh4kYwrFMDdjPCfAmfyJW9y14Q==",
+      "metadataSource": "node_modules/.pnpm/earcut@3.2.3/node_modules/earcut/package.json",
+      "packageJsonSha256": "ee0311d85806c12ae2d9501804ae867cb220c8dd93a9aba162fe21f44b287f1f",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "fdir",
+      "version": "6.5.0",
+      "lockKey": "fdir@6.5.0",
+      "license": "MIT",
+      "source": "git+https://github.com/thecodrr/fdir.git",
+      "repository": "git+https://github.com/thecodrr/fdir.git",
+      "archive": "https://registry.npmjs.org/fdir/-/fdir-6.5.0.tgz",
+      "integrity": "sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==",
+      "metadataSource": "node_modules/.pnpm/fdir@6.5.0_picomatch@4.0.7/node_modules/fdir/package.json",
+      "packageJsonSha256": "cf0906ecb582ce57e8a136701e5f3e6975199b2ced0501bc13020446acb3d336",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "fflate",
+      "version": "0.8.3",
+      "lockKey": "fflate@0.8.3",
+      "license": "MIT",
+      "source": "https://github.com/101arrowz/fflate",
+      "repository": "https://github.com/101arrowz/fflate",
+      "archive": "https://registry.npmjs.org/fflate/-/fflate-0.8.3.tgz",
+      "integrity": "sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==",
+      "metadataSource": "node_modules/.pnpm/fflate@0.8.3/node_modules/fflate/package.json",
+      "packageJsonSha256": "75361b3a6fe12f6d00ec1b96d54e81e8028ce0ea8c7a2f18d9aa392f828acb5a",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "fsevents",
+      "version": "2.3.2",
+      "lockKey": "fsevents@2.3.2",
+      "license": "MIT",
+      "source": "https://github.com/fsevents/fsevents.git",
+      "repository": "https://github.com/fsevents/fsevents.git",
+      "archive": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz",
+      "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
+      "metadataSource": "node_modules/.pnpm/fsevents@2.3.2/node_modules/fsevents/package.json",
+      "packageJsonSha256": "de648cff44a605d6d03f4ae8c1a5432fe0c9b6edf039651d5dfeff7b92b673e2",
+      "conditions": {
+        "os": [
+          "darwin"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "fsevents",
+      "version": "2.3.3",
+      "lockKey": "fsevents@2.3.3",
+      "license": "MIT",
+      "source": "https://github.com/fsevents/fsevents.git",
+      "repository": "https://github.com/fsevents/fsevents.git",
+      "archive": "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz",
+      "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
+      "metadataSource": "node_modules/.pnpm/fsevents@2.3.3/node_modules/fsevents/package.json",
+      "packageJsonSha256": "0feec55206c83ccaa43ecf952cfc3be416060a4fedff5ad8fd0bd2d607962e1e",
+      "conditions": {
+        "os": [
+          "darwin"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "geotiff",
+      "version": "3.1.0-beta.0",
+      "lockKey": "geotiff@3.1.0-beta.0",
+      "license": "MIT",
+      "source": "git+https://github.com/geotiffjs/geotiff.js.git",
+      "repository": "git+https://github.com/geotiffjs/geotiff.js.git",
+      "archive": "https://registry.npmjs.org/geotiff/-/geotiff-3.1.0-beta.0.tgz",
+      "integrity": "sha512-wbVwOaQYuN+ywly5NoMXn37nHslwkQg5EFHqMeUTtjDACrSag0EEVlFsc+2DK3Pzmmp6XzJW2RTZOamPsBM6ng==",
+      "metadataSource": "node_modules/.pnpm/geotiff@3.1.0-beta.0/node_modules/geotiff/package.json",
+      "packageJsonSha256": "de2ae9258333cdbe63a269b200637c268cc09836726ea74cc2b23bb4719c1b07",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lerc",
+      "version": "3.0.0",
+      "lockKey": "lerc@3.0.0",
+      "license": "Apache-2.0",
+      "source": "https://github.com/Esri/lerc.git",
+      "repository": "https://github.com/Esri/lerc.git",
+      "archive": "https://registry.npmjs.org/lerc/-/lerc-3.0.0.tgz",
+      "integrity": "sha512-Rm4J/WaHhRa93nCN2mwWDZFoRVF18G1f47C+kvQWyHGEZxFpTUi73p7lMVSAndyxGt6lJ2/CFbOcf9ra5p8aww==",
+      "metadataSource": "node_modules/.pnpm/lerc@3.0.0/node_modules/lerc/package.json",
+      "packageJsonSha256": "13f21acd52d44ada538ac0f785eb1683a0548fde67983ca5c4968a840ac4726f",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-android-arm64",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-android-arm64@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-android-arm64/-/lightningcss-android-arm64-1.33.0.tgz",
+      "integrity": "sha512-gEpRTalKdosp4Bb8qWtc2iOgE5SeIHlpS1up9bFq2wAyYhl1UdTObYiHe98zEM9SQvSoqQZ1IQD0JNpg3Ml5pg==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-android-arm64#1.33.0",
+      "packageJsonSha256": "ce5d9cace8cc1a38ed8ac1d752056befa48d98112eef0bfb18a2bdc9722e98d2",
+      "conditions": {
+        "os": [
+          "android"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-darwin-arm64",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-darwin-arm64@1.33.0",
+      "license": "MPL-2.0",
+      "source": "https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-darwin-arm64/-/lightningcss-darwin-arm64-1.33.0.tgz",
+      "integrity": "sha512-Sciaz8eenNTKn9b3t7+xr0ipTp9YxKQY4npwQ3mrRuL0BAVHBLyZxofhaKBAVtzmtRZ/zTyo0/to4B1uWG/Djg==",
+      "metadataSource": "node_modules/.pnpm/lightningcss-darwin-arm64@1.33.0/node_modules/lightningcss-darwin-arm64/package.json",
+      "packageJsonSha256": "8501b2de01a27060de15d00c9f7c99559a53f5d82c56e53bd463fa402bb0a4ee",
+      "conditions": {
+        "os": [
+          "darwin"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-darwin-x64",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-darwin-x64@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-darwin-x64/-/lightningcss-darwin-x64-1.33.0.tgz",
+      "integrity": "sha512-Z5UPAxzrjlWNNyGy6i65cJzzvgJ5D3T6wMvs+gWpY9d7qRhANrxqAp6LhxIgZhWEw18RfJTGcRxjuLIBr+m8XQ==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-darwin-x64#1.33.0",
+      "packageJsonSha256": "b1c972c9e813e03557295fff787a721ac1cf7b9acef1247c0d57547b47eeac43",
+      "conditions": {
+        "os": [
+          "darwin"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-freebsd-x64",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-freebsd-x64@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-freebsd-x64/-/lightningcss-freebsd-x64-1.33.0.tgz",
+      "integrity": "sha512-QQM/Ti/hQajJwCY+RiWuCZ9sdtI/XQk7nDK5vC8kkdwixezOlDgvDx7+RT+QjK6FcFT4MpsuoBnHIo/O3StRRg==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-freebsd-x64#1.33.0",
+      "packageJsonSha256": "f386e39535fd1c62ec245ccaee2a0c1fe1a077c4ba3c08685d66e0756224a52a",
+      "conditions": {
+        "os": [
+          "freebsd"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-linux-arm-gnueabihf",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-linux-arm-gnueabihf@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-linux-arm-gnueabihf/-/lightningcss-linux-arm-gnueabihf-1.33.0.tgz",
+      "integrity": "sha512-N7FVBe6iS24MlM6R/4RBTxGhQheZGs7tiQ9U32UtF75NzP5Q7xWPRqLBCKxlRQRk3rY1jCIPLzx7WzOhuUIRLQ==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-linux-arm-gnueabihf#1.33.0",
+      "packageJsonSha256": "e808fceda455af2dbdabc0008b8b38db173c3eacd797da0cb4fbac5150d9ac0c",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "arm"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-linux-arm64-gnu",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-linux-arm64-gnu@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-linux-arm64-gnu/-/lightningcss-linux-arm64-gnu-1.33.0.tgz",
+      "integrity": "sha512-j2v/itmy4HlNxlc6voKXYgBqNi0Ng2LShg4z7GufpEgs05P+2suBVyi9I6YHq5uoVFx9ETin3eCEhLVyXGQnKg==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-linux-arm64-gnu#1.33.0",
+      "packageJsonSha256": "a986e72de7a48c58cde76b2ee3b0c5228bd6951b87fb488c0f8116e1b9bd04d6",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "arm64"
+        ],
+        "libc": [
+          "glibc"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-linux-arm64-musl",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-linux-arm64-musl@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-linux-arm64-musl/-/lightningcss-linux-arm64-musl-1.33.0.tgz",
+      "integrity": "sha512-yiO5ROMuYQgXbC60yjZU5CYSFZGKXL0HFATXt9mHJn1+zW55oCtMI9NfcVhYLMFDL7gV7oBPon/EmMMGg2OvtQ==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-linux-arm64-musl#1.33.0",
+      "packageJsonSha256": "0745f9b320e5c3386cdfc68f1487340b7e6f95995f0629c29eba18273c955750",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "arm64"
+        ],
+        "libc": [
+          "musl"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-linux-x64-gnu",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-linux-x64-gnu@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-linux-x64-gnu/-/lightningcss-linux-x64-gnu-1.33.0.tgz",
+      "integrity": "sha512-ar+Ju7LmcN0Jo4FpL4hpFybwNG9/3A/Br5KW2n2jyODg3MEZXaDYADdemoNS+BDNfMgKvylJLj4S5tyRActuAg==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-linux-x64-gnu#1.33.0",
+      "packageJsonSha256": "e5dd8c89ebaf468a90d88d27187d3440731831a07ee0492fb303dd7245c8cc2f",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "x64"
+        ],
+        "libc": [
+          "glibc"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-linux-x64-musl",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-linux-x64-musl@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-linux-x64-musl/-/lightningcss-linux-x64-musl-1.33.0.tgz",
+      "integrity": "sha512-RYiYbkokw0trfKqqzfF55lginwEPrD3OJDfTuJzFs1MK6iFnDenaz1fqLLtX4ITG3OktJQXOeTaw1awrBAlZPw==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-linux-x64-musl#1.33.0",
+      "packageJsonSha256": "b9a152413c5171f20e35a2bef1010a74b5ec7fec330077112d88799c09cf74b8",
+      "conditions": {
+        "os": [
+          "linux"
+        ],
+        "cpu": [
+          "x64"
+        ],
+        "libc": [
+          "musl"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-win32-arm64-msvc",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-win32-arm64-msvc@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-win32-arm64-msvc/-/lightningcss-win32-arm64-msvc-1.33.0.tgz",
+      "integrity": "sha512-1K+MPfLSFVpphzpdbfkhlWk6wBrTObBzS2T6db10PNOZgR9GoVsAWzwNyuhUYYbTp23j+4RrncfujZ4uAzXvwA==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-win32-arm64-msvc#1.33.0",
+      "packageJsonSha256": "4e370dda3e4996552bc88a59a262eea8f298fc1a4eb67e3dd71220525471f069",
+      "conditions": {
+        "os": [
+          "win32"
+        ],
+        "cpu": [
+          "arm64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss-win32-x64-msvc",
+      "version": "1.33.0",
+      "lockKey": "lightningcss-win32-x64-msvc@1.33.0",
+      "license": "MPL-2.0",
+      "source": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "git+https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.33.0.tgz",
+      "integrity": "sha512-OlEICDx/Xl0FqSp4bry8zFnCvGpig3Gl4gCquvYwHuqJKEC1+n9NgDniFvqHGmMv1ZkqDJrDqKKSykTDX+ehuA==",
+      "metadataSource": "https://registry.npmjs.org/lightningcss-win32-x64-msvc#1.33.0",
+      "packageJsonSha256": "96f6e952d5690fd1c8018d8690244800ffb269edf03ab885b9b0d95c86a458df",
+      "conditions": {
+        "os": [
+          "win32"
+        ],
+        "cpu": [
+          "x64"
+        ]
+      },
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "lightningcss",
+      "version": "1.33.0",
+      "lockKey": "lightningcss@1.33.0",
+      "license": "MPL-2.0",
+      "source": "https://github.com/parcel-bundler/lightningcss.git",
+      "repository": "https://github.com/parcel-bundler/lightningcss.git",
+      "archive": "https://registry.npmjs.org/lightningcss/-/lightningcss-1.33.0.tgz",
+      "integrity": "sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA==",
+      "metadataSource": "node_modules/.pnpm/lightningcss@1.33.0/node_modules/lightningcss/package.json",
+      "packageJsonSha256": "fa02b67509f580bcbcafa6b78f2a26556660079137178f150ae68648f9f79259",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "nanoid",
+      "version": "3.3.18",
+      "lockKey": "nanoid@3.3.18",
+      "license": "MIT",
+      "source": "ai/nanoid",
+      "repository": "ai/nanoid",
+      "archive": "https://registry.npmjs.org/nanoid/-/nanoid-3.3.18.tgz",
+      "integrity": "sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==",
+      "metadataSource": "node_modules/.pnpm/nanoid@3.3.18/node_modules/nanoid/package.json",
+      "packageJsonSha256": "eb7ccb490d438e117aaec202a6ced041afec258a8351d0a10b7466ec34fde15d",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "numcodecs",
+      "version": "0.3.2",
+      "lockKey": "numcodecs@0.3.2",
+      "license": "MIT",
+      "source": "https://github.com/manzt/numcodecs.js.git",
+      "repository": "https://github.com/manzt/numcodecs.js.git",
+      "archive": "https://registry.npmjs.org/numcodecs/-/numcodecs-0.3.2.tgz",
+      "integrity": "sha512-6YSPnmZgg0P87jnNhi3s+FVLOcIn3y+1CTIgUulA3IdASzK9fJM87sUFkpyA+be9GibGRaST2wCgkD+6U+fWKw==",
+      "metadataSource": "node_modules/.pnpm/numcodecs@0.3.2/node_modules/numcodecs/package.json",
+      "packageJsonSha256": "35b1a7fe544afb67ea7ea408fa6ae5348c7a2321e0a738c9cb46916847b8fba8",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "ol",
+      "version": "10.10.0",
+      "lockKey": "ol@10.10.0",
+      "license": "BSD-2-Clause",
+      "source": "git://github.com/openlayers/openlayers.git",
+      "repository": "git://github.com/openlayers/openlayers.git",
+      "archive": "https://registry.npmjs.org/ol/-/ol-10.10.0.tgz",
+      "integrity": "sha512-tLPKn6zl+6uWdPufYlqG/lQzuVUTVmfwahQqVr5+wZNyZecyAtIhMTyOtKpu7ooNDLY2sEjKZNXw9HL+sOjC1A==",
+      "metadataSource": "node_modules/.pnpm/ol@10.10.0/node_modules/ol/package.json",
+      "packageJsonSha256": "8898cb4baa0555fc5be38e66fb19df4767bf515f85589d3db276b6697c74dbf5",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "pako",
+      "version": "2.2.0",
+      "lockKey": "pako@2.2.0",
+      "license": "(MIT AND Zlib)",
+      "source": "nodeca/pako",
+      "repository": "nodeca/pako",
+      "archive": "https://registry.npmjs.org/pako/-/pako-2.2.0.tgz",
+      "integrity": "sha512-zJq6RP/5q+TO2OpFV3FHzlPnFjmkb7Nc99a5SNjJE+uu/PkpChs+NIZSSzbBoD+6kjiISXjfYdwj1ZRQ81dz/w==",
+      "metadataSource": "node_modules/.pnpm/pako@2.2.0/node_modules/pako/package.json",
+      "packageJsonSha256": "a4c96bf959290f5a473de89fa882cd393c9b1eb7a8aabc65ad4f2013cc8dbae9",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "parse-headers",
+      "version": "2.0.6",
+      "lockKey": "parse-headers@2.0.6",
+      "license": "MIT",
+      "source": "https://github.com/kesla/parse-headers.git",
+      "repository": "https://github.com/kesla/parse-headers.git",
+      "archive": "https://registry.npmjs.org/parse-headers/-/parse-headers-2.0.6.tgz",
+      "integrity": "sha512-Tz11t3uKztEW5FEVZnj1ox8GKblWn+PvHY9TmJV5Mll2uHEwRdR/5Li1OlXoECjLYkApdhWy44ocONwXLiKO5A==",
+      "metadataSource": "node_modules/.pnpm/parse-headers@2.0.6/node_modules/parse-headers/package.json",
+      "packageJsonSha256": "93271e4862d81aa48bb6a2fc517181a0593de5e0a45b1891999e89313cec19e5",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "pbf",
+      "version": "5.1.2",
+      "lockKey": "pbf@5.1.2",
+      "license": "BSD-3-Clause",
+      "source": "git+ssh://git@github.com/mapbox/pbf.git",
+      "repository": "git+ssh://git@github.com/mapbox/pbf.git",
+      "archive": "https://registry.npmjs.org/pbf/-/pbf-5.1.2.tgz",
+      "integrity": "sha512-mnvGdvOrIvJOBGUEdGkrVXjN8E/VkIJCkf2eS1DH2yv82ORUlLttmDt0rWY38yYZmVwciZwBUvHM20qxBZf40w==",
+      "metadataSource": "node_modules/.pnpm/pbf@5.1.2/node_modules/pbf/package.json",
+      "packageJsonSha256": "cf5698d5d44d69780b4b5f0a8210a6b2e5662074073cd159eb958c983179cecc",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "picocolors",
+      "version": "1.1.1",
+      "lockKey": "picocolors@1.1.1",
+      "license": "ISC",
+      "source": "alexeyraspopov/picocolors",
+      "repository": "alexeyraspopov/picocolors",
+      "archive": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
+      "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==",
+      "metadataSource": "node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/package.json",
+      "packageJsonSha256": "8c242b5703632e817f3dcd3e34c27c9a02d13a175bfcaa29622524e0cb6e298c",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "picomatch",
+      "version": "4.0.7",
+      "lockKey": "picomatch@4.0.7",
+      "license": "MIT",
+      "source": "micromatch/picomatch",
+      "repository": "micromatch/picomatch",
+      "archive": "https://registry.npmjs.org/picomatch/-/picomatch-4.0.7.tgz",
+      "integrity": "sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==",
+      "metadataSource": "node_modules/.pnpm/picomatch@4.0.7/node_modules/picomatch/package.json",
+      "packageJsonSha256": "b482491603d723ba30eea21d99d43f90a05d7ec7cb0dd500f8c8e4da337b42b8",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "playwright-core",
+      "version": "1.60.0",
+      "lockKey": "playwright-core@1.60.0",
+      "license": "Apache-2.0",
+      "source": "git+https://github.com/microsoft/playwright.git",
+      "repository": "git+https://github.com/microsoft/playwright.git",
+      "archive": "https://registry.npmjs.org/playwright-core/-/playwright-core-1.60.0.tgz",
+      "integrity": "sha512-9bW6zvX/m0lEbgTKJ6YppOKx8H3VOPBMOCFh2irXFOT4BbHgrx5hPjwJYLT40Lu+4qtD36qKc/Hn56StUW57IA==",
+      "metadataSource": "node_modules/.pnpm/playwright-core@1.60.0/node_modules/playwright-core/package.json",
+      "packageJsonSha256": "dc4729579b0047a9f25fbd849f3f7f187867692d9f9e70ebb85157d513f089ff",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "playwright",
+      "version": "1.60.0",
+      "lockKey": "playwright@1.60.0",
+      "license": "Apache-2.0",
+      "source": "git+https://github.com/microsoft/playwright.git",
+      "repository": "git+https://github.com/microsoft/playwright.git",
+      "archive": "https://registry.npmjs.org/playwright/-/playwright-1.60.0.tgz",
+      "integrity": "sha512-hheHdokM8cdqCb0lcE3s+zT4t4W+vvjpGxsZlDnikarzx8tSzMebh3UiFtgqwFwnTnjYQcsyMF8ei2mCO/tpeA==",
+      "metadataSource": "node_modules/.pnpm/playwright@1.60.0/node_modules/playwright/package.json",
+      "packageJsonSha256": "a74dc4200a7d3727ef1f38036f88d4bec7bdd8951fa864739cc3620fe5c0e3eb",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "postcss",
+      "version": "8.5.28",
+      "lockKey": "postcss@8.5.28",
+      "license": "MIT",
+      "source": "postcss/postcss",
+      "repository": "postcss/postcss",
+      "archive": "https://registry.npmjs.org/postcss/-/postcss-8.5.28.tgz",
+      "integrity": "sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==",
+      "metadataSource": "node_modules/.pnpm/postcss@8.5.28/node_modules/postcss/package.json",
+      "packageJsonSha256": "a1e24a0b7fee976c920e52c3f3da608331ace4fadc321b72dbd49d2c99638abb",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "protocol-buffers-schema",
+      "version": "3.6.1",
+      "lockKey": "protocol-buffers-schema@3.6.1",
+      "license": "MIT",
+      "source": "https://github.com/mafintosh/protocol-buffers-schema",
+      "repository": "https://github.com/mafintosh/protocol-buffers-schema",
+      "archive": "https://registry.npmjs.org/protocol-buffers-schema/-/protocol-buffers-schema-3.6.1.tgz",
+      "integrity": "sha512-VG2K63Igkiv9p76tk1lilczEK1cT+kCjKtkdhw1dQZV3k3IXJbd3o6Ho8b9zJZaHSnT2hKe4I+ObmX9w6m5SmQ==",
+      "metadataSource": "node_modules/.pnpm/protocol-buffers-schema@3.6.1/node_modules/protocol-buffers-schema/package.json",
+      "packageJsonSha256": "5cc4b456ff156fa022ad03f465d228ecfc0cbeeca86b043a02dbd5845b68d6dd",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "quick-lru",
+      "version": "6.1.2",
+      "lockKey": "quick-lru@6.1.2",
+      "license": "MIT",
+      "source": "sindresorhus/quick-lru",
+      "repository": "sindresorhus/quick-lru",
+      "archive": "https://registry.npmjs.org/quick-lru/-/quick-lru-6.1.2.tgz",
+      "integrity": "sha512-AAFUA5O1d83pIHEhJwWCq/RQcRukCkn/NSm2QsTEMle5f2hP0ChI2+3Xb051PZCkLryI/Ir1MVKviT2FIloaTQ==",
+      "metadataSource": "node_modules/.pnpm/quick-lru@6.1.2/node_modules/quick-lru/package.json",
+      "packageJsonSha256": "c0fb63b04c84dc7092b409ef06e8f599b5d477c4c160126ee3dbb9d1d0989a7b",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "quickselect",
+      "version": "3.0.0",
+      "lockKey": "quickselect@3.0.0",
+      "license": "ISC",
+      "source": "github:mourner/quickselect",
+      "repository": "github:mourner/quickselect",
+      "archive": "https://registry.npmjs.org/quickselect/-/quickselect-3.0.0.tgz",
+      "integrity": "sha512-XdjUArbK4Bm5fLLvlm5KpTFOiOThgfWWI4axAZDWg4E/0mKdZyI9tNEfds27qCi1ze/vwTR16kvmmGhRra3c2g==",
+      "metadataSource": "node_modules/.pnpm/quickselect@3.0.0/node_modules/quickselect/package.json",
+      "packageJsonSha256": "a4635d9a12ae72029c7c63a5c050ee2e2535f4b0510f560c73a1a875d3ab9771",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "rbush",
+      "version": "4.0.1",
+      "lockKey": "rbush@4.0.1",
+      "license": "MIT",
+      "source": "git://github.com/mourner/rbush.git",
+      "repository": "git://github.com/mourner/rbush.git",
+      "archive": "https://registry.npmjs.org/rbush/-/rbush-4.0.1.tgz",
+      "integrity": "sha512-IP0UpfeWQujYC8Jg162rMNc01Rf0gWMMAb2Uxus/Q0qOFw4lCcq6ZnQEZwUoJqWyUGJ9th7JjwI4yIWo+uvoAQ==",
+      "metadataSource": "node_modules/.pnpm/rbush@4.0.1/node_modules/rbush/package.json",
+      "packageJsonSha256": "49c45396b3bbf43d672e9111f03b2207ccc5721685ea3b1eb37b5dc6bed2e60b",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "reference-spec-reader",
+      "version": "0.2.0",
+      "lockKey": "reference-spec-reader@0.2.0",
+      "license": "MIT",
+      "source": "https://www.npmjs.com/package/reference-spec-reader/v/0.2.0",
+      "repository": null,
+      "archive": "https://registry.npmjs.org/reference-spec-reader/-/reference-spec-reader-0.2.0.tgz",
+      "integrity": "sha512-q0mfCi5yZSSHXpCyxjgQeaORq3tvDsxDyzaadA/5+AbAUwRyRuuTh0aRQuE/vAOt/qzzxidJ5iDeu1cLHaNBlQ==",
+      "metadataSource": "node_modules/.pnpm/reference-spec-reader@0.2.0/node_modules/reference-spec-reader/package.json",
+      "packageJsonSha256": "b2b81707183871cad1fc5f7e620df8eb0924794e2ad526e1893be2fad4fd8d94",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "resolve-protobuf-schema",
+      "version": "2.1.0",
+      "lockKey": "resolve-protobuf-schema@2.1.0",
+      "license": "MIT",
+      "source": "https://github.com/mafintosh/resolve-protobuf-schema.git",
+      "repository": "https://github.com/mafintosh/resolve-protobuf-schema.git",
+      "archive": "https://registry.npmjs.org/resolve-protobuf-schema/-/resolve-protobuf-schema-2.1.0.tgz",
+      "integrity": "sha512-kI5ffTiZWmJaS/huM8wZfEMer1eRd7oJQhDuxeCLe3t7N7mX3z94CN0xPxBQxFYQTSNz9T0i+v6inKqSdK8xrQ==",
+      "metadataSource": "node_modules/.pnpm/resolve-protobuf-schema@2.1.0/node_modules/resolve-protobuf-schema/package.json",
+      "packageJsonSha256": "2c839a27864b81165b7d643f464f1ce39655fa0ec39ea4da143411f5c35992f4",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "rolldown",
+      "version": "1.1.5",
+      "lockKey": "rolldown@1.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/rolldown/rolldown.git",
+      "repository": "git+https://github.com/rolldown/rolldown.git",
+      "archive": "https://registry.npmjs.org/rolldown/-/rolldown-1.1.5.tgz",
+      "integrity": "sha512-t9z29cJjXf/vxQ8dyhCSpt6H6aSwHTk8cT5I3iy6SMXuFpk5mB6PL6XfC8PCwrPTx93udwKUm9HRteAlTGBLiA==",
+      "metadataSource": "node_modules/.pnpm/rolldown@1.1.5/node_modules/rolldown/package.json",
+      "packageJsonSha256": "44abca34325a33517b8dc65fc5e842453fb80ff1eb5bb5b8210723438748b6c5",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "source-map-js",
+      "version": "1.2.1",
+      "lockKey": "source-map-js@1.2.1",
+      "license": "BSD-3-Clause",
+      "source": "7rulnik/source-map-js",
+      "repository": "7rulnik/source-map-js",
+      "archive": "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz",
+      "integrity": "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==",
+      "metadataSource": "node_modules/.pnpm/source-map-js@1.2.1/node_modules/source-map-js/package.json",
+      "packageJsonSha256": "32fd1359567d10efb599476bdae6d354ea36d129655a623f5200b78cd3446e15",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "tinyglobby",
+      "version": "0.2.17",
+      "lockKey": "tinyglobby@0.2.17",
+      "license": "MIT",
+      "source": "git+https://github.com/SuperchupuDev/tinyglobby.git",
+      "repository": "git+https://github.com/SuperchupuDev/tinyglobby.git",
+      "archive": "https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.17.tgz",
+      "integrity": "sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==",
+      "metadataSource": "node_modules/.pnpm/tinyglobby@0.2.17/node_modules/tinyglobby/package.json",
+      "packageJsonSha256": "24bfd9038ea5d02f0061591784ddeeeb5340f5f197572ab427ea434407597a20",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "tslib",
+      "version": "2.8.1",
+      "lockKey": "tslib@2.8.1",
+      "license": "0BSD",
+      "source": "git+https://github.com/Microsoft/tslib.git",
+      "repository": "git+https://github.com/Microsoft/tslib.git",
+      "archive": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==",
+      "metadataSource": "https://registry.npmjs.org/tslib#2.8.1",
+      "packageJsonSha256": "70df55046e3fd61c30a4953ef2e99240e929df0db64fa88f21c6bc686055d51c",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "unzipit",
+      "version": "2.0.0",
+      "lockKey": "unzipit@2.0.0",
+      "license": "MIT",
+      "source": "git+https://github.com/greggman/unzipit.git",
+      "repository": "git+https://github.com/greggman/unzipit.git",
+      "archive": "https://registry.npmjs.org/unzipit/-/unzipit-2.0.0.tgz",
+      "integrity": "sha512-DVeVIWUZCAQPNzm5sB0hpsG1GygTTdBnzNtYYEpInkttx5evkyqRgZi6rTczoySqp8hO5jHVKzrH0f23X8FZLg==",
+      "metadataSource": "node_modules/.pnpm/unzipit@2.0.0/node_modules/unzipit/package.json",
+      "packageJsonSha256": "3c11e7af393c84000f150114cc824e2f6cad05da6c02e5573df11d5e05fa9d13",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "vite",
+      "version": "8.1.5",
+      "lockKey": "vite@8.1.5",
+      "license": "MIT",
+      "source": "git+https://github.com/vitejs/vite.git",
+      "repository": "git+https://github.com/vitejs/vite.git",
+      "archive": "https://registry.npmjs.org/vite/-/vite-8.1.5.tgz",
+      "integrity": "sha512-7ULLwsCdYx/nRyrpiEwvqb5TFHrMVZyBt+rg/OAXT7rgj/z+DtTDyKFeLAdDkubDVDKD8jOsndmy7m55XcfUsw==",
+      "metadataSource": "node_modules/.pnpm/vite@8.1.5/node_modules/vite/package.json",
+      "packageJsonSha256": "9617ec7c193e6689dcbfe6f97cbdb6aa224a118c6c13ee0ebc2b60ef1338912f",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "web-worker",
+      "version": "1.5.0",
+      "lockKey": "web-worker@1.5.0",
+      "license": "Apache-2.0",
+      "source": "developit/web-worker",
+      "repository": "developit/web-worker",
+      "archive": "https://registry.npmjs.org/web-worker/-/web-worker-1.5.0.tgz",
+      "integrity": "sha512-RiMReJrTAiA+mBjGONMnjVDP2u3p9R1vkcGz6gDIrOMT3oGuYwX2WRMYI9ipkphSuE5XKEhydbhNEJh4NY9mlw==",
+      "metadataSource": "node_modules/.pnpm/web-worker@1.5.0/node_modules/web-worker/package.json",
+      "packageJsonSha256": "b7aad16029806b2c5c52dd31913aa192584dd8f7bec9f0486506c0980c896730",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "xml-utils",
+      "version": "1.10.2",
+      "lockKey": "xml-utils@1.10.2",
+      "license": "CC0-1.0",
+      "source": "git+https://github.com/DanielJDufour/xml-utils.git",
+      "repository": "git+https://github.com/DanielJDufour/xml-utils.git",
+      "archive": "https://registry.npmjs.org/xml-utils/-/xml-utils-1.10.2.tgz",
+      "integrity": "sha512-RqM+2o1RYs6T8+3DzDSoTRAUfrvaejbVHcp3+thnAtDKo8LskR+HomLajEy5UjTz24rpka7AxVBRR3g2wTUkJA==",
+      "metadataSource": "node_modules/.pnpm/xml-utils@1.10.2/node_modules/xml-utils/package.json",
+      "packageJsonSha256": "758f4e944aaad8aceb358870b422f1e5c7091725c4488185ae0df57551e82f63",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "zarrita",
+      "version": "0.7.5",
+      "lockKey": "zarrita@0.7.5",
+      "license": "MIT",
+      "source": "https://github.com/manzt/zarrita.js",
+      "repository": "https://github.com/manzt/zarrita.js",
+      "archive": "https://registry.npmjs.org/zarrita/-/zarrita-0.7.5.tgz",
+      "integrity": "sha512-ZriOSEne+Wf2iuM0yjDZvUKpHNlug3dO7qJ6mAxXoOgsYV18DPOkAkwB9e0rf21bHcKcOffFuwoZwn5g6pvUeA==",
+      "metadataSource": "node_modules/.pnpm/zarrita@0.7.5/node_modules/zarrita/package.json",
+      "packageJsonSha256": "e68bc7182bb8e9d7b816b64bffe7b933147dc16ea64ab7001f84fe39432973f1",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    },
+    {
+      "name": "zstddec",
+      "version": "0.2.0",
+      "lockKey": "zstddec@0.2.0",
+      "license": "MIT AND BSD-3-Clause",
+      "source": "github:donmccurdy/zstddec",
+      "repository": "github:donmccurdy/zstddec",
+      "archive": "https://registry.npmjs.org/zstddec/-/zstddec-0.2.0.tgz",
+      "integrity": "sha512-oyPnDa1X5c13+Y7mA/FDMNJrn4S8UNBe0KCqtDmor40Re7ALrPN6npFwyYVRRh+PqozZQdeg23QtbcamZnG5rA==",
+      "metadataSource": "node_modules/.pnpm/zstddec@0.2.0/node_modules/zstddec/package.json",
+      "packageJsonSha256": "f7499d3d168b5f897e906503badd55fc767a8bdb8083b2cd4b606f6dc04c97fd",
+      "conditions": {},
+      "redistribution": "Dependency remains an external pinned npm package; this harness does not copy its source or assets.",
+      "update": "On version or lockfile updates, regenerate this inventory, review license/source changes, and rerun the renderer proof."
+    }
+  ],
+  "packageCount": 72
+}
