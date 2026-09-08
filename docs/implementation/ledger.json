@@ -70040,8 +70040,8 @@
         {
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Closed canonical metric-definition binding and configured coincident aggregation",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -70060,8 +70060,8 @@
         {
           "path": "docs/validation/spatial-signal-aggregation.md",
           "description": "Canonical binding, numerical, provenance and benchmark validation",
-          "revision": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
-          "sha256": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
+          "revision": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
+          "sha256": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
           "command": "cargo test -p kyberia-spatial-analysis -p kyberia-wifi-semantics --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -70093,8 +70093,8 @@
       "adr": {
         "path": "docs/architecture/ADR/0013-spatial-signal-aggregation-boundary.md",
         "description": "Verified typed metric definitions drive spatial coincident aggregation",
-        "revision": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
-        "sha256": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
+        "revision": "577291d4e3fca9fe3bcef483d77b7d32d21bd6611b86843adf6c1bfa2333420e",
+        "sha256": "577291d4e3fca9fe3bcef483d77b7d32d21bd6611b86843adf6c1bfa2333420e",
         "decision_status": "ACCEPTED",
         "accepted_by": "/root after independent /root/spatial_review_luna review",
         "reason": "Eliminate hidden dBm averaging and prevent artifact/method provenance mismatch",
@@ -121888,18 +121888,20 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "Spatial analysis / Wi-Fi semantics",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
       "implementation": [
         {
           "path": "crates/spatial-analysis/src/model.rs",
-          "description": "Closed canonical metric-definition binding and configured coincident aggregation",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -121912,16 +121914,40 @@
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
           "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
           "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        },
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/spatial-signal-aggregation.md",
           "description": "Canonical binding, numerical, provenance and benchmark validation",
-          "revision": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
-          "sha256": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
+          "revision": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
+          "sha256": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
           "command": "cargo test -p kyberia-spatial-analysis -p kyberia-wifi-semantics --locked --offline",
           "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
           "result": "PASS"
         }
       ],
@@ -121945,18 +121971,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
-        "path": "docs/architecture/ADR/0013-spatial-signal-aggregation-boundary.md",
-        "description": "Verified typed metric definitions drive spatial coincident aggregation",
-        "revision": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
-        "sha256": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/spatial_review_luna review",
-        "reason": "Eliminate hidden dBm averaging and prevent artifact/method provenance mismatch",
-        "preserved_product_intent": "Retains deterministic explicit aggregation, exact evidence identity, unknown areas, and rejects temporal methods without timestamps"
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
       },
       "parent_id": "source:heading:d9466dfa2e0a27ae0628:1",
       "children": [
@@ -122049,18 +122100,20 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "Spatial analysis / Wi-Fi semantics",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
       "implementation": [
         {
           "path": "crates/spatial-analysis/src/model.rs",
-          "description": "Closed canonical metric-definition binding and configured coincident aggregation",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -122073,16 +122126,40 @@
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
           "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
           "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        },
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/spatial-signal-aggregation.md",
           "description": "Canonical binding, numerical, provenance and benchmark validation",
-          "revision": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
-          "sha256": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
+          "revision": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
+          "sha256": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
           "command": "cargo test -p kyberia-spatial-analysis -p kyberia-wifi-semantics --locked --offline",
           "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
           "result": "PASS"
         }
       ],
@@ -122106,18 +122183,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
-        "path": "docs/architecture/ADR/0013-spatial-signal-aggregation-boundary.md",
-        "description": "Verified typed metric definitions drive spatial coincident aggregation",
-        "revision": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
-        "sha256": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/spatial_review_luna review",
-        "reason": "Eliminate hidden dBm averaging and prevent artifact/method provenance mismatch",
-        "preserved_product_intent": "Retains deterministic explicit aggregation, exact evidence identity, unknown areas, and rejects temporal methods without timestamps"
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
       },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
@@ -122195,19 +122297,20 @@
         }
       ],
       "status": "VALIDATED",
-      "owner": "Spatial analysis / Wi-Fi semantics",
+      "owner": "Spatial analysis / architecture",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash",
         "Canonical signal metric definition binds a validated identifier/version to exact artifact bytes"
       ],
       "implementation": [
         {
           "path": "crates/spatial-analysis/src/model.rs",
-          "description": "Closed canonical metric-definition binding and configured coincident aggregation",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -122220,16 +122323,40 @@
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
           "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
           "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        },
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/spatial-signal-aggregation.md",
           "description": "Canonical binding, numerical, provenance and benchmark validation",
-          "revision": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
-          "sha256": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
+          "revision": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
+          "sha256": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
           "command": "cargo test -p kyberia-spatial-analysis -p kyberia-wifi-semantics --locked --offline",
           "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
           "result": "PASS"
         }
       ],
@@ -122253,18 +122380,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
-        "path": "docs/architecture/ADR/0013-spatial-signal-aggregation-boundary.md",
-        "description": "Verified typed metric definitions drive spatial coincident aggregation",
-        "revision": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
-        "sha256": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/spatial_review_luna review",
-        "reason": "Eliminate hidden dBm averaging and prevent artifact/method provenance mismatch",
-        "preserved_product_intent": "Retains deterministic explicit aggregation, exact evidence identity, unknown areas, and rejects temporal methods without timestamps"
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
       },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
@@ -122298,17 +122450,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122341,17 +122562,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122384,17 +122674,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122428,19 +122787,20 @@
         }
       ],
       "status": "VALIDATED",
-      "owner": "Spatial analysis / Wi-Fi semantics",
+      "owner": "Spatial analysis / architecture",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash",
         "Metric artifact and requested aggregation method/parameters must match exactly"
       ],
       "implementation": [
         {
           "path": "crates/spatial-analysis/src/model.rs",
-          "description": "Closed canonical metric-definition binding and configured coincident aggregation",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -122453,16 +122813,40 @@
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
           "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
           "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        },
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/spatial-signal-aggregation.md",
           "description": "Canonical binding, numerical, provenance and benchmark validation",
-          "revision": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
-          "sha256": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
+          "revision": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
+          "sha256": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
           "command": "cargo test -p kyberia-spatial-analysis -p kyberia-wifi-semantics --locked --offline",
           "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
           "result": "PASS"
         }
       ],
@@ -122486,18 +122870,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
-        "path": "docs/architecture/ADR/0013-spatial-signal-aggregation-boundary.md",
-        "description": "Verified typed metric definitions drive spatial coincident aggregation",
-        "revision": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
-        "sha256": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/spatial_review_luna review",
-        "reason": "Eliminate hidden dBm averaging and prevent artifact/method provenance mismatch",
-        "preserved_product_intent": "Retains deterministic explicit aggregation, exact evidence identity, unknown areas, and rejects temporal methods without timestamps"
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
       },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
@@ -122531,17 +122940,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122574,17 +123052,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122617,17 +123164,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122660,17 +123276,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122703,17 +123388,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -122746,17 +123500,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:f99278a418b5b3fec524:1",
       "children": []
     },
@@ -166466,17 +167289,86 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture/domain",
+      "status": "VALIDATED",
+      "owner": "Spatial analysis / architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "A bounded canonical metric definition supplies identifier/version, description, unit/range, evidence/capabilities, aggregation, spatial selection, filters/grouping, uncertainty/unknown behavior, compatibility, visualization defaults, and compliance direction; UI and compute expose the same content hash"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:e06648333b04880af91d:1",
       "children": []
     },
@@ -170193,8 +171085,8 @@
         {
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -170273,8 +171165,8 @@
         {
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -185926,17 +186818,101 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Architecture / Spatial analysis",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Deterministic canonical analysis manifests and metric definitions retain exact hashes, reject malformed or incompatible inputs, and bind computation to inspectable provenance"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/registry.rs",
+          "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
+          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
+          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+        },
+        {
+          "path": "crates/domain/src/analysis.rs",
+          "description": "Canonical immutable analysis manifest and artifact references",
+          "revision": "7ee0556dcfde25aaaf59e3f269714c64f0adfdada1b679f0627ae5bce0f1377b",
+          "sha256": "7ee0556dcfde25aaaf59e3f269714c64f0adfdada1b679f0627ae5bce0f1377b"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/metric_registry.rs",
+          "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
+          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/metric-registry.md",
+          "description": "Metric registry contract and validation results",
+          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/domain/tests/analysis_manifest.rs",
+          "description": "Analysis manifest canonicalization, validation, and mutation tests",
+          "revision": "573a3ed6042eba5a226654870e04e762cf848ca98b0f47fec7ad934e431412dd",
+          "sha256": "573a3ed6042eba5a226654870e04e762cf848ca98b0f47fec7ad934e431412dd",
+          "command": "cargo test -p kyberia-domain --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/metric-registry-review.md",
+          "description": "Independent compatibility, scientific-unit, spatial-binding, and resource-bound review",
+          "revision": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "sha256": "703fc4051d28e5888b27118e947137740ffd767d626c080d2c2b8b099a5ec9f1",
+          "reviewer": "/root/operation_log_luna after correction by /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Previously validated signal metric artifacts became unreadable",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "dBm subtraction returned dBm instead of dB",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Numerical configuration could ignore the metric's declared spatial method",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0017-metric-registry.md",
+        "description": "Canonical deterministic metric registry with strict legacy artifact migration",
+        "revision": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "sha256": "77fd0b235dd0fc8cf4f5b1eaf9d2f9c0e442e50b43d229fe2c8435e9caba6942",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/operation_log_luna review",
+        "reason": "Provide one bounded source of metric semantics for UI help, validation, and numerical computation",
+        "preserved_product_intent": "Preserves typed units, explicit unknown and uncertainty policy, deterministic definitions, inspectable semantics, and readable historical projects"
+      },
       "parent_id": "source:heading:ce9856ec797cab458008:1",
       "children": []
     },
@@ -232703,8 +233679,8 @@
         {
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Closed canonical metric-definition binding and configured coincident aggregation",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -232723,8 +233699,8 @@
         {
           "path": "docs/validation/spatial-signal-aggregation.md",
           "description": "Canonical binding, numerical, provenance and benchmark validation",
-          "revision": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
-          "sha256": "688dc4265d553bba085cf809098a00f42aa26ee5249f47388f7296d2432568bb",
+          "revision": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
+          "sha256": "2b1704f1067b0aabdc2511d1d623d3a4682da4a51f7f3388bf1503b864f21f9e",
           "command": "cargo test -p kyberia-spatial-analysis -p kyberia-wifi-semantics --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -232756,8 +233732,8 @@
       "adr": {
         "path": "docs/architecture/ADR/0013-spatial-signal-aggregation-boundary.md",
         "description": "Verified typed metric definitions drive spatial coincident aggregation",
-        "revision": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
-        "sha256": "dbf4589cc64df5b5b9101413f41b82af65c9a360518a3e6e8d229d0533d5772e",
+        "revision": "577291d4e3fca9fe3bcef483d77b7d32d21bd6611b86843adf6c1bfa2333420e",
+        "sha256": "577291d4e3fca9fe3bcef483d77b7d32d21bd6611b86843adf6c1bfa2333420e",
         "decision_status": "ACCEPTED",
         "accepted_by": "/root after independent /root/spatial_review_luna review",
         "reason": "Eliminate hidden dBm averaging and prevent artifact/method provenance mismatch",
@@ -235948,8 +236924,8 @@
         {
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
@@ -236114,8 +237090,8 @@
         {
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
-          "revision": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae",
-          "sha256": "7475a765a3bc958f5a9274a8d347c20dc7ac855345a3e4635368db5ab94105ae"
+          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
+          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
