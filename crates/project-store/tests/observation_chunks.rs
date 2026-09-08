@@ -13,8 +13,8 @@ use kyberia_domain::{
     units::{Dbm, Seconds},
 };
 use kyberia_project_store::{
-    ArtifactEntry, ArtifactKind, Bundle, MAX_OBSERVATION_CHUNK_BYTES, ObservationChunkProvenance,
-    OpenMode, StoreError, content_hash,
+    ArtifactEntry, ArtifactKind, Bundle, MAX_OBSERVATION_CHUNK_BYTES, MAX_OBSERVATION_CHUNK_ROWS,
+    MAX_OBSERVATION_QUERY_IDS, ObservationChunkProvenance, OpenMode, StoreError, content_hash,
 };
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 use std::{
@@ -675,6 +675,311 @@ fn observation_chunk_symlink_is_rejected_before_reading_target() {
     fs::remove_file(&path).unwrap();
     symlink("/etc/passwd", &path).unwrap();
     assert!(project.list_observation_chunks().is_err());
+}
+
+#[test]
+fn indexed_observation_selection_is_sorted_and_reopens_exactly() {
+    let retained = tempfile::tempdir().unwrap().keep();
+    let root = retained.join("project");
+    let mut project = bundle(&root);
+    let input = vec![
+        observation(3, 30, 30),
+        observation(1, 10, 10),
+        observation(2, 20, 20),
+    ];
+    project
+        .publish_observation_chunk(&input, "fixture:indexed-query", 30)
+        .unwrap();
+    let selected = project
+        .read_observations_by_id(&[
+            ObservationId::from_bytes([3; 16]).unwrap(),
+            ObservationId::from_bytes([1; 16]).unwrap(),
+        ])
+        .unwrap();
+    assert_eq!(
+        selected
+            .iter()
+            .map(|observation| observation.data().id)
+            .collect::<Vec<_>>(),
+        vec![
+            ObservationId::from_bytes([1; 16]).unwrap(),
+            ObservationId::from_bytes([3; 16]).unwrap(),
+        ]
+    );
+    drop(project);
+    let reopened = Bundle::open(&root, OpenMode::ReadOnly).unwrap();
+    assert_eq!(
+        reopened
+            .read_observations_by_id(&[
+                ObservationId::from_bytes([3; 16]).unwrap(),
+                ObservationId::from_bytes([1; 16]).unwrap(),
+            ])
+            .unwrap(),
+        selected
+    );
+}
+
+#[test]
+fn indexed_observation_selection_reports_missing_duplicate_and_cancelled_requests() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    project
+        .publish_observation_chunk(&[observation(1, 1, 1)], "fixture:indexed-errors", 2)
+        .unwrap();
+    let missing = ObservationId::from_bytes([99; 16]).unwrap();
+    assert!(matches!(
+        project.read_observations_by_id(&[
+            ObservationId::from_bytes([1; 16]).unwrap(),
+            missing,
+        ]),
+        Err(StoreError::Invalid(message)) if message.contains("missing requested IDs") && message.contains(&String::from(missing))
+    ));
+    assert!(matches!(
+        project.read_observations_by_id(&[
+            ObservationId::from_bytes([1; 16]).unwrap(),
+            ObservationId::from_bytes([1; 16]).unwrap(),
+        ]),
+        Err(StoreError::Invalid(message)) if message.contains("duplicate ID")
+    ));
+    assert!(matches!(
+        project.read_observations_by_id_with_cancel(
+            &[ObservationId::from_bytes([1; 16]).unwrap()],
+            &|| true,
+        ),
+        Err(StoreError::Cancelled)
+    ));
+    assert!(matches!(
+        project.read_observations_by_id_with_cancel(&[], &|| true),
+        Err(StoreError::Cancelled)
+    ));
+}
+
+#[test]
+fn indexed_query_cancellation_after_a_selected_decode_never_returns_partial() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    project
+        .publish_observation_chunk(&[observation(1, 1, 1)], "fixture:cancel-one", 2)
+        .unwrap();
+    project
+        .publish_observation_chunk(&[observation(2, 2, 2)], "fixture:cancel-two", 2)
+        .unwrap();
+    let checks = AtomicUsize::new(0);
+    let cancel_after_first_decode = || checks.fetch_add(1, Ordering::SeqCst) >= 5;
+    let result = project.read_observations_by_id_with_cancel(
+        &[
+            ObservationId::from_bytes([1; 16]).unwrap(),
+            ObservationId::from_bytes([2; 16]).unwrap(),
+        ],
+        &cancel_after_first_decode,
+    );
+    assert!(matches!(result, Err(StoreError::Cancelled)));
+    assert!(checks.load(Ordering::SeqCst) >= 5);
+}
+
+#[test]
+fn selected_index_and_provenance_tampering_fail_closed() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    let _descriptor = project
+        .publish_observation_chunk(
+            &[observation(1, 1, 1), observation(2, 2, 2)],
+            "fixture:indexed-tamper",
+            2,
+        )
+        .unwrap();
+    let db = rusqlite::Connection::open(root.join("project.sqlite")).unwrap();
+    db.execute(
+        "UPDATE observation_chunk_members SET ordinal=1 WHERE observation_id=?1",
+        [String::from(ObservationId::from_bytes([1; 16]).unwrap())],
+    )
+    .unwrap();
+    assert!(matches!(
+        project.read_observations_by_id(&[ObservationId::from_bytes([1; 16]).unwrap()]),
+        Err(StoreError::Corrupt(_))
+    ));
+    drop(db);
+
+    let root = tempfile::tempdir().unwrap().keep().join("provenance");
+    let mut project = bundle(&root);
+    let descriptor = project
+        .publish_observation_chunk(&[observation(1, 1, 1)], "fixture:indexed-provenance", 2)
+        .unwrap();
+    let db = rusqlite::Connection::open(root.join("project.sqlite")).unwrap();
+    db.execute(
+        "UPDATE observation_chunks SET provenance_id=?1 WHERE chunk_hash=?2",
+        ("tampered-provenance", descriptor.hash()),
+    )
+    .unwrap();
+    assert!(matches!(
+        project.read_observations_by_id(&[ObservationId::from_bytes([1; 16]).unwrap()]),
+        Err(StoreError::Corrupt(message)) if message.contains("manifest entry mismatch")
+    ));
+}
+
+#[test]
+fn selected_future_publication_revision_is_rejected() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    let descriptor = project
+        .publish_observation_chunk(&[observation(1, 1, 1)], "fixture:future-revision", 2)
+        .unwrap();
+    let db = rusqlite::Connection::open(root.join("project.sqlite")).unwrap();
+    db.execute(
+        "UPDATE observation_chunks SET revision=revision+1 WHERE chunk_hash=?1",
+        [descriptor.hash()],
+    )
+    .unwrap();
+    assert!(matches!(
+        project.read_observations_by_id(&[ObservationId::from_bytes([1; 16]).unwrap()]),
+        Err(StoreError::Corrupt(message)) if message.contains("ahead of the manifest")
+    ));
+}
+
+#[test]
+fn indexed_query_ignores_unrelated_corrupt_chunks_at_scale() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    let selected = project
+        .publish_observation_chunk(&[observation(1, 1, 1)], "fixture:selected", 2)
+        .unwrap();
+    let mut unrelated = Vec::new();
+    for id in 2..=129_u8 {
+        unrelated.push(
+            project
+                .publish_observation_chunk(
+                    &[observation(id, i64::from(id), u64::from(id))],
+                    format!("fixture:unrelated-{id}"),
+                    i64::from(id),
+                )
+                .unwrap(),
+        );
+    }
+    for descriptor in unrelated {
+        fs::write(root.join("artifacts").join(descriptor.hash()), b"corrupt").unwrap();
+    }
+    let result = project
+        .read_observations_by_id(&[ObservationId::from_bytes([1; 16]).unwrap()])
+        .unwrap();
+    assert_eq!(result, vec![observation(1, 1, 1)]);
+    assert!(project.read_observation_chunk(selected.hash()).is_err());
+}
+
+#[test]
+fn indexed_query_rejects_selection_and_selected_decode_budgets() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    let descriptor = project
+        .publish_observation_chunk(&[observation(1, 1, 1)], "fixture:query-budget", 2)
+        .unwrap();
+    let too_many = (0..=MAX_OBSERVATION_QUERY_IDS)
+        .map(|value| ObservationId::from_bytes((value as u128 + 1).to_be_bytes()).unwrap())
+        .collect::<Vec<_>>();
+    assert!(matches!(
+        project.read_observations_by_id(&too_many),
+        Err(StoreError::Invalid(message)) if message.contains("selection limit")
+    ));
+    let db = rusqlite::Connection::open(root.join("project.sqlite")).unwrap();
+    db.execute(
+        "UPDATE observation_chunks SET bytes=?1 WHERE chunk_hash=?2",
+        (
+            i64::try_from(MAX_OBSERVATION_CHUNK_BYTES + 1).unwrap(),
+            descriptor.hash(),
+        ),
+    )
+    .unwrap();
+    assert!(matches!(
+        project.read_observations_by_id(&[ObservationId::from_bytes([1; 16]).unwrap()]),
+        Err(StoreError::Corrupt(message)) if message.contains("byte length")
+    ));
+
+    let rows_root = tempfile::tempdir().unwrap().keep().join("rows");
+    let mut rows_project = bundle(&rows_root);
+    let mut row_ids = Vec::new();
+    let mut row_descriptors = Vec::new();
+    for id in 1..=5_u8 {
+        row_ids.push(ObservationId::from_bytes([id; 16]).unwrap());
+        row_descriptors.push(
+            rows_project
+                .publish_observation_chunk(
+                    &[observation(id, i64::from(id), u64::from(id))],
+                    format!("fixture:query-rows-{id}"),
+                    i64::from(id),
+                )
+                .unwrap(),
+        );
+    }
+    let rows_db = rusqlite::Connection::open(rows_root.join("project.sqlite")).unwrap();
+    for descriptor in &row_descriptors {
+        rows_db
+            .execute(
+                "UPDATE observation_chunks SET row_count=?1 WHERE chunk_hash=?2",
+                (MAX_OBSERVATION_CHUNK_ROWS as i64, descriptor.hash()),
+            )
+            .unwrap();
+    }
+    assert!(matches!(
+        rows_project.read_observations_by_id(&row_ids),
+        Err(StoreError::Invalid(message)) if message.contains("decode budget")
+    ));
+
+    let bytes_root = tempfile::tempdir().unwrap().keep().join("bytes");
+    let mut bytes_project = bundle(&bytes_root);
+    let mut byte_ids = Vec::new();
+    let mut byte_descriptors = Vec::new();
+    for id in 1..=2_u8 {
+        byte_ids.push(ObservationId::from_bytes([id; 16]).unwrap());
+        byte_descriptors.push(
+            bytes_project
+                .publish_observation_chunk(
+                    &[observation(id, i64::from(id), u64::from(id))],
+                    format!("fixture:query-bytes-{id}"),
+                    i64::from(id),
+                )
+                .unwrap(),
+        );
+    }
+    let bytes_db = rusqlite::Connection::open(bytes_root.join("project.sqlite")).unwrap();
+    for descriptor in &byte_descriptors {
+        bytes_db
+            .execute(
+                "UPDATE observation_chunks SET bytes=?1 WHERE chunk_hash=?2",
+                (
+                    i64::try_from(MAX_OBSERVATION_CHUNK_BYTES).unwrap(),
+                    descriptor.hash(),
+                ),
+            )
+            .unwrap();
+    }
+    assert!(matches!(
+        bytes_project.read_observations_by_id(&byte_ids),
+        Err(StoreError::Invalid(message)) if message.contains("selected byte budget")
+    ));
+
+    fn observation_with_query_id(value: u16) -> ObservationEnvelope {
+        let mut data = observation(1, i64::from(value), u64::from(value)).into_data();
+        data.id = ObservationId::from_bytes(u128::from(value).to_be_bytes()).unwrap();
+        ObservationEnvelope::new(data).unwrap()
+    }
+
+    let chunks_root = tempfile::tempdir().unwrap().keep().join("chunks");
+    let mut chunks_project = bundle(&chunks_root);
+    let mut chunk_ids = Vec::new();
+    for value in 1..=129_u16 {
+        let envelope = observation_with_query_id(value);
+        chunk_ids.push(envelope.data().id);
+        chunks_project
+            .publish_observation_chunk(
+                &[envelope],
+                format!("fixture:query-chunks-{value}"),
+                i64::from(value),
+            )
+            .unwrap();
+    }
+    assert!(matches!(
+        chunks_project.read_observations_by_id(&chunk_ids),
+        Err(StoreError::Invalid(message)) if message.contains("selected chunk limit")
+    ));
 }
 
 #[test]

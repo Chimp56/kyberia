@@ -15,7 +15,7 @@ use kyberia_domain::identity::{ObservationId, SessionId, SourceId};
 use kyberia_domain::observation::ObservationEnvelope;
 use rusqlite::{OptionalExtension, TransactionBehavior, params};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// The current canonical ObservationEnvelope schema.
 pub const OBSERVATION_SCHEMA_VERSION: u32 = 2;
@@ -41,6 +41,14 @@ pub const MAX_OBSERVATION_CHUNK_BYTES: u64 = MAX_ARTIFACT_BYTES;
 pub const MAX_OBSERVATION_CHUNKS: u64 = 10_000;
 /// Maximum rows materialized by `read_observations` in one call.
 pub const MAX_OBSERVATIONS_PER_READ: u64 = 2_000_000;
+/// Maximum IDs accepted by one indexed selection query.
+pub const MAX_OBSERVATION_QUERY_IDS: usize = 4_096;
+/// Maximum distinct immutable chunks decoded by one indexed selection query.
+pub const MAX_OBSERVATION_QUERY_CHUNKS: usize = 128;
+/// Maximum rows decoded across the selected chunks in one query.
+pub const MAX_OBSERVATION_QUERY_DECODED_ROWS: u64 = 262_144;
+/// Maximum selected chunk bytes materialized across one query.
+pub const MAX_OBSERVATION_QUERY_BYTES: u64 = MAX_OBSERVATION_CHUNK_BYTES;
 
 /// Provenance and publication metadata supplied by the owning use case.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -260,13 +268,19 @@ pub trait ObservationChunkStore {
     ) -> Result<ObservationChunkDescriptor>;
     fn list_observation_chunks(&self) -> Result<Vec<ObservationChunkDescriptor>>;
     fn read_observation_chunk(&self, hash: &str) -> Result<Vec<ObservationEnvelope>>;
+    fn read_observations_by_id(&self, ids: &[ObservationId]) -> Result<Vec<ObservationEnvelope>>;
+    fn read_observations_by_id_with_cancel(
+        &self,
+        ids: &[ObservationId],
+        cancel: &dyn Cancellation,
+    ) -> Result<Vec<ObservationEnvelope>>;
 }
 
 fn cancelled() -> StoreError {
     StoreError::Cancelled
 }
 
-fn check_cancel<C: Cancellation>(cancel: &C) -> Result<()> {
+fn check_cancel<C: Cancellation + ?Sized>(cancel: &C) -> Result<()> {
     if cancel.is_cancelled() {
         Err(cancelled())
     } else {
@@ -559,6 +573,11 @@ fn verify_descriptor(
 ) -> Result<Vec<ObservationEnvelope>> {
     validate_descriptor(descriptor)?;
     let manifest = bundle.manifest()?;
+    if descriptor.revision > manifest.revision {
+        return Err(StoreError::Corrupt(
+            "observation chunk publication revision is ahead of the manifest".into(),
+        ));
+    }
     let entry = manifest
         .artifacts
         .get(&descriptor.hash)
@@ -658,6 +677,56 @@ fn verify_descriptor(
     verify_members(&transaction, descriptor, &observations)?;
     transaction.commit()?;
     Ok(observations)
+}
+
+#[derive(Clone, Debug)]
+struct SelectedMember {
+    observation_id: ObservationId,
+    source_id: SourceId,
+    session_id: SessionId,
+    ordinal: u64,
+    chunk_hash: String,
+}
+
+fn selected_member(
+    transaction: &rusqlite::Transaction<'_>,
+    observation_id: ObservationId,
+) -> Result<Option<SelectedMember>> {
+    let id = String::from(observation_id);
+    let row = transaction
+        .query_row(
+            "SELECT chunk_hash,source_id,session_id,ordinal FROM observation_chunk_members WHERE observation_id=?1",
+            [&id],
+            |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, i64>(3)?,
+                ))
+            },
+        )
+        .optional()?;
+    let Some((chunk_hash, source_id, session_id, ordinal)) = row else {
+        return Ok(None);
+    };
+    validate_hash(&chunk_hash).map_err(|_| {
+        StoreError::Corrupt("selected observation has an invalid chunk hash".into())
+    })?;
+    let source_id = SourceId::try_from(source_id)
+        .map_err(|_| StoreError::Corrupt("selected observation has an invalid source ID".into()))?;
+    let session_id = SessionId::try_from(session_id).map_err(|_| {
+        StoreError::Corrupt("selected observation has an invalid session ID".into())
+    })?;
+    let ordinal = u64::try_from(ordinal)
+        .map_err(|_| StoreError::Corrupt("selected observation has a negative ordinal".into()))?;
+    Ok(Some(SelectedMember {
+        observation_id,
+        source_id,
+        session_id,
+        ordinal,
+        chunk_hash,
+    }))
 }
 
 fn inventory(bundle: &Bundle) -> Result<Vec<ObservationChunkDescriptor>> {
@@ -946,6 +1015,170 @@ impl Bundle {
         verify_descriptor(self, descriptor)
     }
 
+    /// Read a bounded selection through the observation-ID primary key. Only
+    /// chunks containing a requested ID are decoded; unrelated chunks are not
+    /// part of this query's integrity scope. The selected chunks still undergo
+    /// complete byte, descriptor, provenance and member-index verification.
+    pub fn read_observations_by_id(
+        &self,
+        ids: &[ObservationId],
+    ) -> Result<Vec<ObservationEnvelope>> {
+        self.read_observations_by_id_with_cancel(ids, &NeverCancel)
+    }
+
+    /// Cancellation-aware variant of [`Bundle::read_observations_by_id`].
+    /// Cancellation is checked before SQLite work, during indexed lookup and
+    /// between selected chunk decodes; a cancelled query never returns a
+    /// partial selection.
+    pub fn read_observations_by_id_with_cancel(
+        &self,
+        ids: &[ObservationId],
+        cancel: &dyn Cancellation,
+    ) -> Result<Vec<ObservationEnvelope>> {
+        check_cancel(cancel)?;
+        if ids.len() > MAX_OBSERVATION_QUERY_IDS {
+            return Err(StoreError::Invalid(
+                "observation ID query exceeds selection limit".into(),
+            ));
+        }
+        let mut ordered_ids = ids.to_vec();
+        ordered_ids.sort_unstable();
+        let mut seen = BTreeSet::new();
+        if ordered_ids.iter().any(|id| !seen.insert(*id)) {
+            return Err(StoreError::Invalid(
+                "observation ID query contains a duplicate ID".into(),
+            ));
+        }
+        if ordered_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        if !sqlite_guard::has_observation_chunk_schema(&self.connection)? {
+            return Err(StoreError::Invalid(
+                "observation ID query requires the observation chunk schema".into(),
+            ));
+        }
+
+        self.start_operation()?;
+        let transaction =
+            rusqlite::Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
+        // Loading the manifest validates the schema and gives the selected
+        // verification a bounded committed metadata snapshot. The immutable
+        // descriptor and selected chunk are rechecked after this transaction;
+        // artifact bytes for unrelated chunks are never inspected.
+        let _manifest = load_manifest(&transaction)?;
+        let mut missing = Vec::new();
+        let mut chunks: BTreeMap<String, (ObservationChunkDescriptor, Vec<SelectedMember>)> =
+            BTreeMap::new();
+        for observation_id in ordered_ids.iter().copied() {
+            check_cancel(cancel)?;
+            let Some(member) = selected_member(&transaction, observation_id)? else {
+                missing.push(String::from(observation_id));
+                continue;
+            };
+            if !chunks.contains_key(&member.chunk_hash)
+                && chunks.len() >= MAX_OBSERVATION_QUERY_CHUNKS
+            {
+                return Err(StoreError::Invalid(
+                    "observation ID query exceeds selected chunk limit".into(),
+                ));
+            }
+            if let Some((_, members)) = chunks.get_mut(&member.chunk_hash) {
+                members.push(member);
+                continue;
+            }
+            let descriptor = descriptor_query(&transaction, Some(&member.chunk_hash))?
+                .into_iter()
+                .next()
+                .ok_or_else(|| {
+                    StoreError::Corrupt(
+                        "observation member references a missing chunk descriptor".into(),
+                    )
+                })?;
+            descriptor.validate()?;
+            chunks.insert(member.chunk_hash.clone(), (descriptor, vec![member]));
+        }
+        if !missing.is_empty() {
+            return Err(StoreError::Invalid(format!(
+                "observation ID query is missing requested IDs: {}",
+                missing.join(",")
+            )));
+        }
+        let mut selected_bytes = 0_u64;
+        let mut selected_rows = 0_u64;
+        for (descriptor, _) in chunks.values() {
+            selected_bytes = selected_bytes
+                .checked_add(descriptor.bytes)
+                .ok_or_else(|| {
+                    StoreError::Invalid("observation query byte budget overflow".into())
+                })?;
+            selected_rows = selected_rows
+                .checked_add(descriptor.row_count)
+                .ok_or_else(|| {
+                    StoreError::Invalid("observation query row budget overflow".into())
+                })?;
+        }
+        if selected_bytes > MAX_OBSERVATION_QUERY_BYTES {
+            return Err(StoreError::Invalid(
+                "observation ID query exceeds selected byte budget".into(),
+            ));
+        }
+        if selected_rows > MAX_OBSERVATION_QUERY_DECODED_ROWS {
+            return Err(StoreError::Invalid(
+                "observation ID query exceeds selected decode budget".into(),
+            ));
+        }
+        transaction.commit()?;
+
+        let mut selected_by_id = BTreeMap::new();
+        for (_, (descriptor, members)) in chunks {
+            check_cancel(cancel)?;
+            let current_descriptor = find_descriptor(self, descriptor.hash())?;
+            if current_descriptor != descriptor {
+                return Err(StoreError::Corrupt(
+                    "selected observation descriptor changed during verification".into(),
+                ));
+            }
+            let observations = verify_descriptor(self, &descriptor)?;
+            for member in members {
+                let ordinal = usize::try_from(member.ordinal).map_err(|_| {
+                    StoreError::Corrupt("selected observation ordinal exceeds address space".into())
+                })?;
+                let observation = observations.get(ordinal).ok_or_else(|| {
+                    StoreError::Corrupt(
+                        "selected observation ordinal is outside chunk bytes".into(),
+                    )
+                })?;
+                if observation.data().id != member.observation_id
+                    || observation.data().source.source_id != member.source_id
+                    || observation.data().session_id != member.session_id
+                {
+                    return Err(StoreError::Corrupt(
+                        "selected observation member does not match chunk bytes".into(),
+                    ));
+                }
+                if selected_by_id
+                    .insert(member.observation_id, observation.clone())
+                    .is_some()
+                {
+                    return Err(StoreError::Corrupt(
+                        "selected observation query returned a duplicate ID".into(),
+                    ));
+                }
+            }
+            check_cancel(cancel)?;
+        }
+        ordered_ids
+            .into_iter()
+            .map(|id| {
+                selected_by_id.remove(&id).ok_or_else(|| {
+                    StoreError::Corrupt(
+                        "selected observation disappeared during verification".into(),
+                    )
+                })
+            })
+            .collect()
+    }
+
     /// Return the exact committed Parquet bytes for an independently verified
     /// observation chunk. This is an export boundary: callers receive the
     /// canonical open-format artifact only after its manifest entry, SQLite
@@ -1001,5 +1234,17 @@ impl ObservationChunkStore for Bundle {
 
     fn read_observation_chunk(&self, hash: &str) -> Result<Vec<ObservationEnvelope>> {
         Bundle::read_observation_chunk(self, hash)
+    }
+
+    fn read_observations_by_id(&self, ids: &[ObservationId]) -> Result<Vec<ObservationEnvelope>> {
+        Bundle::read_observations_by_id(self, ids)
+    }
+
+    fn read_observations_by_id_with_cancel(
+        &self,
+        ids: &[ObservationId],
+        cancel: &dyn Cancellation,
+    ) -> Result<Vec<ObservationEnvelope>> {
+        Bundle::read_observations_by_id_with_cancel(self, ids, cancel)
     }
 }
