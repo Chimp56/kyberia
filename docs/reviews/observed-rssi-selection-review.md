@@ -1,10 +1,19 @@
 # Observed RSSI selection review
 
-Current disposition: REQUEST_CHANGES after independent composition review
-found synthetic observations can be labeled measured. See
-[the finding and required regressions](stored-rssi-analysis-review.md).
-The earlier approval below is retained as historical evidence and is
-superseded until the classification correction is independently reviewed.
+Current disposition: APPROVED for live measured selection after correction
+`a6e1622`, integrated as `dc86505`. Root independently inspected rejection of
+both synthetic source identity and synthetic quality flags, and reran the
+selection/spatial suites on the author's corrected branch. The correction
+also rejects synthetic quality in canonical selected-record validation.
+See [the original finding](stored-rssi-analysis-review.md). Stored-bundle
+composition remains under review pending its end-to-end regressions.
+
+Historical V1 selected records do not retain typed `SourceKind`. Parsing
+canonical manifest bytes therefore cannot establish the original evidence
+plane. An importer or cache loader must verify referenced canonical source
+observations before treating an archival artifact as measured; this correction
+does not retroactively reclassify old artifacts. Full trusted artifact loading
+remains open. Earlier review history follows.
 
 Candidate: `5ac17faf92639b9f7338a06ccc41a0f1990c9b37`.
 Author: `/root/operation_log_review_luna`. Independent reviewer: `/root`.
@@ -19,3 +28,9 @@ Review is ongoing. Author-reported passing tests do not close these findings or 
 MAJOR: `validate_metric` admits any definition with unit `Dbm` and matching spatial method. `MetricDefinition::from_spec` supports explicit alternative semantics; the unit alone cannot establish observed Wi-Fi RSSI. Require compatible observed-RSSI evidence/compute/selection semantics and a same-unit incompatible-definition regression. The author has been notified; this finding is resolved by admission of only the canonical observed-RSSI definition.
 
 Independent correction review: retained strict admission evidence is checked through a narrow survey method; missing association is distinct from missing observation. Historical snapshots do not retain every original envelope field, and the documented comparison scope does not claim otherwise. Root reran `cargo test -p kyberia-observation-analysis -p kyberia-survey --locked --offline` (10 analysis and 34 survey tests passed, one survey benchmark ignored), focused Clippy with `-D warnings`, and formatting. Source-binding hashes remain an outer-adapter trust boundary; concrete store wiring and user-facing heatmaps are open.
+
+On integrated correction `dc86505`,
+`cargo test -p kyberia-observation-analysis -p kyberia-spatial-analysis --locked --offline`
+passed 11 selection, 23 spatial and 8 registry tests (one explicit spatial
+benchmark ignored). Ledger and diff checks passed after refreshing the
+reviewed source hashes.

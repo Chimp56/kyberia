@@ -39316,8 +39316,8 @@
         {
           "path": "crates/observation-analysis/src/lib.rs",
           "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
-          "revision": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c",
-          "sha256": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c"
+          "revision": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee",
+          "sha256": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee"
         },
         {
           "path": "crates/observation-pipeline/src/lib.rs",
@@ -39339,8 +39339,8 @@
         {
           "path": "crates/observation-analysis/src/tests.rs",
           "description": "Exact BSSID, strict and receipt closure, unknowns, deterministic manifest and bounded inputs",
-          "revision": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
-          "sha256": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
+          "revision": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
+          "sha256": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
           "command": "cargo test -p kyberia-observation-analysis --locked --offline",
           "scope": "pure_selection_contract",
           "result": "PASS"
@@ -39382,6 +39382,15 @@
           "revision": "507b12e674a8df5376ad2d14db23fbe9db347719b932bb3930353e5bf9c9ce94",
           "sha256": "507b12e674a8df5376ad2d14db23fbe9db347719b932bb3930353e5bf9c9ce94",
           "reviewer": "/root and /root/operation_log_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/observed-rssi-selection-review.md",
+          "description": "Independent selector review including synthetic admission correction; archival source verification and stored composition remain open",
+          "revision": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
+          "sha256": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
+          "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -172727,22 +172736,32 @@
         {
           "path": "crates/observation-analysis/src/lib.rs",
           "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
-          "revision": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c",
-          "sha256": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c"
+          "revision": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee",
+          "sha256": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee"
         }
       ],
       "validation": [
         {
           "path": "crates/observation-analysis/src/tests.rs",
           "description": "Exact BSSID, strict and receipt closure, unknowns, deterministic manifest and bounded inputs",
-          "revision": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
-          "sha256": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
+          "revision": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
+          "sha256": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
           "command": "cargo test -p kyberia-observation-analysis --locked --offline",
           "scope": "pure_selection_contract",
           "result": "PASS"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/observed-rssi-selection-review.md",
+          "description": "Independent selector review including synthetic admission correction; archival source verification and stored composition remain open",
+          "revision": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
+          "sha256": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:715a4a51da0e83b78896:1",
