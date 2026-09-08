@@ -39294,15 +39294,59 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:ab64afc93f429e0fb5a9:1",
@@ -69076,15 +69120,59 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:f13d3cd775ea4b8073e6:1",
@@ -69175,15 +69263,59 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69261,15 +69393,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Median dBm is deterministic for odd and even sample counts"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69304,15 +69482,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Trimmed mean rejects invalid trim fractions and remains finite for finite extremes"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69347,15 +69571,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Linear-power mean converts dBm to milliwatts before aggregation"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69390,15 +69660,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "R7 percentile interval is explicit, ordered, and deterministic"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69433,15 +69749,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "EWMA orders by monotonic time and stable observation identity"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69476,15 +69838,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Robust Huber state-space aggregation records process and measurement parameters"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69562,15 +69970,59 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:57a453a669b9afc4ea7e:1",
@@ -69648,15 +70100,59 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:f13d3cd775ea4b8073e6:1",
@@ -69750,15 +70246,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Power sums operate in linear milliwatts and return dBm"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:35d8eb335284e4962b05:1",
@@ -69836,15 +70378,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "dBm and milliwatt round trips and sums match numerical fixtures"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:35d8eb335284e4962b05:1",
@@ -69922,15 +70510,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "SNR requires independently evidenced signal and noise values"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:35d8eb335284e4962b05:1",
@@ -70008,15 +70642,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "SNR is signal dBm minus measured noise dBm"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:35d8eb335284e4962b05:1",
@@ -70094,15 +70774,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "SIR and SINR aggregate interference and noise in linear power"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:35d8eb335284e4962b05:1",
@@ -70180,15 +70906,61 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "SIR and SINR numerical fixtures match their linear-power definitions"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:35d8eb335284e4962b05:1",
@@ -70266,15 +71038,59 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:35d8eb335284e4962b05:1",
@@ -161627,8 +162443,8 @@
         {
           "path": "crates/domain/src/units.rs",
           "description": "Validated physical values",
-          "revision": "9f1f7d3da6d687c2ea7ef262d88ddba07443c075aa1e8c6b65aebe495a843078",
-          "sha256": "9f1f7d3da6d687c2ea7ef262d88ddba07443c075aa1e8c6b65aebe495a843078"
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
         },
         {
           "path": "crates/domain/src/identity.rs",
@@ -161652,6 +162468,15 @@
           "description": "Integrated immutable analysis identity and unit contract validation",
           "revision": "1547687de4f81c43decd9d2dc2c0bf53136052889e0f35bf4e29a2e1c8663b9b",
           "sha256": "1547687de4f81c43decd9d2dc2c0bf53136052889e0f35bf4e29a2e1c8663b9b",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
           "command": "cargo test --workspace --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -161696,6 +162521,26 @@
           "reviewer": "/root/manifest_review_luna",
           "disposition": "APPROVED",
           "findings": []
+        },
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
@@ -229132,15 +229977,59 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure deterministic signal aggregation and fundamental RF calculations",
+          "revision": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc",
+          "sha256": "9994be8a64a5eeb5a7a41aff817e1fed9c1c6df4f6c32bf5cee11b2d07ee49dc"
+        },
+        {
+          "path": "crates/domain/src/units.rs",
+          "description": "Validated dBm, dB, and positive milliwatt domain quantities",
+          "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
+          "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-signal-semantics.md",
+          "description": "Focused and workspace validation for signal aggregation and RF formulas",
+          "revision": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-signal-semantics-review.md",
+          "description": "Independent corrected numerical and provenance review",
+          "revision": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "sha256": "6fbae0cdc194528db82a7c0ea5526d3daba09791d1d8c1c1747681f5ff7db390",
+          "reviewer": "/root/pcap_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Caller-order floating-point accumulation was not byte canonical",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Extreme finite values could overflow trimmed mean and EWMA",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
