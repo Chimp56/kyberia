@@ -1,4 +1,28 @@
-use std::process::Command;
+use std::{
+    path::PathBuf,
+    process::Command,
+    sync::atomic::{AtomicUsize, Ordering},
+};
+
+fn retained_directory() -> PathBuf {
+    static NEXT_DIRECTORY: AtomicUsize = AtomicUsize::new(0);
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+        .join(".trash")
+        .join("test-runs");
+    std::fs::create_dir_all(&root).unwrap();
+    let process = std::process::id();
+    loop {
+        let ordinal = NEXT_DIRECTORY.fetch_add(1, Ordering::Relaxed);
+        let candidate = root.join(format!("cli-workflow-{process}-{ordinal}"));
+        match std::fs::create_dir(&candidate) {
+            Ok(()) => return candidate,
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => panic!("cannot retain test directory {candidate:?}: {error}"),
+        }
+    }
+}
 
 fn unknown<T>() -> kyberia_domain::evidence::Evidence<T> {
     kyberia_domain::evidence::Evidence::Unknown(
@@ -62,8 +86,8 @@ fn observation(id: u8) -> kyberia_domain::observation::ObservationEnvelope {
 
 #[test]
 fn executable_round_trip_and_failed_verification_exit_codes() {
-    let dir = tempfile::tempdir().unwrap().keep();
-    let project = dir.as_path().join("cli.rfatlas");
+    let dir = retained_directory();
+    let project = dir.join("cli.rfatlas");
     let binary = env!("CARGO_BIN_EXE_kyberia");
     let output = Command::new(binary)
         .args(["new", project.to_str().unwrap(), "CLI home"])
@@ -111,7 +135,7 @@ fn executable_round_trip_and_failed_verification_exit_codes() {
 fn projection_recovery_reports_remaining_evidence_corruption() {
     use kyberia_domain::identity::ProjectId;
     use kyberia_project_store::{ArtifactEntry, ArtifactKind, Bundle};
-    let dir = tempfile::tempdir().unwrap().keep();
+    let dir = retained_directory();
     let path = dir.join("corrupt.rfatlas");
     let mut bundle = Bundle::create(
         &path,
@@ -150,7 +174,7 @@ fn normalized_parquet_export_is_verified_exact_and_non_overwriting() {
     use kyberia_domain::identity::ProjectId;
     use kyberia_project_store::{Bundle, ObservationChunkProvenance};
 
-    let dir = tempfile::tempdir().unwrap().keep();
+    let dir = retained_directory();
     let project = dir.join("export.rfatlas");
     let destination = dir.join("normalized-export");
     let mut bundle = Bundle::create(

@@ -774,10 +774,15 @@ name = "kyberia-cli"
 version = "0.1.0"
 dependencies = [
  "kyberia-domain",
+ "kyberia-observation-analysis",
  "kyberia-project-store",
+ "kyberia-spatial-analysis",
+ "kyberia-stored-analysis",
+ "kyberia-survey",
+ "libc",
  "serde",
  "serde_json",
- "tempfile",
+ "sha2",
  "uuid",
 ]
 

@@ -55,6 +55,8 @@ result is returned. Storage may retain an unreferenced immutable artifact only
 where its own documented publication behavior allows it; this workflow itself
 does not write a project bundle.
 
-The current API is intentionally a callable composition function. A CLI
-subcommand will be added with the native capture/session command ownership so
-that argument parsing and project lifecycle do not diverge between two agents.
+The current API is intentionally a callable composition function. The
+read-only `analyze-stored-rssi` CLI command now owns only request parsing,
+output publication, and process-facing reporting; it does not capture live
+radio data or duplicate the native capture/session lifecycle. A future
+capture/session command remains a separate composition boundary.
