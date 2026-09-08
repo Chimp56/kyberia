@@ -162322,14 +162322,62 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "integration/release",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Machine rejects incomplete tool/source license records and tampered archives/schemas",
+        "Additional catalog classes and complete release notice assembly remain open"
+      ],
+      "implementation": [
+        {
+          "path": "tools/supply_chain.py",
+          "description": "Pinned bounded SBOM and audit orchestration",
+          "revision": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3",
+          "sha256": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3"
+        },
+        {
+          "path": "docs/licenses/SOURCE_LEDGER.md",
+          "description": "External source and redistribution ledger",
+          "revision": "0136df08424b43c3804535576cfe964a4017913fdf976ab3c5e70cd40c224664",
+          "sha256": "0136df08424b43c3804535576cfe964a4017913fdf976ab3c5e70cd40c224664"
+        },
+        {
+          "path": "docs/licenses/supply-chain-tools.json",
+          "description": "Pinned cargo tool source and license inventory",
+          "revision": "3153257ba95192b4aeecb780c431d24c10d62cd5516de5fb5936490df04a8567",
+          "sha256": "3153257ba95192b4aeecb780c431d24c10d62cd5516de5fb5936490df04a8567"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/supply-chain-runtime.json",
+          "description": "Committed-source ARM64 macOS Rust CLI SBOM and four-group audit evidence",
+          "revision": "3722d0411d27101269711b71dde6f6e46ff60fca069d55cf2f05d65105446698",
+          "sha256": "3722d0411d27101269711b71dde6f6e46ff60fca069d55cf2f05d65105446698",
+          "command": "python3 tools/dev.py sbom && python3 tools/dev.py audit",
+          "scope": "runtime",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/supply-chain-final-review.md",
+          "description": "Independent Luna xhigh supply-chain code, provenance, and license review",
+          "revision": "15e896ca1392669c87002574e5ee8fc07a4fe9c0739c4ceb323c4b08491ddcca",
+          "sha256": "15e896ca1392669c87002574e5ee8fc07a4fe9c0739c4ceb323c4b08491ddcca",
+          "reviewer": "/root/manifest_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Stale RustSec wording corrected before integration",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:e06648333b04880af91d:1",
@@ -170232,14 +170280,62 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "integration",
+      "owner": "integration/release",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Pinned Rust CLI developer SBOM and audit preserve tool/source/build identity",
+        "Observation/result provenance and non-Rust distributable coverage remain open"
+      ],
+      "implementation": [
+        {
+          "path": "tools/supply_chain.py",
+          "description": "Pinned bounded SBOM and audit orchestration",
+          "revision": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3",
+          "sha256": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3"
+        },
+        {
+          "path": "docs/licenses/SOURCE_LEDGER.md",
+          "description": "External source and redistribution ledger",
+          "revision": "0136df08424b43c3804535576cfe964a4017913fdf976ab3c5e70cd40c224664",
+          "sha256": "0136df08424b43c3804535576cfe964a4017913fdf976ab3c5e70cd40c224664"
+        },
+        {
+          "path": "docs/licenses/supply-chain-tools.json",
+          "description": "Pinned cargo tool source and license inventory",
+          "revision": "3153257ba95192b4aeecb780c431d24c10d62cd5516de5fb5936490df04a8567",
+          "sha256": "3153257ba95192b4aeecb780c431d24c10d62cd5516de5fb5936490df04a8567"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/supply-chain-runtime.json",
+          "description": "Committed-source ARM64 macOS Rust CLI SBOM and four-group audit evidence",
+          "revision": "3722d0411d27101269711b71dde6f6e46ff60fca069d55cf2f05d65105446698",
+          "sha256": "3722d0411d27101269711b71dde6f6e46ff60fca069d55cf2f05d65105446698",
+          "command": "python3 tools/dev.py sbom && python3 tools/dev.py audit",
+          "scope": "runtime",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/supply-chain-final-review.md",
+          "description": "Independent Luna xhigh supply-chain code, provenance, and license review",
+          "revision": "15e896ca1392669c87002574e5ee8fc07a4fe9c0739c4ceb323c4b08491ddcca",
+          "sha256": "15e896ca1392669c87002574e5ee8fc07a4fe9c0739c4ceb323c4b08491ddcca",
+          "reviewer": "/root/manifest_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Stale RustSec wording corrected before integration",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",

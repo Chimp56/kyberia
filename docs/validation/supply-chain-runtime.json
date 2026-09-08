@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "executed_at_utc": "2026-09-08T00:06:54Z",
+  "scope": "Actual Rust CLI dependency tooling on macOS ARM64; not release artifact certification",
+  "git_revision": "f834629224d0b93f88f691d64eda8f80f5b0d16a",
+  "cargo_lock_sha256": "7c1c1fd9a9b46cc121bccc17d5d2ec3b5d9308967a8e149ad3122ad0057b1ff7",
+  "workspace_manifests_sha256": "e14f192b0ad3a08a23682bf0a978b1126c02dedb62dfd5d394aece3f5f34d246",
+  "sbom": {
+    "sha256": "6c59115d06003b933d5e115c283c49af13760435b2514b45d7848d8f74fcf1bc",
+    "components": 45,
+    "dependency_nodes": 46,
+    "official_draft7_schema": "PASS",
+    "identical_repeat": "PASS",
+    "target": "aarch64-apple-darwin"
+  },
+  "audit": {
+    "sha256": "9d92c8e6884f006f054f540901f45d330c1a3dec8a23c730007d2b4373887af3",
+    "advisory_revision": "8a1eb4f933fb5821add5b4e98601ebd90b8b3538",
+    "checks": [
+      {
+        "name": "advisories",
+        "returncode": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "02d186150402cda84d64b50da1dea4b586274b3afbd3fbaf078a7c4e389920c3"
+      },
+      {
+        "name": "licenses",
+        "returncode": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e801c27c828add7ad83200a8e5e209cd746538818b72e4166963a35a075693d2"
+      },
+      {
+        "name": "bans",
+        "returncode": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "7d0d1c6c14b4cff68dcf41f708499d917b90fc92d9e7a879a810c32c06ec82c9"
+      },
+      {
+        "name": "sources",
+        "returncode": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "6a146360abb47c090cabe6f0ec762674d1928c66d5b2430a722fc7ada92d9cb8"
+      }
+    ]
+  },
+  "limits": [
+    "Only ARM64 macOS tool archive pins installed and tested.",
+    "Normal Rust CLI dependency closure is not the complete distributable inventory.",
+    "No Python/Sionna/Kismet/controller dependency audit in this artifact.",
+    "Schema format extras and signature verification are not executed."
+  ]
+}
