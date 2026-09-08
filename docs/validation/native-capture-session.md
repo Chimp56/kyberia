@@ -100,3 +100,20 @@ Integrated through `365a8e6`. Root executed:
 The ignored native probe is not RF scan validation. The full suite resumed
 only after all identified automatic test-directory cleanup was replaced with
 retained fixtures. Hardware and product workflow acceptance remain separate.
+
+## Independent macOS redacted runtime probe
+
+Root built the integrated collector with `python3 collectors/macos/build.py`
+and passed one explicitly selected real-host test:
+`cargo test -p kyberia-observation-pipeline tests::supervised_real_redacted_capability_probe_uses_the_rust_boundary --locked --offline -- --ignored --exact`.
+The initial invocation omitted the `tests::` prefix and selected zero tests;
+only the corrected one-test invocation is validation evidence.
+
+Host: macOS 26.6.2, arm64.
+Collector source-build identity: `sha256:d574ee6190aaf9c0ab3d096dd1d28a17c4267c4f935d1b1f497b07aa8767cdf0`.
+Local ad-hoc signed executable SHA-256: `92d7f61adeaef0187c90012ec1c003362b22d3af17ecb2058cfa0f12e98b4efc`.
+The build verified its ad-hoc signature; this is not notarized release signing.
+The test proved successful probe terminal/exit status, zero RF observations,
+zero survey associations, and publication of the capability-session snapshot
+through the integrated Rust process and storage boundary. It did not invoke
+authorization or scan, so consent and measured RF capture gates remain open.
