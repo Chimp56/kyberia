@@ -31,6 +31,10 @@ def command(name):
         python("-m", "pip", "install", "--require-hashes", "--only-binary=:all:", "--no-cache-dir", "-r", "tools/requirements.txt")
         run("rustup", "show", "active-toolchain")
         run("cargo", "fetch", "--locked")
+    elif name == "clean":
+        # The clean helper is stdlib-only and deliberately runs with the
+        # invoking interpreter, so it remains available before bootstrap.
+        run(sys.executable, ROOT / "tools/trash_clean.py", "--root", ROOT, "--json")
     elif name == "build":
         run("cargo", "build", "--workspace", "--locked", "--offline")
     elif name == "format":
@@ -75,7 +79,7 @@ def command(name):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["bootstrap", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "check"])
+    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "check"])
     args = parser.parse_args()
     try:
         command(args.command)
