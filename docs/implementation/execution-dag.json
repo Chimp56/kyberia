@@ -697,6 +697,21 @@
         "crates/kismet-adapter"
       ],
       "acceptance": "Reviewed bounded canonical normalization and deterministic replay of offline metadata, source-open replacement tests and exact source provenance; live Kismet and full PCAPNG parity remain separate gates."
+    },
+    {
+      "id": "iteration-4-kismet-live-status",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-kismet-normalization"
+      ],
+      "owner": "Kismet integration",
+      "requirements": [
+        "backlog:OSS-001:1"
+      ],
+      "owned_paths": [
+        "crates/kismet-adapter"
+      ],
+      "acceptance": "Authenticated bounded read-only status/capability transport and independent HTTP fixture tests; separate real-server and radio execution gates remain explicit."
     }
   ]
 }

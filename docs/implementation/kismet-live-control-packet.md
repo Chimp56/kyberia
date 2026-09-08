@@ -1,6 +1,6 @@
 # Kismet live control/status implementation packet
 
-Status: NOT_STARTED implementation; primary-document investigation completed 2026-09-08.
+Status: IN_PROGRESS in isolated `feat/kismet-live-status`; primary-document investigation completed 2026-09-08.
 Scope: plan Appendix I required adapter designs, live control/status input; backlog OSS-001.
 This is an executable work specification, not evidence of implemented functionality.
 
@@ -27,7 +27,7 @@ Negotiate supported producer versions using real pinned server output and public
 5. Golden fixtures are independently constructed and carry fixture provenance. They cover local/remote sources and unknown optional channel/clock facts without claiming real-server parity.
 6. A separate real-server gate records binary version, source commit, authentication mode, exact endpoint contract, field capabilities and controlled datasource results. No capture control or privileged helper installation occurs implicitly.
 
-The current repository has no live transport implementation. KismetDB normalization and no-follow source-open tests are independently reviewed offline capabilities. Their approval does not close this packet or the complete Kismet runtime gate.
+The live transport implementation is assigned but not yet integrated or validated. KismetDB normalization and no-follow source-open tests are independently reviewed offline capabilities. Their approval does not close this packet or the complete Kismet runtime gate.
 
 ## Local runtime preparation
 

@@ -176351,8 +176351,8 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration",
+      "status": "IN_PROGRESS",
+      "owner": "Kismet Integration",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
