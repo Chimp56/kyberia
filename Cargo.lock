@@ -506,10 +506,12 @@ name = "kyberia-kismet-adapter"
 version = "0.1.0"
 dependencies = [
  "kyberia-domain",
+ "libc",
  "rusqlite",
  "serde_json",
  "sha2",
  "tempfile",
+ "windows-sys",
 ]
 
 [[package]]

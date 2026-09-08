@@ -254,15 +254,61 @@ pub struct KismetDb {
     budget: Budget,
 }
 
+/// The opened handle, not a path preflight, defines the selected input.
+/// Parent directories are operator-selected; final-component links are rejected.
+fn open_snapshot_source(path: &Path) -> Result<File, Error> {
+    let mut options = fs::OpenOptions::new();
+    options.read(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        // NONBLOCK prevents a raced FIFO from hanging before handle validation.
+        options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        use windows_sys::Win32::Storage::FileSystem::{
+            FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_READ, SECURITY_IDENTIFICATION,
+        };
+        options
+            .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+            .share_mode(FILE_SHARE_READ)
+            .security_qos_flags(SECURITY_IDENTIFICATION);
+    }
+    #[cfg(not(any(unix, windows)))]
+    return Err(Error::Invalid(
+        "atomic no-follow source open unsupported on this platform",
+    ));
+    let file = options.open(path).map_err(|error| {
+        #[cfg(unix)]
+        if error.raw_os_error() == Some(libc::ELOOP) {
+            return Error::Invalid("regular file required; symlink source is forbidden");
+        }
+        Error::Io(error)
+    })?;
+    let metadata = file.metadata()?;
+    if !metadata.is_file() || metadata.file_type().is_symlink() {
+        return Err(Error::Invalid("regular file required"));
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        use windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT;
+        if metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0 {
+            return Err(Error::Invalid("reparse point source is forbidden"));
+        }
+    }
+    Ok(file)
+}
+
 fn snapshot(
     path: &Path,
     budget: &Budget,
 ) -> Result<(tempfile::NamedTempFile, [u8; 32], u64), Error> {
     budget.check()?;
-    let metadata = fs::symlink_metadata(path)?;
-    if !metadata.is_file() || metadata.file_type().is_symlink() {
-        return Err(Error::Invalid("regular file required"));
-    }
+    let mut file = open_snapshot_source(path)?;
+    let metadata = file.metadata()?;
     if metadata.len() > MAX_FILE_BYTES {
         return Err(Error::ResourceLimit);
     }
@@ -273,7 +319,6 @@ fn snapshot(
             return Err(Error::SourceChanged);
         }
     }
-    let mut file = File::open(path)?;
     let mut copy = tempfile::Builder::new()
         .prefix("kyberia-kismet-private-")
         .tempfile()?;
@@ -826,5 +871,40 @@ impl KismetDb {
             return Err(Error::SourceChanged);
         }
         Ok(())
+    }
+}
+
+#[cfg(all(test, unix))]
+mod source_open_tests {
+    use super::*;
+    use std::os::unix::fs::symlink;
+
+    #[test]
+    fn replaced_preflight_path_cannot_follow_a_symlink() {
+        let directory = tempfile::tempdir().unwrap();
+        let input = directory.path().join("input");
+        let original = directory.path().join("original");
+        let private = directory.path().join("private");
+        fs::write(&input, b"selected input").unwrap();
+        fs::write(&private, b"must not be imported").unwrap();
+        assert!(fs::symlink_metadata(&input).unwrap().is_file());
+        fs::rename(&input, &original).unwrap();
+        symlink(&private, &input).unwrap();
+        assert!(open_snapshot_source(&input).is_err());
+    }
+
+    #[test]
+    fn source_handle_survives_path_replacement_and_rejects_directories() {
+        let directory = tempfile::tempdir().unwrap();
+        let input = directory.path().join("input");
+        let original = directory.path().join("original");
+        fs::write(&input, b"selected input").unwrap();
+        let mut file = open_snapshot_source(&input).unwrap();
+        fs::rename(&input, &original).unwrap();
+        fs::write(&input, b"replacement").unwrap();
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes).unwrap();
+        assert_eq!(bytes, b"selected input");
+        assert!(open_snapshot_source(directory.path()).is_err());
     }
 }

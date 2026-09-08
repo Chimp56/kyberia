@@ -51,3 +51,24 @@ establish channel-hop/dwell/drop telemetry absent from the imported rows.
 Producer software versions and actual Kismet release artifacts require pinned
 runtime fixtures. The Kismet integration gate and Linux hardware validation
 remain open.
+
+## Source-open correction
+
+Independent review found a race between path metadata preflight and ordinary open.
+The source now opens atomically without following a final-component symlink and
+validates the opened handle before copying bytes. Unix uses `O_NOFOLLOW` and
+`O_NONBLOCK`; Windows opens the reparse point itself, rejects reparse attributes,
+and denies write/delete sharing. The selected handle defines the snapshot,
+so replacing the path after open cannot redirect the read. Parent directories
+remain operator-selected; this is not a sandbox for arbitrary directory traversal.
+A closed source file remains required; no transactional snapshot of a live writer
+is promised. Windows execution remains an explicit native validation gate.
+
+Regression tests replace a preflighted file with a symlink, replace the path after
+handle acquisition, and reject directory input. The original symlink rejection
+error category is preserved. Platform behavior follows the official
+[Rust Unix OpenOptionsExt](https://doc.rust-lang.org/std/os/unix/fs/trait.OpenOptionsExt.html),
+[Rust Windows OpenOptionsExt](https://doc.rust-lang.org/std/os/windows/fs/trait.OpenOptionsExt.html),
+and [CreateFileW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew)
+contracts. No unsafe implementation code was introduced; pinned existing libc
+and windows-sys packages supply platform constants.
