@@ -168908,13 +168908,13 @@
           "level": 3
         }
       ],
-      "status": "VALIDATED",
+      "status": "IN_PROGRESS",
       "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Merge, inverse-operation, conflict, resolution, malformed-input, determinism, and 100,000-root bounded fixtures pass independent review"
+        "Existing bounded V1 merge, conflict, syntax-level inverse and immutable storage fixtures pass; full domain prior-state representation, causal inverse truth and baseline-bound materialization remain open after architecture review."
       ],
       "implementation": [
         {

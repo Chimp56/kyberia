@@ -35,3 +35,5 @@ claiming a preflight check is atomic. Avoid following a replaced output symlink
 when determining its kind. The author has received these findings. Do not run
 this command against actual build outputs until the corrected candidate passes
 independent review. The implementation remains isolated.
+
+Integrated broader regression: `.tools/venv/bin/python -m unittest discover -s tests -p 'test_*.py'` passed with 187 run, 19 skipped and no failures. This ran retained fixtures only; the actual clean command was not invoked on repository outputs.
