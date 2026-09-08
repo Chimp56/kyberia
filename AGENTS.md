@@ -8,6 +8,23 @@ The user requires that **the primary agent and every subagent must not execute `
 
 Keep build outputs in ignored directories instead of deleting them to tidy a diff. Individual reversible source edits are still permitted. A requested clean operation must explain and approve the paths it will recursively remove before execution.
 
+## Trash instead of deletion
+
+Move files or directories that need removal into the assigned worktree's
+ignored `.trash/` directory instead of deleting them. The user will manually
+empty this bin. Use a unique destination, preserve the original name/path in
+a note when it is not obvious, and never overwrite a prior trash entry.
+Never automatically empty the bin or treat moving an unrelated tracked
+change there as permission to discard user work. The Git approval policy
+below remains in force.
+
+Test fixtures must not recursively clean up directories on scope exit or
+failure. Create retained test directories under `.trash/test-runs/` and
+disable automatic directory cleanup immediately (for example, Rust
+`TempDir::keep()` or Python `mkdtemp` without recursive teardown). Existing
+retained directories may be moved into the bin when their exact paths and
+ownership are known; do not collect unrelated system temporary directories.
+
 ## Git approval policy
 
 Routine Git inspection, staging, new commits and reviewed cherry-picks are authorized without repeated permission. The primary agent and every subagent must obtain the user's explicit permission before `git reset`, `git clean`, working-tree discard or overwrite, history rewriting (including amend and rebase), branch/tag deletion or forced replacement, worktree removal/pruning, destructive maintenance or force-push. Publishing requires task authorization. Apply this policy regardless of flag order, aliases, global options, executable paths, wrappers or existing broad allow rules. Never evade approval. Use explicit command working directories and ordinary Git subcommands for routine work. Prefix rules cannot classify every argument combination; assess actual effects before executing.
