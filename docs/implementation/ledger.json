@@ -102516,8 +102516,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -102542,8 +102542,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -106826,8 +106826,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -106885,8 +106885,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -113213,8 +113213,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -113239,8 +113239,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -113352,8 +113352,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -113378,8 +113378,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -117562,8 +117562,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -117594,8 +117594,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -158055,8 +158055,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -158087,8 +158087,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -168237,8 +168237,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -168272,8 +168272,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -168361,6 +168361,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observation-query-review.md",
+          "description": "Independent indexed query and future revision validation review",
+          "revision": "28afb57ba0bec71fffd8981795e1f0696f2fed43b5c180b0412505c223e9564d",
+          "sha256": "28afb57ba0bec71fffd8981795e1f0696f2fed43b5c180b0412505c223e9564d",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -184108,8 +184117,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -184134,8 +184143,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -184302,8 +184311,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -184328,8 +184337,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -184484,8 +184493,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -184510,8 +184519,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -184666,8 +184675,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -184692,8 +184701,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -184805,8 +184814,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -184831,8 +184840,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -184944,8 +184953,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -184970,8 +184979,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -185126,8 +185135,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -185152,8 +185161,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
@@ -188742,8 +188751,8 @@
         {
           "path": "crates/project-store/src/observation_chunks.rs",
           "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
-          "revision": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc",
-          "sha256": "17071ddcf7532de9f8b615b7a22d57edd7ca334a9df764c29f8012ca6fb51fdc"
+          "revision": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98",
+          "sha256": "7360644e8e5cd4f13b8cc9d0bba4386376ffeba09d0c3c8d9b366860b1b05d98"
         },
         {
           "path": "crates/project-store/src/parquet_codec.rs",
@@ -188768,8 +188777,8 @@
         {
           "path": "crates/project-store/tests/observation_chunks.rs",
           "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
-          "revision": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
-          "sha256": "1368ec45d8cf06f472e6828e352a2f9152642b88c29b914dcec3fce8ea2a03fd",
+          "revision": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
+          "sha256": "8cc57d4c3a33bfc88f9e7f55c9b6aa9d36d39090f3e762d0981359e6546f25ce",
           "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_interoperability",
           "result": "PASS"
