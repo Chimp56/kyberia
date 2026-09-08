@@ -764,6 +764,23 @@
         "docs/implementation/project-materialization-packet.md"
       ],
       "acceptance": "Materialize exact operation effects into canonical project state with baseline and revision binding, causal inverse validation, preserved geometry invariants, explicit conflicts and independent review; transactional publication remains separate."
+    },
+    {
+      "id": "iteration-4-rssi-spatial-metrics",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "spatial/metric semantics",
+      "requirements": [
+        "catalog:PAS-001:1",
+        "backlog:ANA-005:1"
+      ],
+      "owned_paths": [
+        "crates/spatial-analysis/src/registry.rs",
+        "crates/observation-analysis"
+      ],
+      "acceptance": "Canonical registered observed RSSI nearest/IDW semantics with immutable point-value compatibility, exact admission, deterministic measured tile tests and honest unknown/extrapolation policy."
     }
   ]
 }
