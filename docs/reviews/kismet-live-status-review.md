@@ -68,3 +68,15 @@ hashes introduced by the reviewed dependency update. After refreshing those
 references, `python3 tools/ledger.py check` and
 `python3 tools/validation/fixtures.py check` both passed. No failing runtime
 test was skipped to integrate this increment.
+
+## Reqwest correction: focused independent reproduction
+
+Candidate `f84e13d7ab8af8b87941c87cccd381543fe30328` replaces ureq with
+reqwest 0.12.28. Root independently executed
+`cargo test -p kyberia-kismet-adapter --test tls_deadline --locked --offline -- --nocapture`:
+both tests passed. The original incomplete-record TLS trickle reproducer now
+returns within its 350 ms acceptance bound for a 100 ms request deadline;
+explicit-address TLS still sends the original hostname in ClientHello.
+This closes the specific reproduced handshake overrun on this host, but is
+not final approval of the transport change. Full adapter, dependency and
+integration review remain pending; real-server validation remains open.
