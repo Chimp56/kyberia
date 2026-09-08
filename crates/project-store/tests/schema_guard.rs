@@ -103,6 +103,57 @@ fn unexpected_objects_and_noncanonical_table_shapes_are_rejected() {
 }
 
 #[test]
+fn current_schema_contains_every_complete_optional_table_group() {
+    let (root, bundle) = fixture();
+    drop(bundle);
+    let db = Connection::open(root.join("project.sqlite")).unwrap();
+    let mut statement = db
+        .prepare(
+            "SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+        )
+        .unwrap();
+    let names = statement
+        .query_map([], |row| row.get::<_, String>(0))
+        .unwrap()
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+    assert_eq!(
+        names,
+        [
+            "bundle_manifest",
+            "observation_chunk_members",
+            "observation_chunks",
+            "operation_log_state",
+            "project_operations",
+            "survey_snapshot_history",
+            "survey_snapshots",
+        ]
+    );
+    let operation_state: (String, i64) = db
+        .query_row(
+            "SELECT project_id,project_revision FROM operation_log_state WHERE singleton=1",
+            [],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .unwrap();
+    assert_eq!(
+        operation_state.0,
+        String::from(ProjectId::from_bytes([1; 16]).unwrap())
+    );
+    assert_eq!(operation_state.1, 0);
+    drop(statement);
+    drop(db);
+    assert!(
+        Bundle::open(&root, OpenMode::ReadOnly)
+            .unwrap()
+            .verify()
+            .unwrap()
+            .failures
+            .is_empty()
+    );
+}
+
+#[test]
 fn manifest_inventory_requires_exactly_one_singleton_row() {
     for mutation in [
         "DELETE FROM bundle_manifest",
