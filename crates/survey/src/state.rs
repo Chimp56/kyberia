@@ -20,9 +20,9 @@ pub enum PointPhase {
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct ActiveWindow {
-    start: u64,
-    end: Option<u64>,
+pub(crate) struct ActiveWindow {
+    pub(crate) start: u64,
+    pub(crate) end: Option<u64>,
 }
 
 /// Compact admitted evidence, linked to immutable canonical observations.
@@ -48,18 +48,24 @@ struct AcceptedEvidence<V = Evidence<Text>> {
 }
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
-struct Snapshot {
-    schema_version: PointSnapshotSchemaVersion,
-    config: PointConfig,
-    phase: PointPhase,
-    started: u64,
-    last: u64,
-    windows: Vec<ActiveWindow>,
+pub(crate) struct Snapshot {
+    pub(crate) schema_version: PointSnapshotSchemaVersion,
+    pub(crate) config: PointConfig,
+    pub(crate) phase: PointPhase,
+    pub(crate) started: u64,
+    pub(crate) last: u64,
+    /// The event-ordering watermark may move ahead of `last` when a receipt
+    /// association is recorded. `last` remains the strict active-time clock.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) event_last: Option<u64>,
+    pub(crate) windows: Vec<ActiveWindow>,
     records: Vec<AcceptedEvidence>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub(crate) associations: Vec<PointObservationAssociation>,
 }
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(transparent)]
-pub struct PointSurvey(Snapshot);
+pub struct PointSurvey(pub(crate) Snapshot);
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct PointProgress {
     pub metrics: BTreeMap<PointMetric, u32>,
@@ -68,6 +74,9 @@ pub struct PointProgress {
     pub active_windows: Vec<MonotonicWindow>,
     pub ready: bool,
     pub observation_ids: Vec<ObservationId>,
+    /// Receipt-associated observations are intentionally separate from strict
+    /// capture evidence and never advance the metric/dwell gates.
+    pub associated_observation_ids: Vec<ObservationId>,
     pub manual_position_assumption: bool,
 }
 
@@ -83,11 +92,13 @@ impl PointSurvey {
             phase: PointPhase::Capturing,
             started: at.nanoseconds,
             last: at.nanoseconds,
+            event_last: None,
             windows: vec![ActiveWindow {
                 start: at.nanoseconds,
                 end: None,
             }],
             records: vec![],
+            associations: vec![],
         }))
     }
     pub const fn phase(&self) -> &PointPhase {
@@ -100,10 +111,13 @@ impl PointSurvey {
         if at.epoch != self.0.config.data().epoch {
             return Err(SurveyError::WrongClock);
         }
-        if at.nanoseconds < self.0.last {
+        if at.nanoseconds < self.event_last() {
             return Err(SurveyError::ReversedTime);
         }
         Ok(())
+    }
+    pub(crate) fn event_last(&self) -> u64 {
+        self.0.event_last.unwrap_or(self.0.last)
     }
     pub fn advance(&self, at: MonotonicTimestamp) -> Result<Self, SurveyError> {
         if !matches!(self.0.phase, PointPhase::Capturing | PointPhase::Paused) {
@@ -112,7 +126,14 @@ impl PointSurvey {
         self.check_time(at)?;
         let mut next = self.clone();
         next.0.last = at.nanoseconds;
+        next.0.event_last = None;
         Ok(next)
+    }
+    pub(crate) fn has_record(&self, observation_id: ObservationId) -> bool {
+        self.0
+            .records
+            .iter()
+            .any(|record| record.observation_id == observation_id)
     }
     pub fn pause(&self, at: MonotonicTimestamp) -> Result<Self, SurveyError> {
         if self.0.phase != PointPhase::Capturing {
@@ -254,6 +275,14 @@ impl PointSurvey {
         }
         if self
             .0
+            .associations
+            .iter()
+            .any(|association| association.observation_id() == data.id)
+        {
+            return Err(SurveyError::DuplicateObservation);
+        }
+        if self
+            .0
             .records
             .iter()
             .any(|r| r.captured == captured.nanoseconds && r.bssid == bssid)
@@ -294,6 +323,7 @@ impl PointSurvey {
         };
         let mut next = self.clone();
         next.0.last = received.nanoseconds;
+        next.0.event_last = None;
         next.0.records.push(record);
         Ok(next)
     }
@@ -410,6 +440,12 @@ impl PointSurvey {
                 .collect(),
             ready,
             observation_ids: self.0.records.iter().map(|r| r.observation_id).collect(),
+            associated_observation_ids: self
+                .0
+                .associations
+                .iter()
+                .map(PointObservationAssociation::observation_id)
+                .collect(),
             manual_position_assumption: matches!(cfg.pose_policy, PosePolicy::ManualAnchor { .. }),
         }
     }
@@ -494,6 +530,38 @@ impl PointSurvey {
         }
         if self.0.phase == PointPhase::Completed && !self.progress().ready {
             return Err(SurveyError::InvalidSnapshot);
+        }
+        let max_association_time = self
+            .0
+            .associations
+            .iter()
+            .map(|association| association.time_bounds().1)
+            .max();
+        if self.0.associations.len() > MAX_RECORDS
+            || self
+                .0
+                .event_last
+                .is_some_and(|watermark| watermark < self.0.last)
+            || self.0.event_last != max_association_time.filter(|time| *time > self.0.last)
+        {
+            return Err(SurveyError::InvalidSnapshot);
+        }
+        for association in &self.0.associations {
+            if !ids.insert(association.observation_id())
+                || association.point_id() != self.0.config.data().point_id
+                || association.session_id() != self.0.config.data().session_id
+                || association.source_id() != self.0.config.data().source_id
+                || association.assigned_position() != &self.0.config.data().anchor
+            {
+                return Err(SurveyError::InvalidSnapshot);
+            }
+            association.validate_for_config(&self.0.config)?;
+            let (start, end) = association.time_bounds();
+            if !self.0.windows.iter().any(|window| {
+                start >= window.start && end <= window.end.unwrap_or(self.event_last())
+            }) {
+                return Err(SurveyError::InvalidSnapshot);
+            }
         }
         Ok(())
     }

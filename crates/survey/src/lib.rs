@@ -1,7 +1,9 @@
 //! Pure point-survey admission. Raw observation storage and platform actuation
 //! remain outside this crate; progress comes only from admitted evidence.
+mod association;
 mod config;
 mod state;
+pub use association::*;
 pub use config::*;
 use kyberia_domain::{evidence::*, identity::*, observation::*, spatial::*, time::*, units::*};
 use serde::{Deserialize, Serialize};
@@ -31,6 +33,10 @@ pub enum SurveyError {
     FutureDwell,
     DuplicateObservation,
     DuplicateSourceSample,
+    DuplicateAssociation,
+    AssociationTimeUnavailable,
+    AssociationOutsidePoint,
+    AssociationAmbiguous,
     UnsupportedPayload,
     UnusableQuality,
     NotReady,

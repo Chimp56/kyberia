@@ -49,14 +49,21 @@ struct SnapshotWire {
     phase: PointPhase,
     started: u64,
     last: u64,
+    #[serde(default)]
+    event_last: Option<u64>,
     windows: Vec<ActiveWindow>,
     records: Vec<AcceptedEvidence<VersionValue>>,
+    #[serde(default)]
+    associations: Vec<PointObservationAssociation>,
 }
 
 impl<'de> Deserialize<'de> for DecodedPointSurvey {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let wire = SnapshotWire::deserialize(deserializer)?;
-        if wire.records.len() > MAX_RECORDS || wire.windows.len() > MAX_WINDOWS {
+        if wire.records.len() > MAX_RECORDS
+            || wire.windows.len() > MAX_WINDOWS
+            || wire.associations.len() > MAX_RECORDS
+        {
             return Err(serde::de::Error::custom("point receipt resource limit"));
         }
         let input = match wire.schema_version {
@@ -103,8 +110,10 @@ impl<'de> Deserialize<'de> for DecodedPointSurvey {
             phase: wire.phase,
             started: wire.started,
             last: wire.last,
+            event_last: wire.event_last,
             windows: wire.windows,
             records: records?,
+            associations: wire.associations,
         })
         .map_err(serde::de::Error::custom)?;
         Ok(Self {
