@@ -34,6 +34,7 @@ use std::{
     num::NonZeroU32,
     path::{Path, PathBuf},
     rc::Rc,
+    sync::atomic::{AtomicU64, Ordering},
     time::{Duration, Instant},
 };
 
@@ -224,6 +225,8 @@ struct RetainedTempDir {
     path: PathBuf,
 }
 
+static RETAINED_TEST_DIRECTORY: AtomicU64 = AtomicU64::new(0);
+
 impl RetainedTempDir {
     fn path(&self) -> &Path {
         &self.path
@@ -231,9 +234,17 @@ impl RetainedTempDir {
 }
 
 fn retained_tempdir() -> RetainedTempDir {
-    let directory = tempfile::tempdir().unwrap();
-    RetainedTempDir {
-        path: directory.keep(),
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs");
+    fs::create_dir_all(&root).unwrap();
+    let process = std::process::id();
+    loop {
+        let sequence = RETAINED_TEST_DIRECTORY.fetch_add(1, Ordering::Relaxed);
+        let path = root.join(format!("native-capture-{process}-{sequence}"));
+        match fs::create_dir(&path) {
+            Ok(()) => return RetainedTempDir { path },
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => panic!("create retained test directory: {error}"),
+        }
     }
 }
 
