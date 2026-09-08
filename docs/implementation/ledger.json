@@ -34470,8 +34470,8 @@
         {
           "path": "crates/survey/src/state.rs",
           "description": "Pure evidence-driven lifecycle; UI/capture/storage synchronization remains open",
-          "revision": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8",
-          "sha256": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8"
+          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
+          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
         }
       ],
       "validation": [],
@@ -64461,17 +64461,75 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
-      "phase": 2,
+      "status": "IN_PROGRESS",
+      "owner": "Survey / positioning",
+      "phase": 1,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/survey/src/association.rs",
+          "description": "Versioned receipt/API-window point association with strict evidence separation",
+          "revision": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1",
+          "sha256": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1"
+        },
+        {
+          "path": "crates/survey/src/state.rs",
+          "description": "Independent strict-readiness and general event watermarks with replay validation",
+          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
+          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/survey-association.md",
+          "description": "Receipt-association boundary and integrated survey validation",
+          "revision": "c91bae83df9fd40271de644cafa3e99f8be941771ce6259ebb5cb114db13b568",
+          "sha256": "c91bae83df9fd40271de644cafa3e99f8be941771ce6259ebb5cb114db13b568",
+          "command": "cargo test -p kyberia-survey --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-receipt-association-review.md",
+          "description": "Independent multi-round survey, replay, and evidence-semantics review",
+          "revision": "39b7a3adcb6fdc050b05f08043cf79740ef2518d2b966e7075369b0cfa367d21",
+          "sha256": "39b7a3adcb6fdc050b05f08043cf79740ef2518d2b966e7075369b0cfa367d21",
+          "reviewer": "/root/survey_assoc_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Receipt association advanced strict minimum-active-time readiness",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "V1 association uncertainty and cross-plane identity invariants were incomplete",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Snapshot replay could bypass the synthetic-evidence policy",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0012-receipt-point-association.md",
+        "description": "Receipt association remains separate from strict capture evidence",
+        "revision": "fa181d46a1321fa316c233a3218bdb8f56df22e7465f9d838a9d8aa3ed2f25eb",
+        "sha256": "fa181d46a1321fa316c233a3218bdb8f56df22e7465f9d838a9d8aa3ed2f25eb",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_assoc_review_luna review",
+        "reason": "Associate managed-mode scan results without fabricating capture time or advancing strict survey readiness",
+        "preserved_product_intent": "Preserves raw timing unknowns, evidence-plane separation, deterministic replay, and strict dwell/freshness requirements"
+      },
       "parent_id": "source:heading:ff5fdfc4fbf311b662e6:1",
       "children": []
     },
@@ -112909,17 +112967,78 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
-      "phase": 0,
+      "status": "VALIDATED",
+      "owner": "Survey / positioning",
+      "phase": 1,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Point-position association uses explicit receipt/API-window evidence and preserves unknown capture context",
+        "Association replay cannot advance strict survey readiness or bypass configuration policy"
+      ],
+      "implementation": [
+        {
+          "path": "crates/survey/src/association.rs",
+          "description": "Versioned receipt/API-window point association with strict evidence separation",
+          "revision": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1",
+          "sha256": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1"
+        },
+        {
+          "path": "crates/survey/src/state.rs",
+          "description": "Independent strict-readiness and general event watermarks with replay validation",
+          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
+          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/survey-association.md",
+          "description": "Receipt-association boundary and integrated survey validation",
+          "revision": "c91bae83df9fd40271de644cafa3e99f8be941771ce6259ebb5cb114db13b568",
+          "sha256": "c91bae83df9fd40271de644cafa3e99f8be941771ce6259ebb5cb114db13b568",
+          "command": "cargo test -p kyberia-survey --locked --offline",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-receipt-association-review.md",
+          "description": "Independent multi-round survey, replay, and evidence-semantics review",
+          "revision": "39b7a3adcb6fdc050b05f08043cf79740ef2518d2b966e7075369b0cfa367d21",
+          "sha256": "39b7a3adcb6fdc050b05f08043cf79740ef2518d2b966e7075369b0cfa367d21",
+          "reviewer": "/root/survey_assoc_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Receipt association advanced strict minimum-active-time readiness",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "V1 association uncertainty and cross-plane identity invariants were incomplete",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Snapshot replay could bypass the synthetic-evidence policy",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0012-receipt-point-association.md",
+        "description": "Receipt association remains separate from strict capture evidence",
+        "revision": "fa181d46a1321fa316c233a3218bdb8f56df22e7465f9d838a9d8aa3ed2f25eb",
+        "sha256": "fa181d46a1321fa316c233a3218bdb8f56df22e7465f9d838a9d8aa3ed2f25eb",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_assoc_review_luna review",
+        "reason": "Associate managed-mode scan results without fabricating capture time or advancing strict survey readiness",
+        "preserved_product_intent": "Preserves raw timing unknowns, evidence-plane separation, deterministic replay, and strict dwell/freshness requirements"
+      },
       "parent_id": "source:heading:064e935800dacc133caa:1",
       "children": []
     },
@@ -229948,8 +230067,8 @@
         {
           "path": "crates/survey/src/state.rs",
           "description": "Pure evidence-driven lifecycle; UI/capture/storage synchronization remains open",
-          "revision": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8",
-          "sha256": "fd31cd48649f2db9a9b51c656ce0b3e8c50db68bf80822e1e45e8739d29093f8"
+          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
+          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
         }
       ],
       "validation": [],
