@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "coordinate_semantics": "planar floor-local metres; every operation is 2-D",
+  "geojson": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {"id": "ground-shell-hole", "floor": "ground", "z_m": 0.0, "material": "concrete"},
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]],
+            [[3, 3], [7, 3], [7, 7], [3, 7], [3, 3]]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {"id": "ground-wall", "floor": "ground", "z_m": 0.0, "material": "concrete"},
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [[5, 0], [5, 4], [5, 10]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {"id": "upper-wall", "floor": "upper", "z_m": 3.2, "material": "concrete"},
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [[5, 0], [5, 4], [5, 10]]
+        }
+      }
+    ]
+  },
+  "wkt": {
+    "polygon_a": "POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))",
+    "polygon_b": "POLYGON ((5 5, 15 5, 15 15, 5 15, 5 5))",
+    "buffer_square": "POLYGON ((0 0, 4 0, 4 4, 0 4, 0 0))",
+    "invalid_bowtie": "POLYGON ((0 0, 2 2, 0 2, 2 0, 0 0))"
+  },
+  "lines": {
+    "crossing": [[0, 5], [10, 5]],
+    "touch": [[0, 0], [5, 0]],
+    "touch_wall": [[5, 0], [5, 10]],
+    "collinear": [[0, 0], [10, 0]],
+    "collinear_overlap": [[2, 0], [8, 0]],
+    "hole_span": [[-1, 5], [11, 5]]
+  },
+  "expected": {
+    "import_feature_count": 3,
+    "shell_hole_area": 84.0,
+    "polygon_a_area": 100.0,
+    "polygon_b_area": 100.0,
+    "intersection_area": 25.0,
+    "union_area": 175.0,
+    "difference_area": 75.0,
+    "buffer_square_area": 35.141592653589793,
+    "crossing_point": [5.0, 5.0],
+    "touch_point": [5.0, 0.0],
+    "collinear_segment": [[2.0, 0.0], [8.0, 0.0]],
+    "wall_segments_processed": 2,
+    "hole_span_inside_length": 6.0,
+    "invalid_geometry": true,
+    "floor_wall_same_xy_but_separate": true
+  }
+}

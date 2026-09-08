@@ -12,6 +12,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0006](0006-sionna-worker-boundary.md) | Accepted boundary; full Gate I open | Adopt exact-source Sionna RT behind versioned, validating process contracts; bounded CPU proof independently reviewed |
 | [0007](0007-active-process.md) | Accepted bounded process boundary; full Gate D open | Pin iperf3 behind explicit topology, strict result semantics and bounded lifecycle; eight macOS loopback checks passed |
 | [0009](0009-analysis-manifest.md) | Accepted; execution integration open | Immutable spatial inputs and typed canonical manifest identity with pinned JSON encoding and independently verified hashes |
+| [0010](0010-portable-2d-geometry-boundary.md) | Accepted proposal; Gate E pending independent review | Provisional portable 2-D Rust geometry boundary with bounded import, floor filtering, validation, and explicit repair provenance |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

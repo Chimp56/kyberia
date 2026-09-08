@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "purpose": "Phase 0 Gate E geometry-kernel research only; no source or runtime dependency is added to the Kyberia workspace.",
+  "sources": [
+    {
+      "id": "geo",
+      "version": "0.33.1",
+      "license": "MIT OR Apache-2.0",
+      "source": "https://crates.io/crates/geo/0.33.1",
+      "redistribution": "Research dependency only; no production binary or source vendored.",
+      "provenance": "Downloaded from crates.io during the isolated proof; exact package and transitive graph are frozen by research/geometry/Cargo.lock.",
+      "update_procedure": "Re-run desktop and wasm builds, all fixture assertions, benchmarks, license review and independent review before changing the pin."
+    },
+    {
+      "id": "geojson",
+      "version": "1.0.0",
+      "license": "MIT/Apache-2.0",
+      "source": "https://crates.io/crates/geojson/1.0.0",
+      "redistribution": "Research dependency only; no production binary or source vendored.",
+      "provenance": "Used only to parse the bounded GeoJSON FeatureCollection into geo-types for the proof harness.",
+      "update_procedure": "Repeat bounded import, coordinate-limit and malformed-input review together with geo."
+    },
+    {
+      "id": "wkt",
+      "version": "0.14.0",
+      "license": "MIT OR Apache-2.0",
+      "source": "https://crates.io/crates/wkt/0.14.0",
+      "redistribution": "Research dependency only; no production binary or source vendored.",
+      "provenance": "Used only for bounded WKT fixture parsing into geo-types.",
+      "update_procedure": "Repeat WKT parse, invalid-geometry and wasm build tests before changing the pin."
+    },
+    {
+      "id": "serde",
+      "version": "1.0.229",
+      "license": "MIT OR Apache-2.0",
+      "source": "https://crates.io/crates/serde/1.0.229",
+      "redistribution": "Research dependency only; no production binary or source vendored.",
+      "provenance": "Direct serialization dependency pinned in the isolated research Cargo.lock.",
+      "update_procedure": "Repeat locked offline builds, importer tests, source hash capture, and license review before changing the pin."
+    },
+    {
+      "id": "serde_json",
+      "version": "1.0.151",
+      "license": "MIT OR Apache-2.0",
+      "source": "https://crates.io/crates/serde_json/1.0.151",
+      "redistribution": "Research dependency only; no production binary or source vendored.",
+      "provenance": "Direct bounded JSON parsing and result serialization dependency pinned in the isolated research Cargo.lock.",
+      "update_procedure": "Repeat locked offline builds, malformed/adversarial import tests, source hash capture, and license review before changing the pin."
+    },
+    {
+      "id": "sha2",
+      "version": "0.10.9",
+      "license": "MIT OR Apache-2.0",
+      "source": "https://crates.io/crates/sha2/0.10.9",
+      "redistribution": "Research dependency only; no production binary or source vendored.",
+      "provenance": "Direct content hash dependency used to bind retained fixture, source, and repair provenance in the isolated research Cargo.lock.",
+      "update_procedure": "Repeat locked offline builds, exact hash assertions, source capture, and license review before changing the pin."
+    },
+    {
+      "id": "shapely",
+      "version": "2.0.7",
+      "license": "BSD-3-Clause",
+      "source": "https://pypi.org/project/shapely/2.0.7/",
+      "redistribution": "Research wheel installed only in ignored .tools/geometry-venv; not bundled.",
+      "wheel_sha256": "cd0e75d9124b73e06a42bf1615ad3d7d805f66871aa94538c3a9b7871d620013",
+      "provenance": "Hash-pinned macOS arm64 cp39 wheel; scalar and set-theoretic operations execute through GEOS.",
+      "update_procedure": "Use a supported interpreter/wheel, refresh hash lock and repeat GEOS version capture, fixture, benchmark and license review."
+    },
+    {
+      "id": "geos",
+      "version": "3.11.4",
+      "license": "LGPL-2.1",
+      "source": "https://libgeos.org/",
+      "redistribution": "Bundled inside the Shapely research wheel only; no Kyberia distribution decision is made.",
+      "provenance": "Runtime version reported by shapely.geos_version_string during the retained proof.",
+      "update_procedure": "Record GEOS C API version and rerun validity, booleans, offsets, intersections and repair tests."
+    },
+    {
+      "id": "numpy",
+      "version": "2.0.2",
+      "license": "BSD-3-Clause",
+      "source": "https://pypi.org/project/numpy/2.0.2/",
+      "redistribution": "Research wheel installed only in ignored .tools/geometry-venv; not bundled.",
+      "wheel_sha256": "2b2955fa6f11907cf7a70dab0d0755159bca87755e831e47932367fc8f2f2d0b",
+      "provenance": "Pinned transitive runtime requirement resolved for Shapely 2.0.7 on Python 3.9 arm64.",
+      "update_procedure": "Refresh only with a Shapely-compatible hash-pinned wheel and rerun the complete isolated comparison."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "research/geometry/fixtures/geometry-proof.json",
+      "sha256": "58117c5c730158db39694da6f503e391ac17f0e30790ab8bab03911f77dd9411",
+      "status": "original independently constructed bounded fixture; no vendor data or upstream source copied"
+    },
+    {
+      "path": "research/geometry/fixtures/geometry-proof-input.geojson",
+      "sha256": "840fd6507a1f5470a2749d1e5f9308f04c0c4a73470afdb0e905b6b969c8e85d",
+      "status": "raw GeoJSON projection of the independently authored fixture; used to exercise the untrusted bounded import path"
+    }
+  ],
+  "execution": {
+    "cargo_lock_sha256": "4a0d8aae145d868e32cdac812022401b94e6ffa0b1f9e2e0056f5e31f1277062",
+    "python_lock": "research/geometry/shapely-requirements.txt",
+    "python_lock_sha256": "dfb393bdccb2cb58f4e0a396d4e6e14e0b450855eba44fddb465f3638e6cc9aa",
+    "wasm_target": "wasm32-unknown-unknown",
+    "production_boundary": "research-only; no Cargo workspace member or production crate depends on these libraries"
+  },
+  "transitive_scope": {
+    "cargo_lock": "research/geometry/Cargo.lock",
+    "cargo_lock_sha256": "4a0d8aae145d868e32cdac812022401b94e6ffa0b1f9e2e0056f5e31f1277062",
+    "cargo_lock_package_count": 77,
+    "license_review": "Direct dependency licenses and the exact transitive package graph are recorded. Transitive license texts were not independently audited package by package; this is not an SBOM and does not authorize redistribution.",
+    "verification_command": "cargo tree --manifest-path research/geometry/Cargo.toml --locked --offline"
+  }
+}

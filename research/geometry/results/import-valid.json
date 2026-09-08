@@ -1,0 +1,32 @@
+{
+  "document_type": "FeatureCollection",
+  "format": "GeoJSON",
+  "limits": {
+    "max_coordinates": 10000,
+    "max_depth": 64,
+    "max_features": 1024,
+    "max_geometries": 4096,
+    "max_input_bytes": 262144
+  },
+  "observed": {
+    "coordinates": 16,
+    "geometries": 3
+  },
+  "source_hashes": {
+    "research/geometry/Cargo.lock": "4a0d8aae145d868e32cdac812022401b94e6ffa0b1f9e2e0056f5e31f1277062",
+    "research/geometry/Cargo.toml": "a3a02d6a9276bc66130b339241d6b6e4bf392d85c58b43fe1930a1c1b8505f85",
+    "research/geometry/benchmark.py": "681f528520e87c8dcf5f2b3dc4f1b8e3bcaf595b679ff52b89857b36e211d1d8",
+    "research/geometry/fixtures/geometry-proof-input.geojson": "840fd6507a1f5470a2749d1e5f9308f04c0c4a73470afdb0e905b6b969c8e85d",
+    "research/geometry/fixtures/geometry-proof.json": "58117c5c730158db39694da6f503e391ac17f0e30790ab8bab03911f77dd9411",
+    "research/geometry/shapely-requirements.txt": "dfb393bdccb2cb58f4e0a396d4e6e14e0b450855eba44fddb465f3638e6cc9aa",
+    "research/geometry/shapely_proof.py": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+    "research/geometry/src/import.rs": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+    "research/geometry/src/lib.rs": "9f7cfa3d59984c5f527c8d27a5c66152e8bea6abd1853157f09eaa2fa3d7b53e",
+    "research/geometry/src/main.rs": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+    "research/geometry/wasm_behavior.js": "44d541d4218c6f90be002192f4fb0e5a2cf99b0d1df310419dceb5ff71f3732e"
+  },
+  "source_path": "research/geometry/fixtures/geometry-proof-input.geojson",
+  "source_revision": "UNCOMMITTED_WORKTREE_CONTENT_HASH_BOUND",
+  "source_sha256": "840fd6507a1f5470a2749d1e5f9308f04c0c4a73470afdb0e905b6b969c8e85d",
+  "status": "PASS"
+}

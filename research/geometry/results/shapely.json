@@ -1,0 +1,173 @@
+{
+  "bounds": {
+    "max_coordinates": 10000,
+    "max_input_bytes": 262144,
+    "observed_coordinates": 16,
+    "observed_geometries": 3
+  },
+  "coordinate_semantics": "2-D planar floor-local metres; z/floor is application metadata",
+  "determinism": {
+    "normalized_union_wkt": "POLYGON ((0 0, 0 10, 5 10, 5 15, 15 15, 15 5, 10 5, 10 0, 0 0))",
+    "repeated_area": 175.0,
+    "repeated_buffer_area": 35.12144515225805
+  },
+  "elapsed_ms": 1.669916999999993,
+  "fixture_sha256": "58117c5c730158db39694da6f503e391ac17f0e30790ab8bab03911f77dd9411",
+  "geojson_fixture_sha256": "840fd6507a1f5470a2749d1e5f9308f04c0c4a73470afdb0e905b6b969c8e85d",
+  "harness": "geos-shapely",
+  "import": {
+    "feature_count": 3,
+    "format": "GeoJSON FeatureCollection + WKT",
+    "geometry_count": 3,
+    "wkt_polygon_count": 4
+  },
+  "invalid_geometry": {
+    "diagnostic": "Self-intersection[1 1]",
+    "is_valid": false,
+    "repair": {
+      "artifact_sha256": "df231730078b355b12e8b4c53eb224bcea9aa8533783a1dc63ce642a9eda499f",
+      "artifact_wkt": "MULTIPOLYGON (((2.0000000000000000 0.0000000000000000, 0.0000000000000000 0.0000000000000000, 1.0000000000000000 1.0000000000000000, 2.0000000000000000 0.0000000000000000)), ((2.0000000000000000 2.0000000000000000, 1.0000000000000000 1.0000000000000000, 0.0000000000000000 2.0000000000000000, 2.0000000000000000 2.0000000000000000)))",
+      "explicit": true,
+      "geos_version": "3.11.4",
+      "method": "make_valid",
+      "result_is_valid": true,
+      "result_type": "MultiPolygon",
+      "shapely_version": "2.0.7",
+      "source_sha256": "37e9cd2774afdbb31c9d662b3a2f297d3d60cfcb4b146974e226914efec44432",
+      "tool": "shapely"
+    },
+    "source": {
+      "format": "WKT",
+      "sha256": "37e9cd2774afdbb31c9d662b3a2f297d3d60cfcb4b146974e226914efec44432",
+      "text": "POLYGON ((0 0, 2 2, 0 2, 2 0, 0 0))"
+    }
+  },
+  "library": {
+    "geos": "3.11.4",
+    "geos_capi": "3.11.4-CAPI-1.17.4",
+    "shapely": "2.0.7"
+  },
+  "operations": {
+    "buffer_square_area": 35.12144515225805,
+    "collinear": {
+      "kind": "linestring",
+      "segment": [
+        [
+          2.0,
+          0.0
+        ],
+        [
+          8.0,
+          0.0
+        ]
+      ]
+    },
+    "crossing": {
+      "kind": "point",
+      "xy": [
+        5.0,
+        5.0
+      ]
+    },
+    "difference_area": 75.0,
+    "floor_filter": {
+      "selected_floor": "ground",
+      "selected_wall_features": 1,
+      "upper_excluded_before_2d_operation": true,
+      "upper_wall_features": 1,
+      "wall_segments_processed": 2
+    },
+    "hole_span_inside_length": 6.0,
+    "intersection_area": 25.0,
+    "polygon_a_area": 100.0,
+    "polygon_b_area": 100.0,
+    "probe_inputs": {
+      "collinear": [
+        [
+          0,
+          0
+        ],
+        [
+          10,
+          0
+        ]
+      ],
+      "collinear_overlap": [
+        [
+          2,
+          0
+        ],
+        [
+          8,
+          0
+        ]
+      ],
+      "crossing": [
+        [
+          0,
+          5
+        ],
+        [
+          10,
+          5
+        ]
+      ],
+      "hole_span": [
+        [
+          -1,
+          5
+        ],
+        [
+          11,
+          5
+        ]
+      ],
+      "touch": [
+        [
+          0,
+          0
+        ],
+        [
+          5,
+          0
+        ]
+      ],
+      "touch_wall": [
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          10
+        ]
+      ]
+    },
+    "same_floor_wall_intersects": true,
+    "shell_hole_area": 84.0,
+    "touch": {
+      "kind": "point",
+      "xy": [
+        5.0,
+        0.0
+      ]
+    },
+    "union_area": 175.0,
+    "upper_floor_same_xy_is_separate_metadata": true
+  },
+  "source_hashes": {
+    "research/geometry/Cargo.lock": "4a0d8aae145d868e32cdac812022401b94e6ffa0b1f9e2e0056f5e31f1277062",
+    "research/geometry/Cargo.toml": "a3a02d6a9276bc66130b339241d6b6e4bf392d85c58b43fe1930a1c1b8505f85",
+    "research/geometry/benchmark.py": "681f528520e87c8dcf5f2b3dc4f1b8e3bcaf595b679ff52b89857b36e211d1d8",
+    "research/geometry/fixtures/geometry-proof-input.geojson": "840fd6507a1f5470a2749d1e5f9308f04c0c4a73470afdb0e905b6b969c8e85d",
+    "research/geometry/fixtures/geometry-proof.json": "58117c5c730158db39694da6f503e391ac17f0e30790ab8bab03911f77dd9411",
+    "research/geometry/shapely-requirements.txt": "dfb393bdccb2cb58f4e0a396d4e6e14e0b450855eba44fddb465f3638e6cc9aa",
+    "research/geometry/shapely_proof.py": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+    "research/geometry/src/import.rs": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+    "research/geometry/src/lib.rs": "9f7cfa3d59984c5f527c8d27a5c66152e8bea6abd1853157f09eaa2fa3d7b53e",
+    "research/geometry/src/main.rs": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+    "research/geometry/wasm_behavior.js": "44d541d4218c6f90be002192f4fb0e5a2cf99b0d1df310419dceb5ff71f3732e"
+  },
+  "source_revision": "UNCOMMITTED_WORKTREE_CONTENT_HASH_BOUND",
+  "timing_boundary": "from before fixture/raw GeoJSON file reads and decode through operations, before result serialization"
+}

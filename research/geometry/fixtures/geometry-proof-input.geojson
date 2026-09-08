@@ -1,0 +1,115 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ground-shell-hole",
+        "floor": "ground",
+        "z_m": 0.0,
+        "material": "concrete"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              10,
+              0
+            ],
+            [
+              10,
+              10
+            ],
+            [
+              0,
+              10
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          [
+            [
+              3,
+              3
+            ],
+            [
+              7,
+              3
+            ],
+            [
+              7,
+              7
+            ],
+            [
+              3,
+              7
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "ground-wall",
+        "floor": "ground",
+        "z_m": 0.0,
+        "material": "concrete"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5,
+            0
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            10
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "upper-wall",
+        "floor": "upper",
+        "z_m": 3.2,
+        "material": "concrete"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            5,
+            0
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            5,
+            10
+          ]
+        ]
+      }
+    }
+  ]
+}

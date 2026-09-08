@@ -1,0 +1,63 @@
+{
+  "comparison_note": "Process timings include startup and are retained for this invocation shape. Internal timings have aligned operation boundaries but remain descriptive because Rust uses embedded bytes and Shapely performs file reads. These are observations from one developer machine, not release thresholds.",
+  "environment": {
+    "machine": "arm64",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "python": "3.9.6 (default, May 22 2026, 11:13:45) \n[Clang 21.0.0 (clang-2100.1.1.101)]"
+  },
+  "fixture": "research/geometry/fixtures/geometry-proof.json",
+  "fixture_sha256": "58117c5c730158db39694da6f503e391ac17f0e30790ab8bab03911f77dd9411",
+  "harness": "geometry-proof-benchmark",
+  "implementations": {
+    "geos_shapely": {
+      "internal_elapsed_ms": {
+        "max": 1.7393329999999818,
+        "median": 1.5906459999999871,
+        "min": 1.555332999999992
+      },
+      "internal_timing_boundary": "from before fixture/raw GeoJSON file reads and decode through operations, before result serialization",
+      "iterations": 20,
+      "process_elapsed_ms": {
+        "max": 176.20695799999996,
+        "median": 170.9192084999998,
+        "min": 169.80349999999999
+      }
+    },
+    "rust_geo": {
+      "internal_elapsed_ms": {
+        "max": 0.42820800000000003,
+        "median": 0.38381200000000004,
+        "min": 0.378167
+      },
+      "internal_timing_boundary": "from before embedded fixture decode and bounded import through operations, before result serialization",
+      "iterations": 20,
+      "process_elapsed_ms": {
+        "max": 3.987500000000005,
+        "median": 3.7174794999999956,
+        "min": 3.6093749999999982
+      }
+    }
+  },
+  "internal_timing_comparison": {
+    "reason": "The measured operations and timer endpoints are aligned, but Rust consumes compile-time embedded bytes while Shapely reads files; internal medians are retained per backend and are not used as a direct performance ranking.",
+    "status": "DESCRIPTIVE_ONLY"
+  },
+  "iterations": 20,
+  "rust_binary_path": "research/geometry/target/release/kyberia-geometry-proof",
+  "rust_binary_sha256": "2d4554514a6708c6f86e5af689f5c0cb14cfc0d561c5ef07d270b6fcf07a88a8",
+  "source_hashes": {
+    "research/geometry/Cargo.lock": "4a0d8aae145d868e32cdac812022401b94e6ffa0b1f9e2e0056f5e31f1277062",
+    "research/geometry/Cargo.toml": "a3a02d6a9276bc66130b339241d6b6e4bf392d85c58b43fe1930a1c1b8505f85",
+    "research/geometry/benchmark.py": "681f528520e87c8dcf5f2b3dc4f1b8e3bcaf595b679ff52b89857b36e211d1d8",
+    "research/geometry/fixtures/geometry-proof-input.geojson": "840fd6507a1f5470a2749d1e5f9308f04c0c4a73470afdb0e905b6b969c8e85d",
+    "research/geometry/fixtures/geometry-proof.json": "58117c5c730158db39694da6f503e391ac17f0e30790ab8bab03911f77dd9411",
+    "research/geometry/shapely-requirements.txt": "dfb393bdccb2cb58f4e0a396d4e6e14e0b450855eba44fddb465f3638e6cc9aa",
+    "research/geometry/shapely_proof.py": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+    "research/geometry/src/import.rs": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+    "research/geometry/src/lib.rs": "9f7cfa3d59984c5f527c8d27a5c66152e8bea6abd1853157f09eaa2fa3d7b53e",
+    "research/geometry/src/main.rs": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+    "research/geometry/wasm_behavior.js": "44d541d4218c6f90be002192f4fb0e5a2cf99b0d1df310419dceb5ff71f3732e"
+  },
+  "source_revision": "UNCOMMITTED_WORKTREE_CONTENT_HASH_BOUND",
+  "workload": "same bounded 2-D GeoJSON import (finite 2-D positions, CRS/Z rejection, cardinality/depth/count limits) + WKT validation, polygon booleans, rounded buffer, floor-filtered line intersection, hole clipping, and explicit repair diagnostics"
+}
