@@ -17,3 +17,7 @@ source inventory. Root separately passed the 16 project-command tests, domain
 Clippy, and `cargo check --workspace --all-targets --locked --offline`.
 The source change introduces no dependencies, side effects, storage types,
 or external adapter objects into the domain.
+
+Integration on `4482b36`: `cargo test --workspace --locked --offline`
+passed 400 Rust tests including doctests, with eight explicit benchmarks
+ignored. The complete source-qualified ledger and diff checks also passed.

@@ -168296,6 +168296,12 @@
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
           "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
           "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
+        },
+        {
+          "path": "crates/domain/src/project/commands.rs",
+          "description": "Canonical replayable project/site names and exact inverse receipts; full immutable operation materialization remains open",
+          "revision": "869455ce36f7e1b2eb61c08f9a9e5e516cd22cc8a1c7ca0cc9345b800da0756e",
+          "sha256": "869455ce36f7e1b2eb61c08f9a9e5e516cd22cc8a1c7ca0cc9345b800da0756e"
         }
       ],
       "validation": [
@@ -168333,6 +168339,15 @@
           "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
           "command": "cargo test --workspace --all-targets --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/domain/tests/project_commands.rs",
+          "description": "Sixteen command tests including name undo/redo, geometry preservation and forged inverse rejection",
+          "revision": "ed2c5166dfea87825f8b2a76a2dc71b5e0f37feaecc47a1b070e7029edb59ae0",
+          "sha256": "ed2c5166dfea87825f8b2a76a2dc71b5e0f37feaecc47a1b070e7029edb59ae0",
+          "command": "cargo test -p kyberia-domain --test project_commands --locked --offline",
+          "scope": "canonical_commands",
           "result": "PASS"
         }
       ],
@@ -168407,6 +168422,15 @@
           "revision": "df5118e823c04eb1bb0a2cb47c3bc8b2af599e66706da093382670de819feaf2",
           "sha256": "df5118e823c04eb1bb0a2cb47c3bc8b2af599e66706da093382670de819feaf2",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/project-name-commands-review.md",
+          "description": "Independent canonical name command review",
+          "revision": "ea6a4e171ed324a4405d5c19cb69a225eb3ffeac98e058a9f9ebb617cc348bc8",
+          "sha256": "ea6a4e171ed324a4405d5c19cb69a225eb3ffeac98e058a9f9ebb617cc348bc8",
+          "reviewer": "/root/operation_log_luna",
           "disposition": "APPROVED",
           "findings": []
         }
