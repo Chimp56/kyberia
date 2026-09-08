@@ -1,5 +1,24 @@
 # Kismet live status review
 
+Follow-up MAJOR, independently reproduced on proposed DNS correction
+`cf9755376851f32f4b6dc97a75cf5314ef91170d`: a slow TLS handshake still
+overruns the deadline. The isolated original fixture accepts a local TLS
+connection, reads ClientHello, writes record header `16 03 03 00 10`, and
+trickles sixteen zero bytes at 40 ms intervals. A 100 ms poll returned
+`DeadlineExceeded` only after **744.287584 ms**, failing the deliberately
+generous 350 ms elapsed-time assertion. Command:
+`cargo test -p kyberia-kismet-adapter --test tls_deadline_review --locked --offline`
+in the isolated `test/kismet-timeout-review` worktree. The failing disproof
+is not integrated into main.
+
+Pinned ureq `src/rtls.rs:108` performs `complete_io` over the TCP stream;
+`src/stream.rs:433` sets a socket timeout once. Repeated handshake reads can
+therefore remain below the inactivity timeout while exceeding total elapsed
+time. Require a mature transport or process boundary that actually cancels
+the handshake, retain certificate/hostname verification, and add this
+regression plus an elapsed-time assertion for the existing slow-body test.
+The explicit-address correction alone does not close transport review.
+
 Current disposition: REQUEST_CHANGES for hostname-resolution deadlines.
 Follow-up inspection of pinned ureq 2.12.1 `src/agent.rs:471` and
 `src/stream.rs:364` confirms system DNS resolution cannot be interrupted by
