@@ -371,3 +371,212 @@ fn metadata_batch_benchmark() {
         );
     }
 }
+
+fn normalization_context(db: &KismetDb) -> kyberia_kismet_adapter::database::NormalizationContext {
+    use kyberia_domain::{
+        identity::{AdapterId, CollectorId, SessionId, SourceId, Text},
+        observation::{IdentifierPolicy, PayloadRetention, PrivacyState},
+    };
+    let sources = db
+        .datasources()
+        .iter()
+        .enumerate()
+        .map(|(index, source)| {
+            let mut source_bytes = [0u8; 16];
+            source_bytes[0] = (index + 1) as u8;
+            let mut collector_bytes = [0u8; 16];
+            collector_bytes[0] = (index + 11) as u8;
+            let mut adapter_bytes = [0u8; 16];
+            adapter_bytes[0] = (index + 21) as u8;
+            kyberia_kismet_adapter::database::SourceMapping {
+                datasource_uuid: source.uuid.clone(),
+                source_id: SourceId::from_bytes(source_bytes).unwrap(),
+                collector_id: CollectorId::from_bytes(collector_bytes).unwrap(),
+                sensor_id: Evidence::Unknown(
+                    kyberia_domain::evidence::UnknownReason::SourceDidNotProvide,
+                ),
+                adapter_id: Evidence::Known(AdapterId::from_bytes(adapter_bytes).unwrap()),
+            }
+        })
+        .collect();
+    kyberia_kismet_adapter::database::NormalizationContext::new(
+        SessionId::from_bytes([7; 16]).unwrap(),
+        sources,
+        PrivacyState {
+            policy_version: Text::new("test-policy/v1").unwrap(),
+            identifiers: IdentifierPolicy::Redacted,
+            payload: PayloadRetention::Discarded,
+        },
+    )
+    .unwrap()
+}
+
+#[test]
+fn normalization_emits_canonical_frame_with_explicit_unknowns() {
+    use kyberia_domain::{
+        evidence::UnknownReason,
+        observation::{ObservationPayload, SourceKind},
+    };
+    let db = KismetDb::open(fixture(10, 1), budget()).unwrap();
+    let context = normalization_context(&db);
+    let normalized = db.normalize_batch(None, 10, &context).unwrap();
+    assert!(normalized.complete);
+    assert_eq!(normalized.observations.len(), 1);
+    assert_eq!(normalized.row_receipts.len(), 1);
+    assert_eq!(normalized.row_receipts[0].source_row_id, 1);
+    assert_eq!(normalized.row_receipts[0].raw_signal, -65);
+    assert!(!normalized.row_receipts[0].source_error);
+    assert_eq!(normalized.receipt.schema_version, 1);
+    assert_eq!(normalized.receipt.database_schema_version, 10);
+    assert_eq!(normalized.receipt.row_count, 1);
+    assert_eq!(normalized.receipt.source_hash.bytes(), db.sha256());
+    assert!(matches!(
+        normalized.receipt.producer_version,
+        Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+    ));
+
+    let envelope = normalized.observations[0].envelope();
+    let data = envelope.data();
+    assert_eq!(data.source.kind, SourceKind::DatabaseImport);
+    assert_eq!(data.source.source_schema_version.as_str(), "kismetdb/10");
+    assert!(matches!(
+        data.source.source_version,
+        Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+    ));
+    assert!(matches!(
+        data.time.monotonic,
+        Evidence::Unknown(UnknownReason::ClockUnavailable)
+    ));
+    assert!(matches!(
+        data.time.synchronization,
+        Evidence::Unknown(UnknownReason::ClockUnavailable)
+    ));
+    assert!(matches!(
+        data.pose,
+        Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+    ));
+    assert!(matches!(
+        data.dwell,
+        Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+    ));
+    assert_eq!(
+        data.raw_source.as_known().unwrap().byte_length,
+        db.byte_length()
+    );
+    let ObservationPayload::Frame(frame) = &data.payload else {
+        panic!("expected frame payload")
+    };
+    assert!(matches!(
+        frame.signal.rssi_dbm,
+        Evidence::Unknown(UnknownReason::UnsupportedCapability)
+    ));
+    assert!(matches!(
+        frame.signal.noise_dbm,
+        Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+    ));
+    assert_eq!(frame.length_bytes, 4);
+    assert!(matches!(
+        data.channel.as_known().unwrap().primary_frequency,
+        Evidence::Known(frequency) if frequency.get() == 2_412_000_000.0
+    ));
+    assert!(matches!(
+        data.channel.as_known().unwrap().primary_channel,
+        Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+    ));
+    assert!(matches!(
+        normalized.observations[0].source_response(),
+        Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+    ));
+    db.finish().unwrap();
+}
+
+#[test]
+fn normalization_preserves_schema_features_and_batch_completeness() {
+    use kyberia_domain::observation::ObservationPayload;
+    for version in 5..=10 {
+        let db = KismetDb::open(fixture(version, 3), budget()).unwrap();
+        let context = normalization_context(&db);
+        let first = db.normalize_batch(None, 2, &context).unwrap();
+        assert!(!first.complete);
+        assert_eq!(first.observations.len(), 2);
+        let second = db.normalize_batch(first.next_after, 2, &context).unwrap();
+        assert!(second.complete);
+        assert_eq!(second.observations.len(), 1);
+        for observation in first.observations.iter().chain(&second.observations) {
+            let ObservationPayload::Frame(frame) = &observation.envelope().data().payload else {
+                panic!("expected frame")
+            };
+            assert_eq!(
+                frame.phy_rate_mbps.as_known().map(|rate| rate.get()),
+                (version >= 7).then_some(54.0)
+            );
+        }
+        db.finish().unwrap();
+    }
+}
+
+#[test]
+fn normalization_is_deterministic_and_source_mapping_is_required() {
+    use kyberia_domain::observation::{IdentifierPolicy, PayloadRetention};
+    let path = fixture(10, 2);
+    let first_db = KismetDb::open(&path, budget()).unwrap();
+    let first_context = normalization_context(&first_db);
+    let first = first_db.normalize_batch(None, 10, &first_context).unwrap();
+    first_db.finish().unwrap();
+
+    let second_db = KismetDb::open(&path, budget()).unwrap();
+    let second_context = normalization_context(&second_db);
+    let second = second_db
+        .normalize_batch(None, 10, &second_context)
+        .unwrap();
+    assert_eq!(
+        serde_json::to_vec(&first.observations).unwrap(),
+        serde_json::to_vec(&second.observations).unwrap()
+    );
+    assert_eq!(first.receipt, second.receipt);
+    second_db.finish().unwrap();
+
+    let db = KismetDb::open(fixture(10, 1), budget()).unwrap();
+    let mut missing = normalization_context(&db);
+    missing.sources.clear();
+    assert!(matches!(
+        db.normalize_batch(None, 10, &missing),
+        Err(Error::Invalid("incomplete datasource mapping"))
+    ));
+    let retained = kyberia_kismet_adapter::database::NormalizationContext::new(
+        kyberia_domain::identity::SessionId::from_bytes([7; 16]).unwrap(),
+        normalization_context(&db).sources,
+        kyberia_domain::observation::PrivacyState {
+            policy_version: kyberia_domain::identity::Text::new("test-policy/v1").unwrap(),
+            identifiers: IdentifierPolicy::Redacted,
+            payload: PayloadRetention::Retained {
+                authorization_reference: kyberia_domain::identity::Text::new("test-auth").unwrap(),
+                retention_deadline: UtcTimestamp(1),
+            },
+        },
+    );
+    assert!(matches!(
+        retained,
+        Err(Error::Invalid("Kismet packet payload is not retained"))
+    ));
+    db.finish().unwrap();
+}
+
+#[test]
+fn source_error_is_preserved_as_unusable_quality() {
+    use kyberia_domain::observation::QualityFlag;
+    let db_path = fixture(10, 1);
+    mutate(&db_path, "UPDATE packets SET error=1");
+    let db = KismetDb::open(db_path, budget()).unwrap();
+    let normalized = db
+        .normalize_batch(None, 1, &normalization_context(&db))
+        .unwrap();
+    assert!(
+        normalized.observations[0]
+            .envelope()
+            .data()
+            .quality
+            .contains(&QualityFlag::Malformed)
+    );
+    db.finish().unwrap();
+}

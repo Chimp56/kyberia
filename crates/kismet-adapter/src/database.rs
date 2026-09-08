@@ -1,10 +1,17 @@
 //! Read-only, bounded KismetDB 5–10 packet metadata reader.
 //! Input must be a closed, regular SQLite file, not a live capture database.
-//! This is the foreign decoding boundary; canonical normalization is separate.
+//! This is the foreign decoding boundary; normalization emits only canonical
+//! Kyberia observations and adapter-owned import receipts.
 use kyberia_domain::{
-    evidence::{Evidence, UnknownReason},
-    time::UtcTimestamp,
-    units::{Hertz, Mbps},
+    evidence::{ArtifactReference, Evidence, UnknownReason},
+    identity::{AdapterId, CollectorId, ContentHash, ObservationId, SessionId, SourceId, Text},
+    observation::{
+        CalibrationState, ChannelContext, EnvelopeData, FrameMetadata, ObservationEnvelope,
+        ObservationPayload, PayloadRetention, PrivacyState, QualityFlag, RadioIdentityEvidence,
+        ReceivedObservation, SignalReading, SourceDescriptor, SourceKind,
+    },
+    time::{CaptureTime, UtcTimestamp, WallClockReading},
+    units::{Hertz, Mbps, Seconds},
 };
 use rusqlite::{
     Connection, OpenFlags,
@@ -28,6 +35,9 @@ use std::{
 const MAX_FILE_BYTES: u64 = 8 * 1024 * 1024 * 1024;
 const MAX_BATCH: usize = 4096;
 const MAX_SOURCES: usize = 1024;
+const NORMALIZATION_SCHEMA_VERSION: u8 = 1;
+const NORMALIZATION_PARSER_VERSION: &str = "kismetdb-observation/1";
+const KISMETDB_MEDIA_TYPE: &str = "application/vnd.kismet.kismetdb";
 
 #[derive(Debug)]
 pub enum Error {
@@ -134,6 +144,106 @@ pub struct Batch {
     pub complete: bool,
 }
 
+/// Canonical source identity supplied by the application for one foreign
+/// Kismet datasource UUID. A Kismet UUID is evidence from the imported file;
+/// it is not used as a Kyberia identity by this adapter.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SourceMapping {
+    pub datasource_uuid: String,
+    pub source_id: SourceId,
+    pub collector_id: CollectorId,
+    pub sensor_id: Evidence<kyberia_domain::identity::SensorId>,
+    pub adapter_id: Evidence<AdapterId>,
+}
+
+/// Explicit application decisions needed to admit Kismet packet metadata into
+/// canonical observations. The adapter cannot choose project identities or
+/// privacy policy, and it does not manufacture a monotonic clock epoch.
+#[derive(Clone, Debug, PartialEq)]
+pub struct NormalizationContext {
+    pub session_id: SessionId,
+    pub sources: Vec<SourceMapping>,
+    pub privacy: PrivacyState,
+}
+
+impl NormalizationContext {
+    pub fn new(
+        session_id: SessionId,
+        sources: Vec<SourceMapping>,
+        privacy: PrivacyState,
+    ) -> Result<Self, Error> {
+        if sources.len() > MAX_SOURCES {
+            return Err(Error::ResourceLimit);
+        }
+        let mut seen = BTreeSet::new();
+        let mut seen_source_ids = BTreeSet::new();
+        for source in &sources {
+            let normalized_uuid = source.datasource_uuid.to_ascii_lowercase();
+            if !uuid(&normalized_uuid) || !seen.insert(normalized_uuid) {
+                return Err(Error::Invalid("datasource mapping"));
+            }
+            if !seen_source_ids.insert(source.source_id) {
+                return Err(Error::Invalid("duplicate canonical source mapping"));
+            }
+        }
+        if !matches!(
+            privacy.payload,
+            PayloadRetention::Discarded | PayloadRetention::NotApplicable
+        ) {
+            return Err(Error::Invalid("Kismet packet payload is not retained"));
+        }
+        Ok(Self {
+            session_id,
+            sources,
+            privacy,
+        })
+    }
+
+    fn source(&self, datasource_uuid: &str) -> Result<&SourceMapping, Error> {
+        self.sources
+            .iter()
+            .find(|source| source.datasource_uuid.eq_ignore_ascii_case(datasource_uuid))
+            .ok_or(Error::Invalid("packet datasource mapping"))
+    }
+}
+
+/// Provenance for one bounded normalized batch. `complete` is about the
+/// requested database tail; callers must not publish a partial sequence as a
+/// complete import.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ImportReceipt {
+    pub schema_version: u8,
+    pub source_hash: ContentHash,
+    pub source_byte_length: u64,
+    pub database_schema_version: u8,
+    pub producer_version: Evidence<Text>,
+    pub adapter_version: Text,
+    pub parser_version: Text,
+    pub row_count: u64,
+    pub complete: bool,
+}
+
+#[derive(Debug)]
+pub struct NormalizedBatch {
+    pub observations: Vec<ReceivedObservation>,
+    /// One receipt per observation, in the same deterministic row order. The
+    /// raw signal is retained as an untyped source integer because the Kismet
+    /// schema does not establish dBm semantics.
+    pub row_receipts: Vec<ObservationReceipt>,
+    pub next_after: Option<i64>,
+    pub complete: bool,
+    pub receipt: ImportReceipt,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ObservationReceipt {
+    pub observation_id: ObservationId,
+    pub source_hash: ContentHash,
+    pub source_row_id: i64,
+    pub raw_signal: i64,
+    pub source_error: bool,
+}
+
 pub struct KismetDb {
     connection: Connection,
     snapshot: tempfile::NamedTempFile,
@@ -215,6 +325,156 @@ fn unsigned(value: i64) -> Result<u32, Error> {
 }
 fn unknown<T>() -> Evidence<T> {
     Evidence::Unknown(UnknownReason::SourceDidNotProvide)
+}
+
+fn unknown_as<T>(reason: UnknownReason) -> Evidence<T> {
+    Evidence::Unknown(reason)
+}
+
+fn domain_text(value: impl Into<String>) -> Result<Text, Error> {
+    Text::new(value).map_err(|_| Error::Invalid("canonical text"))
+}
+
+fn derived_id_bytes(hash: [u8; 32], tag: &[u8], row_id: Option<i64>) -> [u8; 16] {
+    let mut digest = Sha256::new();
+    digest.update(tag);
+    digest.update(hash);
+    if let Some(row_id) = row_id {
+        digest.update(row_id.to_be_bytes());
+    }
+    let bytes: [u8; 32] = digest.finalize().into();
+    let mut id = [0u8; 16];
+    id.copy_from_slice(&bytes[..16]);
+    // A cryptographic digest can theoretically be all zero, while domain IDs
+    // intentionally reject that value. Keep the derivation total and stable.
+    if id == [0; 16] {
+        id[0] = 1;
+    }
+    id
+}
+
+fn observation_id(hash: [u8; 32], row_id: i64) -> Result<ObservationId, Error> {
+    ObservationId::from_bytes(derived_id_bytes(hash, b"kismet-observation", Some(row_id)))
+        .map_err(|_| Error::Invalid("observation identity"))
+}
+
+fn capture_time(record: &PacketRecord) -> Result<CaptureTime, Error> {
+    Ok(CaptureTime {
+        wall: Evidence::Known(WallClockReading {
+            time: record.reported_time,
+            source: domain_text("KismetDB packets.ts_sec+ts_usec")?,
+            precision: Seconds::new(0.000001).map_err(|_| Error::Invalid("timestamp precision"))?,
+            uncertainty: unknown(),
+        }),
+        // KismetDB packet rows do not contain a monotonic source clock or a
+        // cross-clock model. The source wall timestamp is never substituted.
+        monotonic: unknown_as(UnknownReason::ClockUnavailable),
+        synchronization: unknown_as(UnknownReason::ClockUnavailable),
+    })
+}
+
+fn unknown_identity() -> RadioIdentityEvidence {
+    RadioIdentityEvidence {
+        physical_device: unknown(),
+        radio: unknown(),
+        bss: unknown(),
+        bssid: unknown(),
+        ess: unknown(),
+        mld: unknown(),
+        link_id: unknown(),
+        client: unknown(),
+        grouping_evidence: unknown_as(UnknownReason::NotRetained),
+    }
+}
+
+fn canonical_channel(record: &PacketRecord) -> ChannelContext {
+    ChannelContext {
+        // The Kismet packet table supplies a frequency but not a complete
+        // RF Atlas channel geometry. Keep the source frequency in its typed
+        // primary-frequency slot and leave channel/band/width geometry open.
+        band: unknown(),
+        primary_channel: unknown(),
+        primary_frequency: record.frequency.clone(),
+        center_frequency: unknown_as(UnknownReason::SourceDidNotProvide),
+        second_center_frequency: unknown_as(UnknownReason::SourceDidNotProvide),
+        width: unknown_as(UnknownReason::SourceDidNotProvide),
+        puncturing: unknown_as(UnknownReason::SourceDidNotProvide),
+    }
+}
+
+fn source_descriptor(
+    mapping: &SourceMapping,
+    schema_version: u8,
+) -> Result<SourceDescriptor, Error> {
+    Ok(SourceDescriptor {
+        source_id: mapping.source_id,
+        collector_id: mapping.collector_id,
+        sensor_id: mapping.sensor_id.clone(),
+        adapter_id: mapping.adapter_id.clone(),
+        kind: SourceKind::DatabaseImport,
+        source_name: domain_text("KismetDB")?,
+        // A KismetDB schema version is not a Kismet producer/software version.
+        source_version: unknown(),
+        source_schema_version: domain_text(format!("kismetdb/{schema_version}"))?,
+        adapter_name: domain_text("kyberia-kismet-adapter")?,
+        adapter_version: domain_text(env!("CARGO_PKG_VERSION"))?,
+        parser_version: domain_text(NORMALIZATION_PARSER_VERSION)?,
+        driver_version: unknown(),
+        os_version: unknown(),
+    })
+}
+
+fn normalize_record(
+    record: &PacketRecord,
+    mapping: &SourceMapping,
+    schema_version: u8,
+    session_id: SessionId,
+    raw_source: &ArtifactReference,
+    privacy: &PrivacyState,
+) -> Result<ReceivedObservation, Error> {
+    let mut quality = vec![QualityFlag::ClockUncertain, QualityFlag::UnknownCalibration];
+    if record.source_error {
+        // Kismet explicitly reported an error for this packet row. Preserve
+        // the metadata row, but prevent it from being treated as clean frame
+        // evidence by strict consumers.
+        quality.push(QualityFlag::Malformed);
+    }
+    let signal = SignalReading {
+        // `signal` is a PHY-specific Kismet integer. No dBm conversion is
+        // justified by the supported database schema alone.
+        rssi_dbm: unknown_as(UnknownReason::UnsupportedCapability),
+        noise_dbm: unknown_as(UnknownReason::SourceDidNotProvide),
+        chains: Vec::new(),
+        calibration: Evidence::Known(CalibrationState::Uncalibrated),
+        measurement_method: domain_text("KismetDB packet signal; source unit unknown")?,
+    };
+    let frame = FrameMetadata {
+        identity: unknown_identity(),
+        signal,
+        frame_type: unknown(),
+        frame_subtype: unknown(),
+        retry: unknown(),
+        length_bytes: record.captured_length,
+        phy_rate_mbps: record.phy_rate.clone(),
+        raw_information_elements: unknown_as(UnknownReason::NotRetained),
+    };
+    let envelope = ObservationEnvelope::new(EnvelopeData {
+        schema_version: kyberia_domain::observation::ObservationSchemaVersion::V2,
+        id: observation_id(raw_source.sha256.bytes(), record.row_id)?,
+        session_id,
+        source: source_descriptor(mapping, schema_version)?,
+        time: capture_time(record)?,
+        pose: unknown_as(UnknownReason::SourceDidNotProvide),
+        channel: Evidence::Known(canonical_channel(record)),
+        dwell: unknown_as(UnknownReason::SourceDidNotProvide),
+        privacy: privacy.clone(),
+        quality,
+        raw_source: Evidence::Known(raw_source.clone()),
+        payload: ObservationPayload::Frame(frame),
+    })
+    .map_err(|_| Error::Invalid("canonical observation"))?;
+    ReceivedObservation::new(envelope, unknown_as(UnknownReason::SourceDidNotProvide))
+        .map_err(|_| Error::Invalid("canonical reception"))
 }
 
 impl KismetDb {
@@ -349,6 +609,79 @@ impl KismetDb {
     }
     pub fn datasources(&self) -> &[Datasource] {
         &self.datasources
+    }
+
+    /// Return the immutable source artifact identity used by every normalized
+    /// observation from this database. The adapter never copies this artifact
+    /// into a project or silently retains its packet payload.
+    pub fn source_artifact(&self) -> Result<ArtifactReference, Error> {
+        Ok(ArtifactReference {
+            sha256: ContentHash::from_sha256(self.sha256),
+            media_type: domain_text(KISMETDB_MEDIA_TYPE)?,
+            byte_length: self.byte_length,
+        })
+    }
+
+    /// Normalize one bounded row batch into canonical V2 received
+    /// observations. The cursor and every returned batch must be retained by
+    /// the caller; only a batch with `complete == true`, followed by
+    /// [`KismetDb::finish`], represents a complete database import.
+    pub fn normalize_batch(
+        &self,
+        after: Option<i64>,
+        limit: usize,
+        context: &NormalizationContext,
+    ) -> Result<NormalizedBatch, Error> {
+        self.budget.check()?;
+        if self.datasources.len() != context.sources.len()
+            || self
+                .datasources
+                .iter()
+                .any(|source| context.source(&source.uuid).is_err())
+        {
+            return Err(Error::Invalid("incomplete datasource mapping"));
+        }
+        let batch = self.read_batch(after, limit)?;
+        let raw_source = self.source_artifact()?;
+        let mut observations = Vec::with_capacity(batch.records.len());
+        let mut row_receipts = Vec::with_capacity(batch.records.len());
+        for record in &batch.records {
+            let mapping = context.source(&record.datasource_uuid)?;
+            let id = observation_id(raw_source.sha256.bytes(), record.row_id)?;
+            observations.push(normalize_record(
+                record,
+                mapping,
+                self.schema_version,
+                context.session_id,
+                &raw_source,
+                &context.privacy,
+            )?);
+            row_receipts.push(ObservationReceipt {
+                observation_id: id,
+                source_hash: raw_source.sha256,
+                source_row_id: record.row_id,
+                raw_signal: record.reported_signal,
+                source_error: record.source_error,
+            });
+        }
+        self.budget.check()?;
+        Ok(NormalizedBatch {
+            observations,
+            row_receipts,
+            next_after: batch.next_after,
+            complete: batch.complete,
+            receipt: ImportReceipt {
+                schema_version: NORMALIZATION_SCHEMA_VERSION,
+                source_hash: raw_source.sha256,
+                source_byte_length: raw_source.byte_length,
+                database_schema_version: self.schema_version,
+                producer_version: unknown(),
+                adapter_version: domain_text(env!("CARGO_PKG_VERSION"))?,
+                parser_version: domain_text(NORMALIZATION_PARSER_VERSION)?,
+                row_count: batch.records.len() as u64,
+                complete: batch.complete,
+            },
+        })
     }
 
     /// Keyset pagination in file row order; never reorders by an uncertain clock.
