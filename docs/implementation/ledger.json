@@ -176390,13 +176390,15 @@
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "Offline KismetDB canonical metadata normalization and source-open race regression approved; full PCAPNG parity and live runtime context remain open."
+      ],
       "implementation": [
         {
           "path": "crates/kismet-adapter/src/database.rs",
-          "description": "Immutable snapshot KismetDB5–10 metadata reader; canonical replay still open",
-          "revision": "743bc5336340a70b34cbd6f677c17a18ab717be83ed90df251ada395ba18348a",
-          "sha256": "743bc5336340a70b34cbd6f677c17a18ab717be83ed90df251ada395ba18348a"
+          "description": "Reviewed bounded KismetDB5–10 canonical metadata normalization, deterministic identities and atomic no-follow snapshot acquisition",
+          "revision": "7614031cb2b10c82098cc66faecff8603763a26d7ff552adaa3394b642e8b6d3",
+          "sha256": "7614031cb2b10c82098cc66faecff8603763a26d7ff552adaa3394b642e8b6d3"
         },
         {
           "path": "crates/packet-import/src/pcapng.rs",
@@ -176413,6 +176415,15 @@
           "sha256": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
           "command": "cargo test --locked -p kyberia-packet-import",
           "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/kismet-observation-import.md",
+          "description": "Bounded normalization contracts and platform source-open limits",
+          "revision": "5f8db5fa38840ae365734cdbc562f1a0b52d5c1b0afcc4136a075376e3df2f84",
+          "sha256": "5f8db5fa38840ae365734cdbc562f1a0b52d5c1b0afcc4136a075376e3df2f84",
+          "command": "cargo test -p kyberia-kismet-adapter --locked --offline",
+          "scope": "offline_contract",
           "result": "PASS"
         }
       ],
@@ -176443,6 +176454,21 @@
             {
               "severity": "MAJOR",
               "description": "PCAP-001: EOF read could publish success after cancellation or deadline; post-read and publication checks independently verified",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/kismet-normalization-review.md",
+          "description": "Independent normalization review and root source-open correction approval",
+          "revision": "591537cb7efbcdc68fec6bbb6ae2d99fe31c708c2105aaf2c676123837a2f8a7",
+          "sha256": "591537cb7efbcdc68fec6bbb6ae2d99fe31c708c2105aaf2c676123837a2f8a7",
+          "reviewer": "/root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Path preflight/open race followed replacement symlinks",
               "resolution": "RESOLVED"
             }
           ]
