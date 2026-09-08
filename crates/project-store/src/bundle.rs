@@ -1,6 +1,6 @@
 use crate::manifest::{MAX_ARTIFACT_BYTES, MAX_MANIFEST_BYTES, SCHEMA_VERSION, validate_hash};
 use crate::{ArtifactEntry, BundleManifest, Result, StoreError, content_hash, sqlite_guard};
-use kyberia_domain::identity::ProjectId;
+use kyberia_domain::identity::{ProjectId, SnapshotId};
 use rusqlite::{Connection, OpenFlags, TransactionBehavior};
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -15,9 +15,9 @@ pub enum OpenMode {
 }
 
 pub struct Bundle {
-    root: PathBuf,
-    connection: Connection,
-    mode: OpenMode,
+    pub(crate) root: PathBuf,
+    pub(crate) connection: Connection,
+    pub(crate) mode: OpenMode,
 }
 
 #[derive(Debug, Serialize)]
@@ -29,7 +29,7 @@ pub struct Verification {
     pub failures: Vec<String>,
 }
 
-fn regular(path: &Path, directory: bool) -> Result<()> {
+pub(crate) fn regular(path: &Path, directory: bool) -> Result<()> {
     let metadata = fs::symlink_metadata(path)?;
     if metadata.file_type().is_symlink()
         || (directory && !metadata.is_dir())
@@ -44,7 +44,7 @@ fn regular(path: &Path, directory: bool) -> Result<()> {
     Ok(())
 }
 
-fn bounded_read(path: &Path, limit: u64) -> Result<Vec<u8>> {
+pub(crate) fn bounded_read(path: &Path, limit: u64) -> Result<Vec<u8>> {
     regular(path, false)?;
     let file = File::open(path)?;
     if file.metadata()?.len() > limit {
@@ -58,7 +58,7 @@ fn bounded_read(path: &Path, limit: u64) -> Result<Vec<u8>> {
     Ok(result)
 }
 
-fn sync_directory(path: &Path) -> Result<()> {
+pub(crate) fn sync_directory(path: &Path) -> Result<()> {
     #[cfg(unix)]
     File::open(path)?.sync_all()?;
     #[cfg(not(unix))]
@@ -66,7 +66,7 @@ fn sync_directory(path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn atomic_projection(root: &Path, manifest: &BundleManifest) -> Result<()> {
+pub(crate) fn atomic_projection(root: &Path, manifest: &BundleManifest) -> Result<()> {
     let path = root.join("manifest.json");
     if path.symlink_metadata().is_ok() {
         regular(&path, false)?;
@@ -122,7 +122,7 @@ fn checked_database_total(lengths: impl IntoIterator<Item = u64>) -> Result<u64>
     })
 }
 
-fn load_manifest(connection: &Connection) -> Result<BundleManifest> {
+pub(crate) fn load_manifest(connection: &Connection) -> Result<BundleManifest> {
     sqlite_guard::validate_schema(connection)?;
     let mut statement =
         connection.prepare("SELECT singleton,revision,body FROM main.bundle_manifest LIMIT 2")?;
@@ -155,6 +155,39 @@ fn load_manifest(connection: &Connection) -> Result<BundleManifest> {
     Ok(manifest)
 }
 
+/// Read the manifest envelope without consulting SQLite's `user_version`.
+/// Writable opens use this before an additive migration so a future logical
+/// manifest cannot be changed by a migration intended for the current schema.
+/// The caller performs the physical-version comparison after the compatibility
+/// decision, while this function still validates the complete current envelope
+/// and its revision binding.
+fn preflight_manifest(connection: &Connection) -> Result<BundleManifest> {
+    sqlite_guard::validate_schema(connection)?;
+    let mut statement =
+        connection.prepare("SELECT singleton,revision,body FROM main.bundle_manifest LIMIT 2")?;
+    let mut rows = statement.query([])?;
+    let row = rows
+        .next()?
+        .ok_or_else(|| StoreError::Corrupt("missing singleton manifest".into()))?;
+    let singleton: i64 = row.get(0)?;
+    let revision: i64 = row.get(1)?;
+    let bytes: Vec<u8> = row.get(2)?;
+    if singleton != 1 || rows.next()?.is_some() {
+        return Err(StoreError::Corrupt(
+            "exactly one singleton manifest required".into(),
+        ));
+    }
+    if bytes.len() as u64 > MAX_MANIFEST_BYTES {
+        return Err(StoreError::Corrupt("oversized database manifest".into()));
+    }
+    let manifest: BundleManifest = serde_json::from_slice(&bytes)?;
+    manifest.validate()?;
+    if i64::try_from(manifest.revision).ok() != Some(revision) {
+        return Err(StoreError::Corrupt("manifest revision mismatch".into()));
+    }
+    Ok(manifest)
+}
+
 impl Bundle {
     /// Creation reserves a new directory and never overwrites an existing path.
     /// A failed creation retains partial files for explicit diagnosis/recovery.
@@ -177,6 +210,8 @@ impl Bundle {
         configure_writable(&connection)?;
         let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
         transaction.execute_batch(sqlite_guard::CREATE_MANIFEST)?;
+        transaction.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOTS)?;
+        transaction.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOT_HISTORY)?;
         transaction.execute_batch("PRAGMA user_version=1")?;
         transaction.execute(
             "INSERT INTO bundle_manifest VALUES (1, ?1, ?2)",
@@ -201,8 +236,46 @@ impl Bundle {
             OpenMode::ReadOnly => OpenFlags::SQLITE_OPEN_READ_ONLY,
             OpenMode::ReadWrite => OpenFlags::SQLITE_OPEN_READ_WRITE,
         };
-        let connection = Connection::open_with_flags(root.join("project.sqlite"), flags)?;
+        if mode == OpenMode::ReadWrite {
+            // Probe through a read-only handle before opening SQLite in a
+            // write-capable mode. SQLite may recover a hot rollback journal as
+            // part of a writable open, so future compatibility is rejected
+            // without permitting migration or recovery writes.
+            let probe = Connection::open_with_flags(
+                root.join("project.sqlite"),
+                OpenFlags::SQLITE_OPEN_READ_ONLY,
+            )?;
+            // Apply the same defensive limits and VM/time budget before the
+            // first schema or manifest query. Initialization only changes
+            // connection-local SQLite configuration; it never migrates or
+            // writes bundle metadata.
+            sqlite_guard::initialize(&probe)?;
+            sqlite_guard::validate_schema(&probe)?;
+            let preflight = preflight_manifest(&probe)?;
+            if preflight.schema_version != SCHEMA_VERSION || !preflight.required_features.is_empty()
+            {
+                return Err(StoreError::UnsupportedVersion(preflight.schema_version));
+            }
+            let database_version: u32 =
+                probe.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+            if preflight.schema_version != database_version {
+                return Err(StoreError::Corrupt(
+                    "database schema version differs from manifest".into(),
+                ));
+            }
+        }
+        let mut connection = Connection::open_with_flags(root.join("project.sqlite"), flags)?;
         sqlite_guard::initialize(&connection)?;
+        sqlite_guard::validate_schema(&connection)?;
+        if mode == OpenMode::ReadWrite && !sqlite_guard::has_survey_snapshot_schema(&connection)? {
+            // V1 bundles predate the survey tables. This additive migration is
+            // performed before the authorizer is installed and never rewrites
+            // the manifest or its revision.
+            let migration = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+            migration.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOTS)?;
+            migration.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOT_HISTORY)?;
+            migration.commit()?;
+        }
         sqlite_guard::restrict(&connection, mode == OpenMode::ReadWrite)?;
         let bundle = Self {
             root: root.to_path_buf(),
@@ -221,9 +294,46 @@ impl Bundle {
         Ok(bundle)
     }
 
-    fn start_operation(&self) -> Result<()> {
+    pub(crate) fn start_operation(&self) -> Result<()> {
         database_size(&self.root)?;
         sqlite_guard::start_operation(&self.connection)
+    }
+
+    /// Publish an immutable content-addressed artifact file before its
+    /// SQLite reference is committed. A duplicate hash is accepted only when
+    /// its bytes match exactly; an unreferenced file after a failed transaction
+    /// is harmless and is retained for explicit garbage collection.
+    pub(crate) fn write_artifact_file(&self, bytes: &[u8]) -> Result<String> {
+        if bytes.len() as u64 > MAX_ARTIFACT_BYTES {
+            return Err(StoreError::Invalid(
+                "artifact exceeds 64 MiB chunk limit".into(),
+            ));
+        }
+        regular(&self.root.join("artifacts"), true)?;
+        let hash = content_hash(bytes);
+        let path = self.root.join("artifacts").join(&hash);
+        if path.symlink_metadata().is_ok() {
+            if bounded_read(&path, MAX_ARTIFACT_BYTES)? != bytes {
+                return Err(StoreError::Corrupt(
+                    "existing content hash has different bytes".into(),
+                ));
+            }
+            return Ok(hash);
+        }
+        let mut pending = tempfile::NamedTempFile::new_in(self.root.join("artifacts"))?;
+        pending.write_all(bytes)?;
+        pending.as_file().sync_all()?;
+        match pending.persist_noclobber(&path) {
+            Ok(_) => (),
+            Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
+                if bounded_read(&path, MAX_ARTIFACT_BYTES)? != bytes {
+                    return Err(StoreError::Corrupt("concurrent artifact collision".into()));
+                }
+            }
+            Err(error) => return Err(StoreError::Io(error.error)),
+        }
+        sync_directory(&self.root.join("artifacts"))?;
+        Ok(hash)
     }
 
     pub fn manifest(&self) -> Result<BundleManifest> {
@@ -347,7 +457,11 @@ impl Bundle {
         self.read_registered_artifact(hash, entry)
     }
 
-    fn read_registered_artifact(&self, hash: &str, entry: &ArtifactEntry) -> Result<Vec<u8>> {
+    pub(crate) fn read_registered_artifact(
+        &self,
+        hash: &str,
+        entry: &ArtifactEntry,
+    ) -> Result<Vec<u8>> {
         regular(&self.root.join("artifacts"), true)?;
         let bytes = bounded_read(&self.root.join("artifacts").join(hash), MAX_ARTIFACT_BYTES)?;
         if bytes.len() as u64 != entry.bytes || content_hash(&bytes) != hash {
@@ -399,6 +513,35 @@ impl Bundle {
             }
         }
         transaction.commit()?;
+        if sqlite_guard::has_survey_snapshot_schema(&self.connection)? {
+            let transaction = rusqlite::Transaction::new_unchecked(
+                &self.connection,
+                TransactionBehavior::Deferred,
+            )?;
+            let inventory_limit = crate::survey_snapshot::MAX_SURVEY_SNAPSHOTS as i64 + 1;
+            let mut statement =
+                transaction.prepare("SELECT snapshot_id FROM survey_snapshots LIMIT ?1")?;
+            let mut rows = statement.query([inventory_limit])?;
+            let mut ids = Vec::new();
+            while let Some(row) = rows.next()? {
+                ids.push(row.get::<_, String>(0)?);
+                if ids.len() as i64 >= inventory_limit {
+                    failures.push("survey snapshot inventory exceeds resource limit".into());
+                    break;
+                }
+            }
+            drop(rows);
+            drop(statement);
+            transaction.commit()?;
+            for raw_id in ids {
+                if SnapshotId::try_from(raw_id).is_err() {
+                    failures.push("invalid snapshot_id in survey index".into());
+                }
+            }
+            if let Err(error) = self.list_survey_snapshot_history(None) {
+                failures.push(error.to_string());
+            }
+        }
         Ok(Verification {
             schema_version: manifest.schema_version,
             artifact_count: manifest.artifacts.len(),

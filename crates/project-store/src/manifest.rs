@@ -31,6 +31,7 @@ pub enum ArtifactKind {
     AnalysisManifest,
     NumericalLayer,
     Annotation,
+    SurveySnapshot,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

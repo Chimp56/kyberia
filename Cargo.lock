@@ -312,6 +312,7 @@ name = "kyberia-project-store"
 version = "0.1.0"
 dependencies = [
  "kyberia-domain",
+ "kyberia-survey",
  "rusqlite",
  "serde",
  "serde_json",

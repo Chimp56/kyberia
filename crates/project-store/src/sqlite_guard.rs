@@ -1,4 +1,4 @@
-//! Defensive boundary for the existing single-table metadata format.
+//! Defensive boundary for the metadata tables in a project bundle.
 //! Authorizers constrain SQL operations; they are not an OS or hard-memory sandbox.
 use crate::{Result, StoreError, manifest::MAX_MANIFEST_BYTES};
 use rusqlite::{
@@ -10,7 +10,10 @@ use rusqlite::{
 use std::time::{Duration, Instant};
 
 pub(crate) const CREATE_MANIFEST: &str = "CREATE TABLE bundle_manifest (singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL CHECK(revision>=0), body BLOB NOT NULL)";
+pub(crate) const CREATE_SURVEY_SNAPSHOTS: &str = "CREATE TABLE survey_snapshots (snapshot_id TEXT PRIMARY KEY CHECK(length(snapshot_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), point_id TEXT NOT NULL CHECK(length(point_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), collector_id TEXT NOT NULL CHECK(length(collector_id)=32), artifact_hash TEXT NOT NULL CHECK(length(artifact_hash)=64), input_schema TEXT NOT NULL, output_schema TEXT NOT NULL, decoder_version TEXT NOT NULL, source_version TEXT NOT NULL, created_utc_ms INTEGER NOT NULL CHECK(created_utc_ms>=0), revision INTEGER NOT NULL CHECK(revision>=0))";
+pub(crate) const CREATE_SURVEY_SNAPSHOT_HISTORY: &str = "CREATE TABLE survey_snapshot_history (revision INTEGER PRIMARY KEY CHECK(revision>=0), snapshot_id TEXT NOT NULL CHECK(length(snapshot_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), point_id TEXT NOT NULL CHECK(length(point_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), collector_id TEXT NOT NULL CHECK(length(collector_id)=32), artifact_hash TEXT NOT NULL CHECK(length(artifact_hash)=64), input_schema TEXT NOT NULL, output_schema TEXT NOT NULL, decoder_version TEXT NOT NULL, source_version TEXT NOT NULL, operation TEXT NOT NULL, committed_utc_ms INTEGER NOT NULL CHECK(committed_utc_ms>=0))";
 pub(crate) const MAX_DATABASE_BYTES: u64 = 64 * 1024 * 1024;
+const MAX_SCHEMA_OBJECTS: usize = 64;
 const MAX_VM_OPERATIONS: u64 = 2_000_000;
 const SQL_DEADLINE: Duration = Duration::from_secs(5);
 
@@ -63,9 +66,18 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                 AuthAction::Select | AuthAction::Transaction { .. } => true,
                 AuthAction::Read { table_name, .. } => {
                     context.database_name == Some("main")
-                        && ["sqlite_master", "sqlite_schema", "bundle_manifest"]
-                            .contains(&table_name)
+                        && [
+                            "sqlite_master",
+                            "sqlite_schema",
+                            "bundle_manifest",
+                            "survey_snapshots",
+                            "survey_snapshot_history",
+                        ]
+                        .contains(&table_name)
                 }
+                AuthAction::Insert {
+                    table_name: "survey_snapshots" | "survey_snapshot_history",
+                } => writable,
                 AuthAction::Update {
                     table_name: "bundle_manifest",
                     column_name: "revision" | "body",
@@ -98,31 +110,96 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
 }
 
 /// Read SQLite's built-in schema catalog only. No imported table/view/trigger is
-/// evaluated while establishing trust. Exact DDL admits the format Kyberia has
-/// actually written; future logical versions remain readable with this envelope.
+/// evaluated while establishing trust. Exact DDL admits the formats Kyberia has
+/// actually written; an older manifest-only bundle remains readable and is
+/// upgraded by the writable open path before snapshot operations are attempted.
 pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
-    let mut statement =
-        connection.prepare("SELECT type,name,tbl_name,sql FROM main.sqlite_schema LIMIT 2")?;
+    // A canonical bundle has at most three user tables and their SQLite-owned
+    // autoindexes. Read a bounded inventory so malformed schema input cannot
+    // allocate from an unbounded sqlite_schema result.
+    let mut statement = connection
+        .prepare("SELECT type,name,tbl_name,sql FROM main.sqlite_schema ORDER BY name LIMIT 65")?;
     let mut rows = statement.query([])?;
-    let row = rows
-        .next()?
-        .ok_or_else(|| StoreError::Corrupt("missing metadata schema".into()))?;
-    let kind: String = row.get(0)?;
-    let name: String = row.get(1)?;
-    let table: String = row.get(2)?;
-    let sql: String = row.get(3)?;
-    if kind != "table"
-        || name != "bundle_manifest"
-        || table != "bundle_manifest"
-        || sql != CREATE_MANIFEST
-        || rows.next()?.is_some()
-    {
+    let mut entries = Vec::new();
+    let mut object_count = 0;
+    while let Some(row) = rows.next()? {
+        object_count += 1;
+        if object_count > MAX_SCHEMA_OBJECTS {
+            return Err(StoreError::Corrupt(
+                "metadata schema inventory exceeds resource limit".into(),
+            ));
+        }
+        let kind: String = row.get(0)?;
+        let name: String = row.get(1)?;
+        let table: String = row.get(2)?;
+        let sql: Option<String> = row.get(3)?;
+        // PRIMARY KEY declarations create SQLite-owned autoindexes. They are
+        // implementation details of the admitted table shape and have no
+        // executable SQL body; user-created indexes remain rejected below.
+        if kind == "index" && name.starts_with("sqlite_autoindex_") && sql.is_none() {
+            continue;
+        }
+        entries.push((kind, name, table, sql));
+    }
+    let expected_manifest = (
+        "table",
+        "bundle_manifest",
+        "bundle_manifest",
+        Some(CREATE_MANIFEST),
+    );
+    let expected_snapshots = (
+        "table",
+        "survey_snapshots",
+        "survey_snapshots",
+        Some(CREATE_SURVEY_SNAPSHOTS),
+    );
+    let expected_history = (
+        "table",
+        "survey_snapshot_history",
+        "survey_snapshot_history",
+        Some(CREATE_SURVEY_SNAPSHOT_HISTORY),
+    );
+    let valid_manifest_only = entries.len() == 1
+        && entries.iter().any(|entry| {
+            entry.0 == expected_manifest.0
+                && entry.1 == expected_manifest.1
+                && entry.2 == expected_manifest.2
+                && entry.3.as_deref() == expected_manifest.3
+        });
+    let valid_current = entries.len() == 3
+        && [expected_manifest, expected_snapshots, expected_history]
+            .into_iter()
+            .all(|expected| {
+                entries.iter().any(|entry| {
+                    entry.0 == expected.0
+                        && entry.1 == expected.1
+                        && entry.2 == expected.2
+                        && entry.3.as_deref() == expected.3
+                })
+            });
+    if !valid_manifest_only && !valid_current {
         return Err(StoreError::Corrupt(
-            "unsupported physical metadata schema; expected the canonical manifest table only"
+            "unsupported physical metadata schema; expected the canonical manifest and survey tables"
                 .into(),
         ));
     }
     Ok(())
+}
+
+pub(crate) fn has_survey_snapshot_schema(connection: &Connection) -> Result<bool> {
+    let mut statement = connection.prepare(
+        "SELECT name FROM main.sqlite_schema WHERE type='table' AND name IN ('survey_snapshots','survey_snapshot_history')",
+    )?;
+    let mut rows = statement.query([])?;
+    let mut names = [false; 2];
+    while let Some(row) = rows.next()? {
+        match row.get::<_, String>(0)?.as_str() {
+            "survey_snapshots" => names[0] = true,
+            "survey_snapshot_history" => names[1] = true,
+            _ => {}
+        }
+    }
+    Ok(names.into_iter().all(|present| present))
 }
 
 #[cfg(test)]

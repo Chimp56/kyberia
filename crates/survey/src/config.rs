@@ -1,13 +1,93 @@
 use crate::*;
 use kyberia_domain::capability::{Capability, CapabilityDocument};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::num::NonZeroU32;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct PointId(ObservationId);
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PointId([u8; 16]);
 impl PointId {
     pub fn from_bytes(bytes: [u8; 16]) -> Result<Self, kyberia_domain::ValidationError> {
-        Ok(Self(ObservationId::from_bytes(bytes)?))
+        if bytes == [0; 16] {
+            return Err(kyberia_domain::ValidationError::InvalidIdentity);
+        }
+        Ok(Self(bytes))
+    }
+
+    pub const fn bytes(self) -> [u8; 16] {
+        self.0
+    }
+
+    /// Stable, lossless encoding for SQLite identity columns. This named
+    /// boundary keeps PointId distinct from all other domain identifiers and
+    /// avoids exposing a generic `TryFrom<String>` database conversion.
+    pub fn database_key(self) -> String {
+        self.0.iter().map(|byte| format!("{byte:02x}")).collect()
+    }
+
+    pub fn from_database_key(value: &str) -> Result<Self, kyberia_domain::ValidationError> {
+        if value.len() != 32
+            || !value
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        {
+            return Err(kyberia_domain::ValidationError::InvalidIdentity);
+        }
+        let mut bytes = [0; 16];
+        for (index, byte) in bytes.iter_mut().enumerate() {
+            *byte = u8::from_str_radix(&value[index * 2..index * 2 + 2], 16)
+                .map_err(|_| kyberia_domain::ValidationError::InvalidIdentity)?;
+        }
+        Self::from_bytes(bytes)
+    }
+}
+
+impl Serialize for PointId {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.database_key())
+    }
+}
+
+impl<'de> Deserialize<'de> for PointId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Self::from_database_key(&value).map_err(serde::de::Error::custom)
+    }
+}
+
+#[cfg(test)]
+mod point_id_tests {
+    use super::PointId;
+
+    #[test]
+    fn database_key_roundtrips_without_identity_type_erasure() {
+        let point = PointId::from_bytes([0x12; 16]).unwrap();
+        let key = point.database_key();
+        assert_eq!(key, "12121212121212121212121212121212");
+        assert_eq!(PointId::from_database_key(&key), Ok(point));
+        assert_eq!(serde_json::to_string(&point).unwrap(), format!("\"{key}\""));
+        assert_eq!(
+            serde_json::from_str::<PointId>(&format!("\"{key}\"")).unwrap(),
+            point
+        );
+    }
+
+    #[test]
+    fn malformed_database_keys_are_rejected() {
+        for key in [
+            "",
+            "1212",
+            "1212121212121212121212121212121G",
+            "ABCDEFABCDEFABCDEFABCDEFABCDEFAB",
+            "00000000000000000000000000000000",
+        ] {
+            assert!(PointId::from_database_key(key).is_err(), "accepted {key:?}");
+        }
     }
 }
 
