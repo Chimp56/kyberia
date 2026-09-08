@@ -93,6 +93,7 @@ fn every_unit_rejects_nonfinite_in_constructor_and_deserializer() {
         Dimensionless,
         Dbm,
         Db,
+        Milliwatts,
         Hertz,
         Megahertz,
         Gigahertz,

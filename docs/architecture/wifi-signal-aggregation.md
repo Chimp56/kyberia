@@ -1,0 +1,13 @@
+# Wi-Fi signal arithmetic and aggregation
+
+The pure `kyberia-wifi-semantics` crate implements plan §§7.9–7.10 without selecting a hidden global average. It contains no capture, storage, UI or propagation-engine side effects. Callers choose and retain one explicit method: median dBm, symmetrically trimmed arithmetic mean in dBm, linear-power mean converted to dBm, an R-7 percentile interval in dBm, acquisition-ordered dBm EWMA, or a Huber-limited one-dimensional state-space estimate.
+
+Power addition and linear means operate in a scaled linear-milliwatt domain. The scaling is algebraically equivalent to converting every dBm input with `10^(dBm/10)`, summing or averaging, and applying `10 log10`, while avoiding intermediate overflow. Direct dBm↔mW conversion returns a numerical error if binary64 cannot represent the positive linear result. An empty power set or sample set is `Unknown(NotMeasured)`, never zero watts, 0 dBm or good signal.
+
+SNR and SIR subtract logarithmic levels only after the denominator is independently available. SINR first adds aggregate interference and noise in the scaled linear-power domain. Missing interference or noise propagates its explicit unknown reason; these functions never insert a noise-floor constant. A predicted-layer caller may supply a configured prior only through evidence with separate analysis-manifest provenance.
+
+Each result records the algorithm version, complete method parameters, sample count and contributing observation identities. Static methods sort identities because they are set operations. EWMA and state-space methods retain acquisition order and require strictly increasing monotonic timestamps in one clock epoch. They do not infer order from UTC or mix clock epochs. Duplicate observations fail rather than overweighting a sample.
+
+The robust state-space method uses the first observation as its initial estimate, measurement variance as its initial uncertainty, a random-walk process variance and a Huber-clamped innovation. Its dB standard-deviation and dimensionless threshold parameters are explicit. It is an online display estimate, not a position-aware spatial interpolator, physical fading model or posterior confidence interval. The percentile interval is descriptive and carries no Gaussian confidence claim.
+
+No method manufactures noise, SNR, interference, client capability, channel completeness or position certainty. A survey/analysis manifest must preserve the chosen aggregate and inputs before spatial interpolation. Calibration is a separate, range-scoped transformation applied with its own provenance.

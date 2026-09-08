@@ -52,6 +52,11 @@ quantity!(
     "Logarithmic ratio, gain or loss; finite, signed."
 );
 quantity!(
+    Milliwatts,
+    |v: f64| v > 0.0,
+    "Strictly positive linear power in milliwatts. Zero is absence of power evidence, not a valid dBm conversion."
+);
+quantity!(
     Hertz,
     |v: f64| v > 0.0,
     "Strictly positive frequency in Hz."

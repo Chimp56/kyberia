@@ -6,6 +6,10 @@
 //! let power: Dbm = Db::new(3.0).unwrap();
 //! ```
 //! ```compile_fail
+//! use kyberia_domain::units::{Dbm, Milliwatts};
+//! let linear_power: Milliwatts = Dbm::new(-60.0).unwrap();
+//! ```
+//! ```compile_fail
 //! use kyberia_domain::units::{Meters, Pixels};
 //! let distance: Meters = Pixels::new(10.0).unwrap();
 //! ```
