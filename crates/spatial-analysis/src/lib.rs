@@ -1,8 +1,10 @@
 //! Pure numerical RSSI tiles with explicit geometric support policy.
 //! See docs/architecture/spatial-analysis.md for assumptions and limitations.
 mod model;
+mod registry;
 mod tile;
 pub use model::*;
+pub use registry::*;
 pub use tile::*;
 
 use kyberia_domain::{
@@ -47,6 +49,7 @@ pub enum Error {
     AggregationVersionMismatch,
     TemporalAggregationRequiresMonotonicEvidence,
     InvalidAggregationConfiguration(&'static str),
+    SpatialMethodMismatch,
     Cancelled,
 }
 impl std::fmt::Display for Error {

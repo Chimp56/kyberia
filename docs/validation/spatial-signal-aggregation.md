@@ -9,8 +9,19 @@ inside a privately constructed `MetricDefinitionBinding`, alongside the
 immutable metric-definition artifact reference. The binding constructor
 verifies bounded canonical bytes, schema, content hash/length, media type,
 version identity and exact method projection before the model accepts it.
+For current artifacts, the model rejects a Config spatial method that differs
+from the metric declaration; PointValue therefore leaves nonexact cells
+unknown. The binding is backed by the complete canonical `MetricDefinition`
+registry record; `SignalMetricDefinition` remains a strict compatibility type
+for the original wire contract. Existing signal artifacts retain their
+historical schema, media type, bytes and content hash when opened; new complete
+definitions use the additive metric registry contract.
 Canonical JSON is limited to 16 KiB and depth 16 and must match the byte-for-byte
 Serde encoding; duplicate, unknown, reordered and future fields are rejected.
+The registry media type is
+`application/kyberia-metric-definition+json` (historical signal artifacts use
+`application/kyberia-signal-metric-definition+json`); UI help and compute contracts
+expose the same definition SHA-256.
 Coincident samples are passed to the pure
 `kyberia-wifi-semantics` contract. The old hidden arithmetic dBm coincidence
 rule is no longer used; the tile schema is `kyberia.numeric-rssi-tile/2`. Tile

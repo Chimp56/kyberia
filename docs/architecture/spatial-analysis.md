@@ -3,7 +3,7 @@
 `crates/spatial-analysis` implements the bounded numerical part of plan.md
 §7.9, §7.21, §7.24–7.25, §11.7, §12.1–12.2 and iteration 4. It is an inward
 Rust computation crate, depending only on canonical domain units, the pure
-`kyberia-wifi-semantics` crate, and Serde/serde_json. The Wi-Fi dependency is a narrow
+`kyberia-wifi-semantics` crate, and Serde/serde_json/SHA-256. The Wi-Fi dependency is a narrow
 directional dependency: it supplies signal aggregation and RF arithmetic, but
 does not know spatial coordinates, grids, geometry, persistence, or rendering.
 The spatial crate does not read files, obtain clocks, filter live collectors,
@@ -29,12 +29,25 @@ observations at the same coordinate remain different evidence records.
 of the immutable metric-definition artifact reference and its typed
 `SignalAggregationSelection`. Its validating constructor accepts only bounded
 canonical bytes with the expected schema, content hash, byte length, media type,
-artifact version identity and exact method projection. There is no second
-spatial aggregation setting that can diverge from this binding. The selection
-is closed and versioned by `kyberia-wifi-semantics`; malformed, duplicate,
-unknown or future wire values fail validation. The canonical JSON artifact uses
-media type `application/kyberia-signal-metric-definition+json`, is bounded to
-16 KiB and depth 16, and must byte-for-byte equal the pinned Serde JSON encoding.
+artifact version identity and exact method projection. Current definitions also
+bind `Config::method` to their declared spatial method, so a PointValue
+definition cannot silently run IDW or nearest-neighbor interpolation. Historical
+signal-only artifacts remain readable through a strict compatibility decoder;
+they preserve their original schema, media type, canonical bytes and hash and
+retain the pre-registry caller-supplied spatial method. The canonical
+`MetricDefinition` supplies the semantic description, typed unit and valid
+range, evidence/capability requirements, aggregation, spatial method,
+selection filters/grouping, uncertainty and unknown policy, compatibility,
+compliance direction, and explicitly nonsemantic visualization defaults. The
+same canonical bytes and SHA-256 are exposed to UI help and compute contracts.
+The registry rejects duplicate `(id, version)` entries and lists them in stable
+order. The selection is closed and versioned by `kyberia-wifi-semantics`;
+malformed, duplicate, unknown or future wire values fail validation. Current
+canonical JSON artifacts use media type
+`application/kyberia-metric-definition+json`, while the historical
+`application/kyberia-signal-metric-definition+json` artifact remains accepted.
+Both are bounded to 16 KiB and depth 16 and must byte-for-byte equal their
+respective pinned Serde JSON encoding.
 
 The input evidence plane distinguishes measured evidence from synthetic test
 evidence. Cell class `Observed` means exact input-coordinate support, within that
@@ -75,7 +88,9 @@ spatial input must carry a validated single clock epoch and strictly increasing
 monotonic timestamps before those methods can be admitted.
 
 At an exact coordinate, the selected group aggregate is returned as `Observed`, even if the
-minimum count for interpolation is not met. Otherwise:
+minimum count for interpolation is not met. With `PointValue`, every nonexact
+cell remains explicitly unknown; it never falls through to interpolation.
+Otherwise:
 
 1. Neighbors are bounded by the configured radius and maximum neighbor count.
 2. Equal distances break ties by stable location-group order (x then y).

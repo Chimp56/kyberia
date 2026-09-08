@@ -34,7 +34,12 @@ plane but never provide group support or a zero value.
 
 The `MetricDefinitionBinding` constructor verifies the bounded canonical bytes,
 schema, content hash, length, media type, version identity and exact typed
-selection before a binding can enter the numerical model. The numerical crate
+selection before a binding can enter the numerical model. It is backed by
+the complete canonical `MetricDefinition` in ADR-0017 for
+current artifacts. The historical `SignalMetricDefinition` type and
+`kyberia.signal-metric-definition/1` wire schema remain as a strict
+compatibility decoder. Legacy bindings preserve their original bytes and hash
+and leave spatial-method selection to the legacy caller. The numerical crate
 does not read files; an outer adapter only loads the untrusted bytes and passes
 them to this constructor.
 

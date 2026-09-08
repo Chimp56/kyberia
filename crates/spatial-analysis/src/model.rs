@@ -1,22 +1,16 @@
 use crate::*;
 use kyberia_domain::{
-    analysis::{AnalysisManifest, VersionedArtifact},
-    evidence::{ArtifactReference, UnknownReason},
-    identity::{FloorId, FrameId, ObservationId, Text},
-    units::{Db, Meters, Probability},
+    evidence::{ArtifactReference, Evidence, UnknownReason},
+    identity::{FloorId, FrameId, ObservationId},
+    units::{Db, Dbm, Meters, Probability},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BinaryHeap;
 
-pub const SIGNAL_METRIC_DEFINITION_SCHEMA: &str = "kyberia.signal-metric-definition/1";
-pub const SIGNAL_METRIC_DEFINITION_MEDIA_TYPE: &str =
-    "application/kyberia-signal-metric-definition+json";
-pub const MAX_SIGNAL_METRIC_DEFINITION_BYTES: usize = 16 * 1024;
-pub const MAX_SIGNAL_METRIC_DEFINITION_DEPTH: usize = 16;
-
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub enum Method {
+    PointValue,
     Nearest,
     Idw { power: f64 },
 }
@@ -66,263 +60,6 @@ impl Config {
     }
 }
 
-/// A typed/versioned signal aggregation choice retained with the metric
-/// definition. A verified metric-definition binding owns its artifact and
-/// cannot be constructed with a divergent selection.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct SignalAggregationSelection {
-    pub algorithm_version: SignalAlgorithmVersion,
-    pub method: AggregateMethod,
-}
-impl SignalAggregationSelection {
-    pub const fn new(method: AggregateMethod) -> Self {
-        Self {
-            algorithm_version: kyberia_wifi_semantics::ALGORITHM_VERSION,
-            method,
-        }
-    }
-
-    pub fn validate(self) -> Result<(), Error> {
-        if self.algorithm_version != kyberia_wifi_semantics::ALGORITHM_VERSION {
-            return Err(Error::AggregationVersionMismatch);
-        }
-        kyberia_wifi_semantics::aggregate(&[], self.method)
-            .map(|_| ())
-            .map_err(map_aggregation_error)
-    }
-
-    pub fn validate_for_spatial(self) -> Result<(), Error> {
-        self.validate()?;
-        kyberia_wifi_semantics::aggregate_static(&[], self.method)
-            .map(|_| ())
-            .map_err(map_aggregation_error)
-    }
-
-    pub const fn is_temporal(self) -> bool {
-        matches!(
-            self.method,
-            AggregateMethod::EwmaDbm { .. } | AggregateMethod::RobustStateSpaceDbm { .. }
-        )
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum MetricDefinitionError {
-    ResourceLimit(&'static str),
-    MalformedBytes,
-    NonCanonicalBytes,
-    ArtifactLengthMismatch,
-    ArtifactHashMismatch,
-    ArtifactVersionMismatch,
-    ArtifactMediaTypeMismatch,
-    SelectionMismatch,
-    AggregationVersionMismatch,
-    InvalidAggregationConfiguration(&'static str),
-    TemporalAggregationRequiresMonotonicEvidence,
-}
-impl std::fmt::Display for MetricDefinitionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-impl std::error::Error for MetricDefinitionError {}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-enum SignalMetricDefinitionSchema {
-    #[serde(rename = "kyberia.signal-metric-definition/1")]
-    V1,
-}
-
-/// Canonical signal metric-definition document used to create verified
-/// bindings. Its fields stay private so its exact wire projection is produced
-/// only by this type's canonical serializer.
-#[derive(Clone, Debug, PartialEq)]
-pub struct SignalMetricDefinition {
-    version: Text,
-    signal_aggregation: SignalAggregationSelection,
-}
-impl SignalMetricDefinition {
-    pub fn new(
-        version: Text,
-        signal_aggregation: SignalAggregationSelection,
-    ) -> Result<Self, MetricDefinitionError> {
-        validate_signal_selection(signal_aggregation)?;
-        Ok(Self {
-            version,
-            signal_aggregation,
-        })
-    }
-
-    pub fn version(&self) -> &Text {
-        &self.version
-    }
-
-    pub const fn signal_aggregation(&self) -> SignalAggregationSelection {
-        self.signal_aggregation
-    }
-
-    pub fn canonical_bytes(&self) -> Result<Vec<u8>, MetricDefinitionError> {
-        let document = SignalMetricDefinitionDocument {
-            schema: SignalMetricDefinitionSchema::V1,
-            version: self.version.clone(),
-            signal_aggregation: self.signal_aggregation,
-        };
-        let bytes =
-            serde_json::to_vec(&document).map_err(|_| MetricDefinitionError::MalformedBytes)?;
-        if bytes.len() > MAX_SIGNAL_METRIC_DEFINITION_BYTES {
-            return Err(MetricDefinitionError::ResourceLimit(
-                "signal metric definition bytes",
-            ));
-        }
-        Ok(bytes)
-    }
-
-    pub fn bind(
-        &self,
-        artifact: VersionedArtifact,
-    ) -> Result<MetricDefinitionBinding, MetricDefinitionError> {
-        let bytes = self.canonical_bytes()?;
-        MetricDefinitionBinding::from_artifact_bytes(artifact, &bytes, self.signal_aggregation)
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct SignalMetricDefinitionDocument {
-    schema: SignalMetricDefinitionSchema,
-    version: Text,
-    signal_aggregation: SignalAggregationSelection,
-}
-
-/// The metric-definition artifact and its verified typed projection used by
-/// this spatial job. Private fields prevent arbitrary artifact/selection
-/// pairings; construct it with `from_artifact_bytes` or `bind`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
-pub struct MetricDefinitionBinding {
-    artifact: VersionedArtifact,
-    signal_aggregation: SignalAggregationSelection,
-}
-impl MetricDefinitionBinding {
-    /// Verify an untrusted artifact and bind only the selection requested by
-    /// the caller. The selection is read from the canonical bytes and compared
-    /// before the private binding is returned.
-    pub fn from_artifact_bytes(
-        artifact: VersionedArtifact,
-        bytes: &[u8],
-        expected_signal_aggregation: SignalAggregationSelection,
-    ) -> Result<Self, MetricDefinitionError> {
-        if bytes.len() > MAX_SIGNAL_METRIC_DEFINITION_BYTES {
-            return Err(MetricDefinitionError::ResourceLimit(
-                "signal metric definition bytes",
-            ));
-        }
-        if artifact.byte_length.get() != bytes.len() as u64 {
-            return Err(MetricDefinitionError::ArtifactLengthMismatch);
-        }
-        if !AnalysisManifest::verify_artifact(&artifact, bytes) {
-            return Err(MetricDefinitionError::ArtifactHashMismatch);
-        }
-        if artifact.media_type.as_str() != SIGNAL_METRIC_DEFINITION_MEDIA_TYPE {
-            return Err(MetricDefinitionError::ArtifactMediaTypeMismatch);
-        }
-        validate_json_bounds(bytes)?;
-        let document: SignalMetricDefinitionDocument =
-            serde_json::from_slice(bytes).map_err(|_| MetricDefinitionError::MalformedBytes)?;
-        let canonical =
-            serde_json::to_vec(&document).map_err(|_| MetricDefinitionError::MalformedBytes)?;
-        if canonical != bytes {
-            return Err(MetricDefinitionError::NonCanonicalBytes);
-        }
-        if document.version != artifact.version {
-            return Err(MetricDefinitionError::ArtifactVersionMismatch);
-        }
-        validate_signal_selection(document.signal_aggregation)?;
-        if document.signal_aggregation != expected_signal_aggregation {
-            return Err(MetricDefinitionError::SelectionMismatch);
-        }
-        Ok(Self {
-            artifact,
-            signal_aggregation: document.signal_aggregation,
-        })
-    }
-
-    pub fn artifact(&self) -> &VersionedArtifact {
-        &self.artifact
-    }
-
-    pub const fn signal_aggregation(&self) -> SignalAggregationSelection {
-        self.signal_aggregation
-    }
-
-    pub fn canonical_bytes(&self) -> Result<Vec<u8>, MetricDefinitionError> {
-        SignalMetricDefinition {
-            version: self.artifact.version.clone(),
-            signal_aggregation: self.signal_aggregation,
-        }
-        .canonical_bytes()
-    }
-}
-
-fn validate_signal_selection(
-    selection: SignalAggregationSelection,
-) -> Result<(), MetricDefinitionError> {
-    selection.validate().map_err(|error| match error {
-        Error::AggregationVersionMismatch => MetricDefinitionError::AggregationVersionMismatch,
-        Error::TemporalAggregationRequiresMonotonicEvidence => {
-            MetricDefinitionError::TemporalAggregationRequiresMonotonicEvidence
-        }
-        Error::InvalidAggregationConfiguration(reason) => {
-            MetricDefinitionError::InvalidAggregationConfiguration(reason)
-        }
-        Error::ResourceLimit(reason) => MetricDefinitionError::ResourceLimit(reason),
-        _ => MetricDefinitionError::InvalidAggregationConfiguration(
-            "unexpected signal aggregation error",
-        ),
-    })
-}
-
-fn validate_json_bounds(bytes: &[u8]) -> Result<(), MetricDefinitionError> {
-    let mut depth = 0_usize;
-    let mut in_string = false;
-    let mut escaped = false;
-    for byte in bytes {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if *byte == b'\\' {
-                escaped = true;
-            } else if *byte == b'"' {
-                in_string = false;
-            }
-            continue;
-        }
-        match *byte {
-            b'"' => in_string = true,
-            b'{' | b'[' => {
-                depth += 1;
-                if depth > MAX_SIGNAL_METRIC_DEFINITION_DEPTH {
-                    return Err(MetricDefinitionError::ResourceLimit(
-                        "signal metric definition depth",
-                    ));
-                }
-            }
-            b'}' | b']' => {
-                if depth == 0 {
-                    return Err(MetricDefinitionError::MalformedBytes);
-                }
-                depth -= 1;
-            }
-            _ => {}
-        }
-    }
-    if in_string || escaped || depth != 0 {
-        return Err(MetricDefinitionError::MalformedBytes);
-    }
-    Ok(())
-}
-
 /// A group is one exact coordinate, not one independent statistical sample.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct LocationGroup {
@@ -359,6 +96,16 @@ pub struct Model {
 impl Model {
     pub fn new(mut inputs: Inputs, config: Config) -> Result<Self, Error> {
         config.validate()?;
+        if let Some(spatial_method) = inputs.metric_definition.spatial_method()
+            && !matches!(
+                (spatial_method, config.method),
+                (SpatialMethod::PointValue, Method::PointValue)
+                    | (SpatialMethod::Nearest, Method::Nearest)
+                    | (SpatialMethod::InverseDistanceWeighted, Method::Idw { .. })
+            )
+        {
+            return Err(Error::SpatialMethodMismatch);
+        }
         let signal_aggregation = inputs.metric_definition.signal_aggregation();
         signal_aggregation.validate_for_spatial()?;
         if inputs.samples.len() > MAX_SAMPLES {
@@ -505,6 +252,9 @@ impl Model {
             });
             return Ok(cell);
         }
+        if matches!(self.config.method, Method::PointValue) {
+            return Ok(cell);
+        }
         let supported = support_locations >= self.config.minimum_locations;
         if !supported && matches!(self.config.extrapolation, Extrapolation::Disabled) {
             return Ok(cell);
@@ -524,6 +274,7 @@ impl Model {
         let weights: Vec<_> = neighbors
             .iter()
             .map(|n| match self.config.method {
+                Method::PointValue => unreachable!("point-value returned before interpolation"),
                 Method::Nearest => 1.0,
                 Method::Idw { power } => (d0 / n.distance).powf(power),
             })
@@ -540,10 +291,8 @@ impl Model {
                 *w,
             )
         }))?;
-        cell.value = Evidence::Known(
-            kyberia_domain::units::Dbm::new(value)
-                .map_err(|_| Error::NumericalFailure("IDW result"))?,
-        );
+        cell.value =
+            Evidence::Known(Dbm::new(value).map_err(|_| Error::NumericalFailure("IDW result"))?);
         cell.class = if supported {
             CellClass::Interpolated
         } else {
@@ -602,7 +351,7 @@ pub struct Contribution {
 }
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Cell {
-    pub value: Evidence<kyberia_domain::units::Dbm>,
+    pub value: Evidence<Dbm>,
     pub class: CellClass,
     pub support_locations: usize,
     pub support_observations: usize,
