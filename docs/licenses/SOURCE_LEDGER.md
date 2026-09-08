@@ -41,6 +41,18 @@ PCAPNG parsing adopts pcap-parser 0.17.0 (upstream declaration `MIT/Apache-2.0`,
 
 The [analytical storage research inventory](storage-research-sources.json) records PyArrow 25.0.1 (Apache-2.0), DuckDB 1.5.5 (MIT), Ruff 0.14.14 (MIT), exact tested macOS ARM64 wheel hashes, native build metadata and interpreter provenance. These run only in the optional research environment, with no new production Rust dependencies. Retain component notices if later distributed and extend the platform-specific hash lock only after verification. The 26-column synthetic projection is original Kyberia research data; no capture, vendor record or external dataset is bundled. Updating an engine requires complete semantic parity, malformed-input/recovery and nine-case benchmark validation; this inventory is not a release SBOM.
 
+The [geometry research inventory](geometry-research-sources.json) records the
+direct Rust `geo` 0.33.1, `geojson` 1.0.0, `wkt` 0.14.0, Serde, serde_json and
+sha2 pins, plus the optional Shapely 2.0.7, GEOS 3.11.4 and NumPy 2.0.2
+comparison environment. Exact Cargo and Python lock hashes, wheel hashes,
+fixture hashes, redistribution statements and update procedures are retained.
+The original synthetic planar fixtures contain no external map, building,
+material or competitor data. This inventory supports provisional Gate E
+research only; it is not a release SBOM, production dependency approval, 3D or
+CRS validation, or permission to redistribute GEOS/Python artifacts. Any
+production adoption requires the locked transitive license review, release
+notice assembly and the remaining geometry gates.
+
 The [Sionna proof inventory](sionna-sources.json) records the exact audited source archive, reproducible wheel, 45 locked Python packages and native LLVM provenance. The worker uses Sionna RT 2.0.1 at the audited commit with Mitsuba 3.8.0, Dr.Jit 1.3.1, Python 3.12.12 and LLVM 18.1.8. The PyPI wheel differs from the audited revision in four source files; that discrepancy is preserved and the proof requires the audited build. The [independent review](../reviews/sionna-cpu-review.md) verifies all 49 Python source files and the bounded CPU results. Upstream code stays in ignored external environments, not Kyberia core. Licensing and notices for a distributable worker, a release SBOM and full Gate I remain open. Updates require fresh installation, exact source verification and numerical/lifecycle regression gates.
 
 The native normalization adapter adds base64 0.22.1 and time 0.3.55 behind the outward adapter boundary. Their seven newly resolved package entries, including conditional time-macros, are recorded with exact hashes and license declarations in the Rust inventory. The earlier research pin time 0.3.44 was replaced before integration following RUSTSEC-2026-0009; no advisory exception is used. The earlier native-normalization integration checked its 97-package graph with pinned cargo-deny advisory, license and registry-source checks against RustSec revision `faedffd5118c1835e13cca3babb6059afb1eb8d0`. Subsequent automation and its newer RustSec revision are documented in the supply-chain inventory below; complete distributable SBOM scope remains open. Original canonical fixture provenance and the clock/channel interpretation are documented in the [normalization adapter](../adapters/capture-normalization.md) and [independent review](../reviews/capture-normalization-review.md).
