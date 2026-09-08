@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "scope": "Pinned developer tools used by the bounded Rust CLI SBOM and dependency audit",
+  "target": "aarch64-apple-darwin",
+  "tools": [
+    {
+      "name": "cargo-cyclonedx",
+      "version": "0.5.9",
+      "target": "aarch64-apple-darwin",
+      "archive_name": "cargo-cyclonedx-0.5.9.tar.xz",
+      "archive_sha256": "4c53dfa21e70b65bf7f8d2592aadde3bcb02c1a40b6ec63b877e5ca65a29e180",
+      "download_url": "https://github.com/CycloneDX/cyclonedx-rust-cargo/releases/download/cargo-cyclonedx-0.5.9/cargo-cyclonedx-0.5.9-aarch64-apple-darwin.tar.xz",
+      "source_url": "https://github.com/CycloneDX/cyclonedx-rust-cargo/releases/tag/cargo-cyclonedx-0.5.9",
+      "license": "Apache-2.0",
+      "license_files": [
+        "cargo-cyclonedx-aarch64-apple-darwin/LICENSE"
+      ],
+      "redistribution": "Developer tool only; retain the upstream Apache-2.0 notice and review binary redistribution before release.",
+      "transformation": "Official release archive, SHA-256 verified, safely extracted without source or binary modification.",
+      "provenance": "Official CycloneDX GitHub release asset and pinned archive SHA-256; the archive contains the declared LICENSE file.",
+      "update_procedure": "Review the official release asset, license files, target, checksum, and generated SBOM before changing this pin.",
+      "install_dir": "cargo-cyclonedx-0.5.9",
+      "executable": "cargo-cyclonedx-aarch64-apple-darwin/cargo-cyclonedx"
+    },
+    {
+      "name": "cargo-deny",
+      "version": "0.20.2",
+      "target": "aarch64-apple-darwin",
+      "archive_name": "cargo-deny-0.20.2.tar.gz",
+      "archive_sha256": "fe67d82a10d8597a3549364cb733a3f9cc1bfff9031b7ae46384a9f2a72090c3",
+      "download_url": "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-aarch64-apple-darwin.tar.gz",
+      "source_url": "https://github.com/EmbarkStudios/cargo-deny/releases/tag/0.20.2",
+      "license": "Apache-2.0 OR MIT",
+      "license_files": [
+        "cargo-deny-0.20.2-aarch64-apple-darwin/LICENSE-APACHE",
+        "cargo-deny-0.20.2-aarch64-apple-darwin/LICENSE-MIT"
+      ],
+      "redistribution": "Developer tool only; retain both upstream Apache-2.0 and MIT notices and review binary redistribution before release.",
+      "transformation": "Official release archive, SHA-256 verified, safely extracted without source or binary modification.",
+      "provenance": "Official cargo-deny GitHub release asset and pinned archive SHA-256; both declared license files are present in the archive.",
+      "update_procedure": "Review the official release asset, license files, target, checksum, and audit output before changing this pin.",
+      "install_dir": "cargo-deny-0.20.2",
+      "executable": "cargo-deny-0.20.2-aarch64-apple-darwin/cargo-deny"
+    }
+  ],
+  "advisory_database": {
+    "name": "RustSec advisory-db",
+    "url": "https://github.com/RustSec/advisory-db",
+    "policy": "A local Git checkout is required; audit rejects missing or older-than-P7D HEAD revisions.",
+    "version": "8a1eb4f933fb5821add5b4e98601ebd90b8b3538",
+    "license": "CC0-1.0 with CC-BY-4.0 for marked GHSA-derived content",
+    "redistribution": "Developer database is not bundled. Any exported advisory text must preserve applicable license and attribution metadata, including GHSA URLs.",
+    "transformation": "Unmodified Git checkout; audit output retains tool diagnostics. Advisory records are not copied into Kyberia core.",
+    "provenance": "Actual clean RustSec checkout used for validation; each audit records its current immutable revision.",
+    "update_procedure": "Explicit supply-chain-refresh fetch; verify clean checkout, freshness, license exceptions and rerun all audit groups.",
+    "notices": [
+      {
+        "path": "LICENSE.txt",
+        "sha256": "b342fe896e158b8c5a83e707446113f3a149fa0104d834afa78cd2a48eaf1906",
+        "source": "https://github.com/RustSec/advisory-db/blob/8a1eb4f933fb5821add5b4e98601ebd90b8b3538/LICENSE.txt"
+      },
+      {
+        "path": "LICENSES/CC0-1.0.txt",
+        "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+        "source": "https://github.com/RustSec/advisory-db/blob/8a1eb4f933fb5821add5b4e98601ebd90b8b3538/LICENSES/CC0-1.0.txt"
+      },
+      {
+        "path": "LICENSES/CC-BY-4.0.txt",
+        "sha256": "28a9529c7d0bb4dc51f4bf5c116a3d16ef247a052f7591466768ddf563fd1cf5",
+        "source": "https://github.com/RustSec/advisory-db/blob/8a1eb4f933fb5821add5b4e98601ebd90b8b3538/LICENSES/CC-BY-4.0.txt"
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+# cargo-deny policy for the current Rust CLI dependency closure.
+# The source and advisory database paths are intentionally explicit so audit
+# evidence records which RustSec revision was used.
+
+[advisories]
+db-path = ".tools/supply-chain/advisory-db"
+db-urls = ["https://github.com/RustSec/advisory-db"]
+maximum-db-staleness = "P7D"
+yanked = "deny"
+unmaintained = "all"
+unsound = "all"
+
+[licenses]
+confidence-threshold = 0.93
+allow = ["MIT", "Apache-2.0", "Unicode-3.0", "Zlib"]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# This does not exempt public crates; cargo-deny still rejects path
+# dependencies without an explicit version. Internal package manifests must
+# carry their workspace version before the bans gate can pass.
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

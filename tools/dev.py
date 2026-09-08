@@ -21,6 +21,10 @@ def python(*args):
     run(PYTHON, *args)
 
 
+def supply_chain(*args):
+    python("tools/supply_chain.py", *args)
+
+
 def command(name):
     if name == "bootstrap":
         run(sys.executable, "-m", "venv", ROOT / ".tools/venv")
@@ -53,6 +57,15 @@ def command(name):
         python("tools/source_inventory.py", "check")
     elif name == "benchmark":
         run("cargo", "run", "--release", "--locked", "--offline", "-p", "kyberia-domain", "--example", "project_benchmark")
+    elif name == "sbom":
+        supply_chain("sbom")
+    elif name == "audit":
+        supply_chain("audit")
+    elif name == "supply-chain-bootstrap":
+        python("-m", "pip", "install", "--require-hashes", "--only-binary=:all:", "--no-cache-dir", "-r", "tools/supply-chain/requirements.txt")
+        supply_chain("bootstrap")
+    elif name == "supply-chain-refresh":
+        supply_chain("refresh-advisories")
     elif name == "check":
         for step in ["lint", "typecheck", "test", "source-check"]:
             command(step)
@@ -62,7 +75,7 @@ def command(name):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["bootstrap", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "benchmark", "check"])
+    parser.add_argument("command", choices=["bootstrap", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "check"])
     args = parser.parse_args()
     try:
         command(args.command)
