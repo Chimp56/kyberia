@@ -829,6 +829,7 @@ dependencies = [
  "kyberia-project-store",
  "kyberia-survey",
  "rusqlite",
+ "rustix",
  "serde",
  "serde_json",
  "sha2",

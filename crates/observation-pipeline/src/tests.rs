@@ -1,3 +1,7 @@
+use super::process::{
+    CollectorCommand, NativeCaptureSessionError, OutputStream, ProbeOptions, ScanOptions,
+    TrustedCollector, run_and_persist,
+};
 use super::*;
 use kyberia_capture_adapter::macos::{
     MappingContext, ObservationMapping, SourceMapping, decode, normalize,
@@ -22,7 +26,19 @@ use kyberia_survey::{
     CaptureMode, PointConfig, PointConfigData, PointId, PointMetric, PointSurvey, PosePolicy,
     Target,
 };
-use std::{cell::Cell, collections::BTreeMap, num::NonZeroU32, path::Path, rc::Rc};
+use sha2::{Digest, Sha256};
+use std::{
+    cell::Cell,
+    collections::BTreeMap,
+    fs,
+    num::NonZeroU32,
+    path::Path,
+    rc::Rc,
+    time::{Duration, Instant},
+};
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 
 const VALID: &[u8] = include_bytes!("../../../collectors/macos/fixtures/valid.ndjson");
 
@@ -110,7 +126,15 @@ fn config(allow_synthetic: bool) -> PointConfig {
 
 fn normalized_capture(bytes: &[u8], redacted: bool) -> NormalizedCapture {
     let stream = decode(bytes).unwrap();
-    let context = MappingContext {
+    let context = mapping_context(&stream, redacted);
+    normalize(&stream, &context).unwrap()
+}
+
+fn mapping_context(
+    stream: &kyberia_capture_adapter::macos::DecodedStream,
+    redacted: bool,
+) -> MappingContext {
+    MappingContext {
         expected_process_session: stream.process_session().to_owned(),
         session_id: SessionId::from_bytes([1; 16]).unwrap(),
         collector_id: CollectorId::from_bytes([2; 16]).unwrap(),
@@ -151,8 +175,24 @@ fn normalized_capture(bytes: &[u8], redacted: bool) -> NormalizedCapture {
             },
             payload: PayloadRetention::Discarded,
         },
-    };
-    normalize(&stream, &context).unwrap()
+    }
+}
+
+#[cfg(unix)]
+fn built_native_collector_hash() -> ContentHash {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../collectors/macos");
+    let mut digest = Sha256::new();
+    for file in [
+        root.join("Sources/Permission.swift"),
+        root.join("Sources/Wire.swift"),
+        root.join("Sources/main.swift"),
+        root.join("Info.plist"),
+    ] {
+        digest.update(file.file_name().unwrap().to_str().unwrap().as_bytes());
+        digest.update(b"\0");
+        digest.update(fs::read(file).unwrap());
+    }
+    ContentHash::from_sha256(digest.finalize().into())
 }
 
 fn batch() -> ReceivedObservationBatch {
@@ -176,6 +216,56 @@ fn project(path: &Path) -> Bundle {
         1,
     )
     .unwrap()
+}
+
+#[cfg(unix)]
+#[derive(Clone, Copy)]
+enum SyntheticCollectorBehavior {
+    Fixture { exit_code: i32 },
+    FloodStdout,
+    FloodStderr,
+    Hang,
+    DescendantHoldingPipe,
+    EscapedDescendant,
+    Malformed,
+}
+
+#[cfg(unix)]
+fn synthetic_collector(
+    fixture: &[u8],
+    behavior: SyntheticCollectorBehavior,
+) -> (tempfile::TempDir, TrustedCollector) {
+    let directory = tempfile::tempdir().unwrap();
+    let fixture_path = directory.path().join("synthetic.ndjson");
+    fs::write(&fixture_path, fixture).unwrap();
+    let script_path = directory.path().join("synthetic-collector");
+    let fixture_path = fixture_path.to_str().unwrap();
+    let body = match behavior {
+        SyntheticCollectorBehavior::Fixture { exit_code } => {
+            format!("#!/bin/sh\n/bin/cat '{fixture_path}'\nexit {exit_code}\n")
+        }
+        SyntheticCollectorBehavior::FloodStdout => "#!/bin/sh\n/usr/bin/yes x\n".to_owned(),
+        SyntheticCollectorBehavior::FloodStderr => "#!/bin/sh\n/usr/bin/yes x 1>&2\n".to_owned(),
+        SyntheticCollectorBehavior::Hang => "#!/bin/sh\n/bin/sleep 30\n".to_owned(),
+        SyntheticCollectorBehavior::DescendantHoldingPipe => {
+            format!(
+                "#!/bin/sh\n/bin/cat '{fixture_path}'\n/usr/bin/python3 -c 'import os,time; pid=os.fork(); os._exit(0) if pid else time.sleep(30)' &\nexit 0\n"
+            )
+        }
+        SyntheticCollectorBehavior::EscapedDescendant => {
+            format!(
+                "#!/bin/sh\n/bin/cat '{fixture_path}'\n/usr/bin/python3 -c 'import os,time; pid=os.fork(); os._exit(0) if pid else (os.setsid(),time.sleep(1))' &\nexit 0\n"
+            )
+        }
+        SyntheticCollectorBehavior::Malformed => {
+            "#!/bin/sh\n/bin/printf '{}\\n'\nexit 0\n".to_owned()
+        }
+    };
+    fs::write(&script_path, body).unwrap();
+    fs::set_permissions(&script_path, fs::Permissions::from_mode(0o755)).unwrap();
+    let expected_build = decode(VALID).unwrap().collector_build();
+    let collector = TrustedCollector::new(script_path, expected_build).unwrap();
+    (directory, collector)
 }
 
 #[derive(Default)]
@@ -1076,4 +1166,372 @@ fn raw_reference_metadata_must_match_the_referenced_source_record() {
         ReceivedObservationBatch::from_normalized_capture(capture),
         Err(BatchError::SourceReferenceMismatch)
     ));
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_scan_normalizes_persists_and_reopens_exactly() {
+    let (_collector_dir, collector) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let command =
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).expect("typed scan options"));
+    let outcome = run_and_persist(
+        &mut bundle,
+        &collector,
+        command,
+        |stream| Ok(mapping_context(stream, false)),
+        &survey,
+        &request(101),
+        &NeverCancel,
+    )
+    .unwrap();
+
+    assert_eq!(
+        outcome.terminal,
+        kyberia_capture_adapter::macos::TerminalStatus::Ok
+    );
+    assert_eq!(outcome.exit_code, 0);
+    assert_eq!(outcome.normalized.observations.len(), 1);
+    assert_eq!(outcome.pipeline.association_count, 1);
+    let publication = &outcome.pipeline.publication;
+    assert_eq!(publication.manifest().observation_count(), 1);
+    assert!(publication.chunk().is_some());
+    let manifest_hash = String::from(publication.manifest().hash());
+    let snapshot_id = publication.snapshot().unwrap().snapshot_id();
+    drop(bundle);
+
+    let reopened = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    let stored = reopened
+        .capture_publication(&manifest_hash)
+        .unwrap()
+        .unwrap();
+    assert_eq!(stored.snapshot_id, Some(snapshot_id));
+    assert_eq!(stored.observation_count, 1);
+    let loaded = reopened.load_survey_snapshot(snapshot_id).unwrap();
+    assert_eq!(loaded.survey.associations().len(), 1);
+    assert_eq!(
+        reopened
+            .read_observation_chunk(stored.chunk_hash.as_deref().unwrap())
+            .unwrap()
+            .len(),
+        1
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_accepts_probe_denied_partial_error_and_empty_terminals() {
+    let cases = [
+        (
+            include_bytes!("../../../collectors/macos/fixtures/probe.ndjson").as_slice(),
+            CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
+            true,
+            kyberia_capture_adapter::macos::TerminalStatus::Ok,
+            0,
+        ),
+        (
+            include_bytes!("../../../collectors/macos/fixtures/denied.ndjson").as_slice(),
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            true,
+            kyberia_capture_adapter::macos::TerminalStatus::PermissionRequired,
+            77,
+        ),
+        (
+            include_bytes!("../../../collectors/macos/fixtures/partial.ndjson").as_slice(),
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            true,
+            kyberia_capture_adapter::macos::TerminalStatus::Partial,
+            2,
+        ),
+        (
+            include_bytes!("../../../collectors/macos/fixtures/error.ndjson").as_slice(),
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            true,
+            kyberia_capture_adapter::macos::TerminalStatus::Error,
+            70,
+        ),
+        (
+            include_bytes!("../../../collectors/macos/fixtures/empty.ndjson").as_slice(),
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            true,
+            kyberia_capture_adapter::macos::TerminalStatus::Ok,
+            0,
+        ),
+    ];
+    for (index, (fixture, command, redacted, terminal, exit_code)) in cases.into_iter().enumerate()
+    {
+        let (_collector_dir, collector) =
+            synthetic_collector(fixture, SyntheticCollectorBehavior::Fixture { exit_code });
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("project");
+        let mut bundle = project(&path);
+        let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+        let outcome = run_and_persist(
+            &mut bundle,
+            &collector,
+            command,
+            move |stream| Ok(mapping_context(stream, redacted)),
+            &survey,
+            &request(110 + index as u8),
+            &NeverCancel,
+        )
+        .unwrap();
+        assert_eq!(outcome.terminal, terminal);
+        assert_eq!(outcome.exit_code, exit_code);
+        assert_eq!(
+            outcome
+                .pipeline
+                .publication
+                .snapshot()
+                .unwrap()
+                .snapshot_id(),
+            SnapshotId::from_bytes([110 + index as u8; 16]).unwrap()
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let request = request(121);
+    let run = |bundle: &mut Bundle,
+               collector: &TrustedCollector,
+               command: CollectorCommand,
+               mapping: fn(
+        &kyberia_capture_adapter::macos::DecodedStream,
+    ) -> Result<MappingContext, NativeCaptureSessionError>| {
+        run_and_persist(
+            bundle,
+            collector,
+            command,
+            mapping,
+            &survey,
+            &request,
+            &NeverCancel,
+        )
+    };
+
+    let (_script, malformed) = synthetic_collector(VALID, SyntheticCollectorBehavior::Malformed);
+    assert!(matches!(
+        run(
+            &mut bundle,
+            &malformed,
+            CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        ),
+        Err(NativeCaptureSessionError::AdapterDecode(_))
+    ));
+
+    let (_script, flood_stdout) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::FloodStdout);
+    assert!(matches!(
+        run(
+            &mut bundle,
+            &flood_stdout,
+            CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        ),
+        Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stdout))
+    ));
+
+    let (_script, flood_stderr) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::FloodStderr);
+    assert!(matches!(
+        run(
+            &mut bundle,
+            &flood_stderr,
+            CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        ),
+        Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stderr))
+    ));
+
+    let (_script, mismatch) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 1 });
+    assert!(matches!(
+        run(
+            &mut bundle,
+            &mismatch,
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        ),
+        Err(NativeCaptureSessionError::TerminalExitMismatch { exit_code: 1, .. })
+    ));
+
+    let (_script, wrong_build) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    let wrong_build =
+        TrustedCollector::new(wrong_build.path(), ContentHash::from_sha256([9; 32])).unwrap();
+    assert!(matches!(
+        run(
+            &mut bundle,
+            &wrong_build,
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        ),
+        Err(NativeCaptureSessionError::SourceBuildMismatch)
+    ));
+
+    let (_script, command_mismatch) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    assert!(matches!(
+        run(
+            &mut bundle,
+            &command_mismatch,
+            CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        ),
+        Err(NativeCaptureSessionError::CommandProvenanceMismatch)
+    ));
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let command = || CollectorCommand::Probe(ProbeOptions::new(1).unwrap());
+
+    let (_script, hanging) = synthetic_collector(VALID, SyntheticCollectorBehavior::Hang);
+    let start = Instant::now();
+    assert!(matches!(
+        run_and_persist(
+            &mut bundle,
+            &hanging,
+            command(),
+            |stream| Ok(mapping_context(stream, false)),
+            &survey,
+            &request(122),
+            &NeverCancel,
+        ),
+        Err(NativeCaptureSessionError::Timeout)
+    ));
+    assert!(start.elapsed() < Duration::from_secs(3));
+
+    let (_script, cancellable) = synthetic_collector(VALID, SyntheticCollectorBehavior::Hang);
+    assert!(matches!(
+        run_and_persist(
+            &mut bundle,
+            &cancellable,
+            ProbeOptions::new(1).map(CollectorCommand::Probe).unwrap(),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+            &survey,
+            &request(123),
+            &CancelAfter::new(3),
+        ),
+        Err(NativeCaptureSessionError::Cancelled)
+    ));
+
+    if std::path::Path::new("/usr/bin/python3").exists() {
+        let (_script, descendant) =
+            synthetic_collector(VALID, SyntheticCollectorBehavior::DescendantHoldingPipe);
+        let start = Instant::now();
+        let descendant_result = run_and_persist(
+            &mut bundle,
+            &descendant,
+            command(),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+            &survey,
+            &request(124),
+            &NeverCancel,
+        );
+        assert!(matches!(
+            descendant_result,
+            Err(NativeCaptureSessionError::ProcessIo)
+        ));
+        assert!(start.elapsed() < Duration::from_secs(3));
+
+        let (_script, escaped) =
+            synthetic_collector(VALID, SyntheticCollectorBehavior::EscapedDescendant);
+        let start = Instant::now();
+        assert!(matches!(
+            run_and_persist(
+                &mut bundle,
+                &escaped,
+                command(),
+                |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+                &survey,
+                &request(125),
+                &NeverCancel,
+            ),
+            Err(NativeCaptureSessionError::ProcessIo)
+        ));
+        assert!(start.elapsed() < Duration::from_secs(3));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_rejects_identifier_policy_mismatch_before_persistence() {
+    let (_script, collector) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    assert!(matches!(
+        run_and_persist(
+            &mut bundle,
+            &collector,
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            |stream| Ok(mapping_context(stream, true)),
+            &survey,
+            &request(126),
+            &NeverCancel,
+        ),
+        Err(NativeCaptureSessionError::AdapterNormalize(_))
+    ));
+    assert!(
+        bundle
+            .list_survey_snapshot_history(None)
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[cfg(unix)]
+#[test]
+#[ignore = "requires the locally built signed CoreWLAN collector"]
+fn supervised_real_redacted_capability_probe_uses_the_rust_boundary() {
+    let collector_path = Path::new(env!("CARGO_MANIFEST_DIR")).join(
+        "../../collectors/macos/.build/KyberiaCollector.app/Contents/MacOS/kyberia-macos-collector",
+    );
+    assert!(
+        collector_path.is_file(),
+        "build collectors/macos/build.py before running this host probe"
+    );
+    let collector = TrustedCollector::new(collector_path, built_native_collector_hash()).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let survey = PointSurvey::start(config(false), stamp(100)).unwrap();
+    let outcome = run_and_persist(
+        &mut bundle,
+        &collector,
+        CollectorCommand::Probe(ProbeOptions::new(5).unwrap()),
+        |stream| Ok(mapping_context(stream, true)),
+        &survey,
+        &request(127),
+        &NeverCancel,
+    )
+    .unwrap();
+    assert_eq!(
+        outcome.terminal,
+        kyberia_capture_adapter::macos::TerminalStatus::Ok
+    );
+    assert_eq!(outcome.exit_code, 0);
+    assert_eq!(outcome.normalized.observations.len(), 0);
+    assert!(outcome.process_session.contains('-'));
+    assert_eq!(outcome.pipeline.association_count, 0);
+    assert!(outcome.pipeline.publication.snapshot().is_some());
 }

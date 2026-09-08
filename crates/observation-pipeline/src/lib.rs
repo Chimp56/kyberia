@@ -17,6 +17,7 @@ use sha2::{Digest, Sha256};
 use std::{collections::BTreeSet, fmt};
 
 mod bundle;
+pub mod process;
 
 pub const MAX_BATCH_OBSERVATIONS: usize = kyberia_domain::capture::MAX_CAPTURE_OBSERVATIONS;
 pub const MAX_SOURCE_RECORDS: usize = kyberia_domain::capture::MAX_CAPTURE_SOURCE_RECORDS;

@@ -39,6 +39,39 @@ impl DecodedStream {
     pub fn process_session(&self) -> &str {
         &self.session
     }
+
+    /// The source-build hash is validated by the decoder before this opaque
+    /// stream can be constructed. Session orchestration compares it with the
+    /// caller's explicitly trusted executable contract.
+    pub fn collector_build(&self) -> ContentHash {
+        let Body::Hello(hello) = &self.records[0].body else {
+            unreachable!("a decoded stream always begins with hello")
+        };
+        ContentHash::try_from(hello.collector_build[7..].to_owned())
+            .expect("decoded hello has a validated source-build hash")
+    }
+
+    /// The command and timeout advertised by the collector's hello record.
+    /// Session orchestration checks these against its typed request before
+    /// normalization or persistence.
+    pub fn command_name(&self) -> &'static str {
+        let Body::Hello(hello) = &self.records[0].body else {
+            unreachable!("a decoded stream always begins with hello")
+        };
+        match hello.command {
+            Command::Probe => "probe",
+            Command::Scan => "scan",
+            Command::Authorize => "authorize",
+        }
+    }
+
+    pub fn declared_timeout_seconds(&self) -> u8 {
+        let Body::Hello(hello) = &self.records[0].body else {
+            unreachable!("a decoded stream always begins with hello")
+        };
+        hello.timeout_seconds
+    }
+
     pub fn source_keys(&self) -> impl Iterator<Item = &str> {
         self.records
             .iter()
