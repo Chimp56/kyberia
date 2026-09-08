@@ -62,7 +62,23 @@ fn unknown<T>(reason: UnknownReason) -> Evidence<T> {
     Evidence::Unknown(reason)
 }
 fn retained_directory() -> std::path::PathBuf {
-    tempfile::tempdir().unwrap().keep()
+    static NEXT_DIRECTORY: AtomicUsize = AtomicUsize::new(0);
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+        .join(".trash")
+        .join("test-runs");
+    std::fs::create_dir_all(&root).unwrap();
+    let process = std::process::id();
+    loop {
+        let ordinal = NEXT_DIRECTORY.fetch_add(1, Ordering::Relaxed);
+        let candidate = root.join(format!("stored-analysis-{process}-{ordinal}"));
+        match std::fs::create_dir(&candidate) {
+            Ok(()) => return candidate,
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => panic!("cannot retain test directory {candidate:?}: {error}"),
+        }
+    }
 }
 fn point_config() -> PointConfig {
     let collector_id = CollectorId::from_bytes(id(7)).unwrap();
