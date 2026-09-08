@@ -15,6 +15,22 @@ pub use polygon::{MAX_POLYGON_COORDINATES, MAX_POLYGON_HOLES, PolygonError, Vali
 /// Numerical input bound, not a geographic projection or a snapping tolerance.
 pub const MAX_ABSOLUTE_COORDINATE_METERS: f64 = 1_000_000_000.0;
 
+/// Power-of-two scaling is exact for finite inputs whose normalized magnitude
+/// stays below two. An arbitrary divisor can merge adjacent representable
+/// coordinates and change topology.
+fn normalization_scale(maximum: f64) -> f64 {
+    if maximum >= 1.0 || maximum == 0.0 {
+        return 1.0;
+    }
+    let bits = maximum.to_bits();
+    let exponent = bits & 0x7ff0_0000_0000_0000;
+    if exponent != 0 {
+        f64::from_bits(exponent)
+    } else {
+        f64::from_bits(1_u64 << (63 - bits.leading_zeros()))
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Segment {
     pub floor_id: FloorId,
@@ -112,13 +128,14 @@ pub fn intersect(a: Segment, b: Segment) -> Result<Intersection, GeometryError> 
     let mut b = line(b)?;
     // Scale small local coordinates up before orientation products. Dividing
     // directly avoids an overflowing reciprocal for subnormal coordinates.
-    let scale = [
-        a.start.x, a.start.y, a.end.x, a.end.y, b.start.x, b.start.y, b.end.x, b.end.y,
-    ]
-    .into_iter()
-    .map(f64::abs)
-    .fold(0.0_f64, f64::max)
-    .min(1.0);
+    let scale = normalization_scale(
+        [
+            a.start.x, a.start.y, a.end.x, a.end.y, b.start.x, b.start.y, b.end.x, b.end.y,
+        ]
+        .into_iter()
+        .map(f64::abs)
+        .fold(0.0_f64, f64::max),
+    );
     let original_endpoints = [a.start, a.end, b.start, b.end];
     for line in [&mut a, &mut b] {
         for coordinate in [&mut line.start, &mut line.end] {

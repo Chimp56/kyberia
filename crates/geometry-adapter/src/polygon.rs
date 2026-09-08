@@ -1,4 +1,4 @@
-use crate::MAX_ABSOLUTE_COORDINATE_METERS;
+use crate::{MAX_ABSOLUTE_COORDINATE_METERS, normalization_scale};
 use geo::{Area, Intersects, LineString, Polygon, Validation};
 use kyberia_domain::{
     identity::{FloorId, FrameId},
@@ -70,11 +70,12 @@ impl ValidatedPolygon {
         }) {
             return Err(PolygonError::CoordinateOutOfBounds);
         }
-        let scale = coordinates
-            .iter()
-            .flat_map(|p| [p.x.get().abs(), p.y.get().abs()])
-            .fold(0.0_f64, f64::max)
-            .min(1.0);
+        let scale = normalization_scale(
+            coordinates
+                .iter()
+                .flat_map(|p| [p.x.get().abs(), p.y.get().abs()])
+                .fold(0.0_f64, f64::max),
+        );
         if scale == 0.0 {
             return Err(PolygonError::UnclosedOrDegenerateRing);
         }

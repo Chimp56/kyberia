@@ -22,8 +22,8 @@ review is required before integration.
 
 Review correction GEO-001: raw coordinates around 1e-200 caused the kernel
 orientation products to underflow and report overlap for a crossing. Small
-coordinate sets are now scaled up by direct division by their largest absolute
-coordinate before evaluation (never an overflowing reciprocal). Restored proper
+coordinate sets are now scaled up by direct division by the greatest power of two no larger than
+their largest absolute coordinate before evaluation (never an overflowing reciprocal). Restored proper
 crossings that collapse onto an endpoint are rejected as unsupported resolution.
 Mixed-scale nonzero component separations below 1e-100 after normalization
 are also rejected explicitly. This conservative numerical operating boundary
@@ -32,3 +32,9 @@ it is not a physical minimum distance, snapping tolerance, or proof of exact
 arbitrary-precision topology. Four focused tests pass, including the reported
 1e-150, 1e-200 and 1e-300 cases, minimum-subnormal rejection and mixed-scale
 rejection. Independent review of this correction is still required.
+
+A subsequent review found that arbitrary division could alias adjacent normal
+coordinates: 0.21882451167587863 and 0.21882451167587866 become identical when
+divided by 0.37684791274626517. Binary power scaling preserves those distinct
+coordinates. The permanent parallel-line regression requires Disjoint; all nine
+segment/polygon tests pass. This correction is isolated pending review.

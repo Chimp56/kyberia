@@ -127,3 +127,16 @@ fn tiny_crossings_are_not_misclassified_as_collinear() {
         Err(GeometryError::UnsupportedCoordinateResolution)
     );
 }
+
+#[test]
+fn scaling_does_not_merge_adjacent_parallel_lines() {
+    let a = 0.21882451167587863;
+    let b = 0.21882451167587866;
+    let height = 0.37684791274626517;
+    assert_ne!(a, b);
+    assert_eq!(a / height, b / height); // The rejected arbitrary scaling aliases.
+    assert_eq!(
+        intersect(segment((a, 0.), (a, height)), segment((b, 0.), (b, height))),
+        Ok(Intersection::Disjoint)
+    );
+}
