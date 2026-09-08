@@ -800,6 +800,22 @@
         "docs/architecture/stored-rssi-analysis.md"
       ],
       "acceptance": "Real CLI request-to-stored-evidence analysis with exact canonical metric selection, bounded hostile requests, numerical and unknown inspection, no overwrite, source provenance and independent end-to-end review."
+    },
+    {
+      "id": "iteration-4-planar-geometry",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "geometry adapter",
+      "requirements": [
+        "source:heading:2369a7236763a4cbea4f:1"
+      ],
+      "owned_paths": [
+        "crates/geometry-adapter",
+        "docs/architecture/planar-segment-adapter.md"
+      ],
+      "acceptance": "Adopted geo kernel behind canonical floor/frame/meter inputs; deterministic intersection and overlap results, explicit invalid scope/geometry failures, independent adversarial numerical review and portable build; polygon/import/material/provenance/runtime gates remain open."
     }
   ]
 }
