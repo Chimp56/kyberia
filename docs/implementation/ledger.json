@@ -168920,8 +168920,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0",
-          "sha256": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0"
+          "revision": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7",
+          "sha256": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -176432,9 +176432,36 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/kismet-adapter/src/live.rs",
+          "description": "Reviewed bounded authenticated read-only status projection; real-server and live evidence gates remain open",
+          "revision": "97dd4ca37885aad48a14368d62344187f3e79c6d806e51dd8a47a93e0657dcdd",
+          "sha256": "97dd4ca37885aad48a14368d62344187f3e79c6d806e51dd8a47a93e0657dcdd"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/kismet-adapter/tests/live_status.rs",
+          "description": "Five independent real loopback HTTP transport tests including deadline, authentication, redirects and body limits",
+          "revision": "882bede7e8c286e0fe11a732a314d18745fdde6a606124273e6f3370c9b8e44c",
+          "sha256": "882bede7e8c286e0fe11a732a314d18745fdde6a606124273e6f3370c9b8e44c",
+          "command": "cargo test -p kyberia-kismet-adapter --locked --offline",
+          "scope": "local_transport_contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/kismet-live-status-review.md",
+          "description": "Independent source, security, timeout and compatibility review",
+          "revision": "d073b56193d156f444932c6d5948a0eb47a7ab0cfcdfff89ce1073744aec7628",
+          "sha256": "d073b56193d156f444932c6d5948a0eb47a7ab0cfcdfff89ce1073744aec7628",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",
@@ -177021,8 +177048,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0",
-          "sha256": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0"
+          "revision": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7",
+          "sha256": "1bf3d57565ffe1322aa64edc20f448a5c88662c1c1d79749cd3d763aa11186a7"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",

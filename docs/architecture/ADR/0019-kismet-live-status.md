@@ -68,7 +68,16 @@ Those remain Gate H/OSS-001 acceptance work and require a controlled pinned
 Kismet runtime. The source package is tracked only as an external process; no
 GPL source or helper is bundled.
 
-## Validation
+## Reversibility
+
+The HTTP client and producer admission tuple are confined to the outward
+Kismet adapter. A replacement transport can preserve the versioned status
+projection and its contract tests without changing canonical observations.
+An expanded producer allowlist requires new source and runtime evidence;
+incompatible projection changes require a new status schema version. Stored
+receipts retain their original adapter and producer identities.
+
+## Validation plan
 
 Focused validation is recorded in
 [`docs/validation/kismet-live-status.md`](../../validation/kismet-live-status.md).
