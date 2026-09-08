@@ -34470,8 +34470,8 @@
         {
           "path": "crates/survey/src/state.rs",
           "description": "Pure evidence-driven lifecycle; UI/capture/storage synchronization remains open",
-          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
-          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
+          "revision": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95",
+          "sha256": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95"
         }
       ],
       "validation": [],
@@ -39312,6 +39312,12 @@
           "description": "Validated dBm, dB, and positive milliwatt domain quantities",
           "revision": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323",
           "sha256": "94adacf81bacb7a9c303995666312ac08b903b90057f9e09bea0ee7bc48fe323"
+        },
+        {
+          "path": "crates/observation-analysis/src/lib.rs",
+          "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
+          "revision": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c",
+          "sha256": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c"
         }
       ],
       "validation": [
@@ -39322,6 +39328,15 @@
           "sha256": "1f6398cbde7ae5543735a1e5dac519178049891f8b48c7c3275aacb63fe84886",
           "command": "cargo test --workspace --locked --offline",
           "scope": "contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/observation-analysis/src/tests.rs",
+          "description": "Exact BSSID, strict and receipt closure, unknowns, deterministic manifest and bounded inputs",
+          "revision": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
+          "sha256": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
+          "command": "cargo test -p kyberia-observation-analysis --locked --offline",
+          "scope": "pure_selection_contract",
           "result": "PASS"
         }
       ],
@@ -39345,6 +39360,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-selection-review.md",
+          "description": "Independent review with strict-evidence and semantic-metric corrections",
+          "revision": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
+          "sha256": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -64477,8 +64501,8 @@
         {
           "path": "crates/survey/src/state.rs",
           "description": "Independent strict-readiness and general event watermarks with replay validation",
-          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
-          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
+          "revision": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95",
+          "sha256": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95"
         }
       ],
       "validation": [
@@ -115639,8 +115663,8 @@
         {
           "path": "crates/survey/src/state.rs",
           "description": "Independent strict-readiness and general event watermarks with replay validation",
-          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
-          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
+          "revision": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95",
+          "sha256": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95"
         }
       ],
       "validation": [
@@ -172654,15 +172678,42 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spatial analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/observation-analysis/src/lib.rs",
+          "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
+          "revision": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c",
+          "sha256": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/observation-analysis/src/tests.rs",
+          "description": "Exact BSSID, strict and receipt closure, unknowns, deterministic manifest and bounded inputs",
+          "revision": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
+          "sha256": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
+          "command": "cargo test -p kyberia-observation-analysis --locked --offline",
+          "scope": "pure_selection_contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observed-rssi-selection-review.md",
+          "description": "Independent review with strict-evidence and semantic-metric corrections",
+          "revision": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
+          "sha256": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:715a4a51da0e83b78896:1",
@@ -237580,8 +237631,8 @@
         {
           "path": "crates/survey/src/state.rs",
           "description": "Pure evidence-driven lifecycle; UI/capture/storage synchronization remains open",
-          "revision": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57",
-          "sha256": "95620382fc4dd2cb40ba88593d94a1469b26cad295baf182279ed7b49f3baf57"
+          "revision": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95",
+          "sha256": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95"
         }
       ],
       "validation": [],
