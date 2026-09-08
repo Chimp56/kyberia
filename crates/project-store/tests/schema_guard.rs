@@ -121,6 +121,7 @@ fn current_schema_contains_every_complete_optional_table_group() {
         names,
         [
             "bundle_manifest",
+            "capture_publications",
             "observation_chunk_members",
             "observation_chunks",
             "operation_log_state",

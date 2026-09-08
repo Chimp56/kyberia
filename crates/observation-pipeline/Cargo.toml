@@ -1,0 +1,21 @@
+[package]
+name = "kyberia-observation-pipeline"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Versioned composition boundary for native observations, point association and durable publication"
+
+[dependencies]
+kyberia-capture-adapter = { version = "=0.1.0", path = "../capture-adapter" }
+kyberia-domain = { version = "=0.1.0", path = "../domain" }
+kyberia-project-store = { version = "=0.1.0", path = "../project-store" }
+kyberia-survey = { version = "=0.1.0", path = "../survey" }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
+sha2 = "=0.10.9"
+
+[dev-dependencies]
+tempfile = "=3.23.0"
+
+[lints]
+workspace = true

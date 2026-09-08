@@ -1,6 +1,7 @@
 //! Transactional directory bundles. SQLite owns the committed manifest; the
 //! human-readable manifest is a recoverable projection, never a second truth.
 mod bundle;
+mod capture_publication;
 mod manifest;
 mod observation_chunks;
 mod operation_log;
@@ -9,6 +10,9 @@ mod sqlite_guard;
 mod survey_snapshot;
 
 pub use bundle::{Bundle, OpenMode, Verification};
+pub use capture_publication::{
+    CaptureManifestRegistration, CapturePublicationRecord, CapturePublicationStatus,
+};
 pub use manifest::{ArtifactEntry, ArtifactKind, BundleManifest, content_hash};
 pub use observation_chunks::{
     Cancellation, MAX_OBSERVATION_CHUNK_BYTES, MAX_OBSERVATION_CHUNK_ROWS,

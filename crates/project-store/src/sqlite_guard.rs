@@ -2,7 +2,7 @@
 //! Authorizers constrain SQL operations; they are not an OS or hard-memory sandbox.
 use crate::{Result, StoreError, manifest::MAX_MANIFEST_BYTES};
 use rusqlite::{
-    Connection,
+    Connection, OptionalExtension,
     config::DbConfig,
     hooks::{AuthAction, AuthContext, Authorization},
     limits::Limit,
@@ -16,6 +16,7 @@ pub(crate) const CREATE_OPERATION_LOG_STATE: &str = "CREATE TABLE operation_log_
 pub(crate) const CREATE_OPERATIONS: &str = "CREATE TABLE project_operations (operation_id TEXT PRIMARY KEY CHECK(length(operation_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), project_revision INTEGER NOT NULL CHECK(project_revision>0), logical_time INTEGER NOT NULL CHECK(logical_time>0), causal_depth INTEGER NOT NULL CHECK(causal_depth>=0), content_hash TEXT NOT NULL CHECK(length(content_hash)=64), canonical_bytes BLOB NOT NULL CHECK(length(canonical_bytes)>0 AND length(canonical_bytes)<=32768), wire_bytes BLOB NOT NULL CHECK(length(wire_bytes)>0 AND length(wire_bytes)<=49152))";
 pub(crate) const CREATE_OBSERVATION_CHUNKS: &str = "CREATE TABLE observation_chunks (chunk_hash TEXT PRIMARY KEY CHECK(length(chunk_hash)=64), bytes INTEGER NOT NULL CHECK(bytes>0), media_type TEXT NOT NULL, schema_version INTEGER NOT NULL CHECK(schema_version>0), codec_version INTEGER NOT NULL CHECK(codec_version>0), row_count INTEGER NOT NULL CHECK(row_count>0), first_observation_id TEXT NOT NULL CHECK(length(first_observation_id)=32), last_observation_id TEXT NOT NULL CHECK(length(last_observation_id)=32), known_utc_count INTEGER NOT NULL CHECK(known_utc_count>=0 AND known_utc_count<=row_count), first_utc_ns INTEGER, last_utc_ns INTEGER, first_source_id TEXT NOT NULL CHECK(length(first_source_id)=32), last_source_id TEXT NOT NULL CHECK(length(last_source_id)=32), first_session_id TEXT NOT NULL CHECK(length(first_session_id)=32), last_session_id TEXT NOT NULL CHECK(length(last_session_id)=32), provenance_id TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>0), CHECK((known_utc_count=0 AND first_utc_ns IS NULL AND last_utc_ns IS NULL) OR (known_utc_count>0 AND first_utc_ns IS NOT NULL AND last_utc_ns IS NOT NULL AND first_utc_ns<=last_utc_ns)))";
 pub(crate) const CREATE_OBSERVATION_CHUNK_MEMBERS: &str = "CREATE TABLE observation_chunk_members (chunk_hash TEXT NOT NULL CHECK(length(chunk_hash)=64), observation_id TEXT PRIMARY KEY CHECK(length(observation_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), ordinal INTEGER NOT NULL CHECK(ordinal>=0), FOREIGN KEY(chunk_hash) REFERENCES observation_chunks(chunk_hash))";
+pub(crate) const CREATE_CAPTURE_PUBLICATIONS: &str = "CREATE TABLE capture_publications (manifest_hash TEXT PRIMARY KEY CHECK(length(manifest_hash)=64), project_id TEXT NOT NULL CHECK(length(project_id)=32), chunk_hash TEXT CHECK(chunk_hash IS NULL OR length(chunk_hash)=64), snapshot_id TEXT CHECK(snapshot_id IS NULL OR length(snapshot_id)=32), status TEXT NOT NULL CHECK(status IN ('manifest','chunk','complete','terminal')), observation_count INTEGER NOT NULL CHECK(observation_count>=0), raw_record_count INTEGER NOT NULL CHECK(raw_record_count>=0), revision INTEGER NOT NULL CHECK(revision>=0))";
 pub(crate) const MAX_DATABASE_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_SCHEMA_OBJECTS: usize = 64;
 const MAX_VM_OPERATIONS: u64 = 2_000_000;
@@ -83,6 +84,7 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                             "project_operations",
                             "observation_chunks",
                             "observation_chunk_members",
+                            "capture_publications",
                         ]
                         .contains(&table_name)
                 }
@@ -93,7 +95,8 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                         | "operation_log_state"
                         | "project_operations"
                         | "observation_chunks"
-                        | "observation_chunk_members",
+                        | "observation_chunk_members"
+                        | "capture_publications",
                 } => writable,
                 AuthAction::Update {
                     table_name: "operation_log_state",
@@ -102,6 +105,10 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                 AuthAction::Update {
                     table_name: "bundle_manifest",
                     column_name: "revision" | "body",
+                } => writable && context.database_name == Some("main"),
+                AuthAction::Update {
+                    table_name: "capture_publications",
+                    ..
                 } => writable && context.database_name == Some("main"),
                 AuthAction::Pragma {
                     pragma_name: "user_version",
@@ -204,6 +211,12 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
         "observation_chunk_members",
         Some(CREATE_OBSERVATION_CHUNK_MEMBERS),
     );
+    let expected_capture_publications = (
+        "table",
+        "capture_publications",
+        "capture_publications",
+        Some(CREATE_CAPTURE_PUBLICATIONS),
+    );
     let manifest_valid = entries.iter().any(|entry| {
         entry.0 == expected_manifest.0
             && entry.1 == expected_manifest.1
@@ -239,10 +252,25 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
         known_objects += present;
         true
     });
+    let capture_present = entries
+        .iter()
+        .filter(|entry| entry.1 == expected_capture_publications.1)
+        .count();
+    let capture_valid = capture_present == 0
+        || (capture_present == 1
+            && entries.iter().any(|entry| {
+                entry.0 == expected_capture_publications.0
+                    && entry.1 == expected_capture_publications.1
+                    && entry.2 == expected_capture_publications.2
+                    && entry.3.as_deref() == expected_capture_publications.3
+            }));
+    if capture_valid && capture_present == 1 {
+        known_objects += 1;
+    }
     // Optional table groups are validated independently. This admits every
     // historical additive combination while rejecting partial groups and all
     // unrecognized schema objects.
-    if !manifest_valid || !groups_valid || entries.len() != known_objects {
+    if !manifest_valid || !groups_valid || !capture_valid || entries.len() != known_objects {
         return Err(StoreError::Corrupt(
             "unsupported physical metadata schema; expected canonical manifest, survey, operation, or observation tables"
                 .into(),
@@ -297,6 +325,16 @@ pub(crate) fn has_observation_chunk_schema(connection: &Connection) -> Result<bo
         }
     }
     Ok(names.into_iter().all(|present| present))
+}
+
+pub(crate) fn has_capture_publication_schema(connection: &Connection) -> Result<bool> {
+    let mut statement = connection.prepare(
+        "SELECT name FROM main.sqlite_schema WHERE type='table' AND name='capture_publications'",
+    )?;
+    Ok(statement
+        .query_row([], |row| row.get::<_, String>(0))
+        .optional()?
+        .is_some())
 }
 
 #[cfg(test)]

@@ -11,7 +11,8 @@
     "kyberia-packet-import": {"layer": "adapter", "external_dependencies": ["pcap-parser", "sha2"]},
     "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["arrow-array", "arrow-schema", "bytes", "parquet", "rusqlite", "serde", "serde_json", "sha2", "tempfile"]},
     "kyberia-capture-adapter": {"layer": "adapter", "external_dependencies": ["base64", "time", "serde", "serde_json", "sha2"]},
-    "kyberia-cli": {"layer": "composition", "external_dependencies": ["serde", "serde_json", "uuid"]}
+    "kyberia-cli": {"layer": "composition", "external_dependencies": ["serde", "serde_json", "uuid"]},
+    "kyberia-observation-pipeline": {"layer": "composition", "external_dependencies": ["serde", "serde_json", "sha2"]}
   },
   "allowed_internal_layers": {
     "domain": ["domain"],

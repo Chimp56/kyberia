@@ -218,6 +218,7 @@ impl Bundle {
         transaction.execute_batch(sqlite_guard::CREATE_OPERATIONS)?;
         transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNKS)?;
         transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNK_MEMBERS)?;
+        transaction.execute_batch(sqlite_guard::CREATE_CAPTURE_PUBLICATIONS)?;
         transaction.execute_batch("PRAGMA user_version=1")?;
         transaction.execute(
             "INSERT INTO bundle_manifest VALUES (1, ?1, ?2)",
@@ -283,7 +284,8 @@ impl Bundle {
         if mode == OpenMode::ReadWrite
             && (!sqlite_guard::has_survey_snapshot_schema(&connection)?
                 || !sqlite_guard::has_operation_schema(&connection)?
-                || !sqlite_guard::has_observation_chunk_schema(&connection)?)
+                || !sqlite_guard::has_observation_chunk_schema(&connection)?
+                || !sqlite_guard::has_capture_publication_schema(&connection)?)
         {
             // V1 bundles predate one or more optional metadata table groups.
             // This additive migration is performed before the authorizer is
@@ -309,6 +311,9 @@ impl Bundle {
             if !sqlite_guard::has_observation_chunk_schema(&migration)? {
                 migration.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNKS)?;
                 migration.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNK_MEMBERS)?;
+            }
+            if !sqlite_guard::has_capture_publication_schema(&migration)? {
+                migration.execute_batch(sqlite_guard::CREATE_CAPTURE_PUBLICATIONS)?;
             }
             migration.commit()?;
         }

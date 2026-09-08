@@ -528,6 +528,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-observation-pipeline"
+version = "0.1.0"
+dependencies = [
+ "kyberia-capture-adapter",
+ "kyberia-domain",
+ "kyberia-project-store",
+ "kyberia-survey",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "kyberia-operation-log"
 version = "0.1.0"
 dependencies = [
