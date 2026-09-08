@@ -1,3 +1,17 @@
+# Current cleanup disposition
+
+APPROVED at candidate `644ba915`, integrated as `55807d9`. Reviewer: /root.
+The public allowlist override was removed: clean uses the fixed five supported
+root names. Root inspected retained test setup and passed all eight tests both
+before and after integration. Protected paths, symlinks, repeated runs, collisions,
+partial failures and manifests are covered. No actual repository outputs were moved.
+
+Concurrent unrelated filesystem mutation is explicitly outside the coordination
+guarantee; existence checks are not represented as atomic no-replace primitives.
+Exclusive run reservation isolates normal invocations. No unresolved BLOCKER or
+MAJOR findings remain within the documented local development command scope.
+Historical draft findings follow.
+
 # Trash clean command: pending review
 
 Disposition: REQUEST_CHANGES on the in-progress draft, not a final candidate.
