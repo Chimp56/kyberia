@@ -104915,25 +104915,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -104952,10 +104971,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -104984,18 +105021,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:535dd0a530696c65a335:1",
       "children": [
@@ -105088,26 +105150,45 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "status": "VALIDATED",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Project operations persist in their own exact canonical SQLite table group and high-volume evidence remains outside those rows",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -105126,10 +105207,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -105158,18 +105257,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -105247,7 +105371,7 @@
         }
       ],
       "status": "VALIDATED",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
@@ -105257,15 +105381,33 @@
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -105284,10 +105426,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -105316,18 +105476,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -105404,17 +105589,107 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/operation-log/src/lib.rs",
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/operation-log/tests/operation_log.rs",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
+          "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
+          "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
+          "command": "cargo test -p kyberia-operation-log --locked --offline",
+          "scope": "operation_log_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0016-operation-log.md",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
+      },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
     },
@@ -105491,7 +105766,7 @@
         }
       ],
       "status": "VALIDATED",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
@@ -105501,15 +105776,33 @@
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -105528,10 +105821,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -105560,18 +105871,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -105606,25 +105942,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -105643,10 +105998,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -105675,18 +106048,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -105720,26 +106118,45 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "status": "VALIDATED",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Immutable canonical and wire bytes, content hashes, logical ordering, revisions, and replay survive save, reopen, duplicate retry, and corruption checks",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -105758,10 +106175,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -105790,18 +106225,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -105836,25 +106296,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -105873,10 +106352,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -105905,18 +106402,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -105950,26 +106472,45 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "status": "VALIDATED",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Conflict-resolution operations persist and replay deterministically while unresolved and mixed-toggle conflicts remain explicit",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -105988,10 +106529,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -106020,18 +106579,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -106109,25 +106693,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -106146,10 +106749,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -106178,18 +106799,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:d5cd2004110590aba948:1",
       "children": []
@@ -115687,14 +116333,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -115866,14 +116512,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116033,14 +116679,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116157,14 +116803,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116281,14 +116927,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116405,14 +117051,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116529,14 +117175,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -118693,14 +119339,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -123671,14 +124317,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -123847,14 +124493,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124015,14 +124661,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124182,14 +124828,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -156942,14 +157588,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -157433,14 +158079,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -166746,14 +167392,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/tests/schema_guard.rs",
@@ -166924,8 +167570,8 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
@@ -166936,8 +167582,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -167402,7 +168048,7 @@
         }
       ],
       "status": "VALIDATED",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
@@ -167412,15 +168058,33 @@
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -167439,10 +168103,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -167471,18 +168153,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:e06648333b04880af91d:1",
       "children": []
@@ -176224,14 +176931,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -233237,14 +233944,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -233362,14 +234069,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
-          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
-          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -233469,25 +234176,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -233506,10 +234232,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -233538,18 +234282,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
@@ -235653,25 +236422,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -235690,10 +236478,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -235722,18 +236528,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
@@ -240595,25 +241426,44 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "Architecture / Storage",
       "phase": 8,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
         {
           "path": "crates/operation-log/src/lib.rs",
-          "description": "Pure versioned operation, canonical hash, bounded DAG merge, undo/redo, and conflict-resolution contract",
-          "revision": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b",
-          "sha256": "7b4a544d3805f0ad4cb1cb975e541de65d5bd2233b01259383ba30d017de816b"
+          "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
+          "revision": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119",
+          "sha256": "f33bdf3cdbbc7e4c338e70a71d9686961e6b59c2c84c6c1986025c3f67452119"
+        },
+        {
+          "path": "crates/project-store/src/operation_log.rs",
+          "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
+          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
+          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact additive operation table group and least-authority SQLite authorizer",
+          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
+          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Project-bundle operation migration, verification, and projection recovery integration",
+          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
+          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
-          "description": "Adversarial, determinism, resource-bound, merge, toggle, and resolution tests",
+          "description": "Deterministic bounded merge and replay-semantic contract tests",
           "revision": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "sha256": "7f894e16fce439563d93427a13117c331d936bb90e69fd008ee41ccd76bae885",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
@@ -240632,10 +241482,28 @@
         {
           "path": "docs/validation/operation-log.md",
           "description": "Bounded claims and remaining persistence/application/coordinator gates",
-          "revision": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
-          "sha256": "64dd9d3528d40525b97b87dc45fe3d2f486c6a01bee47ff3309c4c15224317e0",
+          "revision": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
+          "sha256": "b03b6d68468100a634b294eaf0e42ad22d5859ffc32d0b8fa09c2099ffbfb180",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/operation_store.rs",
+          "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
+          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "command": "cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_replay_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/operation-store.md",
+          "description": "Operation persistence validation and remaining application/coordinator boundaries",
+          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
+          "scope": "integrated_regression",
           "result": "PASS"
         }
       ],
@@ -240664,18 +241532,43 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/operation-store-review.md",
+          "description": "Independent multi-round persistence, semantic replay, resource-bound, recovery, and architecture review",
+          "revision": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "sha256": "23bdbc5658e320208ba94d37d5a92efac376fdf1d13f0c68eb4a44ee11c6612e",
+          "reviewer": "/root/operation_log_review_luna with correction review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Stored graphs were not admitted through replay-semantic validation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Untrusted operation BLOBs were materialized before size preflight",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
       "adr": {
         "path": "docs/architecture/ADR/0016-operation-log.md",
-        "description": "Canonical immutable operation log and bounded offline merge boundary",
-        "revision": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
-        "sha256": "2b37bf41806284f2ebae3a50bc5ddf14f24cb09a7fb5d6ead28356eb616b43db",
+        "description": "Canonical operation log plus transactional SQLite persistence boundary",
+        "revision": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
+        "sha256": "2510c6eb22499d0a2613274ea88b1d2312d3f9e24698e33067d45e3861348457",
         "decision_status": "ACCEPTED",
-        "accepted_by": "/root after independent /root/operation_log_review_luna review",
-        "reason": "Keep canonical command history, merge, undo, and conflicts deterministic and independent of storage and UI",
-        "preserved_product_intent": "Preserves immutable audit evidence, explicit conflicts, deterministic replay, content-addressed chunks, and bounded untrusted-input handling"
+        "accepted_by": "/root after independent operation-store review",
+        "reason": "Persist exact canonical operation evidence and replay state without coupling the domain log to storage",
+        "preserved_product_intent": "Preserves immutable audit history, deterministic replay and merge, explicit conflicts, bounded untrusted input, rollback, and recovery"
       },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
