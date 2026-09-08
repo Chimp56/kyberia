@@ -720,6 +720,97 @@ fn indexed_observation_selection_is_sorted_and_reopens_exactly() {
 }
 
 #[test]
+fn indexed_selection_receipt_is_stable_and_lists_exact_verified_chunks() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    let first = project
+        .publish_observation_chunk(
+            &[observation(1, 1, 1), observation(2, 2, 2)],
+            "fixture:receipt-first",
+            2,
+        )
+        .unwrap();
+    let second = project
+        .publish_observation_chunk(&[observation(3, 3, 3)], "fixture:receipt-second", 3)
+        .unwrap();
+    let unselected = project
+        .publish_observation_chunk(&[observation(4, 4, 4)], "fixture:receipt-unselected", 4)
+        .unwrap();
+    fs::write(root.join("artifacts").join(unselected.hash()), b"corrupt").unwrap();
+    let mut expected_chunks = vec![first, second];
+    expected_chunks.sort_by(|left, right| left.hash().cmp(right.hash()));
+    let ids = vec![
+        ObservationId::from_bytes([3; 16]).unwrap(),
+        ObservationId::from_bytes([1; 16]).unwrap(),
+    ];
+    let result = project.read_observation_selection_by_id(&ids).unwrap();
+    let repeat = project.read_observation_selection_by_id(&ids).unwrap();
+    assert_eq!(result, repeat);
+    assert_eq!(
+        project.read_observations_by_id(&ids).unwrap(),
+        result.observations()
+    );
+    assert_eq!(result.receipt().project_revision(), 3);
+    assert_eq!(result.receipt().selected_chunks(), expected_chunks);
+    assert_eq!(
+        result
+            .observations()
+            .iter()
+            .map(|observation| observation.data().id)
+            .collect::<Vec<_>>(),
+        vec![
+            ObservationId::from_bytes([1; 16]).unwrap(),
+            ObservationId::from_bytes([3; 16]).unwrap(),
+        ]
+    );
+    let empty = project.read_observation_selection_by_id(&[]).unwrap();
+    assert!(empty.observations().is_empty());
+    assert!(empty.receipt().selected_chunks().is_empty());
+    assert_eq!(empty.receipt().project_revision(), 3);
+}
+
+#[test]
+fn indexed_selection_rejects_a_project_revision_change_during_verification() {
+    let root = tempfile::tempdir().unwrap().keep().join("project");
+    let mut project = bundle(&root);
+    project
+        .publish_observation_chunk(&[observation(1, 1, 1)], "fixture:receipt-revision", 2)
+        .unwrap();
+    let writer_root = root.clone();
+    let checks = AtomicUsize::new(0);
+    let bumped = AtomicUsize::new(0);
+    let bump_revision = || {
+        let check = checks.fetch_add(1, Ordering::SeqCst);
+        if check == 3 {
+            let mut writer = Bundle::open(&writer_root, OpenMode::ReadWrite).unwrap();
+            writer
+                .put_artifact(
+                    &[7, 8, 9],
+                    ArtifactEntry {
+                        kind: ArtifactKind::Annotation,
+                        bytes: 3,
+                        media_type: "application/octet-stream".into(),
+                        provenance_id: "fixture:revision-bump".into(),
+                    },
+                    3,
+                )
+                .unwrap();
+            bumped.store(1, Ordering::SeqCst);
+        }
+        false
+    };
+    let result = project.read_observation_selection_by_id_with_cancel(
+        &[ObservationId::from_bytes([1; 16]).unwrap()],
+        &bump_revision,
+    );
+    assert!(matches!(
+        result,
+        Err(StoreError::Invalid(message)) if message.contains("project revision changed")
+    ));
+    assert_eq!(bumped.load(Ordering::SeqCst), 1);
+}
+
+#[test]
 fn indexed_observation_selection_reports_missing_duplicate_and_cancelled_requests() {
     let root = tempfile::tempdir().unwrap().keep().join("project");
     let mut project = bundle(&root);
@@ -750,6 +841,21 @@ fn indexed_observation_selection_reports_missing_duplicate_and_cancelled_request
     ));
     assert!(matches!(
         project.read_observations_by_id_with_cancel(&[], &|| true),
+        Err(StoreError::Cancelled)
+    ));
+    let final_checks = AtomicUsize::new(0);
+    let cancel_after_final_manifest = || final_checks.fetch_add(1, Ordering::SeqCst) >= 4;
+    assert!(matches!(
+        project.read_observation_selection_by_id_with_cancel(
+            &[ObservationId::from_bytes([1; 16]).unwrap()],
+            &cancel_after_final_manifest,
+        ),
+        Err(StoreError::Cancelled)
+    ));
+    let empty_checks = AtomicUsize::new(0);
+    let cancel_after_empty_manifest = || empty_checks.fetch_add(1, Ordering::SeqCst) >= 1;
+    assert!(matches!(
+        project.read_observation_selection_by_id_with_cancel(&[], &cancel_after_empty_manifest),
         Err(StoreError::Cancelled)
     ));
 }

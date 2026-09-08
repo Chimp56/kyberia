@@ -16,7 +16,8 @@ pub use observation_chunks::{
     MAX_OBSERVATION_QUERY_IDS, MAX_OBSERVATION_ROW_BYTES, NATIVE_OBSERVATION_CHUNK_MEDIA_TYPE,
     NeverCancel, OBSERVATION_CHUNK_CODEC_VERSION, OBSERVATION_CHUNK_FORMAT_VERSION,
     OBSERVATION_SCHEMA_VERSION, ObservationChunkDescriptor, ObservationChunkProvenance,
-    ObservationChunkStore, PARQUET_OBSERVATION_CHUNK_MEDIA_TYPE, PARQUET_SCHEMA_FINGERPRINT,
+    ObservationChunkStore, ObservationQueryReceipt, ObservationQueryResult,
+    PARQUET_OBSERVATION_CHUNK_MEDIA_TYPE, PARQUET_SCHEMA_FINGERPRINT,
 };
 pub use operation_log::{OperationAppendOutcome, OperationStoreState};
 pub use survey_snapshot::MAX_SURVEY_SNAPSHOT_BYTES;

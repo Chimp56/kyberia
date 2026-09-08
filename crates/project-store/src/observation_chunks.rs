@@ -223,6 +223,48 @@ impl ObservationChunkDescriptor {
     }
 }
 
+/// Immutable provenance returned for one successful indexed observation
+/// selection. The revision is the committed project manifest revision read at
+/// selection start and rechecked after every selected chunk has been verified.
+/// Descriptors are sorted by canonical chunk hash and contain metadata only;
+/// artifact bytes and unrelated project data never enter the receipt.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ObservationQueryReceipt {
+    project_revision: u64,
+    selected_chunks: Vec<ObservationChunkDescriptor>,
+}
+
+impl ObservationQueryReceipt {
+    pub const fn project_revision(&self) -> u64 {
+        self.project_revision
+    }
+
+    pub fn selected_chunks(&self) -> &[ObservationChunkDescriptor] {
+        &self.selected_chunks
+    }
+}
+
+/// Canonical envelopes and their verified immutable storage provenance.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ObservationQueryResult {
+    observations: Vec<ObservationEnvelope>,
+    receipt: ObservationQueryReceipt,
+}
+
+impl ObservationQueryResult {
+    pub fn observations(&self) -> &[ObservationEnvelope] {
+        &self.observations
+    }
+
+    pub const fn receipt(&self) -> &ObservationQueryReceipt {
+        &self.receipt
+    }
+
+    pub fn into_parts(self) -> (Vec<ObservationEnvelope>, ObservationQueryReceipt) {
+        (self.observations, self.receipt)
+    }
+}
+
 #[derive(Clone, Debug)]
 struct PreparedChunk {
     bytes: Vec<u8>,
@@ -256,10 +298,13 @@ impl Cancellation for NeverCancel {
     }
 }
 
-/// Narrow inward port implemented by the project-store adapter. Domain and
-/// application code depend on this contract rather than on SQLite, framing,
-/// or external analytical-library objects.
-pub trait ObservationChunkStore {
+/// Project-store adapter API implemented by [`Bundle`]. It keeps SQLite,
+/// framing, and external analytical-library objects behind the storage
+/// boundary. It is sealed because a receipt is valid only after this adapter
+/// verifies its SQLite and artifact state; a future inward application query
+/// contract should map this API rather than depend on project-store types.
+#[allow(private_bounds)]
+pub trait ObservationChunkStore: sealed::Sealed {
     fn publish_observation_chunk(
         &mut self,
         observations: &[ObservationEnvelope],
@@ -268,12 +313,27 @@ pub trait ObservationChunkStore {
     ) -> Result<ObservationChunkDescriptor>;
     fn list_observation_chunks(&self) -> Result<Vec<ObservationChunkDescriptor>>;
     fn read_observation_chunk(&self, hash: &str) -> Result<Vec<ObservationEnvelope>>;
+    fn read_observation_selection_by_id(
+        &self,
+        ids: &[ObservationId],
+    ) -> Result<ObservationQueryResult>;
+    fn read_observation_selection_by_id_with_cancel(
+        &self,
+        ids: &[ObservationId],
+        cancel: &dyn Cancellation,
+    ) -> Result<ObservationQueryResult>;
     fn read_observations_by_id(&self, ids: &[ObservationId]) -> Result<Vec<ObservationEnvelope>>;
     fn read_observations_by_id_with_cancel(
         &self,
         ids: &[ObservationId],
         cancel: &dyn Cancellation,
     ) -> Result<Vec<ObservationEnvelope>>;
+}
+
+mod sealed {
+    pub trait Sealed {}
+
+    impl Sealed for super::Bundle {}
 }
 
 fn cancelled() -> StoreError {
@@ -1015,26 +1075,52 @@ impl Bundle {
         verify_descriptor(self, descriptor)
     }
 
-    /// Read a bounded selection through the observation-ID primary key. Only
-    /// chunks containing a requested ID are decoded; unrelated chunks are not
-    /// part of this query's integrity scope. The selected chunks still undergo
-    /// complete byte, descriptor, provenance and member-index verification.
+    /// Read only the canonical envelopes from a bounded indexed selection.
+    /// This compatibility wrapper discards the validated provenance receipt;
+    /// callers that need analysis provenance should use
+    /// [`Bundle::read_observation_selection_by_id`].
     pub fn read_observations_by_id(
         &self,
         ids: &[ObservationId],
     ) -> Result<Vec<ObservationEnvelope>> {
-        self.read_observations_by_id_with_cancel(ids, &NeverCancel)
+        Ok(self.read_observation_selection_by_id(ids)?.into_parts().0)
     }
 
-    /// Cancellation-aware variant of [`Bundle::read_observations_by_id`].
-    /// Cancellation is checked before SQLite work, during indexed lookup and
-    /// between selected chunk decodes; a cancelled query never returns a
-    /// partial selection.
+    /// Cancellation-aware compatibility wrapper for
+    /// [`Bundle::read_observation_selection_by_id_with_cancel`].
     pub fn read_observations_by_id_with_cancel(
         &self,
         ids: &[ObservationId],
         cancel: &dyn Cancellation,
     ) -> Result<Vec<ObservationEnvelope>> {
+        Ok(self
+            .read_observation_selection_by_id_with_cancel(ids, cancel)?
+            .into_parts()
+            .0)
+    }
+
+    /// Read a bounded selection through the observation-ID primary key and
+    /// return a validated provenance receipt. Only chunks containing a
+    /// requested ID are decoded; unrelated chunks are not part of this
+    /// query's integrity scope. The selected chunks still undergo complete
+    /// byte, descriptor, provenance and member-index verification.
+    pub fn read_observation_selection_by_id(
+        &self,
+        ids: &[ObservationId],
+    ) -> Result<ObservationQueryResult> {
+        self.read_observation_selection_by_id_with_cancel(ids, &NeverCancel)
+    }
+
+    /// Cancellation-aware variant of
+    /// [`Bundle::read_observation_selection_by_id`].
+    /// Cancellation is checked before SQLite work, during indexed lookup and
+    /// between selected chunk decodes; a cancelled query never returns a
+    /// partial selection or receipt.
+    pub fn read_observation_selection_by_id_with_cancel(
+        &self,
+        ids: &[ObservationId],
+        cancel: &dyn Cancellation,
+    ) -> Result<ObservationQueryResult> {
         check_cancel(cancel)?;
         if ids.len() > MAX_OBSERVATION_QUERY_IDS {
             return Err(StoreError::Invalid(
@@ -1050,7 +1136,15 @@ impl Bundle {
             ));
         }
         if ordered_ids.is_empty() {
-            return Ok(Vec::new());
+            let manifest = self.manifest()?;
+            check_cancel(cancel)?;
+            return Ok(ObservationQueryResult {
+                observations: Vec::new(),
+                receipt: ObservationQueryReceipt {
+                    project_revision: manifest.revision,
+                    selected_chunks: Vec::new(),
+                },
+            });
         }
         if !sqlite_guard::has_observation_chunk_schema(&self.connection)? {
             return Err(StoreError::Invalid(
@@ -1065,7 +1159,8 @@ impl Bundle {
         // verification a bounded committed metadata snapshot. The immutable
         // descriptor and selected chunk are rechecked after this transaction;
         // artifact bytes for unrelated chunks are never inspected.
-        let _manifest = load_manifest(&transaction)?;
+        let manifest = load_manifest(&transaction)?;
+        let project_revision = manifest.revision;
         let mut missing = Vec::new();
         let mut chunks: BTreeMap<String, (ObservationChunkDescriptor, Vec<SelectedMember>)> =
             BTreeMap::new();
@@ -1127,6 +1222,10 @@ impl Bundle {
                 "observation ID query exceeds selected decode budget".into(),
             ));
         }
+        let selected_chunks = chunks
+            .values()
+            .map(|(descriptor, _)| descriptor.clone())
+            .collect::<Vec<_>>();
         transaction.commit()?;
 
         let mut selected_by_id = BTreeMap::new();
@@ -1167,7 +1266,7 @@ impl Bundle {
             }
             check_cancel(cancel)?;
         }
-        ordered_ids
+        let observations = ordered_ids
             .into_iter()
             .map(|id| {
                 selected_by_id.remove(&id).ok_or_else(|| {
@@ -1176,7 +1275,21 @@ impl Bundle {
                     )
                 })
             })
-            .collect()
+            .collect::<Result<Vec<_>>>()?;
+        let final_manifest = self.manifest()?;
+        check_cancel(cancel)?;
+        if final_manifest.revision != project_revision {
+            return Err(StoreError::Invalid(
+                "observation query project revision changed during verification".into(),
+            ));
+        }
+        Ok(ObservationQueryResult {
+            observations,
+            receipt: ObservationQueryReceipt {
+                project_revision,
+                selected_chunks,
+            },
+        })
     }
 
     /// Return the exact committed Parquet bytes for an independently verified
@@ -1234,6 +1347,21 @@ impl ObservationChunkStore for Bundle {
 
     fn read_observation_chunk(&self, hash: &str) -> Result<Vec<ObservationEnvelope>> {
         Bundle::read_observation_chunk(self, hash)
+    }
+
+    fn read_observation_selection_by_id(
+        &self,
+        ids: &[ObservationId],
+    ) -> Result<ObservationQueryResult> {
+        Bundle::read_observation_selection_by_id(self, ids)
+    }
+
+    fn read_observation_selection_by_id_with_cancel(
+        &self,
+        ids: &[ObservationId],
+        cancel: &dyn Cancellation,
+    ) -> Result<ObservationQueryResult> {
+        Bundle::read_observation_selection_by_id_with_cancel(self, ids, cancel)
     }
 
     fn read_observations_by_id(&self, ids: &[ObservationId]) -> Result<Vec<ObservationEnvelope>> {
