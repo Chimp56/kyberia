@@ -19,8 +19,14 @@ only requests are GETs to `/system/status.json`, `/datasource/types.json`, and
 `/datasource/all_sources.json`, in that order. It uses ureq 2.12.1 with the
 rustls feature, redirects disabled, proxy-from-environment disabled, and a
 bounded overall attempt timeout plus the remaining shared poll budget on each
-request. Plaintext HTTP is permitted only for literal loopback fixture
-addresses; remote endpoints require HTTPS. The caller supplies an opaque
+request. Hostname endpoints require a caller-supplied list of at most
+`MAX_ENDPOINT_ADDRESSES` explicit `SocketAddr` values. The adapter installs a
+strict ureq resolver that accepts only the exact URL host/port authority, so
+the system `ToSocketAddrs` resolver is never reached. The original URL host is
+still passed to HTTP and TLS for authority and certificate verification;
+addresses select only the TCP destinations. Literal IP endpoints are bound
+automatically through this resolver. Plaintext HTTP is permitted only for
+literal loopback fixture addresses; remote endpoints require HTTPS. The caller supplies an opaque
 `ApiToken`; secret values never enter
 URLs, errors, debug output or serialized status receipts.
 
@@ -64,6 +70,10 @@ domain. The local fixture proves exact request/cookie behavior, retry and
 decoder limits. It does not prove live-server parity, hardware capture,
 WebSocket framing, source hopping/dwell/drop telemetry, clock correlation,
 packet normalization, remote TLS deployment, or GPL distribution clearance.
+The explicit address list avoids ureq's uninterruptible system DNS path.
+Automatic DNS acquisition remains a separate open capability until a mature
+cancellable resolver integration is selected and reviewed; it is not hidden
+inside a detached thread or an uncancellable helper.
 Those remain Gate H/OSS-001 acceptance work and require a controlled pinned
 Kismet runtime. The source package is tracked only as an external process; no
 GPL source or helper is bundled.

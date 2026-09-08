@@ -26,7 +26,13 @@ sleeping.
 The fixture producer identity is the inspected pinned source tuple
 `2026.09.0`/`2d25ad0`; a syntactically valid future date or missing/mismatched
 source identity is rejected. The live transport uses ureq 2.12.1 with rustls,
-redirects disabled and proxy-from-environment disabled. The acceptance run
+redirects disabled and proxy-from-environment disabled. Hostname endpoints
+must provide a bounded explicit address list; literal IP endpoints are bound
+automatically. The resolver rejects an unexpected authority and does not call
+system DNS. The URL hostname remains the TLS/HTTP authority while the address
+list controls only TCP destinations. ureq's pinned source documents that its
+system resolver cannot be interrupted by request deadlines, so automatic DNS
+acquisition remains a separate open capability. The acceptance run
 also passes workspace tests, workspace Clippy with warnings denied, the
 architecture dependency-direction check, the 181-package source inventory,
 formatting, cargo-deny advisories/licenses/sources/bans, and `git diff --check`.

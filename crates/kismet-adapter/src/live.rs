@@ -12,16 +12,18 @@ use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::fmt;
 use std::io::{self, Read};
-use std::net::IpAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
+use url::Url;
 
 pub const LIVE_STATUS_SCHEMA: &str = "kyberia.kismet-live-status/1";
 const STATUS_PATH: &str = "/system/status.json";
 const TYPES_PATH: &str = "/datasource/types.json";
 const SOURCES_PATH: &str = "/datasource/all_sources.json";
 const MAX_ATTEMPT_TIMEOUT: Duration = Duration::from_secs(60);
+pub const MAX_ENDPOINT_ADDRESSES: usize = 8;
 const DUPLICATE_KEY_ERROR: &str = "duplicate JSON object key";
 // The pinned Kismet source generates date versions as YYYY.MM.0 by default
 // (tools/mkversion.sh), so the date alone cannot establish API compatibility.
@@ -61,36 +63,49 @@ impl fmt::Debug for ApiToken {
     }
 }
 
-/// A Kismet base URL.  Query strings, fragments and userinfo are rejected so
-/// the token can never be moved into an attacker-controlled URL component.
+/// A Kismet base URL and its explicit transport destination set.
+///
+/// Query strings, fragments and userinfo are rejected so the token can never
+/// be moved into an attacker-controlled URL component. Hostname endpoints
+/// must be completed with [`Endpoint::with_resolved_addresses`] before a
+/// client can connect. The URL host is retained for HTTP Host and TLS
+/// verification; supplied addresses affect only the TCP destination.
 #[derive(Clone, PartialEq, Eq)]
-pub struct Endpoint(String);
+pub struct Endpoint {
+    base: String,
+    host: String,
+    port: u16,
+    resolver_netloc: String,
+    addresses: Vec<SocketAddr>,
+}
 
 impl Endpoint {
     pub fn new(base: impl Into<String>) -> Result<Self, LiveError> {
         let mut base = base.into();
-        if base.len() > 4096
-            || base.bytes().any(|byte| byte.is_ascii_control())
-            || !(base.starts_with("http://") || base.starts_with("https://"))
+        if base.len() > 4096 || base.bytes().any(|byte| byte.is_ascii_control()) {
+            return Err(LiveError::InvalidEndpoint);
+        }
+        let parsed = Url::parse(&base).map_err(|_| LiveError::InvalidEndpoint)?;
+        if !matches!(parsed.scheme(), "http" | "https")
+            || parsed.username() != ""
+            || parsed.password().is_some()
+            || parsed.query().is_some()
+            || parsed.fragment().is_some()
         {
             return Err(LiveError::InvalidEndpoint);
         }
-        if base.contains('?') || base.contains('#') {
-            return Err(LiveError::InvalidEndpoint);
-        }
-        let authority = base
-            .split_once("://")
-            .and_then(|(_, remainder)| remainder.split('/').next())
-            .unwrap_or_default();
-        if authority.is_empty()
-            || authority.contains('@')
-            || authority
-                .bytes()
-                .any(|byte| byte.is_ascii_whitespace() || byte == b'\\')
+        let host = parsed
+            .host_str()
+            .filter(|host| !host.is_empty())
+            .ok_or(LiveError::InvalidEndpoint)?
+            .to_owned();
+        let port = parsed
+            .port_or_known_default()
+            .filter(|port| *port != 0)
+            .ok_or(LiveError::InvalidEndpoint)?;
+        if parsed.scheme() == "http"
+            && !parse_literal_ip(&host).is_some_and(|address| address.is_loopback())
         {
-            return Err(LiveError::InvalidEndpoint);
-        }
-        if base.starts_with("http://") && !is_literal_loopback_authority(authority) {
             return Err(LiveError::InvalidEndpoint);
         }
         while base.ends_with('/') {
@@ -99,36 +114,90 @@ impl Endpoint {
         if base.is_empty() {
             return Err(LiveError::InvalidEndpoint);
         }
-        Ok(Self(base))
+        let resolver_netloc = format!("{host}:{port}");
+        let addresses = parse_literal_ip(&host)
+            .map(|address| vec![SocketAddr::new(address, port)])
+            .unwrap_or_default();
+        Ok(Self {
+            base,
+            host,
+            port,
+            resolver_netloc,
+            addresses,
+        })
+    }
+
+    /// Attach a bounded, caller-resolved destination list.
+    ///
+    /// ureq's default resolver delegates to `ToSocketAddrs`, whose system DNS
+    /// operation cannot be interrupted by the request deadline. This method
+    /// makes resolution an explicit boundary. For hostname URLs the supplied
+    /// addresses are used only for TCP; the original URL hostname remains the
+    /// TLS server name and HTTP authority. Literal IP URLs may omit this call,
+    /// and a matching address is installed automatically by [`Endpoint::new`].
+    pub fn with_resolved_addresses(
+        mut self,
+        addresses: impl IntoIterator<Item = SocketAddr>,
+    ) -> Result<Self, LiveError> {
+        let mut bounded = Vec::with_capacity(MAX_ENDPOINT_ADDRESSES);
+        for address in addresses {
+            if bounded.len() >= MAX_ENDPOINT_ADDRESSES
+                || address.port() != self.port
+                || bounded.contains(&address)
+            {
+                return Err(LiveError::InvalidEndpoint);
+            }
+            if parse_literal_ip(&self.host).is_some_and(|expected| expected != address.ip()) {
+                return Err(LiveError::InvalidEndpoint);
+            }
+            bounded.push(address);
+        }
+        if bounded.is_empty() {
+            return Err(LiveError::InvalidEndpoint);
+        }
+        self.addresses = bounded;
+        Ok(self)
     }
 
     fn url_for(&self, path: &str) -> String {
-        format!("{}{}", self.0, path)
+        format!("{}{}", self.base, path)
+    }
+
+    fn resolver(&self) -> Result<ExplicitResolver, LiveError> {
+        if self.addresses.is_empty() {
+            return Err(LiveError::AddressResolutionRequired);
+        }
+        Ok(ExplicitResolver {
+            netloc: self.resolver_netloc.clone(),
+            addresses: self.addresses.clone(),
+        })
     }
 }
 
-fn is_literal_loopback_authority(authority: &str) -> bool {
-    let host = if let Some(bracketed) = authority.strip_prefix('[') {
-        let Some((host, remainder)) = bracketed.split_once(']') else {
-            return false;
-        };
-        if !remainder.is_empty()
-            && !(remainder.starts_with(':') && remainder[1..].parse::<u16>().is_ok())
-        {
-            return false;
+fn parse_literal_ip(host: &str) -> Option<IpAddr> {
+    host.parse::<IpAddr>().ok().or_else(|| {
+        host.strip_prefix('[')
+            .and_then(|host| host.strip_suffix(']'))
+            .and_then(|host| host.parse::<IpAddr>().ok())
+    })
+}
+
+#[derive(Clone, Debug)]
+struct ExplicitResolver {
+    netloc: String,
+    addresses: Vec<SocketAddr>,
+}
+
+impl ureq::Resolver for ExplicitResolver {
+    fn resolve(&self, netloc: &str) -> io::Result<Vec<SocketAddr>> {
+        if netloc != self.netloc {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "unexpected resolver authority",
+            ));
         }
-        host
-    } else if let Some((host, port)) = authority.rsplit_once(':') {
-        if port.parse::<u16>().is_ok() {
-            host
-        } else {
-            authority
-        }
-    } else {
-        authority
-    };
-    host.parse::<IpAddr>()
-        .is_ok_and(|address| address.is_loopback())
+        Ok(self.addresses.clone())
+    }
 }
 
 impl fmt::Debug for Endpoint {
@@ -220,6 +289,7 @@ impl LiveLimits {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LiveError {
     InvalidEndpoint,
+    AddressResolutionRequired,
     InvalidToken,
     InvalidLimits,
     Cancelled,
@@ -244,6 +314,9 @@ impl fmt::Display for LiveError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
             Self::InvalidEndpoint => "invalid Kismet endpoint",
+            Self::AddressResolutionRequired => {
+                "Kismet hostname requires caller-supplied transport addresses"
+            }
             Self::InvalidToken => "invalid Kismet API token",
             Self::InvalidLimits => "invalid live polling limits",
             Self::Cancelled => "Kismet polling cancelled",
@@ -445,7 +518,6 @@ pub struct KismetLiveClient {
     endpoint: Endpoint,
     token: ApiToken,
     limits: LiveLimits,
-    agent: ureq::Agent,
 }
 
 impl fmt::Debug for KismetLiveClient {
@@ -465,16 +537,11 @@ impl KismetLiveClient {
         limits: LiveLimits,
     ) -> Result<Self, LiveError> {
         let limits = limits.validate()?;
-        let attempt_timeout = limits.attempt_timeout();
-        let agent = ureq::AgentBuilder::new()
-            .redirects(0)
-            .timeout(attempt_timeout)
-            .build();
+        endpoint.resolver()?;
         Ok(Self {
             endpoint,
             token,
             limits,
-            agent,
         })
     }
 
@@ -488,7 +555,7 @@ impl KismetLiveClient {
         cancellation: &CancellationToken,
         clock: &mut C,
     ) -> Result<LiveStatusSnapshot, LiveError> {
-        let executor = UreqHttp { agent: &self.agent };
+        let executor = UreqHttp;
         self.poll_with_executor(&executor, cancellation, clock)
     }
 
@@ -625,11 +692,9 @@ trait HttpGet {
     ) -> Result<RawResponse, LiveError>;
 }
 
-struct UreqHttp<'a> {
-    agent: &'a ureq::Agent,
-}
+struct UreqHttp;
 
-impl HttpGet for UreqHttp<'_> {
+impl HttpGet for UreqHttp {
     fn get(
         &self,
         endpoint: &Endpoint,
@@ -640,10 +705,15 @@ impl HttpGet for UreqHttp<'_> {
         remaining: Duration,
     ) -> Result<RawResponse, LiveError> {
         let url = endpoint.url_for(path);
-        let response = match self
-            .agent
-            .get(&url)
+        let agent = ureq::AgentBuilder::new()
+            .redirects(0)
+            .try_proxy_from_env(false)
             .timeout(remaining)
+            .timeout_connect(remaining)
+            .resolver(endpoint.resolver()?)
+            .build();
+        let response = match agent
+            .get(&url)
             .set("Accept", "application/json")
             .set("Cookie", cookie)
             .call()
@@ -1272,6 +1342,7 @@ mod tests {
     use std::cell::{Cell, RefCell};
     use std::collections::VecDeque;
     use std::rc::Rc;
+    use ureq::Resolver;
 
     struct FixtureClock {
         elapsed: Rc<Cell<Duration>>,
@@ -1418,6 +1489,78 @@ mod tests {
             Err(LiveError::InvalidEndpoint)
         );
         assert!(Endpoint::new("https://kismet.example.invalid").is_ok());
+    }
+
+    #[test]
+    fn hostname_requires_explicit_addresses_and_keeps_tls_authority() {
+        let unresolved = Endpoint::new("https://kismet.example.invalid:2501").unwrap();
+        assert!(matches!(
+            KismetLiveClient::connect(unresolved, ApiToken::new("secret").unwrap(), limits(),),
+            Err(LiveError::AddressResolutionRequired)
+        ));
+
+        let endpoint = Endpoint::new("https://kismet.example.invalid:2501/api/")
+            .unwrap()
+            .with_resolved_addresses(["192.0.2.10:2501".parse().unwrap()])
+            .unwrap();
+        assert_eq!(endpoint.host, "kismet.example.invalid");
+        assert_eq!(endpoint.resolver_netloc, "kismet.example.invalid:2501");
+        assert_eq!(
+            endpoint.url_for(STATUS_PATH),
+            "https://kismet.example.invalid:2501/api/system/status.json"
+        );
+        let resolver = endpoint.resolver().unwrap();
+        assert_eq!(
+            resolver.resolve("kismet.example.invalid:2501").unwrap(),
+            vec!["192.0.2.10:2501".parse().unwrap()]
+        );
+        assert!(resolver.resolve("other.example.invalid:2501").is_err());
+    }
+
+    #[test]
+    fn explicit_addresses_are_bounded_unique_and_port_matched() {
+        let endpoint = Endpoint::new("https://kismet.example.invalid:2501").unwrap();
+        assert_eq!(
+            endpoint.clone().with_resolved_addresses([]),
+            Err(LiveError::InvalidEndpoint)
+        );
+        assert_eq!(
+            endpoint
+                .clone()
+                .with_resolved_addresses(["192.0.2.10:443".parse().unwrap()]),
+            Err(LiveError::InvalidEndpoint)
+        );
+        assert_eq!(
+            endpoint.clone().with_resolved_addresses([
+                "192.0.2.10:2501".parse().unwrap(),
+                "192.0.2.10:2501".parse().unwrap(),
+            ]),
+            Err(LiveError::InvalidEndpoint)
+        );
+        let too_many = (1_u8..=9)
+            .map(|last| SocketAddr::from(([192, 0, 2, last], 2501)))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            endpoint.with_resolved_addresses(too_many),
+            Err(LiveError::InvalidEndpoint)
+        );
+
+        let literal = Endpoint::new("https://192.0.2.10:2501").unwrap();
+        assert_eq!(
+            literal.with_resolved_addresses(["192.0.2.11:2501".parse().unwrap()]),
+            Err(LiveError::InvalidEndpoint)
+        );
+    }
+
+    #[test]
+    fn literal_ipv6_resolver_authority_matches_ureq_format() {
+        let endpoint = Endpoint::new("https://[::1]:2501").unwrap();
+        assert_eq!(endpoint.host, "[::1]");
+        assert_eq!(endpoint.resolver_netloc, "[::1]:2501");
+        assert_eq!(
+            endpoint.resolver().unwrap().resolve("[::1]:2501").unwrap(),
+            vec!["[::1]:2501".parse().unwrap()]
+        );
     }
 
     #[test]

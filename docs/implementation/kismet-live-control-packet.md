@@ -16,7 +16,7 @@ Datasource listing reports configured sources and their state. `/datasource/list
 
 ## Bounded implementation task
 
-The bounded implementation uses authenticated transport and deterministic versioned status decoding inside the outward Kismet adapter. It selects/pins a mature HTTP/TLS library after dependency review; it does not implement HTTP or crypto. Secrets stay outside serializable/debuggable DTOs. Cross-origin redirects are disabled and API tokens never enter query strings or provenance. Response bytes, nesting, datasource count, overall attempt duration, shared poll deadline, retry count and backoff are bounded. Cancellation is supported and authentication, transport, unsupported-schema and malformed-payload failures remain distinct.
+The bounded implementation uses authenticated transport and deterministic versioned status decoding inside the outward Kismet adapter. It selects/pins a mature HTTP/TLS library after dependency review; it does not implement HTTP or crypto. Secrets stay outside serializable/debuggable DTOs. Cross-origin redirects are disabled and API tokens never enter query strings or provenance. Response bytes, nesting, datasource count, overall attempt duration, shared poll deadline, retry count and backoff are bounded. Cancellation is supported and authentication, transport, unsupported-schema and malformed-payload failures remain distinct. Hostname endpoints require a caller-supplied bounded list of transport addresses; the adapter never invokes the system resolver implicitly. The URL hostname remains the HTTP authority and TLS server name, while those addresses select only the TCP destinations. Literal IP endpoints use the same explicit resolver path automatically.
 
 Negotiate supported producer versions using real pinned server output and public field definitions before evidence ingestion. Preserve source version and field availability; a database schema version is not a producer version. Missing channel/dwell/calibration/time facts remain unknown. Datasource/device status aggregates must never become packet observations. Model disconnect/reconnect and dropped-event telemetry explicitly when live evidence consumption is added.
 
@@ -42,7 +42,12 @@ resources above, and emits the versioned secret-free
 capture helper has been run. Compatibility is deliberately restricted to the
 inspected acceptance tuple `2026.09.0` plus Kismet source identity `2d25ad0`
 (or its full pinned commit); build-date versions are not treated as a broad
-API compatibility promise.
+API compatibility promise. ureq's pinned source documents that its default
+`ToSocketAddrs` resolver cannot be interrupted by a request timeout, so
+`Endpoint::with_resolved_addresses` is the explicit resolution boundary.
+DNS acquisition, including a bounded cancellable resolver, remains an open
+transport capability and is not performed by this adapter. Per-request
+connection and body deadlines are still applied after address resolution.
 
 ## Local runtime preparation
 
