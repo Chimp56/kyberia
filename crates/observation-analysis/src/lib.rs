@@ -17,7 +17,7 @@ use kyberia_domain::{
     },
     observation::{
         CalibrationState, ChannelContext, DwellContext, EnvelopeData, ObservationEnvelope,
-        ObservationPayload, QualityFlag,
+        ObservationPayload, QualityFlag, SourceKind,
     },
     spatial::{Point3, PoseReference, PositionCovariance},
     time::{CaptureTime, MonotonicWindow},
@@ -812,6 +812,22 @@ fn select_one(
 ) -> Result<SelectedRssiRecord, SelectionFailure> {
     let data = observation.data();
     let association_hash = candidate.association_hash().ok();
+    if data.source.kind == SourceKind::SyntheticFixture {
+        return Err(SelectionFailure {
+            // Preserve the V1 rejection vocabulary: a synthetic source is an
+            // unsupported source plane for this measured selector.
+            reason: RejectionReason::UnsupportedPayload,
+            association_hash,
+        });
+    }
+    if data.quality.contains(&QualityFlag::SyntheticFixture) {
+        return Err(SelectionFailure {
+            // Synthetic quality is an unusable evidence flag.  Using the
+            // existing V1 reason avoids silently introducing a new wire enum.
+            reason: RejectionReason::UnusableQuality,
+            association_hash,
+        });
+    }
     if let Candidate::Strict { input } = candidate
         && input
             .survey
@@ -1118,7 +1134,8 @@ fn config_method(config: SpatialConfig) -> kyberia_spatial_analysis::SpatialMeth
 fn unusable_quality(flag: &QualityFlag) -> bool {
     matches!(
         flag,
-        QualityFlag::Stale
+        QualityFlag::SyntheticFixture
+            | QualityFlag::Stale
             | QualityFlag::ContradictorySourceFields
             | QualityFlag::Malformed
             | QualityFlag::Saturated

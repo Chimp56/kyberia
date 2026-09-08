@@ -104,7 +104,7 @@ fn config() -> PointConfig {
         pose_policy: PosePolicy::ManualAnchor {
             maximum_reported_offset: Meters::new(1.).unwrap(),
         },
-        allow_synthetic: true,
+        allow_synthetic: false,
         method_version: text("point/v1"),
     })
     .unwrap()
@@ -116,7 +116,7 @@ fn source() -> SourceDescriptor {
         collector_id: config.data().collector_id,
         sensor_id: unknown(),
         adapter_id: unknown(),
-        kind: SourceKind::SyntheticFixture,
+        kind: SourceKind::NativeApi,
         source_name: text("fixture"),
         source_version: Evidence::Known(text("1")),
         source_schema_version: text("fixture/1"),
@@ -153,7 +153,7 @@ fn observation(
             identifiers: IdentifierPolicy::ExplicitResearchConsent,
             payload: PayloadRetention::Discarded,
         },
-        quality: vec![QualityFlag::SyntheticFixture],
+        quality: vec![],
         raw_source: Evidence::Unknown(UnknownReason::NotRetained),
         payload: ObservationPayload::Scan(ScanObservation {
             identity: RadioIdentityEvidence {
@@ -173,7 +173,7 @@ fn observation(
                 noise_dbm: Evidence::Unknown(UnknownReason::NotObservable),
                 chains: vec![],
                 calibration: Evidence::Known(CalibrationState::Uncalibrated),
-                measurement_method: text("synthetic fixture"),
+                measurement_method: text("native fixture"),
             },
             information_elements: unknown(),
             result_age,
@@ -356,6 +356,71 @@ fn strict_manual_anchor_builds_observed_tile_and_binds_manifest() {
         kyberia_spatial_analysis::CellClass::Observed
     );
     assert_eq!(tile.inputs.source_artifact, *set.artifact());
+}
+
+#[test]
+fn measured_selection_rejects_synthetic_source_and_quality_evidence() {
+    let original = strict_observation(35, -54.);
+    let survey = survey_with_strict(&original);
+    let floor_id = FloorId::from_bytes(id(9)).unwrap();
+    let input = [SurveyInput {
+        survey: &survey,
+        floor_id,
+    }];
+    let synthetic_source = mutate_observation(original.clone(), |data| {
+        data.source.kind = SourceKind::SyntheticFixture;
+        data.quality.push(QualityFlag::SyntheticFixture);
+    });
+    let synthetic_source_result = ValidatedObservedRssiSet::build(
+        request(vec![original.data().id]),
+        metric(),
+        spatial_config(),
+        &input,
+        std::slice::from_ref(&synthetic_source),
+    )
+    .unwrap();
+    assert!(matches!(
+        synthetic_source_result.rejected()[0].reason,
+        RejectionReason::UnsupportedPayload
+    ));
+
+    let synthetic_quality = mutate_observation(original.clone(), |data| {
+        data.quality.push(QualityFlag::SyntheticFixture);
+    });
+    let synthetic_quality_result = ValidatedObservedRssiSet::build(
+        request(vec![original.data().id]),
+        metric(),
+        spatial_config(),
+        &input,
+        std::slice::from_ref(&synthetic_quality),
+    )
+    .unwrap();
+    assert!(matches!(
+        synthetic_quality_result.rejected()[0].reason,
+        RejectionReason::UnusableQuality
+    ));
+    assert!(synthetic_quality_result.samples().next().is_none());
+    assert_eq!(
+        synthetic_quality_result.manifest().evidence_plane,
+        SelectionEvidencePlane::Measured
+    );
+
+    let selected = ValidatedObservedRssiSet::build(
+        request(vec![original.data().id]),
+        metric(),
+        spatial_config(),
+        &input,
+        std::slice::from_ref(&original),
+    )
+    .unwrap();
+    let mut forged = selected.manifest().clone();
+    forged.selected[0].quality.push(QualityFlag::SyntheticFixture);
+    assert!(matches!(
+        SelectionManifest::from_canonical_bytes(
+            &serde_json::to_vec(&forged).unwrap()
+        ),
+        Err(SelectionError::InvalidManifest("unusable selected quality"))
+    ));
 }
 
 #[test]
