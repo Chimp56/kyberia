@@ -1,5 +1,6 @@
 //! Portable planar geometry adapter. Library types never cross this boundary.
 //! Coordinates are meters in one explicitly identified floor-local frame.
+mod polygon;
 use geo::{
     Coord, Line,
     line_intersection::{LineIntersection, line_intersection},
@@ -9,6 +10,7 @@ use kyberia_domain::{
     spatial::Point2,
     units::CoordinateMeters,
 };
+pub use polygon::{MAX_POLYGON_COORDINATES, MAX_POLYGON_HOLES, PolygonError, ValidatedPolygon};
 
 /// Numerical input bound, not a geographic projection or a snapping tolerance.
 pub const MAX_ABSOLUTE_COORDINATE_METERS: f64 = 1_000_000_000.0;
