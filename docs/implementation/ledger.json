@@ -39377,15 +39377,6 @@
           ]
         },
         {
-          "path": "docs/reviews/observed-rssi-selection-review.md",
-          "description": "Independent review with strict-evidence and semantic-metric corrections",
-          "revision": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
-          "sha256": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
-          "reviewer": "/root",
-          "disposition": "APPROVED",
-          "findings": []
-        },
-        {
           "path": "docs/reviews/native-pipeline-pending-review.md",
           "description": "Independent multi-round native composition review with all majors corrected",
           "revision": "507b12e674a8df5376ad2d14db23fbe9db347719b932bb3930353e5bf9c9ce94",
@@ -172727,17 +172718,7 @@
           "result": "PASS"
         }
       ],
-      "reviews": [
-        {
-          "path": "docs/reviews/observed-rssi-selection-review.md",
-          "description": "Independent review with strict-evidence and semantic-metric corrections",
-          "revision": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
-          "sha256": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
-          "reviewer": "/root",
-          "disposition": "APPROVED",
-          "findings": []
-        }
-      ],
+      "reviews": [],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:715a4a51da0e83b78896:1",
@@ -176451,17 +176432,7 @@
           "result": "PASS"
         }
       ],
-      "reviews": [
-        {
-          "path": "docs/reviews/kismet-live-status-review.md",
-          "description": "Independent source, security, timeout and compatibility review",
-          "revision": "d073b56193d156f444932c6d5948a0eb47a7ab0cfcdfff89ce1073744aec7628",
-          "sha256": "d073b56193d156f444932c6d5948a0eb47a7ab0cfcdfff89ce1073744aec7628",
-          "reviewer": "/root",
-          "disposition": "APPROVED",
-          "findings": []
-        }
-      ],
+      "reviews": [],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",

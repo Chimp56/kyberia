@@ -1,5 +1,15 @@
 # Kismet live status review
 
+Current disposition: REQUEST_CHANGES for hostname-resolution deadlines.
+Follow-up inspection of pinned ureq 2.12.1 `src/agent.rs:471` and
+`src/stream.rs:364` confirms system DNS resolution cannot be interrupted by
+the request timeout. The existing slow-body tests exercise socket deadlines,
+not this stage. The author is adding explicit bounded transport-address
+binding while preserving HTTPS hostname certificate verification; implicit
+unbounded resolution must not remain inside the bounded poll. DNS acquisition
+needs its own cancellable integration. Earlier approval below is historical
+and superseded pending this correction and independent regression review.
+
 Author: /root/channel_coupling_review_luna. Independent reviewer: /root.
 Reviewed candidate: `8e6f109f601647a3ea22895e15ef7045af2f5e96`, including
 `1de6691` and `9155b5a`; integrated through `1f7a943`.

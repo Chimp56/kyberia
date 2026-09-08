@@ -1,5 +1,11 @@
 # Observed RSSI selection review
 
+Current disposition: REQUEST_CHANGES after independent composition review
+found synthetic observations can be labeled measured. See
+[the finding and required regressions](stored-rssi-analysis-review.md).
+The earlier approval below is retained as historical evidence and is
+superseded until the classification correction is independently reviewed.
+
 Candidate: `5ac17faf92639b9f7338a06ccc41a0f1990c9b37`.
 Author: `/root/operation_log_review_luna`. Independent reviewer: `/root`.
 Disposition: APPROVED after correction `3fc36d3bd4042babd1834ae20653726e9ef8b0da`; integrated as `f12fcb7` and `3d9d059`. No unresolved BLOCKER or MAJOR findings. Findings below retain the original review history.
