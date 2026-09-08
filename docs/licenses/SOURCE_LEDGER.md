@@ -53,6 +53,19 @@ CRS validation, or permission to redistribute GEOS/Python artifacts. Any
 production adoption requires the locked transitive license review, release
 notice assembly and the remaining geometry gates.
 
+The [renderer research inventory](renderer-research-sources.json) records
+OpenLayers 10.10.0, Playwright 1.60.0, Vite 8.1.5 and every one of the 72
+resolved npm packages in the frozen renderer proof lockfile. Each record binds
+the package version, registry/archive source, integrity, declared license,
+repository metadata, platform conditions, redistribution statement and update
+procedure. The retained browser fixtures and screenshots are original Kyberia
+synthetic outputs with source, fixture, lockfile and browser hashes; they contain
+no external map tiles, vendor assets, real captures or competitor data. This
+inventory supports the bounded provisional Gate B comparison only. It is not a
+release SBOM, a final renderer selection or permission to redistribute a browser
+runtime. Updates require an explicit inventory refresh, offline verification,
+fresh browser matrices and independent evidence review.
+
 The [Sionna proof inventory](sionna-sources.json) records the exact audited source archive, reproducible wheel, 45 locked Python packages and native LLVM provenance. The worker uses Sionna RT 2.0.1 at the audited commit with Mitsuba 3.8.0, Dr.Jit 1.3.1, Python 3.12.12 and LLVM 18.1.8. The PyPI wheel differs from the audited revision in four source files; that discrepancy is preserved and the proof requires the audited build. The [independent review](../reviews/sionna-cpu-review.md) verifies all 49 Python source files and the bounded CPU results. Upstream code stays in ignored external environments, not Kyberia core. Licensing and notices for a distributable worker, a release SBOM and full Gate I remain open. Updates require fresh installation, exact source verification and numerical/lifecycle regression gates.
 
 The native normalization adapter adds base64 0.22.1 and time 0.3.55 behind the outward adapter boundary. Their seven newly resolved package entries, including conditional time-macros, are recorded with exact hashes and license declarations in the Rust inventory. The earlier research pin time 0.3.44 was replaced before integration following RUSTSEC-2026-0009; no advisory exception is used. The earlier native-normalization integration checked its 97-package graph with pinned cargo-deny advisory, license and registry-source checks against RustSec revision `faedffd5118c1835e13cca3babb6059afb1eb8d0`. Subsequent automation and its newer RustSec revision are documented in the supply-chain inventory below; complete distributable SBOM scope remains open. Original canonical fixture provenance and the clock/channel interpretation are documented in the [normalization adapter](../adapters/capture-normalization.md) and [independent review](../reviews/capture-normalization-review.md).

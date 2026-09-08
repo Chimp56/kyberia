@@ -101358,17 +101358,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Use the bounded candidate comparison to inform the eventual product 2D map canvas decision"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:5a9d739fee9a5fa61783:1",
       "children": []
     },
@@ -153684,15 +153758,80 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration/release",
+      "status": "IN_PROGRESS",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Carry the validated numerical mask/rendering proof into an integrated minimal product renderer"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:282df4efb234e8d43080:1",
@@ -163614,8 +163753,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "0565e622634392e1243d8ebc39ec343ea7fb82933f9f219e6d9d999738210709",
-          "sha256": "0565e622634392e1243d8ebc39ec343ea7fb82933f9f219e6d9d999738210709"
+          "revision": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c",
+          "sha256": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -171572,8 +171711,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "0565e622634392e1243d8ebc39ec343ea7fb82933f9f219e6d9d999738210709",
-          "sha256": "0565e622634392e1243d8ebc39ec343ea7fb82933f9f219e6d9d999738210709"
+          "revision": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c",
+          "sha256": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -177530,17 +177669,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Complete the remaining product renderer decision and native validation gates"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:c39574f2c9835ca6b8c1:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:1085",
@@ -177628,17 +177841,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Exercise all Gate B prototype dimensions; tile compositing and broader hosts remain open"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:3233ca35b844bec1e96d:1",
       "children": []
     },
@@ -177714,17 +178001,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Render the same large synthetic raster/vector floor workload through both candidates with camera-bound framebuffer probes"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:3233ca35b844bec1e96d:1",
       "children": []
     },
@@ -177757,17 +178118,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Switch and visibly sample all 120 deterministic numerical layers in every browser row"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:3233ca35b844bec1e96d:1",
       "children": []
     },
@@ -177800,17 +178235,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Render and directly probe 10,000 AP points and 10,000 path segments with 324 walls"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:3233ca35b844bec1e96d:1",
       "children": []
     },
@@ -177843,17 +178352,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Validate bounded center-first scheduling, cancellation and eviction; actual tile compositing/network behavior remains open"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:3233ca35b844bec1e96d:1",
       "children": []
     },
@@ -177886,17 +178469,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Visibly verify six z-sensitive custom floor extrusions and report the OpenLayers candidate unsupported"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:3233ca35b844bec1e96d:1",
       "children": []
     },
@@ -177972,17 +178629,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "UI / Visualization",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Use measured latency/memory/correctness evidence for the eventual selection; no final candidate is selected"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:3233ca35b844bec1e96d:1",
       "children": []
     },
@@ -234514,17 +235245,91 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "UI/visualization",
-      "phase": 1,
+      "status": "IN_PROGRESS",
+      "owner": "UI / Visualization",
+      "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Carry numeric sampling, masks and large-workload evidence into the production renderer boundary"
+      ],
+      "implementation": [
+        {
+          "path": "research/renderer/renderer.js",
+          "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
+          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
+          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+        },
+        {
+          "path": "research/renderer/fixture.js",
+          "description": "Deterministic source-bound 120-layer, 10,000-overlay and six-floor synthetic fixture",
+          "revision": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+          "sha256": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840"
+        },
+        {
+          "path": "research/renderer/benchmark.mjs",
+          "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
+          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
+          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/renderer-proof.md",
+          "description": "Gate B methodology, measurements, limitations and reproducibility contract",
+          "revision": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "sha256": "cee92bbdea27e02fc5dac1ce2b9f3e05eac7545340d18138d262e8ccecd9da68",
+          "command": "<pinned-node> --test fixture.test.mjs && <pinned-node> package-inventory.mjs",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-desktop-v17.json",
+          "description": "Source-bound Chromium desktop DPR1 matrix with eight ready candidate/workload rows",
+          "revision": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "sha256": "ed76aba445149589e115038fa9a2a87f433fec1baa8cc9899db33613c9889912",
+          "command": "PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-desktop-v17.json evidence/browser-proof-desktop-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        },
+        {
+          "path": "research/renderer/evidence/browser-proof-mobile-v17.json",
+          "description": "Source-bound Chromium narrow-viewport DPR2 matrix with eight ready candidate/workload rows",
+          "revision": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "sha256": "3cbaeeffaefd24055c049768a72f334b19ca26381978d5a190cfc86324f33a68",
+          "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
+          "scope": "runtime_current_host",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/renderer-gate-b-review.md",
+          "description": "Independent final review after camera, OpenLayers, 3D, scheduling, provenance and evidence-retention corrections",
+          "revision": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "sha256": "82d52dd5f6c0d3cb94f24affed2907703a58e87226f56a06f41156554f85195e",
+          "reviewer": "/root/renderer_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "NIT",
+              "summary": "One unused local canvas array remains in source-bound research code",
+              "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0008-renderer.md",
+        "description": "Accept the bounded comparison evidence while leaving final product renderer selection open",
+        "revision": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "sha256": "7666dc1d28302dfa86893c03c22bcd44b6c8fc22d7018cc13af42aa7294ba7ad",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/renderer_review_luna review",
+        "reason": "Retain the measured OpenLayers/custom comparison as provisional Gate B evidence without promoting either candidate",
+        "preserved_product_intent": "Requires final renderer choice to pass native packaging, second-host, product-threshold, accessibility, recovery, tile and field-use gates"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
