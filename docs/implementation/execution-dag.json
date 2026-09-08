@@ -628,6 +628,75 @@
         "docs/licenses/geometry-research-sources.json"
       ],
       "acceptance": "Gate E actual mature-kernel comparison: import, booleans/offsets, intersections, explicit repair, native/WASM and license evidence; independent review required"
+    },
+    {
+      "id": "iteration-4-observation-chunks",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "storage-proof",
+        "iteration-4-native-normalization"
+      ],
+      "owner": "storage/data",
+      "requirements": [
+        "backlog:FND-006:1"
+      ],
+      "owned_paths": [
+        "crates/project-store/src/observation_chunks.rs",
+        "crates/project-store/src/parquet_codec.rs"
+      ],
+      "acceptance": "Reviewed immutable fixed-schema observation chunks, authoritative SQLite publication, bounded decoding and PyArrow interoperability; full Gate C remains open."
+    },
+    {
+      "id": "iteration-4-observation-export",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-observation-chunks"
+      ],
+      "owner": "storage/CLI",
+      "requirements": [
+        "backlog:UX-006:1"
+      ],
+      "owned_paths": [
+        "apps/cli/src/observation_export.rs",
+        "docs/data/observation-parquet-export.md"
+      ],
+      "acceptance": "Reviewed exact-byte normalized Parquet export with versioned manifest, corruption rejection and non-overwrite; CSV, GeoPackage and product workflow remain open."
+    },
+    {
+      "id": "iteration-4-native-observation-pipeline",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-native-normalization",
+        "iteration-4-observation-chunks",
+        "iteration-2-point-survey"
+      ],
+      "owner": "capture/storage",
+      "requirements": [
+        "backlog:FND-002:1",
+        "backlog:FND-006:1",
+        "backlog:MAPB-003:1"
+      ],
+      "owned_paths": [
+        "crates/observation-pipeline",
+        "crates/project-store/src/capture_publication.rs"
+      ],
+      "acceptance": "Independent review must reject inconsistent public persistence requests and raw references before writes, preserve terminal/source evidence, and prove retry recovery. Receipt association must not fabricate capture pose or strict metric readiness."
+    },
+    {
+      "id": "iteration-4-kismet-normalization",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "kismet-offline-proof",
+        "contracts"
+      ],
+      "owner": "Kismet integration",
+      "requirements": [
+        "backlog:OSS-002:1"
+      ],
+      "owned_paths": [
+        "crates/kismet-adapter"
+      ],
+      "acceptance": "Reviewed bounded canonical normalization and deterministic replay of offline metadata, source-open replacement tests and exact source provenance; live Kismet and full PCAPNG parity remain separate gates."
     }
   ]
 }
