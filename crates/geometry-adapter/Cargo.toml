@@ -1,0 +1,12 @@
+[package]
+name = "kyberia-geometry-adapter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kyberia-domain = { version = "=0.1.0", path = "../domain" }
+geo = { version = "=0.33.1", default-features = false }
+
+[lints]
+workspace = true

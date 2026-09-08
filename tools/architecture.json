@@ -13,13 +13,33 @@
     "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["arrow-array", "arrow-schema", "bytes", "parquet", "rusqlite", "serde", "serde_json", "sha2", "tempfile"]},
     "kyberia-capture-adapter": {"layer": "adapter", "external_dependencies": ["base64", "time", "serde", "serde_json", "sha2"]},
     "kyberia-cli": {"layer": "composition", "external_dependencies": ["libc", "serde", "serde_json", "sha2", "signal-hook", "uuid"]},
-    "kyberia-observation-pipeline": {"layer": "composition", "external_dependencies": ["rustix", "serde", "serde_json", "sha2"]}
+    "kyberia-observation-pipeline": {"layer": "composition", "external_dependencies": ["rustix", "serde", "serde_json", "sha2"]},
+    "kyberia-geometry-adapter": {"layer": "adapter", "external_dependencies": ["geo"]}
   },
   "allowed_internal_layers": {
-    "domain": ["domain"],
-    "numerical": ["domain", "numerical"],
-    "application": ["domain", "numerical", "application"],
-    "adapter": ["domain", "numerical", "application"],
-    "composition": ["domain", "numerical", "application", "adapter", "composition"]
+    "domain": [
+      "domain"
+    ],
+    "numerical": [
+      "domain",
+      "numerical"
+    ],
+    "application": [
+      "domain",
+      "numerical",
+      "application"
+    ],
+    "adapter": [
+      "domain",
+      "numerical",
+      "application"
+    ],
+    "composition": [
+      "domain",
+      "numerical",
+      "application",
+      "adapter",
+      "composition"
+    ]
   }
 }
