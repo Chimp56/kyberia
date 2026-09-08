@@ -756,7 +756,7 @@
       ],
       "owner": "architecture/domain",
       "requirements": [
-        "backlog:FND-006:1"
+        "backlog:FND-011:1"
       ],
       "owned_paths": [
         "crates/domain/src/project",

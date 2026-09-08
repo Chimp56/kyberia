@@ -2,7 +2,7 @@
 
 Status: IN_PROGRESS (architecture investigation; bridge implementation remains open).
 Canonical name-command prerequisite integrated in `4482b36`.
-Requirements: plan §§10.5–10.8, source-qualified `backlog:FND-006:1`,
+Requirements: plan §§10.5–10.8, source-qualified `backlog:FND-011:1`,
 and ADR 0016's explicitly open application bridge.
 
 ## Existing boundaries and missing behavior
@@ -65,3 +65,15 @@ Run affected domain/operation suites, workspace architecture, formatting,
 Clippy/typecheck, and broader regression checks. Obtain independent review
 before integration. Report the required ten-field handoff, including exact
 requirements still open; do not claim complete command/query integration.
+
+## Architecture investigation findings
+
+Independent investigation identified V1 gaps before implementation: mutation
+inverses cannot represent non-reversible floor evidence binding or an unknown
+prior active calibration; effect-only replay cannot establish causal inverse
+truth; baseline/set identity and aggregate cross-field failures require explicit
+contracts. These are actionable implementation prerequisites, not external
+blockers. A versioned inverse/replay extension must preserve legacy bytes and
+support the complete domain semantics rather than silently skipping effects.
+The earlier FND-006 assignment was incorrect: plan §18.1 assigns Parquet to
+FND-006 and operation log/undo to FND-011.
