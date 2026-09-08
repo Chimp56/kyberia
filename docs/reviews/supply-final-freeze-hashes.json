@@ -1,10 +1,10 @@
 {
   "deny.toml": "77ba5278c498697abfe0a0bd373396830e04ba6058015acda5579b4e747aacee",
   "docs/development/supply-chain.md": "c994e9cab454b6b13c699ca1688d6b68c4f2c53f64139d85c5f30b39b9bf7315",
-  "docs/licenses/SOURCE_LEDGER.md": "bc5cffec1e2b1ad8a6f729e43afd8d515c33aa9df536e83d62063006315a0281",
+  "docs/licenses/SOURCE_LEDGER.md": "0136df08424b43c3804535576cfe964a4017913fdf976ab3c5e70cd40c224664",
   "docs/licenses/schema-validator-sources.json": "e7d4d174038e7557318028a78851aac693068c27f8ae2bfd122123f2925da341",
   "docs/licenses/supply-chain-tools.json": "3153257ba95192b4aeecb780c431d24c10d62cd5516de5fb5936490df04a8567",
-  "docs/validation/supply-chain-runtime.json": "793b2dea4fc1f9cab55625f287faeb2585fea814d0fd33eed81b89e9bf5b49ff",
+  "docs/validation/supply-chain-runtime.json": "3722d0411d27101269711b71dde6f6e46ff60fca069d55cf2f05d65105446698",
   "tests/test_supply_chain.py": "330a300e0a7f93dec7c74fe5de50b3114cd4e794497486ff7c902643ebe66d3a",
   "tools/dev.py": "c2f0f8d4cc306ba88a27ce5a9fd5fc0346e919b167d53853ec4505d850858093",
   "tools/supply-chain/README.md": "4c6b761f9474072e51be8aa3f1c8068257cd97fad5d412286a44517797a32c79",
