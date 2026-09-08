@@ -120,19 +120,7 @@ impl PointObservationAssociation {
         assigned_position: PoseReference,
     ) -> Result<Self, SurveyError> {
         let data = envelope.data();
-        let (calibration, result_age) = match &data.payload {
-            ObservationPayload::Scan(scan) => {
-                (scan.signal.calibration.clone(), scan.result_age.clone())
-            }
-            ObservationPayload::Frame(frame) => (
-                frame.signal.calibration.clone(),
-                Evidence::Unknown(UnknownReason::NotApplicable),
-            ),
-            ObservationPayload::Health(_) => (
-                Evidence::Unknown(UnknownReason::NotApplicable),
-                Evidence::Unknown(UnknownReason::NotApplicable),
-            ),
-        };
+        let (calibration, result_age) = copied_payload_evidence(&data.payload);
         let association = Self {
             schema_version: PointAssociationSchemaVersion::V1,
             method_version: Text::new(ASSOCIATION_METHOD_VERSION)
@@ -162,6 +150,29 @@ impl PointObservationAssociation {
         };
         association.validate_local()?;
         Ok(association)
+    }
+
+    /// Check the fields copied from a canonical observation into this
+    /// association. Receipt timing remains a separate evidence plane:
+    /// `source_response` and its derived `time_basis` deliberately do not
+    /// compare with the observation's capture clock. The selected point
+    /// anchor is also association context rather than envelope data.
+    pub fn matches_canonical_observation(&self, envelope: &ObservationEnvelope) -> bool {
+        let data = envelope.data();
+        let (calibration, result_age) = copied_payload_evidence(&data.payload);
+        self.observation_id == data.id
+            && self.session_id == data.session_id
+            && self.source_id == data.source.source_id
+            && self.observation_pose == data.pose
+            && self.capture_time == data.time
+            && self.dwell == data.dwell
+            && self.result_age == result_age
+            && self.channel == data.channel
+            && self.calibration == calibration
+            && self.raw_source == data.raw_source
+            && self.source_version == data.source.source_version
+            && self.parser_version == data.source.parser_version
+            && self.quality == data.quality
     }
 
     fn validate_local(&self) -> Result<(), SurveyError> {
@@ -335,6 +346,24 @@ impl PointObservationAssociation {
             config.check_pose(&Evidence::Known(pose.clone()))?;
         }
         Ok(())
+    }
+}
+
+fn copied_payload_evidence(
+    payload: &ObservationPayload,
+) -> (Evidence<CalibrationState>, Evidence<Seconds>) {
+    match payload {
+        ObservationPayload::Scan(scan) => {
+            (scan.signal.calibration.clone(), scan.result_age.clone())
+        }
+        ObservationPayload::Frame(frame) => (
+            frame.signal.calibration.clone(),
+            Evidence::Unknown(UnknownReason::NotApplicable),
+        ),
+        ObservationPayload::Health(_) => (
+            Evidence::Unknown(UnknownReason::NotApplicable),
+            Evidence::Unknown(UnknownReason::NotApplicable),
+        ),
     }
 }
 

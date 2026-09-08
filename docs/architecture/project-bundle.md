@@ -14,8 +14,9 @@ manifest bytes, content hash, observation/raw counts and terminal status from
 that DTO. It does not expose an API for independently supplied manifest bytes,
 counts or status, and publication reads decode the canonical artifact and
 cross-check the bounded SQLite row. Public link operations re-read the
-canonical manifest and verify exact chunk observation identities and snapshot
-survey/association closure before changing the publication row.
+canonical manifest and verify exact chunk observation identities, snapshot
+survey identity, and every association's copied envelope metadata plus
+survey-level source/mode closure before changing the publication row.
 
 Version 1 uses SQLite's full synchronization and rollback journal. The main database and any SQLite `-wal`, `-journal`, or `-shm` recovery sidecars must be nonsymlink regular files and share one 64 MiB read budget, checked before open and before each operation. This permits bounded crash recovery without letting a small main file hide an unbounded sidecar. The bundle manifest schema version must match SQLite `user_version`. Unknown logical versions using the same supported physical manifest-table envelope can be inspected read-only; writable opens and already-open writer handles reject unsupported versions and required features. No fictitious upgrade migration is supplied for a nonexistent prior format. Future migrations require archived fixtures, transactional conversion and backup/recovery tests.
 

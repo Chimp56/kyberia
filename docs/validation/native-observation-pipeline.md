@@ -17,8 +17,11 @@ composition path. It proves:
   snapshot link;
 * exact duplicate retry is idempotent for chunk, snapshot and publication
   links;
-* same-count chunks with different observation IDs and same-project snapshots
-  without the manifest's associations are rejected before link mutation;
+* same-count chunks with different observation IDs, same-project snapshots
+  without the manifest's associations, and same-ID snapshots with changed
+  copied envelope metadata are rejected before link mutation;
+* canonical observations with a substituted collector identity or capture
+  mode are rejected against the survey configuration;
 * every association is checked before a port write, preserving state and
   row counts on source/quality rejection;
 * cancellation before publication leaves the port untouched, and

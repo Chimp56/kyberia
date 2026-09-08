@@ -43,7 +43,9 @@ implementable outside the composition crate.
 
 Capture output links are also admitted from the canonical manifest: chunk
 linking compares the complete observation-ID set, and snapshot linking checks
-the exact saved survey plus presence of every manifest observation association.
+the exact saved survey, presence of every manifest observation association,
+the association fields copied from each linked canonical envelope, and the
+survey-level session/source/collector/adapter identity and capture mode.
 
 PipelineRequest.published_utc_ms is bundle metadata publication time. It is
 not source response time, RF capture time, monotonic survey time or project

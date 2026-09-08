@@ -41,9 +41,10 @@ existing bytes. The project store keeps a bounded capture-publication row
 linking the manifest hash to the chunk hash and survey snapshot ID. Link
 updates are idempotent and can be replayed after a process crash between
 separate storage transactions. The store decodes the typed manifest while
-linking and checks the chunk's complete observation-ID set and the snapshot's
-association set, while snapshot linking also verifies the exact survey bytes
-supplied by the caller.
+linking and checks the chunk's complete observation-ID set. Snapshot linking
+also verifies the exact survey bytes supplied by the caller, every manifest
+association's copied envelope fields against the linked canonical envelope,
+and the survey session/source/collector/adapter identity and capture mode.
 
 Chunk and snapshot publication remain separate storage transactions in this
 bounded increment, with a recoverable manifest and link row. If the chunk

@@ -14,7 +14,10 @@ use kyberia_domain::{
     time::{CaptureTime, MonotonicTimestamp, UtcTimestamp},
     units::{CoordinateMeters, Meters, Seconds},
 };
-use kyberia_project_store::{Bundle, CapturePublicationStatus, OpenMode, StoreError};
+use kyberia_project_store::{
+    Bundle, CaptureManifestRegistration, CapturePublicationStatus, ObservationChunkProvenance,
+    OpenMode, StoreError,
+};
 use kyberia_survey::{
     CaptureMode, PointConfig, PointConfigData, PointId, PointMetric, PointSurvey, PosePolicy,
     Target,
@@ -301,6 +304,38 @@ fn two_observation_batch() -> ReceivedObservationBatch {
         .push(ReceivedObservation::new(ObservationEnvelope::new(data).unwrap(), response).unwrap());
     capture.completion.observation_count = 2;
     ReceivedObservationBatch::from_normalized_capture(capture).unwrap()
+}
+
+fn stage_manifest_and_chunk(envelope: ObservationEnvelope) -> (tempfile::TempDir, Bundle, String) {
+    let batch = batch();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let manifest = bundle
+        .persist_capture_manifest(
+            CaptureManifestRegistration::new(
+                batch.manifest().clone(),
+                text("native-macos-capture/v1"),
+                2,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    let descriptor = bundle
+        .publish_observation_chunk(
+            &[envelope],
+            ObservationChunkProvenance::new("native-macos-capture/v1").unwrap(),
+            3,
+        )
+        .unwrap();
+    bundle
+        .link_capture_chunk(
+            &manifest.manifest_hash,
+            descriptor.hash(),
+            descriptor.row_count(),
+        )
+        .unwrap();
+    (directory, bundle, manifest.manifest_hash)
 }
 
 #[test]
@@ -862,6 +897,168 @@ fn capture_links_reject_same_project_snapshot_without_manifest_associations() {
             .snapshot_id,
         Some(outcome.publication.snapshot().unwrap().snapshot_id())
     );
+}
+
+#[test]
+fn capture_snapshot_link_rejects_same_id_with_different_canonical_metadata() {
+    let batch = batch();
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let manifest = bundle
+        .persist_capture_manifest(
+            CaptureManifestRegistration::new(
+                batch.manifest().clone(),
+                text("native-macos-capture/v1"),
+                2,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    let descriptor = bundle
+        .publish_observation_chunk(
+            &[batch.observations()[0].envelope().clone()],
+            ObservationChunkProvenance::new("native-macos-capture/v1").unwrap(),
+            3,
+        )
+        .unwrap();
+    bundle
+        .link_capture_chunk(
+            &manifest.manifest_hash,
+            descriptor.hash(),
+            descriptor.row_count(),
+        )
+        .unwrap();
+
+    let (envelope, response) = batch.observations()[0].clone().into_parts();
+    let mut data = envelope.into_data();
+    data.time.wall = Evidence::Unknown(UnknownReason::SourceDidNotProvide);
+    data.pose = Evidence::Unknown(UnknownReason::NotApplicable);
+    data.raw_source = Evidence::Known(kyberia_domain::evidence::ArtifactReference {
+        sha256: ContentHash::from_sha256([77; 32]),
+        media_type: text("application/octet-stream"),
+        byte_length: 77,
+    });
+    let different =
+        ReceivedObservation::new(ObservationEnvelope::new(data).unwrap(), response).unwrap();
+    let (different_survey, _) = survey.associate_received(&different).unwrap();
+    let different_snapshot = SnapshotId::from_bytes([87; 16]).unwrap();
+    bundle
+        .save_survey_snapshot(different_snapshot, &different_survey, 5)
+        .unwrap();
+
+    assert!(matches!(
+        bundle.link_capture_snapshot(&manifest.manifest_hash, different_snapshot, &different_survey),
+        Err(StoreError::Corrupt(message))
+            if message.contains("differs from its canonical observation")
+    ));
+    assert_eq!(
+        bundle
+            .capture_publication(&manifest.manifest_hash)
+            .unwrap()
+            .unwrap()
+            .snapshot_id,
+        None
+    );
+}
+
+#[test]
+fn capture_snapshot_link_rejects_canonical_source_identity_substitution() {
+    let batch = batch();
+    let mut data = batch.observations()[0].envelope().clone().into_data();
+    data.source.collector_id = CollectorId::from_bytes([99; 16]).unwrap();
+    data.source.adapter_version = text("collector/changed");
+    let envelope = ObservationEnvelope::new(data).unwrap();
+    let (_directory, mut bundle, manifest_hash) = stage_manifest_and_chunk(envelope);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let (survey, _) = survey.associate_received(&batch.observations()[0]).unwrap();
+    let snapshot_id = SnapshotId::from_bytes([88; 16]).unwrap();
+    bundle
+        .save_survey_snapshot(snapshot_id, &survey, 5)
+        .unwrap();
+
+    assert!(matches!(
+        bundle.link_capture_snapshot(&manifest_hash, snapshot_id, &survey),
+        Err(StoreError::Corrupt(message))
+            if message.contains("survey source identity or mode")
+    ));
+}
+
+#[test]
+fn capture_snapshot_link_rejects_canonical_capture_mode_substitution() {
+    let batch = batch();
+    let data = batch.observations()[0].envelope().clone().into_data();
+    let scan = match data.payload {
+        kyberia_domain::observation::ObservationPayload::Scan(scan) => scan,
+        _ => unreachable!(),
+    };
+    let frame = kyberia_domain::observation::FrameMetadata {
+        identity: scan.identity,
+        signal: scan.signal,
+        frame_type: Evidence::Unknown(UnknownReason::NotApplicable),
+        frame_subtype: Evidence::Unknown(UnknownReason::NotApplicable),
+        retry: Evidence::Unknown(UnknownReason::NotApplicable),
+        length_bytes: 0,
+        phy_rate_mbps: Evidence::Unknown(UnknownReason::NotApplicable),
+        raw_information_elements: Evidence::Unknown(UnknownReason::NotApplicable),
+    };
+    let mut data = batch.observations()[0].envelope().clone().into_data();
+    data.payload = kyberia_domain::observation::ObservationPayload::Frame(frame);
+    let envelope = ObservationEnvelope::new(data).unwrap();
+    let (_directory, mut bundle, manifest_hash) = stage_manifest_and_chunk(envelope);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let (survey, _) = survey.associate_received(&batch.observations()[0]).unwrap();
+    let snapshot_id = SnapshotId::from_bytes([89; 16]).unwrap();
+    bundle
+        .save_survey_snapshot(snapshot_id, &survey, 5)
+        .unwrap();
+
+    assert!(matches!(
+        bundle.link_capture_snapshot(&manifest_hash, snapshot_id, &survey),
+        Err(StoreError::Corrupt(message))
+            if message.contains("survey source identity or mode")
+    ));
+}
+
+#[test]
+fn capture_publication_readback_rejects_contradictory_snapshot_association() {
+    let batch = batch();
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let outcome = ingest(&mut bundle, &survey, &batch, &request(90), &NeverCancel).unwrap();
+    let manifest_hash = String::from(outcome.publication.manifest().hash());
+
+    let (envelope, response) = batch.observations()[0].clone().into_parts();
+    let mut data = envelope.into_data();
+    data.time.wall = Evidence::Unknown(UnknownReason::SourceDidNotProvide);
+    data.pose = Evidence::Unknown(UnknownReason::NotApplicable);
+    let different =
+        ReceivedObservation::new(ObservationEnvelope::new(data).unwrap(), response).unwrap();
+    let (different_survey, _) = survey.associate_received(&different).unwrap();
+    let different_snapshot = SnapshotId::from_bytes([91; 16]).unwrap();
+    bundle
+        .save_survey_snapshot(different_snapshot, &different_survey, 5)
+        .unwrap();
+    drop(bundle);
+
+    let database = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+    database
+        .execute(
+            "UPDATE capture_publications SET snapshot_id=?1 WHERE manifest_hash=?2",
+            (String::from(different_snapshot), manifest_hash.as_str()),
+        )
+        .unwrap();
+    drop(database);
+
+    let reopened = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    assert!(matches!(
+        reopened.capture_publication(&manifest_hash),
+        Err(StoreError::Corrupt(message))
+            if message.contains("differs from its canonical observation")
+    ));
 }
 
 #[test]

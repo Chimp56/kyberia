@@ -5,10 +5,12 @@ use crate::manifest::validate_hash;
 use crate::{Bundle, Result, StoreError, content_hash, sqlite_guard};
 use kyberia_domain::{
     capture::{CaptureManifest, RawSourceDisposition},
-    identity::{ProjectId, SnapshotId, Text},
+    identity::{ObservationId, ProjectId, SnapshotId, Text},
+    observation::{ObservationEnvelope, ObservationPayload},
 };
+use kyberia_survey::{CaptureMode, PointSurvey};
 use rusqlite::{OptionalExtension, TransactionBehavior};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub(crate) const CAPTURE_MANIFEST_MEDIA_TYPE: &str =
     "application/vnd.kyberia.capture-manifest+json";
@@ -204,6 +206,63 @@ fn manifest_observation_ids(
         .iter()
         .copied()
         .collect()
+}
+
+fn validate_snapshot_association_closure(
+    survey: &PointSurvey,
+    observations: &[ObservationEnvelope],
+    expected_ids: &BTreeSet<ObservationId>,
+) -> Result<()> {
+    let associations: BTreeMap<ObservationId, _> = survey
+        .associations()
+        .iter()
+        .map(|association| (association.observation_id(), association))
+        .collect();
+    let mut canonical_by_id = BTreeMap::new();
+    for observation in observations {
+        if canonical_by_id
+            .insert(observation.data().id, observation)
+            .is_some()
+        {
+            return Err(StoreError::Corrupt(
+                "capture publication chunk has duplicate observation identities".into(),
+            ));
+        }
+    }
+    for id in expected_ids {
+        let association = associations.get(id).ok_or_else(|| {
+            StoreError::Corrupt(
+                "capture publication snapshot omits a manifest observation association".into(),
+            )
+        })?;
+        let observation = canonical_by_id.get(id).ok_or_else(|| {
+            StoreError::Corrupt(
+                "capture publication chunk omits a manifest observation envelope".into(),
+            )
+        })?;
+        let config = survey.config().data();
+        if observation.data().session_id != config.session_id
+            || observation.data().source.source_id != config.source_id
+            || observation.data().source.collector_id != config.collector_id
+            || observation.data().source.adapter_version != config.adapter_version
+            || !matches!(
+                (&config.mode, &observation.data().payload),
+                (CaptureMode::Scan, ObservationPayload::Scan(_))
+                    | (CaptureMode::Frame, ObservationPayload::Frame(_))
+            )
+        {
+            return Err(StoreError::Corrupt(
+                "capture publication observation differs from survey source identity or mode"
+                    .into(),
+            ));
+        }
+        if !association.matches_canonical_observation(observation) {
+            return Err(StoreError::Corrupt(
+                "capture publication association differs from its canonical observation".into(),
+            ));
+        }
+    }
+    Ok(())
 }
 
 impl Bundle {
@@ -403,6 +462,22 @@ impl Bundle {
                 "capture publication snapshot omits a manifest observation association".into(),
             ));
         }
+        let preflight_record = self
+            .capture_publication(manifest_hash)?
+            .ok_or_else(|| StoreError::Corrupt("capture publication manifest is missing".into()))?;
+        let preflight_chunk = if expected_ids.is_empty() {
+            None
+        } else {
+            let chunk_hash = preflight_record.chunk_hash.as_deref().ok_or_else(|| {
+                StoreError::Corrupt(
+                    "capture snapshot cannot link before its observation chunk".into(),
+                )
+            })?;
+            Some(self.read_observation_chunk(chunk_hash)?)
+        };
+        if let Some(chunk) = &preflight_chunk {
+            validate_snapshot_association_closure(&loaded_snapshot.survey, chunk, &expected_ids)?;
+        }
         let transaction = self
             .connection
             .transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -413,6 +488,11 @@ impl Bundle {
         if record.project_id != manifest.project_id {
             return Err(StoreError::Corrupt(
                 "capture publication belongs to another project".into(),
+            ));
+        }
+        if record.chunk_hash != preflight_record.chunk_hash {
+            return Err(StoreError::Corrupt(
+                "capture publication chunk changed during snapshot validation".into(),
             ));
         }
         if record.observation_count > 0 && record.chunk_hash.is_none() {
@@ -555,7 +635,7 @@ impl Bundle {
                 ));
             }
             let expected_ids = manifest_observation_ids(&decoded);
-            if let Some(chunk_hash) = &record.chunk_hash {
+            let verified_chunk = if let Some(chunk_hash) = &record.chunk_hash {
                 let chunk = self.read_observation_chunk(chunk_hash)?;
                 let chunk_ids: BTreeSet<_> = chunk
                     .iter()
@@ -566,7 +646,10 @@ impl Bundle {
                         "capture publication chunk identities differ from its manifest".into(),
                     ));
                 }
-            }
+                Some(chunk)
+            } else {
+                None
+            };
             if let Some(snapshot_id) = record.snapshot_id {
                 let loaded = self.load_survey_snapshot(snapshot_id)?;
                 let snapshot_ids: BTreeSet<_> = loaded
@@ -580,6 +663,14 @@ impl Bundle {
                         "capture publication snapshot omits a manifest observation association"
                             .into(),
                     ));
+                }
+                if !expected_ids.is_empty() {
+                    let chunk = verified_chunk.as_ref().ok_or_else(|| {
+                        StoreError::Corrupt(
+                            "capture publication snapshot is missing its observation chunk".into(),
+                        )
+                    })?;
+                    validate_snapshot_association_closure(&loaded.survey, chunk, &expected_ids)?;
                 }
             }
         }

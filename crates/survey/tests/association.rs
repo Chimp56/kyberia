@@ -497,3 +497,60 @@ fn association_serialization_replays_deterministically() {
     assert_eq!(replay, state);
     assert_eq!(serde_json::to_vec(&replay).unwrap(), bytes);
 }
+
+#[test]
+fn association_canonical_envelope_closure_rejects_copied_metadata_substitutions() {
+    let original_received = received(1, Some(150), Some((120, 140)));
+    let (state, association) = start().associate_received(&original_received).unwrap();
+    assert!(association.matches_canonical_observation(original_received.envelope()));
+
+    let mut changed_capture_time = original_received.envelope().clone().into_data();
+    changed_capture_time.time.wall = Evidence::Unknown(UnknownReason::SourceDidNotProvide);
+    let changed_capture_time = ObservationEnvelope::new(changed_capture_time).unwrap();
+    assert!(!association.matches_canonical_observation(&changed_capture_time));
+
+    let mut changed_pose = original_received.envelope().clone().into_data();
+    changed_pose.pose = Evidence::Unknown(UnknownReason::NotApplicable);
+    let changed_pose = ObservationEnvelope::new(changed_pose).unwrap();
+    assert!(!association.matches_canonical_observation(&changed_pose));
+
+    let mut changed_raw_reference = original_received.envelope().clone().into_data();
+    changed_raw_reference.raw_source = Evidence::Known(ArtifactReference {
+        sha256: ContentHash::from_sha256([9; 32]),
+        media_type: text("application/octet-stream"),
+        byte_length: 9,
+    });
+    let changed_raw_reference = ObservationEnvelope::new(changed_raw_reference).unwrap();
+    assert!(!association.matches_canonical_observation(&changed_raw_reference));
+
+    let mut changed_source = original_received.envelope().clone().into_data();
+    changed_source.source.parser_version = text("parser/changed");
+    let changed_source = ObservationEnvelope::new(changed_source).unwrap();
+    assert!(!association.matches_canonical_observation(&changed_source));
+
+    let mut changed_channel = original_received.envelope().clone().into_data();
+    changed_channel.channel = Evidence::Unknown(UnknownReason::NotApplicable);
+    let changed_channel = ObservationEnvelope::new(changed_channel).unwrap();
+    assert!(!association.matches_canonical_observation(&changed_channel));
+
+    let mut changed_calibration = original_received.envelope().clone().into_data();
+    if let ObservationPayload::Scan(scan) = &mut changed_calibration.payload {
+        scan.signal.calibration = Evidence::Unknown(UnknownReason::NotApplicable);
+    } else {
+        unreachable!();
+    }
+    let changed_calibration = ObservationEnvelope::new(changed_calibration).unwrap();
+    assert!(!association.matches_canonical_observation(&changed_calibration));
+
+    let mut changed_quality = original_received.envelope().clone().into_data();
+    changed_quality.quality.push(QualityFlag::Throttled);
+    let changed_quality = ObservationEnvelope::new(changed_quality).unwrap();
+    assert!(!association.matches_canonical_observation(&changed_quality));
+
+    // The source response and its derived receipt/API-window basis are not
+    // envelope fields. They remain separate timing evidence by design.
+    let receipt_changed = received(1, Some(160), Some((120, 140)));
+    let (_, receipt_association) = start().associate_received(&receipt_changed).unwrap();
+    assert!(receipt_association.matches_canonical_observation(original_received.envelope()));
+    assert_eq!(state.associations(), std::slice::from_ref(&association));
+}

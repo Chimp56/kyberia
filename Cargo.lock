@@ -535,6 +535,7 @@ dependencies = [
  "kyberia-domain",
  "kyberia-project-store",
  "kyberia-survey",
+ "rusqlite",
  "serde",
  "serde_json",
  "sha2",
