@@ -515,6 +515,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-observation-analysis"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "kyberia-spatial-analysis",
+ "kyberia-survey",
+ "proptest",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "kyberia-operation-log"
 version = "0.1.0"
 dependencies = [
