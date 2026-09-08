@@ -178650,17 +178650,74 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:c39574f2c9835ca6b8c1:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:1097",
@@ -178747,17 +178804,74 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:2369a7236763a4cbea4f:1",
       "children": []
     },
@@ -178833,17 +178947,76 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded GeoJSON and WKT inputs are exercised with malformed and oversized cases"
+      ],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:2369a7236763a4cbea4f:1",
       "children": []
     },
@@ -178876,17 +179049,76 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Independent area oracles cover polygon union, intersection, difference, and offset"
+      ],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:2369a7236763a4cbea4f:1",
       "children": []
     },
@@ -178919,17 +179151,76 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Crossing, touch, collinear, wall-segment, and polygon-hole intersections are fixture-bound"
+      ],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:2369a7236763a4cbea4f:1",
       "children": []
     },
@@ -178962,17 +179253,76 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Invalid geometry is diagnosed and explicit Shapely repair retains source and result provenance"
+      ],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:2369a7236763a4cbea4f:1",
       "children": []
     },
@@ -179005,17 +179355,76 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Desktop and rebuilt WASM artifacts execute the same bounded semantic fixture"
+      ],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:2369a7236763a4cbea4f:1",
       "children": []
     },
@@ -179048,17 +179457,74 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Architecture / geometry",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "research/geometry/src/import.rs",
+          "description": "Bounded untrusted planar GeoJSON import proof",
+          "revision": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41",
+          "sha256": "28d17775cdab47d6d22f56a1f2699140b6a46cbf6315f86ea7b6c4c225169e41"
+        },
+        {
+          "path": "research/geometry/src/main.rs",
+          "description": "Fixture-bound geometry comparison and evidence emitter",
+          "revision": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05",
+          "sha256": "d979390a000f35a6b5c9d8bf3ed2d218160ce990dad0e7a738ba59fc448d4e05"
+        },
+        {
+          "path": "research/geometry/shapely_proof.py",
+          "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
+          "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
+          "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/geometry-proof.md",
+          "description": "Retained provisional Gate E evidence and exact acceptance boundary",
+          "revision": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "sha256": "660e90f28d56481928234603660cb9d73acfcec4631b36a1f4af42c6cc10a968",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "research_gate",
+          "result": "PASS"
+        },
+        {
+          "path": "tests/test_geometry_research.py",
+          "description": "Independent artifact, source, adversarial import, and desktop/WASM checks",
+          "revision": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "sha256": "e2588847b61ae4632349636a3e56009b5c0161f5b3d88247a3043d85cb6391a1",
+          "command": "python3 -m unittest tests.test_geometry_research",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/geometry-gate-e-review.md",
+          "description": "Independent final review after all geometry proof corrections",
+          "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
+          "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0010-portable-2d-geometry-boundary.md",
+        "description": "Provisional portable 2D geometry boundary; production Gate E remains open",
+        "revision": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "sha256": "f2f33c1a70a084a6eaf6c447613c7346859af526d50bf666cfe859ea0dd14956",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/geometry_review_luna review",
+        "reason": "Use the validated portable Rust planar boundary provisionally while broader production geometry remains open",
+        "preserved_product_intent": "Keeps canonical floor/frame/material policy in Kyberia and requires separate 3D, CRS, CAD/BIM, and production validation"
+      },
       "parent_id": "source:heading:2369a7236763a4cbea4f:1",
       "children": []
     },

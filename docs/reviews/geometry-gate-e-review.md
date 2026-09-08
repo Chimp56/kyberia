@@ -19,6 +19,14 @@ rounds required and verified corrections for:
 - direct dependency license records and explicit transitive scope; and
 - required desktop/WASM behavioral execution with explicit 2D limitations.
 
+An integration-time correction review then checked the clean-checkout runtime
+gate split. A checkout without ignored artifacts passes nine contract checks
+and skips exactly the pinned Shapely and rebuilt-WASM checks. Setting
+`KYBERIA_GEOMETRY_RUNTIME_GATE=1` makes either missing artifact a hard failure;
+the integrated environment passes all 11 checks. The correction review's only
+MAJOR finding was the expected stale evidence digests created by those edits;
+the integration ledger refresh resolves it.
+
 ## Validation reviewed
 
 The reviewer reran locked Rust checks, Clippy and tests; Python acceptance tests;

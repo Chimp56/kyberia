@@ -1,6 +1,6 @@
 # ADR 0010: Provisional portable 2-D geometry boundary
 
-Status: Accepted proposal; Gate E evidence remains provisional pending independent review
+Status: Accepted provisional proposal; production Gate E remains open
 
 ## Context
 

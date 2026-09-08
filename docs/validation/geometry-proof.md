@@ -1,7 +1,7 @@
 # Gate E geometry-kernel proof
 
 This is the Phase 0 Gate E research record for `plan.md` §20. The result is a
-provisional portable 2-D boundary proposal pending independent review. It
+portable 2-D boundary proposal independently approved as provisional evidence. It
 compares Rust `geo`/`geojson`/`wkt` with GEOS through Shapely on an independently
 authored fixture. The harness is under `research/geometry/`; it is outside the
 Cargo workspace and adds no production dependency.
@@ -81,7 +81,7 @@ node research/geometry/wasm_behavior.js \
   research/geometry/target/wasm32-unknown-unknown/release/kyberia_geometry_proof.wasm \
   research/geometry/results/wasm-behavior.json
 .tools/geometry-venv/bin/python research/geometry/benchmark.py
-python3 -m unittest tests.test_geometry_research
+KYBERIA_GEOMETRY_RUNTIME_GATE=1 python3 -m unittest tests.test_geometry_research
 ```
 
 The commands passed on macOS 26.6.2 arm64 with Rust 1.98.1, target component
@@ -91,7 +91,10 @@ The commands passed on macOS 26.6.2 arm64 with Rust 1.98.1, target component
 behavior command, and behavior result hash. The behavior result itself retains
 the runtime name, WASM hash, exact source map, source revision, fixture hashes,
 and semantic outputs. The focused acceptance test requires the rebuilt WASM
-file to be present during the normal gate and verifies its SHA-256.
+file and pinned Shapely interpreter during the explicit runtime gate and
+verifies the WASM SHA-256. Repository-wide tests skip only those two runtime
+checks when ignored local artifacts are absent; setting
+`KYBERIA_GEOMETRY_RUNTIME_GATE=1` converts either absence into a failure.
 
 ## Retained semantic results
 
@@ -139,7 +142,9 @@ explicit repair provenance. Keep GEOS/Shapely as an optional research or
 explicit repair adapter; the tested GEOS path is Python/native and its
 LGPL-2.1 scope is not part of the desktop/WASM boundary.
 
-This remains provisional until independent review accepts the evidence. It
+Independent review accepts this bounded research evidence, but the decision
+remains provisional until the production integration and broader geometry gates
+are validated. It
 does not select a 3-D kernel, CRS engine, CAD/BIM importer, material model, or
 custom production geometry code. Floor/frame/material policy remains owned by
 the application adapter. The fixture carries `material: concrete` as metadata;

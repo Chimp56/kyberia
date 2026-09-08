@@ -23,10 +23,13 @@ node research/geometry/wasm_behavior.js \
   research/geometry/target/wasm32-unknown-unknown/release/kyberia_geometry_proof.wasm \
   research/geometry/results/wasm-behavior.json
 .tools/geometry-venv/bin/python research/geometry/benchmark.py
-python3 -m unittest tests.test_geometry_research
+KYBERIA_GEOMETRY_RUNTIME_GATE=1 python3 -m unittest tests.test_geometry_research
 ```
 
 The Python proof environment is populated from the hash-pinned
 `shapely-requirements.txt`. Build outputs stay under ignored `target/` and
 `.tools/` directories. The fixture and result contracts are explained in
 [`docs/validation/geometry-proof.md`](../../docs/validation/geometry-proof.md).
+The repository-wide Python suite skips only the two optional runtime checks
+when those ignored artifacts are absent. The explicit Gate E command above
+turns absence into a failure after the documented build and environment setup.
