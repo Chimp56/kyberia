@@ -13,3 +13,9 @@ Disposition: REQUEST_CHANGES. These are actionable implementation defects, not e
 Earlier root regressions for manifest/observation count mismatch and full raw-reference metadata mismatch are corrected in 4e23874. The reviewer reran 15 focused tests, full workspace tests, Clippy, formatting, architecture and source checks successfully; these checks did not establish the missing invariants above.
 
 Correction ownership: /root/channel_coupling_review_luna, isolated native-observation-pipeline worktree. The correction author must receive a new independent review before integration. The observation-query implementation runs separately and may proceed without treating this candidate as approved.
+
+## Follow-up review of 8d72b7b
+
+Independent reviewer `/root/operation_log_luna` reports REQUEST_CHANGES with one confirmed MAJOR. The original four corrections and exact chunk-ID membership are present, but snapshot linking and readback still compare only association observation IDs. Caller-supplied survey equality does not prove that copied capture time, pose, raw reference, channel, dwell, calibration, result age, source/parser versions and quality match the canonical linked envelope. Opaque IDs are not content hashes. Require comparison of every copied evidence field, with same-ID contradictory-envelope regressions on admission and readback.
+
+The reviewer passed workspace tests, Clippy, formatting, architecture, inventory and external port tests on the frozen candidate. Those checks do not disprove this defect. Correction ownership is now `/root/operation_log_luna` in the same isolated worktree; `/root` will independently review the correction. No native pipeline candidate is integrated.
