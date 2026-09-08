@@ -39316,8 +39316,8 @@
         {
           "path": "crates/observation-analysis/src/lib.rs",
           "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
-          "revision": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee",
-          "sha256": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee"
+          "revision": "0b1c4bbb7801c9113da232c1becd684f4f2db613cb14f71ea5bf5ced11b46a8c",
+          "sha256": "0b1c4bbb7801c9113da232c1becd684f4f2db613cb14f71ea5bf5ced11b46a8c"
         },
         {
           "path": "crates/observation-pipeline/src/lib.rs",
@@ -39339,8 +39339,8 @@
         {
           "path": "crates/observation-analysis/src/tests.rs",
           "description": "Exact BSSID, strict and receipt closure, unknowns, deterministic manifest and bounded inputs",
-          "revision": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
-          "sha256": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
+          "revision": "be7df2a05f1c95cf1d30949421e186af2ef0b91722a1be3ba64e57b9be8f17c6",
+          "sha256": "be7df2a05f1c95cf1d30949421e186af2ef0b91722a1be3ba64e57b9be8f17c6",
           "command": "cargo test -p kyberia-observation-analysis --locked --offline",
           "scope": "pure_selection_contract",
           "result": "PASS"
@@ -39390,6 +39390,15 @@
           "description": "Independent selector review including synthetic admission correction; archival source verification and stored composition remain open",
           "revision": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
           "sha256": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
@@ -123060,8 +123069,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         }
       ],
       "validation": [
@@ -123077,8 +123086,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -123086,8 +123095,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -123138,6 +123147,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -123272,8 +123290,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         }
       ],
       "validation": [
@@ -123289,8 +123307,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -123298,8 +123316,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -123350,6 +123368,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -123469,8 +123496,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         }
       ],
       "validation": [
@@ -123486,8 +123513,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -123495,8 +123522,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -123547,6 +123574,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -123604,8 +123640,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -123618,8 +123654,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -123627,8 +123663,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -123659,6 +123695,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -123716,8 +123761,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -123730,8 +123775,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -123739,8 +123784,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -123771,6 +123816,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -123828,8 +123882,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -123842,8 +123896,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -123851,8 +123905,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -123883,6 +123937,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -123959,8 +124022,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         }
       ],
       "validation": [
@@ -123976,8 +124039,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -123985,8 +124048,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -124037,6 +124100,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -124094,8 +124166,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -124108,8 +124180,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -124117,8 +124189,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -124149,6 +124221,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -124206,8 +124287,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -124220,8 +124301,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -124229,8 +124310,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -124261,6 +124342,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -124318,8 +124408,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -124332,8 +124422,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -124341,8 +124431,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -124373,6 +124463,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -124430,8 +124529,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -124444,8 +124543,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -124453,8 +124552,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -124485,6 +124584,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -124542,8 +124650,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -124556,8 +124664,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -124565,8 +124673,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -124597,6 +124705,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -124654,8 +124771,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -124668,8 +124785,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -124677,8 +124794,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -124709,6 +124826,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -168649,8 +168775,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -168663,8 +168789,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -168672,8 +168798,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -168704,6 +168830,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -172736,16 +172871,16 @@
         {
           "path": "crates/observation-analysis/src/lib.rs",
           "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
-          "revision": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee",
-          "sha256": "4ddc5fb770bf0b60ab34c2d1d54d36fa9a7343bb2ae68e2bf0ba056fe10996ee"
+          "revision": "0b1c4bbb7801c9113da232c1becd684f4f2db613cb14f71ea5bf5ced11b46a8c",
+          "sha256": "0b1c4bbb7801c9113da232c1becd684f4f2db613cb14f71ea5bf5ced11b46a8c"
         }
       ],
       "validation": [
         {
           "path": "crates/observation-analysis/src/tests.rs",
           "description": "Exact BSSID, strict and receipt closure, unknowns, deterministic manifest and bounded inputs",
-          "revision": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
-          "sha256": "d0fbe30ea3efb4b1b8392d964aaebb04bc8c344ee028a1ffd54dafdd5a3c3a8d",
+          "revision": "be7df2a05f1c95cf1d30949421e186af2ef0b91722a1be3ba64e57b9be8f17c6",
+          "sha256": "be7df2a05f1c95cf1d30949421e186af2ef0b91722a1be3ba64e57b9be8f17c6",
           "command": "cargo test -p kyberia-observation-analysis --locked --offline",
           "scope": "pure_selection_contract",
           "result": "PASS"
@@ -172757,6 +172892,15 @@
           "description": "Independent selector review including synthetic admission correction; archival source verification and stored composition remain open",
           "revision": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
           "sha256": "acb1b975cef77116bd3b52a324e86684ab94b574ef63e5a1011533cdb04111d9",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
@@ -189092,8 +189236,8 @@
         {
           "path": "crates/spatial-analysis/src/registry.rs",
           "description": "Bounded canonical metric definitions, deterministic registry, dimensional rules, legacy migration, and shared UI/compute identity",
-          "revision": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228",
-          "sha256": "61d32711f0032fc006531f5e0be730cc9e54b5fe0b8f5a37563aabbebd9f5228"
+          "revision": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6",
+          "sha256": "6d4deb7b58c2116ce029172fa0376f9ebe825915afd05d37d841b1febe76ecc6"
         },
         {
           "path": "crates/spatial-analysis/src/model.rs",
@@ -189112,8 +189256,8 @@
         {
           "path": "crates/spatial-analysis/tests/metric_registry.rs",
           "description": "Canonical bytes, strict validation, legacy literal-wire/hash compatibility, dimensional algebra, and spatial binding regressions",
-          "revision": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
-          "sha256": "53c96646c07c7f1cd854fcb41732b24470490827d479eabeb2651b7a382b7194",
+          "revision": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
+          "sha256": "b3abdb9028b4a67f348683323d5c73a84cb0c3a0ff28262315521585f63d6141",
           "command": "cargo test -p kyberia-spatial-analysis --locked --offline",
           "scope": "contract",
           "result": "PASS"
@@ -189121,8 +189265,8 @@
         {
           "path": "docs/validation/metric-registry.md",
           "description": "Metric registry contract and validation results",
-          "revision": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
-          "sha256": "9758e3ff67ff64efe088de59e13e0365af1d9d09c757c43d50c0af3d632d2b8e",
+          "revision": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
+          "sha256": "4392e08d77ca84fb26b0aec79f905e56b04782877ca110f144a837a0dc3523e4",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
@@ -189162,6 +189306,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/observed-rssi-interpolation-review.md",
+          "description": "Independent additive RSSI interpolation identity and numerical contract review",
+          "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
