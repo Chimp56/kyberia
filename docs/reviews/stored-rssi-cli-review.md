@@ -37,3 +37,9 @@ persistent regression coverage. The author was asked to add numerical/class
 assertions and actual method-selection subprocess cases to the ongoing follow-up.
 The hard-link publication correction is present; final independent review of
 the frozen candidate is still pending, and signal cancellation remains open.
+
+Fresh independent reviewer /root/operation_log_review_luna also passed the
+12 CLI and six stored-analysis tests plus Clippy, formatting, architecture
+and inventory. Disposition remains REQUEST_CHANGES: missing persistent numeric
+and real nearest/IDW command assertions is MAJOR, despite root's spot checks.
+The author is preparing a separate corrective test commit before integration.

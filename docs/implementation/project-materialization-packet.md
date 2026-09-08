@@ -77,3 +77,9 @@ blockers. A versioned inverse/replay extension must preserve legacy bytes and
 support the complete domain semantics rather than silently skipping effects.
 The earlier FND-006 assignment was incorrect: plan §18.1 assigns Parquet to
 FND-006 and operation log/undo to FND-011.
+
+V2 implementation review must include a typed replay path: encoding an unknown
+calibration prior is insufficient if replay converts it back to V1 Mutation
+and rejects it as TypedPriorRequired. The pure operation API must expose usable
+unknown-state restoration effects while preserving legacy V1 compatibility;
+storage/materializer integration can then consume that versioned contract.
