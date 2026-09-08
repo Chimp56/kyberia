@@ -1,4 +1,4 @@
-# Native observation pipeline review — changes required
+# Native observation pipeline review — corrected and approved
 
 Candidate commits: fb789fd and 4e23874. Neither is integrated into main.
 Independent reviewer: /root/channel_coupling_review_luna. Additional adversarial tests: /root.
@@ -19,3 +19,9 @@ Correction ownership: /root/channel_coupling_review_luna, isolated native-observ
 Independent reviewer `/root/operation_log_luna` reports REQUEST_CHANGES with one confirmed MAJOR. The original four corrections and exact chunk-ID membership are present, but snapshot linking and readback still compare only association observation IDs. Caller-supplied survey equality does not prove that copied capture time, pose, raw reference, channel, dwell, calibration, result age, source/parser versions and quality match the canonical linked envelope. Opaque IDs are not content hashes. Require comparison of every copied evidence field, with same-ID contradictory-envelope regressions on admission and readback.
 
 The reviewer passed workspace tests, Clippy, formatting, architecture, inventory and external port tests on the frozen candidate. Those checks do not disprove this defect. Correction ownership is now `/root/operation_log_luna` in the same isolated worktree; `/root` will independently review the correction. No native pipeline candidate is integrated.
+
+## Final correction review
+
+Root independently reviewed `3d7e9aa8fc07565fd9843690e94f6e22d11ef861` after the nonauthor review of `8d72b7b`. APPROVED: all listed MAJOR findings resolved. Integration commits are `c502be6`, `ee39551`, `7d8076c`, and `9f03337`. Earlier REQUEST_CHANGES statements above are historical findings, not current disposition.
+
+The shared pure association helper compares every copied envelope field; storage also checks survey source/collector/adapter identity and capture mode. Both public link admission and readback enforce closure. Root independently ran 23 pipeline unit tests, two external-port tests, survey tests, focused Clippy with warnings denied, formatting and commit diff checks successfully. The hostile SQLite snapshot-link test demonstrates that readback rejects a valid same-ID snapshot with contradictory canonical evidence. Receipt timing remains distinct from RF capture time. Product capture controls, live acquisition spool and end-user survey workflow remain open.

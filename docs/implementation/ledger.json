@@ -39318,6 +39318,12 @@
           "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
           "revision": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c",
           "sha256": "0cc3aa58d04ba575b2542e3a510cc3fe6db27ff2f80ec7012605fed17f0fdf7c"
+        },
+        {
+          "path": "crates/observation-pipeline/src/lib.rs",
+          "description": "Reviewed normalization-to-survey and immutable bundle composition; product workflow remains open",
+          "revision": "005d17a792ab0744773de64a7b2b6483e933c86efc9edd9e63d4a8f67fd71662",
+          "sha256": "005d17a792ab0744773de64a7b2b6483e933c86efc9edd9e63d4a8f67fd71662"
         }
       ],
       "validation": [
@@ -39337,6 +39343,15 @@
           "sha256": "817188cfccef78c50ba785df25052e75f34a951a690d4fd5d93b52ff79bf760b",
           "command": "cargo test -p kyberia-observation-analysis --locked --offline",
           "scope": "pure_selection_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/observation-pipeline/src/tests.rs",
+          "description": "Recoverable native persistence, exact raw and observation closure, hostile snapshot readback",
+          "revision": "2843d69979001e06347d1aa20278504b1134346cada5017266ad83e71915f717",
+          "sha256": "2843d69979001e06347d1aa20278504b1134346cada5017266ad83e71915f717",
+          "command": "cargo test -p kyberia-observation-pipeline --locked --offline",
+          "scope": "native_persistence_contract",
           "result": "PASS"
         }
       ],
@@ -39367,6 +39382,15 @@
           "revision": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
           "sha256": "0c76ad65fc5e7eaa3e368444c55f577dddc3dada1bed419600098cd88dc04f57",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/native-pipeline-pending-review.md",
+          "description": "Independent multi-round native composition review with all majors corrected",
+          "revision": "507b12e674a8df5376ad2d14db23fbe9db347719b932bb3930353e5bf9c9ce94",
+          "sha256": "507b12e674a8df5376ad2d14db23fbe9db347719b932bb3930353e5bf9c9ce94",
+          "reviewer": "/root and /root/operation_log_luna",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -64495,8 +64519,8 @@
         {
           "path": "crates/survey/src/association.rs",
           "description": "Versioned receipt/API-window point association with strict evidence separation",
-          "revision": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1",
-          "sha256": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1"
+          "revision": "5775f7f5b1561b95de6e98a779d8047b66fda792ccfd7de959cf97442849a48f",
+          "sha256": "5775f7f5b1561b95de6e98a779d8047b66fda792ccfd7de959cf97442849a48f"
         },
         {
           "path": "crates/survey/src/state.rs",
@@ -102552,14 +102576,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -102575,8 +102599,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -105059,14 +105083,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -105295,14 +105319,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -105514,14 +105538,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -105733,14 +105757,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -105909,14 +105933,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -106086,14 +106110,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -106263,14 +106287,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -106440,14 +106464,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -106617,14 +106641,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -106838,14 +106862,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/observation_chunks.rs",
@@ -106918,8 +106942,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -113249,14 +113273,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -113272,8 +113296,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -113388,14 +113412,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -113411,8 +113435,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -115657,8 +115681,8 @@
         {
           "path": "crates/survey/src/association.rs",
           "description": "Versioned receipt/API-window point association with strict evidence separation",
-          "revision": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1",
-          "sha256": "5319e28dd8262bab79f448e36bc44e7d41dd0081cacae48ded3912cd94a735d1"
+          "revision": "5775f7f5b1561b95de6e98a779d8047b66fda792ccfd7de959cf97442849a48f",
+          "sha256": "5775f7f5b1561b95de6e98a779d8047b66fda792ccfd7de959cf97442849a48f"
         },
         {
           "path": "crates/survey/src/state.rs",
@@ -116725,14 +116749,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116904,14 +116928,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117071,14 +117095,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117195,14 +117219,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117319,14 +117343,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117443,14 +117467,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117568,14 +117592,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117627,8 +117651,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -119811,14 +119835,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124789,14 +124813,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124965,14 +124989,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -125133,14 +125157,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -125300,14 +125324,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -158061,14 +158085,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -158120,8 +158144,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -158631,14 +158655,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -167819,8 +167843,8 @@
         {
           "path": "crates/capture-adapter/src/macos/normalize.rs",
           "description": "Strict native NDJSON to canonical V2 with separate source result clocks and exact source evidence",
-          "revision": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee",
-          "sha256": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee"
+          "revision": "ee9ae339626ba7ed60ba3bcb3ebd37abe4196647ca8ade68e36aa14837df0355",
+          "sha256": "ee9ae339626ba7ed60ba3bcb3ebd37abe4196647ca8ade68e36aa14837df0355"
         }
       ],
       "validation": [],
@@ -167944,20 +167968,20 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Adversarial schema, sidecar, exact-boundary and recovery regressions",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84"
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4"
         },
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
@@ -168122,8 +168146,8 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
@@ -168134,8 +168158,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -168273,14 +168297,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -168305,8 +168329,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -168725,14 +168749,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -169356,8 +169380,8 @@
         {
           "path": "crates/capture-adapter/src/macos/normalize.rs",
           "description": "Strict native NDJSON to canonical V2 with separate source result clocks and exact source evidence",
-          "revision": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee",
-          "sha256": "e29665aa3d48d2f117159acc9fa17041a2fad90e9a276d1208bcc2e1b15b8aee"
+          "revision": "ee9ae339626ba7ed60ba3bcb3ebd37abe4196647ca8ade68e36aa14837df0355",
+          "sha256": "ee9ae339626ba7ed60ba3bcb3ebd37abe4196647ca8ade68e36aa14837df0355"
         }
       ],
       "validation": [
@@ -177653,14 +177677,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -184180,14 +184204,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -184203,8 +184227,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -184374,14 +184398,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -184397,8 +184421,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -184556,14 +184580,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -184579,8 +184603,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -184738,14 +184762,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -184761,8 +184785,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -184877,14 +184901,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -184900,8 +184924,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -185016,14 +185040,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -185039,8 +185063,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -185198,14 +185222,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -185221,8 +185245,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -188814,14 +188838,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         }
       ],
       "validation": [
@@ -188837,8 +188861,8 @@
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
-          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
-          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "revision": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
+          "sha256": "6efecd4ee86df8aec852fe73ba6d383cc552d39ce1ad7167b333cd486a1a11b4",
           "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
           "scope": "migration_security",
           "result": "PASS"
@@ -235434,14 +235458,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -235559,14 +235583,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -235690,14 +235714,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -237936,14 +237960,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
@@ -242940,14 +242964,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
-          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+          "revision": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816",
+          "sha256": "90e727535ab2e7f4cc7395fbd5395957a4474738c9f81ce13140fb9eb322f816"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
-          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+          "revision": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb",
+          "sha256": "e6955ccbc4579187e97adeadc032414e99c1ee7e88bd1a03a26c12a61b46b3fb"
         }
       ],
       "validation": [
