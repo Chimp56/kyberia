@@ -28,3 +28,9 @@ Negotiate supported producer versions using real pinned server output and public
 6. A separate real-server gate records binary version, source commit, authentication mode, exact endpoint contract, field capabilities and controlled datasource results. No capture control or privileged helper installation occurs implicitly.
 
 The current repository has no live transport implementation. KismetDB normalization and no-follow source-open tests are independently reviewed offline capabilities. Their approval does not close this packet or the complete Kismet runtime gate.
+
+## Local runtime preparation
+
+The plan-pinned upstream archive `kismetwireless/kismet@2d25ad004e9216ac963c4f156e9077331717959c` was fetched from GitHub and inspected before extraction into ignored `.tools/kismet-runtime/`. Archive SHA-256: `38074b597d80f1566331efd845f88e1f876c5efec46b9d2f8c9986b7d0b6de4c`. All 5,203 archive entries were regular files/directories with relative paths and no traversal components. No Kismet runtime is currently installed or validated.
+
+`configure --help` was inspected. Configuration/build has not run: the Autoconf script executes `rm -rf`/`rm -f -r` on generated `conftest*`, `confdefs*`, `conf<PID>*`, compiler probe outputs and its temporary configuration directory. User policy requires explicit target-scoped permission before those recursive deletions. No privileged helper or system installation is planned. This permission gate applies only to the local external build; Kyberia implementation and fixture tests continue.
