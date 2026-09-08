@@ -1178,7 +1178,7 @@ fn supervised_scan_normalizes_persists_and_reopens_exactly() {
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
     let command =
-        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).expect("typed scan options"));
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).expect("typed scan options"));
     let outcome = run_and_persist(
         &mut bundle,
         &collector,
@@ -1360,7 +1360,7 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
         run(
             &mut bundle,
             &mismatch,
-            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
             |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
         ),
         Err(NativeCaptureSessionError::TerminalExitMismatch { exit_code: 1, .. })
@@ -1374,7 +1374,7 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
         run(
             &mut bundle,
             &wrong_build,
-            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
             |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
         ),
         Err(NativeCaptureSessionError::SourceBuildMismatch)
@@ -1489,7 +1489,7 @@ fn supervised_process_rejects_identifier_policy_mismatch_before_persistence() {
             &request(126),
             &NeverCancel,
         ),
-        Err(NativeCaptureSessionError::AdapterNormalize(_))
+        Err(NativeCaptureSessionError::IdentifierPolicyMismatch)
     ));
     assert!(
         bundle
@@ -1497,6 +1497,108 @@ fn supervised_process_rejects_identifier_policy_mismatch_before_persistence() {
             .unwrap()
             .is_empty()
     );
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_rejects_included_identifiers_for_redacted_request_before_owned_mapping() {
+    let (_script, collector) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let mapping_called = Cell::new(false);
+    let result = run_and_persist(
+        &mut bundle,
+        &collector,
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+        |stream| {
+            mapping_called.set(true);
+            let mut context = mapping_context(stream, false);
+            context.privacy.identifiers =
+                kyberia_domain::observation::IdentifierPolicy::OwnedInfrastructure;
+            Ok(context)
+        },
+        &survey,
+        &request(128),
+        &NeverCancel,
+    );
+    assert!(matches!(
+        result,
+        Err(NativeCaptureSessionError::IdentifierPolicyMismatch)
+    ));
+    assert!(!mapping_called.get());
+    assert!(
+        bundle
+            .list_survey_snapshot_history(None)
+            .unwrap()
+            .is_empty()
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_binds_requested_limit_and_active_interface_before_mapping() {
+    let mut fixture = String::from_utf8(VALID.to_vec()).unwrap();
+    fixture = fixture.replacen("\"max_observations\":1", "\"max_observations\":2", 1);
+    let observation = fixture
+        .lines()
+        .nth(3)
+        .unwrap()
+        .replace(
+            "00000000-0000-4000-8000-000000000003",
+            "00000000-0000-4000-8000-000000000004",
+        )
+        .replace("\"sequence\":3", "\"sequence\":4");
+    let mut lines = fixture.lines().map(str::to_owned).collect::<Vec<_>>();
+    lines[4] = lines[4]
+        .replace("\"observation_count\":1", "\"observation_count\":2")
+        .replace("\"sequence\":4", "\"sequence\":5");
+    lines.insert(4, observation);
+    let fixture = lines.join("\n") + "\n";
+
+    let cases = [
+        (
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
+            NativeCaptureSessionError::ObservationLimitMismatch,
+        ),
+        (
+            CollectorCommand::Scan(ScanOptions::new(Some("en1".to_owned()), 2, 20, true).unwrap()),
+            NativeCaptureSessionError::InterfaceProvenanceMismatch,
+        ),
+    ];
+    for (index, (command, expected)) in cases.into_iter().enumerate() {
+        let (_script, collector) = synthetic_collector(
+            fixture.as_bytes(),
+            SyntheticCollectorBehavior::Fixture { exit_code: 0 },
+        );
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("project");
+        let mut bundle = project(&path);
+        let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+        let mapping_called = Cell::new(false);
+        let result = run_and_persist(
+            &mut bundle,
+            &collector,
+            command,
+            |stream| {
+                mapping_called.set(true);
+                Ok(mapping_context(stream, false))
+            },
+            &survey,
+            &request(129 + index as u8),
+            &NeverCancel,
+        );
+        assert!(matches!(result, Err(error) if error == expected));
+        assert!(!mapping_called.get());
+        assert!(
+            bundle
+                .list_survey_snapshot_history(None)
+                .unwrap()
+                .is_empty()
+        );
+    }
 }
 
 #[cfg(unix)]

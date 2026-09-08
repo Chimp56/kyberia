@@ -284,12 +284,16 @@ pub enum NativeCaptureSessionError {
     OutputLimit(OutputStream),
     ProcessIo,
     ProcessCleanup,
+    UnsupportedPlatform,
     ProcessExitWithoutCode,
     TerminalExitMismatch {
         terminal: TerminalStatus,
         exit_code: i32,
     },
     CommandProvenanceMismatch,
+    IdentifierPolicyMismatch,
+    ObservationLimitMismatch,
+    InterfaceProvenanceMismatch,
     SourceBuildMismatch,
     MappingRejected,
     AdapterDecode(kyberia_capture_adapter::Error),
@@ -310,6 +314,9 @@ impl std::fmt::Display for NativeCaptureSessionError {
             }
             Self::ProcessIo => f.write_str("native collector process I/O failed"),
             Self::ProcessCleanup => f.write_str("native collector process cleanup failed"),
+            Self::UnsupportedPlatform => {
+                f.write_str("native collector process supervision is unsupported on this platform")
+            }
             Self::ProcessExitWithoutCode => {
                 f.write_str("native collector exited without a status code")
             }
@@ -324,6 +331,15 @@ impl std::fmt::Display for NativeCaptureSessionError {
             }
             Self::CommandProvenanceMismatch => {
                 f.write_str("native collector hello does not match the typed command")
+            }
+            Self::IdentifierPolicyMismatch => {
+                f.write_str("native collector identifier policy does not match the typed command")
+            }
+            Self::ObservationLimitMismatch => {
+                f.write_str("native collector returned more observations than requested")
+            }
+            Self::InterfaceProvenanceMismatch => {
+                f.write_str("native collector observations came from a different interface")
             }
             Self::SourceBuildMismatch => {
                 f.write_str("native collector source build is not trusted")
@@ -388,10 +404,16 @@ where
         return Err(NativeCaptureSessionError::Cancelled);
     }
     let stream = decode(&stdout).map_err(NativeCaptureSessionError::AdapterDecode)?;
-    let expected_command = match command {
-        CollectorCommand::Probe(_) => "probe",
-        CollectorCommand::Scan(_) => "scan",
-    };
+    let (expected_command, expected_identifiers, expected_limit, expected_interface) =
+        match &command {
+            CollectorCommand::Probe(_) => ("probe", false, None, None),
+            CollectorCommand::Scan(options) => (
+                "scan",
+                options.includes_identifiers(),
+                Some(options.limit()),
+                options.interface(),
+            ),
+        };
     if stream.command_name() != expected_command
         || stream.declared_timeout_seconds() != command.timeout_seconds()
     {
@@ -399,6 +421,27 @@ where
     }
     if stream.collector_build() != collector.expected_source_build() {
         return Err(NativeCaptureSessionError::SourceBuildMismatch);
+    }
+    if stream.identifiers_included() != expected_identifiers {
+        return Err(NativeCaptureSessionError::IdentifierPolicyMismatch);
+    }
+    if let Some(limit) = expected_limit {
+        if stream.observation_keys().count() > usize::from(limit) {
+            return Err(NativeCaptureSessionError::ObservationLimitMismatch);
+        }
+        // Capabilities may list several radios. Bind an explicitly requested
+        // interface only to the source attached to observations; empty and
+        // error captures carry no active-source evidence to compare.
+        if let Some(requested) = expected_interface {
+            let observed = stream.observation_sources().collect::<Vec<_>>();
+            if !observed.is_empty()
+                && !observed
+                    .iter()
+                    .any(|(_, interface)| *interface == requested)
+            {
+                return Err(NativeCaptureSessionError::InterfaceProvenanceMismatch);
+            }
+        }
     }
     let context = mapping(&stream)?;
     let normalized =
@@ -676,7 +719,7 @@ fn run_process<C: Cancellation>(
     _command: &CollectorCommand,
     _cancel: &C,
 ) -> Result<(Vec<u8>, i32), NativeCaptureSessionError> {
-    Err(NativeCaptureSessionError::ProcessIo)
+    Err(NativeCaptureSessionError::UnsupportedPlatform)
 }
 
 #[cfg(unix)]

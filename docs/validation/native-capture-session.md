@@ -30,8 +30,12 @@ test asserts bounded elapsed time; the reader implementation itself uses
 polling and bounded channel drains rather than a blocking join.
 
 `supervised_process_rejects_identifier_policy_mismatch_before_persistence`
-checks that an adapter privacy-policy failure leaves survey snapshot history
-unchanged.
+checks that an included stream is rejected for a redacted scan request before
+the adapter mapping callback or durable publication. The owned-infrastructure
+mapping regression uses the same included stream and proves the callback is
+never reached. The limit/interface test builds a bounded two-observation
+stream and checks both requested observation limits and the active observed
+interface before mapping.
 
 The unit tests in the `process` module cover typed option bounds, injection-like
 interface rejection, trusted-path checks and the complete terminal/exit
@@ -69,9 +73,9 @@ Run the package and repository gates:
 
 `git diff --check` is also required before review. The native process tests
 are POSIX-gated because the safety property depends on a private process group
-and `poll(2)` pipe supervision. The non-Unix build returns an explicit process
-I/O unsupported error rather than silently substituting an unbounded blocking
-reader.
+and `poll(2)` pipe supervision. The non-Unix build returns the explicit
+`UnsupportedPlatform` outcome rather than silently substituting an unbounded
+blocking reader.
 
 ## Remaining validation
 

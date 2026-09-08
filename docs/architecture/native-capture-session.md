@@ -23,11 +23,18 @@ path invokes the trusted file directly.
 
 The collector's first hello record is decoded before any observation is
 accepted. Its command name, declared timeout and source-build hash must equal
-the typed request and trusted executable contract. Adapter provenance checks
-then validate the source, build, protocol, clock epoch and terminal record.
-The mapping callback supplies the canonical process-session, source and
-observation identities. The session layer never derives an identity, pose,
-capture clock or dwell value from process output.
+the typed request and trusted executable contract. The hello identifier policy
+must also equal the request: probes are always redacted, while scans require
+an exact match for `ScanOptions::includes_identifiers`. The session rejects a
+returned observation count above the requested scan limit before invoking the
+mapping callback. When a scan has active observation source evidence, an
+explicit interface request must match every observed source interface; a
+terminal with no observations carries no active-source value to compare.
+Capability listings are not used for this check because they may list other
+radios. Adapter provenance checks then validate the source, build, protocol,
+clock epoch and terminal record. The mapping callback supplies the canonical
+process-session, source and observation identities. The session layer never
+derives an identity, pose, capture clock or dwell value from process output.
 
 ## Bounded process lifecycle
 
@@ -52,7 +59,8 @@ owned group and is therefore not claimed as killable by this contract; the
 escaped-group fixture is short-lived and proves that its inherited pipe does
 not make the reader or session block. A future platform adapter must provide
 the same bounded read and process-ownership guarantees before enabling this
-module outside Unix.
+module outside Unix. Builds on unsupported platforms return
+`NativeCaptureSessionError::UnsupportedPlatform`.
 
 The terminal status and process exit code are a closed mapping: success is
 `0`, partial is `2`, permission required is `77`, unsupported/unavailable is

@@ -72,6 +72,16 @@ impl DecodedStream {
         hello.timeout_seconds
     }
 
+    /// Whether the producer included transmitter identifiers in the stream.
+    /// This comes from the validated hello policy so session orchestration
+    /// can enforce the typed request before mapping runs.
+    pub fn identifiers_included(&self) -> bool {
+        let Body::Hello(hello) = &self.records[0].body else {
+            unreachable!("a decoded stream always begins with hello")
+        };
+        hello.identifier_policy == Policy::ExplicitUnredacted
+    }
+
     pub fn source_keys(&self) -> impl Iterator<Item = &str> {
         self.records
             .iter()
@@ -88,6 +98,22 @@ impl DecodedStream {
         self.records.iter().filter_map(|r| {
             if let Body::ScanObservation(s) = &r.body {
                 Some(s.observation_id.as_str())
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Active source evidence attached to each observation. Capability
+    /// listings can contain additional radios, so request binding uses these
+    /// observed sources rather than the listing.
+    pub fn observation_sources(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.records.iter().filter_map(|r| {
+            if let Body::ScanObservation(s) = &r.body {
+                Some((
+                    s.source.source_id.as_str(),
+                    s.source.interface_name.as_str(),
+                ))
             } else {
                 None
             }
