@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kyberia.dev/schemas/observation-parquet-export-v1.schema.json",
+  "title": "Kyberia normalized observation Parquet export manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "project_id",
+    "project_revision",
+    "observation_schema_version",
+    "chunk_media_type",
+    "parquet_schema_fingerprint",
+    "privacy_warning",
+    "chunks"
+  ],
+  "properties": {
+    "schema": { "const": "kyberia.observation-parquet-export/1" },
+    "project_id": { "$ref": "#/$defs/id" },
+    "project_revision": { "type": "integer", "minimum": 0 },
+    "observation_schema_version": { "const": 2 },
+    "chunk_media_type": {
+      "const": "application/vnd.apache.parquet; profile=kyberia-observation-v2"
+    },
+    "parquet_schema_fingerprint": {
+      "const": "kyberia-envelope-v2-fixed-superset-1"
+    },
+    "privacy_warning": {
+      "const": "Normalized observations can contain MAC, SSID, client, location, or infrastructure identifiers. Review every row's privacy policy before sharing."
+    },
+    "chunks": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": { "$ref": "#/$defs/chunk" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^(?!00000000000000000000000000000000$)[0-9a-f]{32}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "chunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hash",
+        "file_name",
+        "bytes",
+        "media_type",
+        "observation_schema_version",
+        "codec_version",
+        "row_count",
+        "first_observation_id",
+        "last_observation_id",
+        "known_utc_count",
+        "first_utc_ns",
+        "last_utc_ns",
+        "first_source_id",
+        "last_source_id",
+        "first_session_id",
+        "last_session_id",
+        "provenance_id",
+        "committed_revision"
+      ],
+      "properties": {
+        "hash": { "$ref": "#/$defs/hash" },
+        "file_name": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}\\.parquet$"
+        },
+        "bytes": { "type": "integer", "minimum": 1, "maximum": 67108864 },
+        "media_type": {
+          "const": "application/vnd.apache.parquet; profile=kyberia-observation-v2"
+        },
+        "observation_schema_version": { "const": 2 },
+        "codec_version": { "const": 2 },
+        "row_count": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "first_observation_id": { "$ref": "#/$defs/id" },
+        "last_observation_id": { "$ref": "#/$defs/id" },
+        "known_utc_count": { "type": "integer", "minimum": 0, "maximum": 65536 },
+        "first_utc_ns": { "type": ["integer", "null"] },
+        "last_utc_ns": { "type": ["integer", "null"] },
+        "first_source_id": { "$ref": "#/$defs/id" },
+        "last_source_id": { "$ref": "#/$defs/id" },
+        "first_session_id": { "$ref": "#/$defs/id" },
+        "last_session_id": { "$ref": "#/$defs/id" },
+        "provenance_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+        },
+        "committed_revision": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

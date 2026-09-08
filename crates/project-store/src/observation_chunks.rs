@@ -721,6 +721,21 @@ fn inventory(bundle: &Bundle) -> Result<Vec<ObservationChunkDescriptor>> {
     Ok(descriptors)
 }
 
+fn find_descriptor(bundle: &Bundle, hash: &str) -> Result<ObservationChunkDescriptor> {
+    if !sqlite_guard::has_observation_chunk_schema(&bundle.connection)? {
+        return Err(StoreError::Invalid("unregistered observation chunk".into()));
+    }
+    bundle.start_operation()?;
+    let transaction =
+        rusqlite::Transaction::new_unchecked(&bundle.connection, TransactionBehavior::Deferred)?;
+    let descriptor = descriptor_query(&transaction, Some(hash))?
+        .into_iter()
+        .next()
+        .ok_or_else(|| StoreError::Invalid("unregistered observation chunk".into()))?;
+    transaction.commit()?;
+    Ok(descriptor)
+}
+
 impl Bundle {
     /// Publish one bounded immutable chunk. Rows are canonically ordered by
     /// observation identity; bytes are finalized and synced before SQLite
@@ -929,6 +944,26 @@ impl Bundle {
             .find(|descriptor| descriptor.hash == hash)
             .ok_or_else(|| StoreError::Invalid("unregistered observation chunk".into()))?;
         verify_descriptor(self, descriptor)
+    }
+
+    /// Return the exact committed Parquet bytes for an independently verified
+    /// observation chunk. This is an export boundary: callers receive the
+    /// canonical open-format artifact only after its manifest entry, SQLite
+    /// indexes, content hash, bounded decode, and envelope metadata agree.
+    pub fn read_observation_chunk_parquet(&self, hash: &str) -> Result<Vec<u8>> {
+        validate_hash(hash)?;
+        let descriptor = find_descriptor(self, hash)?;
+        verify_descriptor(self, &descriptor)?;
+        let manifest = self.manifest()?;
+        let entry = manifest.artifacts.get(hash).ok_or_else(|| {
+            StoreError::Corrupt("observation chunk is absent from manifest".into())
+        })?;
+        if entry != &chunk_artifact_entry(&descriptor) {
+            return Err(StoreError::Corrupt(
+                "observation chunk manifest entry changed during export".into(),
+            ));
+        }
+        self.read_registered_artifact(hash, entry)
     }
 
     pub fn read_observations(&self) -> Result<Vec<ObservationEnvelope>> {

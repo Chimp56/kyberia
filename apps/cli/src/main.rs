@@ -1,3 +1,5 @@
+mod observation_export;
+
 use kyberia_domain::identity::ProjectId;
 use kyberia_project_store::{Bundle, OpenMode};
 use std::path::Path;
@@ -6,7 +8,7 @@ use std::process::ExitCode;
 fn run(args: &[String]) -> Result<bool, Box<dyn std::error::Error>> {
     if args.is_empty() || args == ["--help"] || args == ["help"] {
         println!(
-            "Kyberia project CLI\n\n  kyberia new <directory.rfatlas> <name>\n  kyberia inspect <directory.rfatlas>\n  kyberia verify <directory.rfatlas>\n  kyberia recover-manifest <directory.rfatlas>\n\nOutputs are JSON. verify exits nonzero for integrity failures."
+            "Kyberia project CLI\n\n  kyberia new <directory.rfatlas> <name>\n  kyberia inspect <directory.rfatlas>\n  kyberia verify <directory.rfatlas>\n  kyberia recover-manifest <directory.rfatlas>\n  kyberia export-observations-parquet <directory.rfatlas> <new-directory>\n\nOutputs are JSON. verify exits nonzero for integrity failures. Exports never overwrite an existing destination."
         );
         return Ok(true);
     }
@@ -42,6 +44,11 @@ fn run(args: &[String]) -> Result<bool, Box<dyn std::error::Error>> {
             let result = bundle.verify()?;
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(result.failures.is_empty())
+        }
+        Some("export-observations-parquet") if args.len() == 3 => {
+            let result = observation_export::export(Path::new(&args[1]), Path::new(&args[2]))?;
+            println!("{}", serde_json::to_string_pretty(&result)?);
+            Ok(true)
         }
         _ => Err("invalid command or arguments; use kyberia --help".into()),
     }

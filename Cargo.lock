@@ -485,6 +485,7 @@ version = "0.1.0"
 dependencies = [
  "kyberia-domain",
  "kyberia-project-store",
+ "serde",
  "serde_json",
  "tempfile",
  "uuid",

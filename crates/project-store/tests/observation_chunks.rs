@@ -188,6 +188,12 @@ fn complete_envelope_roundtrip_preserves_unknowns_and_clock_extremes() {
     let artifact = fs::read(root.join("artifacts").join(descriptor.hash())).unwrap();
     assert_eq!(artifact.get(..4), Some(&b"PAR1"[..]));
     assert_eq!(
+        project
+            .read_observation_chunk_parquet(descriptor.hash())
+            .unwrap(),
+        artifact
+    );
+    assert_eq!(
         artifact.get(artifact.len().saturating_sub(4)..),
         Some(&b"PAR1"[..])
     );

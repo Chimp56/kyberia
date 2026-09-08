@@ -11,6 +11,7 @@ path = "src/main.rs"
 [dependencies]
 kyberia-domain = { version = "=0.1.0", path = "../../crates/domain" }
 kyberia-project-store = { version = "=0.1.0", path = "../../crates/project-store" }
+serde = { version = "=1.0.228", features = ["derive"] }
 serde_json = "=1.0.149"
 uuid = { version = "=1.21.0", features = ["v4"] }
 
