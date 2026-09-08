@@ -9,3 +9,5 @@ MAJOR: strict selection uses membership in `PointSurvey::progress().observation_
 MINOR: an envelope with no survey assignment is currently rejected as `MissingObservation`. Preserve the distinction between absent source evidence and absent spatial association.
 
 Review is ongoing. Author-reported passing tests do not close these findings or imply product workflow validation. Receipt association closure is separately being centralized in the native-pipeline correction; the two survey helpers must retain strict-versus-receipt timing semantics.
+
+MAJOR: `validate_metric` admits any definition with unit `Dbm` and matching spatial method. `MetricDefinition::from_spec` supports explicit alternative semantics; the unit alone cannot establish observed Wi-Fi RSSI. Require compatible observed-RSSI evidence/compute/selection semantics and a same-unit incompatible-definition regression. The author has been notified; this finding remains open.
