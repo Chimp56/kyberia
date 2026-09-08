@@ -66,11 +66,13 @@ SQLite projection.
 
 ## Operation format
 
-An operation is a version-1 closed record with these fields:
+An operation is a closed record. Version 1 is the original immutable format;
+version 2 is an additive inverse-metadata format. Both have these envelope
+fields:
 
 | Field | Meaning |
 | --- | --- |
-| `schema_version` | Closed semantic format version (`"1"`; future versions fail closed). |
+| `schema_version` | Closed semantic format version (`"1"` or `"2"`; future versions fail closed). |
 | `operation_id` | Existing canonical `OperationId`; immutable identity. |
 | `project_id` | Existing canonical project identity. |
 | `actor_id`, `device_id` | Existing canonical actor and `ActorDeviceId` (`DeviceId` is an API alias). |
@@ -78,7 +80,7 @@ An operation is a version-1 closed record with these fields:
 | `causal_depth` | DAG depth: zero for a root, otherwise one plus the maximum parent depth. It is not a project revision. |
 | `parents` | Up to eight sorted causal operation IDs. |
 | `payload` | Closed typed `Apply`, `Undo`, `Redo`, or `Resolve` command. |
-| `inverse` | Typed inverse mutation, or an immutable target reference for a toggle. |
+| `inverse` | V1 typed inverse mutation or toggle reference; V2 typed prior, explicit non-reversible reason, or toggle reference. |
 | `content_hash` | SHA-256 of the canonical unsigned operation bytes. |
 
 The canonical unsigned representation is compact JSON emitted by serde from a
@@ -94,11 +96,25 @@ operations in an in-memory set, 32 KiB canonical bytes, 48 KiB wire bytes,
 ancestry/work steps per validation or replay pass. These are format safety
 bounds, not permission to put observation payloads in commands.
 
+V2 reversible applies and resolutions use `InversePrior` with the same field
+identity as the forward mutation. Project and site names retain bounded text;
+calibration retains either a known ID or `Evidence::Unknown(NotMeasured)`, so
+legacy replay cannot manufacture an ID for an unknown prior. Floor-evidence
+binding uses `NonReversible(FloorEvidenceBinding)` and cannot be an undo/redo
+target. V1 constructors and canonical bytes remain unchanged. Cross-version
+toggles and resolution references are rejected explicitly. The mutation-only
+replay API returns an explicit typed error when a V2 unknown prior cannot be
+represented as a legacy `Mutation`; `OperationSet::replay_effects` exposes the
+typed `AppliedEffect::Calibration` instead. The later project materializer must
+consume that typed prior against a validated causal baseline.
+
 ## Command/query separation and append admission
 
-`Operation::try_apply`, `try_undo`, `try_redo`, and `try_resolve` are pure command builders.
-They validate IDs supplied by domain constructors, logical time, parent shape,
-payload/inverse pairing, and canonical size before computing the digest.
+`Operation::try_apply`, `try_undo`, `try_redo`, and `try_resolve` are the V1
+pure command builders; the corresponding `*_v2` constructors admit typed
+priors and explicit non-reversible floor bindings. They validate IDs supplied
+by domain constructors, logical time, parent shape, payload/inverse pairing,
+and canonical size before computing the digest.
 Fields are private, so an operation cannot be assembled by struct literal.
 
 `OperationLog::append` is the command-side linear admission boundary. It
@@ -110,10 +126,10 @@ an operation's `causal_depth`. A repeated operation ID with the same digest
 returns an idempotent `Duplicate` outcome without advancing revision. The same
 ID with different bytes returns `TamperedDuplicate`.
 
-`OperationLog` accessors and `OperationSet::ordered`, `replay`, and
-`replay_state` are query-side operations. They do not erase, mutate, or replace
-history. The application layer decides how a replayed typed mutation changes a
-project aggregate.
+`OperationLog` accessors and `OperationSet::ordered`, `replay`,
+`replay_effects`, and `replay_state` are query-side operations. They do not
+erase, mutate, or replace history. The application layer decides how a
+replayed typed effect changes a project aggregate.
 
 ## Causality, total order, and merge
 
@@ -152,8 +168,11 @@ are rejected. The references remain in the immutable operation for
 auditability. Unrelated heads retain their own conflict records.
 
 Undo and redo are operations in this same DAG. An undo points to the original
-operation ID and hash and applies its stored inverse mutation during replay. A
-redo points to that same immutable original and reapplies its forward mutation.
+operation ID and hash and applies its stored inverse mutation during replay;
+V2 typed priors are retained and unknown priors are emitted as typed effects by
+`replay_effects` while the legacy mutation boundary fails explicitly. A V2
+non-reversible target is rejected before admission. A redo points to that same
+immutable original and reapplies its forward mutation.
 The target operation is never removed, rewritten, or replaced. Sequential
 repeated toggles are rejected at append admission. Concurrent duplicate
 same-target, same-direction toggles are one semantic toggle: the first emits

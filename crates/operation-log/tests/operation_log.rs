@@ -1,12 +1,16 @@
-use kyberia_domain::identity::{
-    ActorDeviceId, ActorId, CalibrationId, ContentHash, FloorId, MapAssetId, OperationId,
-    ProjectId, SiteId, Text,
+use kyberia_domain::{
+    evidence::{Evidence, UnknownReason},
+    identity::{
+        ActorDeviceId, ActorId, CalibrationId, ContentHash, FloorId, MapAssetId, OperationId,
+        ProjectId, SiteId, Text,
+    },
 };
 use kyberia_operation_log::{
     AppendError, AppendOutcome, CausalDepth, ConflictIntent, FieldKey, ImmutableReference,
-    InverseMetadata, LogicalTimestamp, MAX_OPERATION_COUNT, MAX_OPERATION_WIRE_BYTES, MergeError,
-    Mutation, Operation, OperationError, OperationLog, OperationPayload, OperationReference,
-    OperationSet, ProjectVersion, ToggleDirection,
+    InverseMetadata, InversePrior, LogicalTimestamp, MAX_OPERATION_COUNT, MAX_OPERATION_WIRE_BYTES,
+    MergeError, Mutation, NonReversibleReason, Operation, OperationError, OperationLog,
+    OperationPayload, OperationReference, OperationSchemaVersion, OperationSet, ProjectVersion,
+    ToggleDirection,
 };
 use proptest::prelude::*;
 use sha2::Digest;
@@ -276,7 +280,9 @@ fn canonical_hash_is_verified_and_encoding_is_strict() {
     future[position + version.len() - 2] = b'2';
     assert!(matches!(
         Operation::from_bytes(&future),
-        Err(OperationError::MalformedEncoding | OperationError::HashMismatch)
+        Err(OperationError::MalformedEncoding
+            | OperationError::HashMismatch
+            | OperationError::InvalidInverse)
     ));
 
     let mut unknown = bytes[..bytes.len() - 1].to_vec();
@@ -291,6 +297,439 @@ fn canonical_hash_is_verified_and_encoding_is_strict() {
     assert_eq!(
         Operation::from_bytes(&noncanonical),
         Err(OperationError::NonCanonicalEncoding)
+    );
+}
+
+#[test]
+fn v1_canonical_contract_remains_unchanged_while_v2_is_explicit() {
+    let v1 = apply(2, 1, 1, 0, vec![], "new", "old");
+    assert_eq!(v1.schema_version(), OperationSchemaVersion::V1);
+    assert_eq!(
+        v1.canonical_bytes(),
+        br#"{"schema_version":"1","operation_id":"02020202020202020202020202020202","project_id":"01010101010101010101010101010101","actor_id":"01010101010101010101010101010101","device_id":"01010101010101010101010101010101","logical_time":1,"causal_depth":0,"parents":[],"payload":{"kind":"apply","data":{"mutation":{"kind":"set_project_name","data":{"name":"new"}}}},"inverse":{"kind":"apply","data":{"mutation":{"kind":"set_project_name","data":{"name":"old"}}}}}"#
+    );
+    assert_eq!(
+        v1.content_hash().bytes(),
+        [
+            0x7b, 0x4f, 0x2b, 0xc6, 0x12, 0xd9, 0x34, 0x76, 0xaa, 0x8e, 0xb6, 0xb2, 0xf4, 0x3e,
+            0x99, 0x84, 0xc5, 0xe6, 0xbe, 0x1d, 0x4a, 0x18, 0xfd, 0x56, 0x1f, 0x49, 0xe8, 0x65,
+            0x6f, 0xda, 0x3a, 0xfa,
+        ]
+    );
+    assert_eq!(
+        Operation::from_bytes(
+            br#"{"schema_version":"1","operation_id":"02020202020202020202020202020202","project_id":"01010101010101010101010101010101","actor_id":"01010101010101010101010101010101","device_id":"01010101010101010101010101010101","logical_time":1,"causal_depth":0,"parents":[],"payload":{"kind":"apply","data":{"mutation":{"kind":"set_project_name","data":{"name":"new"}}}},"inverse":{"kind":"apply","data":{"mutation":{"kind":"set_project_name","data":{"name":"old"}}}},"content_hash":"7b4f2bc612d93476aa8eb6b2f43e9984c5e6be1d4a18fd561f49e8656fda3afa"}"#
+        )
+        .unwrap(),
+        v1
+    );
+
+    let v2 = Operation::try_apply_v2(
+        op_id(3),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::set_project_name(text("new")),
+        InversePrior::ProjectName { name: text("old") },
+    )
+    .unwrap();
+    assert_eq!(v2.schema_version(), OperationSchemaVersion::V2);
+    assert_ne!(v1.canonical_bytes(), v2.canonical_bytes());
+    assert_eq!(Operation::from_bytes(&v2.to_bytes().unwrap()).unwrap(), v2);
+}
+
+#[test]
+fn v2_priors_preserve_known_and_unknown_calibration_without_sentinels() {
+    let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+    let calibration_id = CalibrationId::from_bytes([8; 16]).unwrap();
+    let previous_calibration_id = CalibrationId::from_bytes([6; 16]).unwrap();
+    let known = Operation::try_apply_v2(
+        op_id(2),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, calibration_id),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Known(previous_calibration_id),
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        known.inverse(),
+        &InverseMetadata::ApplyV2 {
+            prior: InversePrior::MapCalibration {
+                map_id,
+                calibration: Evidence::Known(previous_calibration_id),
+            }
+        }
+    );
+    assert_eq!(
+        Operation::from_bytes(&known.to_bytes().unwrap()).unwrap(),
+        known
+    );
+    let known_undo = Operation::try_undo_v2(
+        op_id(6),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![known.operation_id()],
+        OperationReference::from(&known),
+    )
+    .unwrap();
+    let known_set = OperationSet::from_operations([known.clone(), known_undo]).unwrap();
+    assert_eq!(
+        known_set.replay_state().unwrap()[&FieldKey::MapCalibration(map_id)],
+        Mutation::activate_calibration(map_id, previous_calibration_id)
+    );
+
+    let unknown = Operation::try_apply_v2(
+        op_id(3),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, calibration_id),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        Operation::from_bytes(&unknown.to_bytes().unwrap()).unwrap(),
+        unknown
+    );
+    let InverseMetadata::ApplyV2 { prior } = unknown.inverse() else {
+        panic!("V2 calibration apply must retain typed prior");
+    };
+    assert_eq!(prior.as_mutation(), Err(OperationError::TypedPriorRequired));
+    let unknown_undo = Operation::try_undo_v2(
+        op_id(5),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![unknown.operation_id()],
+        OperationReference::from(&unknown),
+    )
+    .unwrap();
+    let unknown_set = OperationSet::from_operations([unknown, unknown_undo]).unwrap();
+    let typed_effects = unknown_set.replay_effects().unwrap();
+    assert_eq!(typed_effects.len(), 2);
+    assert_eq!(
+        typed_effects[1].field_key(),
+        FieldKey::MapCalibration(map_id)
+    );
+    assert_eq!(
+        typed_effects[1].calibration(),
+        Some(&Evidence::Unknown(UnknownReason::NotMeasured))
+    );
+    assert!(unknown_set.validate_replay_semantics().is_ok());
+    assert_eq!(
+        unknown_set.replay(),
+        Err(MergeError::Operation(OperationError::TypedPriorRequired))
+    );
+
+    assert_eq!(
+        Operation::try_apply_v2(
+            op_id(4),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(1).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::activate_calibration(map_id, calibration_id),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: Evidence::Unknown(UnknownReason::ClockUnavailable),
+            },
+        ),
+        Err(OperationError::InvalidInverse)
+    );
+}
+
+#[test]
+fn v2_prior_identity_and_shape_are_validated_before_hashing() {
+    let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+    let other_map_id = MapAssetId::from_bytes([9; 16]).unwrap();
+    let calibration_id = CalibrationId::from_bytes([8; 16]).unwrap();
+    let site_id = SiteId::from_bytes([4; 16]).unwrap();
+    let other_site_id = SiteId::from_bytes([5; 16]).unwrap();
+    let site = Operation::try_apply_v2(
+        op_id(1),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::set_site_name(site_id, text("new")),
+        InversePrior::SiteName {
+            site_id,
+            name: text("old"),
+        },
+    )
+    .unwrap();
+    let site_set = OperationSet::from_operations([site.clone()]).unwrap();
+    assert_eq!(
+        site_set.replay_state().unwrap()[&FieldKey::SiteName(site_id)],
+        Mutation::set_site_name(site_id, text("new"))
+    );
+    assert_eq!(
+        Operation::from_bytes(&site.to_bytes().unwrap()).unwrap(),
+        site
+    );
+    let mut forged = site.to_bytes().unwrap();
+    let name_marker = b"\"name\":\"old\"}";
+    let name_end = forged
+        .windows(name_marker.len())
+        .position(|window| window == name_marker)
+        .unwrap()
+        + name_marker.len()
+        - 1;
+    forged.splice(name_end..name_end, br#",\"extra\":true"#.iter().copied());
+    assert_eq!(
+        Operation::from_bytes(&forged),
+        Err(OperationError::MalformedEncoding)
+    );
+    assert_eq!(
+        Operation::try_apply_v2(
+            op_id(1),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(1).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::set_site_name(site_id, text("new")),
+            InversePrior::SiteName {
+                site_id: other_site_id,
+                name: text("old"),
+            },
+        ),
+        Err(OperationError::InvalidInverse)
+    );
+    assert_eq!(
+        Operation::try_apply_v2(
+            op_id(2),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(1).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::activate_calibration(map_id, calibration_id),
+            InversePrior::MapCalibration {
+                map_id: other_map_id,
+                calibration: Evidence::Known(calibration_id),
+            },
+        ),
+        Err(OperationError::InvalidInverse)
+    );
+    assert_eq!(
+        Operation::try_apply_v2(
+            op_id(2),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(1).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::set_project_name(text("new")),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: Evidence::Known(calibration_id),
+            },
+        ),
+        Err(OperationError::InvalidInverse)
+    );
+}
+
+#[test]
+fn v2_resolution_retains_a_typed_prior_and_replays_the_selected_value() {
+    let root = Operation::try_apply_v2(
+        op_id(20),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::set_project_name(text("root")),
+        InversePrior::ProjectName {
+            name: text("initial"),
+        },
+    )
+    .unwrap();
+    let left = Operation::try_apply_v2(
+        op_id(21),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![root.operation_id()],
+        Mutation::set_project_name(text("left")),
+        InversePrior::ProjectName { name: text("root") },
+    )
+    .unwrap();
+    let right = Operation::try_apply_v2(
+        op_id(22),
+        project(),
+        actor(2),
+        device(2),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![root.operation_id()],
+        Mutation::set_project_name(text("right")),
+        InversePrior::ProjectName { name: text("root") },
+    )
+    .unwrap();
+    let resolution = Operation::try_resolve_v2(
+        op_id(23),
+        project(),
+        actor(3),
+        device(3),
+        LogicalTimestamp::new(3).unwrap(),
+        CausalDepth::new(2),
+        vec![left.operation_id(), right.operation_id()],
+        OperationReference::from(&left),
+        OperationReference::from(&right),
+        Mutation::set_project_name(text("chosen")),
+        InversePrior::ProjectName { name: text("root") },
+    )
+    .unwrap();
+    assert!(matches!(
+        resolution.inverse(),
+        InverseMetadata::ApplyV2 {
+            prior: InversePrior::ProjectName { .. }
+        }
+    ));
+    let set = OperationSet::from_operations([root, left, right, resolution]).unwrap();
+    assert_eq!(
+        set.merge(&OperationSet::empty(project()))
+            .unwrap()
+            .into_applyable()
+            .unwrap()
+            .replay_state()
+            .unwrap()[&FieldKey::ProjectName],
+        Mutation::set_project_name(text("chosen"))
+    );
+}
+
+#[test]
+fn v2_floor_binding_is_explicitly_non_reversible_and_cannot_be_undone() {
+    let reference = ImmutableReference::new(
+        ContentHash::from_sha256([7; 32]),
+        text("application/vnd.apache.parquet"),
+        1024,
+    )
+    .unwrap();
+    let mutation = Mutation::bind_floor_evidence(FloorId::from_bytes([3; 16]).unwrap(), reference);
+    let binding = Operation::try_apply_v2_non_reversible(
+        op_id(2),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        mutation.clone(),
+        NonReversibleReason::FloorEvidenceBinding,
+    )
+    .unwrap();
+    assert!(matches!(
+        binding.inverse(),
+        InverseMetadata::NonReversible {
+            reason: NonReversibleReason::FloorEvidenceBinding
+        }
+    ));
+    assert_eq!(
+        Operation::from_bytes(&binding.to_bytes().unwrap()).unwrap(),
+        binding
+    );
+
+    let undo = Operation::try_undo_v2(
+        op_id(3),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![binding.operation_id()],
+        OperationReference::from(&binding),
+    )
+    .unwrap();
+    assert_eq!(
+        OperationSet::from_operations([binding.clone(), undo]),
+        Err(OperationError::NonReversibleTarget)
+    );
+
+    let binding_ref = OperationReference::from(&binding);
+    let mut log = OperationLog::new(project());
+    log.append(binding).unwrap();
+    let undo = Operation::try_undo_v2(
+        op_id(4),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![op_id(2)],
+        binding_ref,
+    )
+    .unwrap();
+    assert_eq!(
+        log.append(undo),
+        Err(AppendError::Operation(OperationError::NonReversibleTarget))
+    );
+
+    assert_eq!(
+        Operation::try_apply_v2_non_reversible(
+            op_id(5),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(1).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::set_project_name(text("new")),
+            NonReversibleReason::FloorEvidenceBinding,
+        ),
+        Err(OperationError::InvalidInverse)
+    );
+}
+
+#[test]
+fn toggles_cannot_cross_v1_and_v2_inverse_contracts() {
+    let v1 = apply(2, 1, 1, 0, vec![], "new", "old");
+    let v1_undo = Operation::try_undo_v2(
+        op_id(3),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![v1.operation_id()],
+        OperationReference::from(&v1),
+    )
+    .unwrap();
+    assert_eq!(
+        OperationSet::from_operations([v1, v1_undo]),
+        Err(OperationError::VersionMismatch)
     );
 }
 

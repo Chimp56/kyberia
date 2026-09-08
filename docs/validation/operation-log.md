@@ -34,6 +34,15 @@ The focused tests demonstrate:
 - operation and referenced-artifact resource bounds;
 - observation-chunk references without payload bytes;
 - strict typed payload round trips;
+- V1 canonical bytes/hash golden preservation, plus explicit V2 round trips for
+  known and `Unknown(NotMeasured)` calibration priors;
+- rejection of forged V2 prior field/entity identities and unsupported unknown
+  reasons, explicit non-reversible floor-evidence metadata, and non-reversible
+  undo targets;
+- rejection of cross-version toggles while retaining V1 decoding;
+- typed replay of an unknown calibration prior through
+  `OperationSet::replay_effects`, with the legacy mutation-only replay boundary
+  failing explicitly rather than inventing or dropping a value;
 - a proptest permutation invariant proving deterministic order for arbitrary
   generated labels;
 - an architecture check that prevents storage, packet, wall-clock, and generic
@@ -44,6 +53,13 @@ Run the focused suite offline with:
 ```text
 cargo test -p kyberia-operation-log --locked --offline
 ```
+
+The V2 inverse contract remains a pure operation and typed-replay increment.
+`OperationSet::replay_effects` preserves an unknown calibration prior, while the
+legacy mutation-only replay boundary returns an explicit typed error; neither
+coerces unknown to a sentinel nor claims that a recorded prior matches a
+reconstructed project aggregate. Causal baseline validation and full project
+materialization remain follow-up work.
 
 The suite does not claim project-store application or durable collaboration is
 complete. It proves only the pure command, query, encoding, merge, and replay

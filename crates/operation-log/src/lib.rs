@@ -12,6 +12,7 @@
 
 use kyberia_domain::{
     ValidationError,
+    evidence::{Evidence, UnknownReason},
     identity::{
         ActorDeviceId, ActorId, CalibrationId, ContentHash, FloorId, MapAssetId, OperationId,
         ProjectId, SiteId, Text,
@@ -29,11 +30,17 @@ use std::{
 /// the operation API readable without introducing a second incompatible ID.
 pub type DeviceId = ActorDeviceId;
 
-/// The only operation schema currently admitted by this crate.
+/// Operation schema versions admitted by this crate.
+///
+/// V1 remains byte-for-byte compatible with the original operation contract.
+/// V2 changes only inverse representation: it can carry an explicit typed
+/// prior calibration state and the non-reversible floor-evidence binding.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum OperationSchemaVersion {
     #[serde(rename = "1")]
     V1,
+    #[serde(rename = "2")]
+    V2,
 }
 
 /// A positive Lamport-style logical time. It is never derived from UTC.
@@ -277,6 +284,105 @@ impl Mutation {
     }
 }
 
+/// The typed state that existed immediately before a V2 apply. This is a
+/// semantic prior, rather than a second generic command envelope. In
+/// particular, calibration may explicitly be `Unknown(NotMeasured)`, which
+/// cannot be represented by V1's `Mutation::ActivateCalibration` inverse.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    content = "data",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+pub enum InversePrior {
+    ProjectName {
+        name: Text,
+    },
+    SiteName {
+        site_id: SiteId,
+        name: Text,
+    },
+    MapCalibration {
+        map_id: MapAssetId,
+        calibration: Evidence<CalibrationId>,
+    },
+}
+
+impl InversePrior {
+    pub const fn field_key(&self) -> FieldKey {
+        match self {
+            Self::ProjectName { .. } => FieldKey::ProjectName,
+            Self::SiteName { site_id, .. } => FieldKey::SiteName(*site_id),
+            Self::MapCalibration { map_id, .. } => FieldKey::MapCalibration(*map_id),
+        }
+    }
+
+    fn validate_for(&self, mutation: &Mutation) -> Result<(), OperationError> {
+        let valid = match (mutation, self) {
+            (Mutation::SetProjectName { .. }, Self::ProjectName { .. }) => true,
+            (
+                Mutation::SetSiteName { site_id, .. },
+                Self::SiteName {
+                    site_id: prior_site_id,
+                    ..
+                },
+            ) => site_id == prior_site_id,
+            (
+                Mutation::ActivateCalibration { map_id, .. },
+                Self::MapCalibration {
+                    map_id: prior_map_id,
+                    calibration,
+                },
+            ) => {
+                map_id == prior_map_id
+                    && matches!(
+                        calibration,
+                        Evidence::Known(_) | Evidence::Unknown(UnknownReason::NotMeasured)
+                    )
+            }
+            _ => false,
+        };
+        if valid {
+            Ok(())
+        } else {
+            Err(OperationError::InvalidInverse)
+        }
+    }
+
+    /// Convert a representable prior to the legacy mutation form. Unknown
+    /// calibration is intentionally not converted: doing so would invent an
+    /// identifier and lose the domain's explicit unknown state.
+    pub fn as_mutation(&self) -> Result<Mutation, OperationError> {
+        match self {
+            Self::ProjectName { name } => Ok(Mutation::SetProjectName { name: name.clone() }),
+            Self::SiteName { site_id, name } => Ok(Mutation::SetSiteName {
+                site_id: *site_id,
+                name: name.clone(),
+            }),
+            Self::MapCalibration {
+                map_id,
+                calibration: Evidence::Known(calibration_id),
+            } => Ok(Mutation::ActivateCalibration {
+                map_id: *map_id,
+                calibration_id: *calibration_id,
+            }),
+            Self::MapCalibration {
+                calibration: Evidence::Unknown(_),
+                ..
+            } => Err(OperationError::TypedPriorRequired),
+        }
+    }
+}
+
+/// Why an operation has no executable inverse. This is intentionally closed
+/// and tied to the existing domain's irreversible evidence binding.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+pub enum NonReversibleReason {
+    FloorEvidenceBinding,
+}
+
 /// A stable reference to one immutable operation, including its digest. A
 /// matching ID with different bytes is a tamper signal, never a replacement.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -316,10 +422,34 @@ pub enum InverseMetadata {
     Apply {
         mutation: Mutation,
     },
+    /// V2 apply metadata records a typed prior state. Unlike V1 this can
+    /// preserve the domain's explicit unknown calibration state.
+    ApplyV2 {
+        prior: InversePrior,
+    },
+    /// V2 binds an irreversible operation to a closed, auditable reason. It
+    /// is not an executable command and therefore cannot be an undo target.
+    NonReversible {
+        reason: NonReversibleReason,
+    },
     Toggle {
         target: OperationReference,
         direction: ToggleDirection,
     },
+}
+
+impl InverseMetadata {
+    /// Return the legacy executable mutation when this inverse has one.
+    /// V2 typed unknown state and irreversible evidence deliberately return an
+    /// explicit error so legacy replay cannot silently invent or skip state.
+    fn as_mutation(&self) -> Result<Mutation, OperationError> {
+        match self {
+            Self::Apply { mutation } => Ok(mutation.clone()),
+            Self::ApplyV2 { prior } => prior.as_mutation(),
+            Self::NonReversible { .. } => Err(OperationError::NonReversibleTarget),
+            Self::Toggle { .. } => Err(OperationError::InvalidInverse),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -450,6 +580,7 @@ impl Operation {
         inverse: Mutation,
     ) -> Result<Self, OperationError> {
         Self::try_parts(
+            OperationSchemaVersion::V1,
             operation_id,
             project_id,
             actor_id,
@@ -459,6 +590,65 @@ impl Operation {
             parents,
             OperationPayload::Apply { mutation },
             InverseMetadata::Apply { mutation: inverse },
+            None,
+        )
+    }
+
+    /// Construct a V2 apply with a typed causal prior. V1 constructors remain
+    /// unchanged so their canonical bytes and content hashes remain stable.
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_apply_v2(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        mutation: Mutation,
+        prior: InversePrior,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V2,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Apply { mutation },
+            InverseMetadata::ApplyV2 { prior },
+            None,
+        )
+    }
+
+    /// Construct a V2 apply whose domain effect has no executable inverse.
+    /// The closed reason is persisted so consumers can distinguish an
+    /// intentionally irreversible operation from malformed inverse metadata.
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_apply_v2_non_reversible(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        mutation: Mutation,
+        reason: NonReversibleReason,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V2,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Apply { mutation },
+            InverseMetadata::NonReversible { reason },
             None,
         )
     }
@@ -475,6 +665,38 @@ impl Operation {
         target: OperationReference,
     ) -> Result<Self, OperationError> {
         Self::try_parts(
+            OperationSchemaVersion::V1,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Undo { target },
+            InverseMetadata::Toggle {
+                target,
+                direction: ToggleDirection::Redo,
+            },
+            None,
+        )
+    }
+
+    /// Construct a V2 undo. A V2 toggle must remain in the V2 envelope so a
+    /// migration cannot silently downgrade its inverse contract.
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_undo_v2(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        target: OperationReference,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V2,
             operation_id,
             project_id,
             actor_id,
@@ -503,6 +725,37 @@ impl Operation {
         target: OperationReference,
     ) -> Result<Self, OperationError> {
         Self::try_parts(
+            OperationSchemaVersion::V1,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Redo { target },
+            InverseMetadata::Toggle {
+                target,
+                direction: ToggleDirection::Undo,
+            },
+            None,
+        )
+    }
+
+    /// Construct a V2 redo while retaining the V2 operation envelope.
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_redo_v2(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        target: OperationReference,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V2,
             operation_id,
             project_id,
             actor_id,
@@ -534,6 +787,7 @@ impl Operation {
         inverse: Mutation,
     ) -> Result<Self, OperationError> {
         Self::try_parts(
+            OperationSchemaVersion::V1,
             operation_id,
             project_id,
             actor_id,
@@ -551,8 +805,43 @@ impl Operation {
         )
     }
 
+    /// Construct a V2 resolution with a typed inverse prior.
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_resolve_v2(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        left: OperationReference,
+        right: OperationReference,
+        mutation: Mutation,
+        prior: InversePrior,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V2,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Resolve {
+                left,
+                right,
+                mutation,
+            },
+            InverseMetadata::ApplyV2 { prior },
+            None,
+        )
+    }
+
     #[allow(clippy::too_many_arguments)]
     fn try_parts(
+        schema_version: OperationSchemaVersion,
         operation_id: OperationId,
         project_id: ProjectId,
         actor_id: ActorId,
@@ -565,7 +854,7 @@ impl Operation {
         expected_hash: Option<ContentHash>,
     ) -> Result<Self, OperationError> {
         validate_parent_list(&parents)?;
-        validate_payload_inverse(&payload, &inverse)?;
+        validate_payload_inverse(schema_version, &payload, &inverse)?;
         if parents.is_empty() {
             if causal_depth.value() != 0 {
                 return Err(OperationError::InvalidCausality);
@@ -575,7 +864,7 @@ impl Operation {
         }
 
         let unsigned = UnsignedOperationWire {
-            schema_version: OperationSchemaVersion::V1,
+            schema_version,
             operation_id,
             project_id,
             actor_id,
@@ -598,7 +887,7 @@ impl Operation {
             return Err(OperationError::HashMismatch);
         }
         let result = Self {
-            schema_version: OperationSchemaVersion::V1,
+            schema_version,
             operation_id,
             project_id,
             actor_id,
@@ -734,10 +1023,8 @@ impl TryFrom<OperationWire> for Operation {
             inverse,
             content_hash,
         } = value;
-        if schema_version != OperationSchemaVersion::V1 {
-            return Err(OperationError::UnsupportedSchema);
-        }
-        let mut result = Self::try_parts(
+        let result = Self::try_parts(
+            schema_version,
             operation_id,
             project_id,
             actor_id,
@@ -749,7 +1036,6 @@ impl TryFrom<OperationWire> for Operation {
             inverse,
             Some(content_hash),
         )?;
-        result.schema_version = schema_version;
         Ok(result)
     }
 }
@@ -789,34 +1075,63 @@ fn validate_parent_list(parents: &[OperationId]) -> Result<(), OperationError> {
 }
 
 fn validate_payload_inverse(
+    schema_version: OperationSchemaVersion,
     payload: &OperationPayload,
     inverse: &InverseMetadata,
 ) -> Result<(), OperationError> {
-    match (payload, inverse) {
-        (OperationPayload::Apply { mutation }, InverseMetadata::Apply { mutation: undo }) => {
-            if mutation.field_key() != undo.field_key() {
-                return Err(OperationError::InvalidInverse);
+    match schema_version {
+        OperationSchemaVersion::V1 => match (payload, inverse) {
+            (OperationPayload::Apply { mutation }, InverseMetadata::Apply { mutation: undo })
+                if mutation.field_key() == undo.field_key() => {}
+            (
+                OperationPayload::Undo { target },
+                InverseMetadata::Toggle {
+                    target: inverse_target,
+                    direction: ToggleDirection::Redo,
+                },
+            )
+            | (
+                OperationPayload::Redo { target },
+                InverseMetadata::Toggle {
+                    target: inverse_target,
+                    direction: ToggleDirection::Undo,
+                },
+            ) if target == inverse_target => {}
+            (
+                OperationPayload::Resolve { mutation, .. },
+                InverseMetadata::Apply { mutation: inverse },
+            ) if mutation.field_key() == inverse.field_key() => {}
+            _ => return Err(OperationError::InvalidInverse),
+        },
+        OperationSchemaVersion::V2 => match (payload, inverse) {
+            (OperationPayload::Apply { mutation }, InverseMetadata::ApplyV2 { prior })
+            | (OperationPayload::Resolve { mutation, .. }, InverseMetadata::ApplyV2 { prior }) => {
+                prior.validate_for(mutation)?;
             }
-        }
-        (
-            OperationPayload::Undo { target },
-            InverseMetadata::Toggle {
-                target: inverse_target,
-                direction: ToggleDirection::Redo,
-            },
-        )
-        | (
-            OperationPayload::Redo { target },
-            InverseMetadata::Toggle {
-                target: inverse_target,
-                direction: ToggleDirection::Undo,
-            },
-        ) if target == inverse_target => {}
-        (
-            OperationPayload::Resolve { mutation, .. },
-            InverseMetadata::Apply { mutation: inverse },
-        ) if mutation.field_key() == inverse.field_key() => {}
-        _ => return Err(OperationError::InvalidInverse),
+            (
+                OperationPayload::Apply {
+                    mutation: Mutation::BindFloorEvidence { .. },
+                },
+                InverseMetadata::NonReversible {
+                    reason: NonReversibleReason::FloorEvidenceBinding,
+                },
+            ) => {}
+            (
+                OperationPayload::Undo { target },
+                InverseMetadata::Toggle {
+                    target: inverse_target,
+                    direction: ToggleDirection::Redo,
+                },
+            )
+            | (
+                OperationPayload::Redo { target },
+                InverseMetadata::Toggle {
+                    target: inverse_target,
+                    direction: ToggleDirection::Undo,
+                },
+            ) if target == inverse_target => {}
+            _ => return Err(OperationError::InvalidInverse),
+        },
     }
     Ok(())
 }
@@ -1009,8 +1324,14 @@ impl OperationLog {
         if existing.content_hash() != target.content_hash() {
             return Err(AppendError::TargetHashMismatch);
         }
+        if existing.schema_version() != operation.schema_version() {
+            return Err(AppendError::Operation(OperationError::VersionMismatch));
+        }
         if !matches!(existing.payload(), OperationPayload::Apply { .. }) {
             return Err(AppendError::InvalidTarget);
+        }
+        if matches!(existing.inverse(), InverseMetadata::NonReversible { .. }) {
+            return Err(AppendError::Operation(OperationError::NonReversibleTarget));
         }
         match operation.payload() {
             OperationPayload::Undo { target }
@@ -1028,16 +1349,51 @@ impl OperationLog {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum FrontierIdentity {
-    Value(Mutation),
+    Value(EffectValue),
     Toggle {
         target: OperationReference,
         direction: ToggleDirection,
     },
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum EffectValue {
+    Mutation(Mutation),
+    Calibration {
+        map_id: MapAssetId,
+        calibration: Evidence<CalibrationId>,
+    },
+}
+
+impl EffectValue {
+    fn field_key(&self) -> FieldKey {
+        match self {
+            Self::Mutation(mutation) => mutation.field_key(),
+            Self::Calibration { map_id, .. } => FieldKey::MapCalibration(*map_id),
+        }
+    }
+
+    fn as_mutation(&self) -> Result<Mutation, OperationError> {
+        match self {
+            Self::Mutation(mutation) => Ok(mutation.clone()),
+            Self::Calibration {
+                map_id,
+                calibration: Evidence::Known(calibration_id),
+            } => Ok(Mutation::ActivateCalibration {
+                map_id: *map_id,
+                calibration_id: *calibration_id,
+            }),
+            Self::Calibration {
+                calibration: Evidence::Unknown(_),
+                ..
+            } => Err(OperationError::TypedPriorRequired),
+        }
+    }
+}
+
 fn frontier_identity(
     operation: &Operation,
-    effect: &Mutation,
+    effect: &EffectValue,
 ) -> (FrontierIdentity, ConflictIntent) {
     match operation.payload() {
         OperationPayload::Undo { target } => (
@@ -1208,12 +1564,25 @@ impl OperationSet {
         Ok(MergeOutcome { merged, conflicts })
     }
 
+    /// Replay using the original mutation-only V1 effect boundary. Callers
+    /// that need V2 unknown calibration state must use [`Self::replay_effects`].
     pub fn replay(&self) -> Result<Vec<AppliedMutation>, MergeError> {
         let conflicts = self.conflicts()?;
         if !conflicts.is_empty() {
             return Err(MergeError::Conflicts(conflicts));
         }
         Ok(self.replay_without_conflict_check()?.0)
+    }
+
+    /// Replay with the typed effect boundary required by V2. An unknown
+    /// calibration prior is returned as `AppliedEffect::Calibration` instead
+    /// of being coerced into a fake identifier or omitted from the replay.
+    pub fn replay_effects(&self) -> Result<Vec<AppliedEffect>, MergeError> {
+        let conflicts = self.conflicts()?;
+        if !conflicts.is_empty() {
+            return Err(MergeError::Conflicts(conflicts));
+        }
+        Ok(self.replay_effects_without_conflict_check()?.0)
     }
 
     /// Validate replayable toggle state without requiring semantic field
@@ -1223,12 +1592,23 @@ impl OperationSet {
     /// that need mutations must use [`Self::replay`], which still refuses to
     /// apply a conflicting set.
     pub fn validate_replay_semantics(&self) -> Result<(), MergeError> {
-        self.replay_without_conflict_check().map(|_| ())
+        self.replay_effects_without_conflict_check().map(|_| ())
     }
 
     fn replay_without_conflict_check(
         &self,
     ) -> Result<(Vec<AppliedMutation>, BTreeMap<OperationId, bool>), MergeError> {
+        let (effects, active) = self.replay_effects_without_conflict_check()?;
+        let mutations = effects
+            .into_iter()
+            .map(AppliedEffect::into_mutation)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok((mutations, active))
+    }
+
+    fn replay_effects_without_conflict_check(
+        &self,
+    ) -> Result<(Vec<AppliedEffect>, BTreeMap<OperationId, bool>), MergeError> {
         let mut active = BTreeMap::new();
         let mut toggle_history: BTreeMap<(OperationReference, ToggleDirection), Vec<OperationId>> =
             BTreeMap::new();
@@ -1238,10 +1618,10 @@ impl OperationSet {
             match operation.payload() {
                 OperationPayload::Apply { mutation } => {
                     active.insert(operation.operation_id(), true);
-                    result.push(AppliedMutation {
+                    result.push(AppliedEffect::Mutation(AppliedMutation {
                         operation_id: operation.operation_id(),
                         mutation: mutation.clone(),
-                    });
+                    }));
                 }
                 OperationPayload::Undo { target } => {
                     if active.get(&target.operation_id()) != Some(&true) {
@@ -1278,18 +1658,16 @@ impl OperationSet {
                         .operations
                         .get(&target.operation_id())
                         .ok_or(MergeError::Operation(OperationError::MissingTarget))?;
-                    let InverseMetadata::Apply { mutation } = target_operation.inverse() else {
-                        return Err(MergeError::InvalidToggle);
-                    };
+                    let effect = target_operation
+                        .inverse()
+                        .as_applied_effect(operation.operation_id())
+                        .map_err(MergeError::Operation)?;
                     active.insert(target.operation_id(), false);
                     toggle_history
                         .entry((*target, ToggleDirection::Undo))
                         .or_default()
                         .push(operation.operation_id());
-                    result.push(AppliedMutation {
-                        operation_id: operation.operation_id(),
-                        mutation: mutation.clone(),
-                    });
+                    result.push(effect);
                 }
                 OperationPayload::Redo { target } => {
                     if active.get(&target.operation_id()) != Some(&false) {
@@ -1334,16 +1712,16 @@ impl OperationSet {
                         .entry((*target, ToggleDirection::Redo))
                         .or_default()
                         .push(operation.operation_id());
-                    result.push(AppliedMutation {
+                    result.push(AppliedEffect::Mutation(AppliedMutation {
                         operation_id: operation.operation_id(),
                         mutation: mutation.clone(),
-                    });
+                    }));
                 }
                 OperationPayload::Resolve { mutation, .. } => {
-                    result.push(AppliedMutation {
+                    result.push(AppliedEffect::Mutation(AppliedMutation {
                         operation_id: operation.operation_id(),
                         mutation: mutation.clone(),
-                    });
+                    }));
                 }
             }
         }
@@ -1411,6 +1789,9 @@ impl OperationSet {
                 if target_operation.content_hash() != target.content_hash() {
                     return Err(OperationError::HashMismatch);
                 }
+                if target_operation.schema_version() != operation.schema_version() {
+                    return Err(OperationError::VersionMismatch);
+                }
                 if !matches!(target_operation.payload(), OperationPayload::Apply { .. })
                     || !self.ancestor_with_budget(
                         target.operation_id(),
@@ -1419,6 +1800,12 @@ impl OperationSet {
                     )?
                 {
                     return Err(OperationError::InvalidCausality);
+                }
+                if matches!(
+                    target_operation.inverse(),
+                    InverseMetadata::NonReversible { .. }
+                ) {
+                    return Err(OperationError::NonReversibleTarget);
                 }
             }
             if let Some((left, right)) = operation.resolution_references() {
@@ -1452,6 +1839,11 @@ impl OperationSet {
             .operations
             .get(&right.operation_id())
             .ok_or(OperationError::MissingTarget)?;
+        if left_operation.schema_version() != operation.schema_version()
+            || right_operation.schema_version() != operation.schema_version()
+        {
+            return Err(OperationError::VersionMismatch);
+        }
         if left_operation.content_hash() != left.content_hash()
             || right_operation.content_hash() != right.content_hash()
         {
@@ -1500,10 +1892,7 @@ impl OperationSet {
                     .operations
                     .get(&target.operation_id())
                     .ok_or(OperationError::MissingTarget)?;
-                let InverseMetadata::Apply { mutation } = target_operation.inverse() else {
-                    return Err(OperationError::InvalidInverse);
-                };
-                Ok(mutation.clone())
+                target_operation.inverse().as_mutation()
             }
             OperationPayload::Redo { target } => {
                 let target_operation = self
@@ -1557,7 +1946,7 @@ impl OperationSet {
             reference: OperationReference,
             identity: FrontierIdentity,
             intent: ConflictIntent,
-            effect: Mutation,
+            effect: EffectValue,
         }
 
         type ConflictKey = (OperationId, OperationId);
@@ -1609,8 +1998,8 @@ impl OperationSet {
                             OperationReference::from(operation),
                             entry.intent,
                             intent,
-                            entry.effect.clone(),
-                            effect.clone(),
+                            entry.effect.as_mutation().map_err(MergeError::Operation)?,
+                            effect.as_mutation().map_err(MergeError::Operation)?,
                         )
                     } else {
                         (
@@ -1618,8 +2007,8 @@ impl OperationSet {
                             entry.reference,
                             intent,
                             entry.intent,
-                            effect.clone(),
-                            entry.effect.clone(),
+                            effect.as_mutation().map_err(MergeError::Operation)?,
+                            entry.effect.as_mutation().map_err(MergeError::Operation)?,
                         )
                     };
                 let conflict_key = (left.operation_id(), right.operation_id());
@@ -1689,18 +2078,19 @@ impl OperationSet {
         Ok(())
     }
 
-    fn effect(&self, operation: &Operation) -> Result<Mutation, MergeError> {
+    fn effect(&self, operation: &Operation) -> Result<EffectValue, MergeError> {
         match operation.payload() {
-            OperationPayload::Apply { mutation } => Ok(mutation.clone()),
+            OperationPayload::Apply { mutation } => Ok(EffectValue::Mutation(mutation.clone())),
             OperationPayload::Undo { target } => {
                 let target_operation = self
                     .operations
                     .get(&target.operation_id())
                     .ok_or(MergeError::Operation(OperationError::MissingTarget))?;
-                let InverseMetadata::Apply { mutation } = target_operation.inverse() else {
-                    return Err(MergeError::InvalidToggle);
-                };
-                Ok(mutation.clone())
+                target_operation
+                    .inverse()
+                    .as_applied_effect(operation.operation_id())
+                    .map(|effect| effect.as_effect_value())
+                    .map_err(MergeError::Operation)
             }
             OperationPayload::Redo { target } => {
                 let target_operation = self
@@ -1710,9 +2100,11 @@ impl OperationSet {
                 let OperationPayload::Apply { mutation } = target_operation.payload() else {
                     return Err(MergeError::InvalidToggle);
                 };
-                Ok(mutation.clone())
+                Ok(EffectValue::Mutation(mutation.clone()))
             }
-            OperationPayload::Resolve { mutation, .. } => Ok(mutation.clone()),
+            OperationPayload::Resolve { mutation, .. } => {
+                Ok(EffectValue::Mutation(mutation.clone()))
+            }
         }
     }
 }
@@ -1732,6 +2124,124 @@ impl AppliedMutation {
 
     pub const fn mutation(&self) -> &Mutation {
         &self.mutation
+    }
+}
+
+/// One typed effect emitted by deterministic replay. V1 consumers can use
+/// [`OperationSet::replay`], while V2 consumers use this boundary to retain
+/// an explicitly unknown calibration prior during undo.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum AppliedEffect {
+    Mutation(AppliedMutation),
+    Calibration {
+        operation_id: OperationId,
+        map_id: MapAssetId,
+        calibration: Evidence<CalibrationId>,
+    },
+}
+
+impl AppliedEffect {
+    pub const fn operation_id(&self) -> OperationId {
+        match self {
+            Self::Mutation(applied) => applied.operation_id,
+            Self::Calibration { operation_id, .. } => *operation_id,
+        }
+    }
+
+    pub fn field_key(&self) -> FieldKey {
+        match self {
+            Self::Mutation(applied) => applied.mutation.field_key(),
+            Self::Calibration { map_id, .. } => FieldKey::MapCalibration(*map_id),
+        }
+    }
+
+    pub const fn map_id(&self) -> Option<MapAssetId> {
+        match self {
+            Self::Mutation(_) => None,
+            Self::Calibration { map_id, .. } => Some(*map_id),
+        }
+    }
+
+    pub const fn mutation(&self) -> Option<&Mutation> {
+        match self {
+            Self::Mutation(applied) => Some(&applied.mutation),
+            Self::Calibration { .. } => None,
+        }
+    }
+
+    pub const fn calibration(&self) -> Option<&Evidence<CalibrationId>> {
+        match self {
+            Self::Mutation(_) => None,
+            Self::Calibration { calibration, .. } => Some(calibration),
+        }
+    }
+
+    fn as_effect_value(&self) -> EffectValue {
+        match self {
+            Self::Mutation(applied) => EffectValue::Mutation(applied.mutation.clone()),
+            Self::Calibration {
+                map_id,
+                calibration,
+                ..
+            } => EffectValue::Calibration {
+                map_id: *map_id,
+                calibration: calibration.clone(),
+            },
+        }
+    }
+
+    fn into_mutation(self) -> Result<AppliedMutation, MergeError> {
+        match self {
+            Self::Mutation(applied) => Ok(applied),
+            Self::Calibration {
+                operation_id,
+                map_id,
+                calibration: Evidence::Known(calibration_id),
+            } => Ok(AppliedMutation {
+                operation_id,
+                mutation: Mutation::ActivateCalibration {
+                    map_id,
+                    calibration_id,
+                },
+            }),
+            Self::Calibration {
+                calibration: Evidence::Unknown(_),
+                ..
+            } => Err(MergeError::Operation(OperationError::TypedPriorRequired)),
+        }
+    }
+}
+
+impl InverseMetadata {
+    fn as_applied_effect(
+        &self,
+        operation_id: OperationId,
+    ) -> Result<AppliedEffect, OperationError> {
+        match self {
+            Self::Apply { mutation } => Ok(AppliedEffect::Mutation(AppliedMutation {
+                operation_id,
+                mutation: mutation.clone(),
+            })),
+            Self::ApplyV2 { prior } => match prior {
+                InversePrior::MapCalibration {
+                    map_id,
+                    calibration,
+                    ..
+                } => Ok(AppliedEffect::Calibration {
+                    operation_id,
+                    map_id: *map_id,
+                    calibration: calibration.clone(),
+                }),
+                InversePrior::ProjectName { .. } | InversePrior::SiteName { .. } => {
+                    Ok(AppliedEffect::Mutation(AppliedMutation {
+                        operation_id,
+                        mutation: prior.as_mutation()?,
+                    }))
+                }
+            },
+            Self::NonReversible { .. } => Err(OperationError::NonReversibleTarget),
+            Self::Toggle { .. } => Err(OperationError::InvalidInverse),
+        }
     }
 }
 
@@ -1846,6 +2356,9 @@ pub enum OperationError {
     InvalidLogicalTimestamp,
     InvalidCausality,
     InvalidInverse,
+    TypedPriorRequired,
+    NonReversibleTarget,
+    VersionMismatch,
     UnsupportedSchema,
     MalformedEncoding,
     CanonicalEncoding,
