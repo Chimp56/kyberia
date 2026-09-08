@@ -39,6 +39,7 @@ pub enum GeometryError {
     DegenerateSegment,
     CoordinateOutOfBounds,
     InvalidKernelResult,
+    UnsupportedCoordinateResolution,
 }
 
 impl std::fmt::Display for GeometryError {
@@ -51,6 +52,9 @@ impl std::fmt::Display for GeometryError {
                 "planar coordinate exceeds the supported numerical range"
             }
             Self::InvalidKernelResult => "geometry kernel returned an invalid coordinate",
+            Self::UnsupportedCoordinateResolution => {
+                "geometry exceeds the supported coordinate resolution"
+            }
         })
     }
 }
@@ -104,13 +108,54 @@ pub fn intersect(a: Segment, b: Segment) -> Result<Intersection, GeometryError> 
     }
     let mut a = line(a)?;
     let mut b = line(b)?;
+    // Scale small local coordinates up before orientation products. Dividing
+    // directly avoids an overflowing reciprocal for subnormal coordinates.
+    let scale = [
+        a.start.x, a.start.y, a.end.x, a.end.y, b.start.x, b.start.y, b.end.x, b.end.y,
+    ]
+    .into_iter()
+    .map(f64::abs)
+    .fold(0.0_f64, f64::max)
+    .min(1.0);
+    let original_endpoints = [a.start, a.end, b.start, b.end];
+    for line in [&mut a, &mut b] {
+        for coordinate in [&mut line.start, &mut line.end] {
+            coordinate.x /= scale;
+            coordinate.y /= scale;
+        }
+    }
+    let coordinates = [a.start, a.end, b.start, b.end];
+    // Do not feed extreme mixed-scale input to the floating-point kernel.
+    // This is an explicit numerical admission boundary, not snapping.
+    for first in coordinates {
+        for second in coordinates {
+            for difference in [first.x - second.x, first.y - second.y] {
+                if difference != 0.0 && difference.abs() < 1e-100 {
+                    return Err(GeometryError::UnsupportedCoordinateResolution);
+                }
+            }
+        }
+    }
+    let restore = |coordinate: Coord<f64>| {
+        point(Coord {
+            x: coordinate.x * scale,
+            y: coordinate.y * scale,
+        })
+    };
     if (a.start.x, a.start.y, a.end.x, a.end.y) > (b.start.x, b.start.y, b.end.x, b.end.y) {
         std::mem::swap(&mut a, &mut b);
     }
     Ok(match line_intersection(a, b) {
         None => Intersection::Disjoint,
-        Some(LineIntersection::SinglePoint { intersection, .. }) => {
-            Intersection::Point(point(intersection)?)
+        Some(LineIntersection::SinglePoint {
+            intersection,
+            is_proper,
+        }) => {
+            let result = restore(intersection)?;
+            if is_proper && original_endpoints.contains(&coordinate(result)) {
+                return Err(GeometryError::UnsupportedCoordinateResolution);
+            }
+            Intersection::Point(result)
         }
         Some(LineIntersection::Collinear { intersection }) => {
             let (start, end) = if (intersection.start.x, intersection.start.y)
@@ -121,8 +166,8 @@ pub fn intersect(a: Segment, b: Segment) -> Result<Intersection, GeometryError> 
                 (intersection.end, intersection.start)
             };
             Intersection::Overlap {
-                start: point(start)?,
-                end: point(end)?,
+                start: restore(start)?,
+                end: restore(end)?,
             }
         }
     })

@@ -102,3 +102,28 @@ fn scope_degeneracy_and_numerical_range_fail_explicitly() {
         Err(GeometryError::CoordinateOutOfBounds)
     );
 }
+
+#[test]
+fn tiny_crossings_are_not_misclassified_as_collinear() {
+    for scale in [1e-150, 1e-200, 1e-300] {
+        let a = segment((0., 0.), (scale, scale));
+        let b = segment((0., scale), (scale, 0.));
+        assert_eq!(
+            intersect(a, b).unwrap(),
+            Intersection::Point(point(scale / 2., scale / 2.))
+        );
+        assert_eq!(intersect(b, reverse(a)).unwrap(), intersect(a, b).unwrap());
+    }
+    let scale = f64::from_bits(1);
+    assert_eq!(
+        intersect(
+            segment((0., 0.), (scale, scale)),
+            segment((0., scale), (scale, 0.))
+        ),
+        Err(GeometryError::UnsupportedCoordinateResolution)
+    );
+    assert_eq!(
+        intersect(segment((0., 0.), (1., 1.)), segment((0., 1e-200), (1., 0.))),
+        Err(GeometryError::UnsupportedCoordinateResolution)
+    );
+}
