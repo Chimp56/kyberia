@@ -11,6 +11,12 @@ use kyberia_domain::{
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
+mod channel;
+mod interference;
+
+pub use channel::*;
+pub use interference::*;
+
 pub const ALGORITHM_VERSION: SignalAlgorithmVersion = SignalAlgorithmVersion::V1;
 /// A single aggregate is bounded to a generous survey-window size. Larger
 /// histories must be windowed explicitly so one request cannot exhaust memory.

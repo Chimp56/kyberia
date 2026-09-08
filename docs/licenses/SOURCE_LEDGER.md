@@ -73,3 +73,22 @@ The native normalization adapter adds base64 0.22.1 and time 0.3.55 behind the o
 The [active research inventory](active-research-sources.json) records ESnet iperf3 3.20, bundled cJSON 1.7.15, exact source/build hashes and all identified component notices. The complete upstream LICENSE is retained in `research/active/iperf-3.20-LICENSE`. The executable is an optional operator-configured external research process, not bundled with Kyberia. Initial loopback fixtures come from owned local processes; synthetic loss probes are independently constructed. Updating the pin requires source-semantic review, version and malformed-result checks, actual interoperability/lifecycle acceptance and release notice review before any bundling.
 
 The [supply-chain tool inventory](supply-chain-tools.json) pins cargo-cyclonedx 0.5.9 and cargo-deny 0.20.2 for macOS ARM64, exact release archives, executable validation and archive notices. The [schema inventory](schema-validator-sources.json) records the three vendored Apache-2.0 CycloneDX schemas, complete notice, six optional Python validator dependencies and their update procedures. These are developer tools; their presence does not certify or enlarge the current CLI distribution. RustSec is generally CC0-1.0 with a CC-BY-4.0 exception for marked GHSA-derived records; advisory exports must preserve that attribution. [Committed-source runtime evidence](../validation/supply-chain-runtime.json) records official schema validation, byte-identical repeated SBOM generation and all four audit groups at source commit `f834629`. Full distributable inventories and additional host tool pins remain open.
+
+The channel-coupling increment uses only the already inventoried Rust core
+dependencies (Serde and the Kyberia domain crate) at runtime; it does not
+bundle external source, a vendor channel table, a regulatory database, an
+antenna pattern, or competitor implementation. Its frequency mapping and
+fixed trapezoid mask are original Kyberia semantics documented in [ADR 0015](../architecture/ADR/0015-wifi-channel-coupling.md),
+with the independent synthetic fixtures and validation assumptions recorded in
+[the channel-coupling validation note](../validation/wifi-channel-coupling.md).
+
+The puncturing admission subset references the Linux kernel `net/wireless/chan.c`
+`valid_puncturing_bitmap` table at immutable commit
+`1a15bf9708ba3bf80410065e113aa17cd6a18dcf` ([source table](https://github.com/torvalds/linux/blob/1a15bf9708ba3bf80410065e113aa17cd6a18dcf/net/wireless/chan.c#L112-L175)).
+The raw file SHA-256 is
+`a58880f0b3225a5790e1874e6a88675e4ac0eb8098df432d597ca1549d79ded0`.
+The source is GPL-2.0-only. Kyberia independently represents the finite values
+for a bounded validation subset, does not copy or execute Linux code, and does
+not add Linux as a runtime dependency. Any future source update requires
+rechecking the table and primary-segment rules, reviewing the GPL notice, and
+updating the fixtures before changing the Kyberia subset.
