@@ -14,11 +14,13 @@ use kyberia_domain::{
     time::{CaptureTime, MonotonicTimestamp, MonotonicWindow},
     units::{CoordinateMeters, Dbm, Meters, Seconds},
 };
+use kyberia_observation_analysis::{RejectionReason, SelectionEvidencePlane, SelectionManifest};
 use kyberia_project_store::{
     ArtifactEntry, ArtifactKind, Bundle, Cancellation, ObservationChunkProvenance, OpenMode,
 };
 use kyberia_spatial_analysis::{
-    Config, Extrapolation, Grid, Method, MetricDefinition, MetricDefinitionBinding, Point2,
+    Config, Extrapolation, Grid, InputEvidencePlane, Method, MetricDefinition,
+    MetricDefinitionBinding, Point2,
 };
 use kyberia_stored_analysis::{SnapshotInput, StoredAnalysisError, StoredRssiAnalysisRequest, run};
 use kyberia_survey::{
@@ -58,6 +60,9 @@ fn text(value: &str) -> Text {
 }
 fn unknown<T>(reason: UnknownReason) -> Evidence<T> {
     Evidence::Unknown(reason)
+}
+fn retained_directory() -> std::path::PathBuf {
+    tempfile::tempdir().unwrap().keep()
 }
 fn point_config() -> PointConfig {
     let collector_id = CollectorId::from_bytes(id(7)).unwrap();
@@ -208,8 +213,10 @@ fn grid() -> Grid {
         floor_id: floor_id(),
         frame_id: frame_id(),
         origin: Point2 {
-            x: CoordinateMeters::new(0.0).unwrap(),
-            y: CoordinateMeters::new(1.0).unwrap(),
+            // The one cell is centered on the point anchor at (1, 2), making
+            // the expected aggregate independently inspectable.
+            x: CoordinateMeters::new(-1.5).unwrap(),
+            y: CoordinateMeters::new(-0.5).unwrap(),
         },
         resolution: Meters::new(5.0).unwrap(),
         column_offset: 0,
@@ -217,6 +224,54 @@ fn grid() -> Grid {
         width: 1,
         height: 1,
     }
+}
+fn single_snapshot_request(
+    revision: u64,
+    observation_id: ObservationId,
+    snapshot_id: SnapshotId,
+) -> StoredRssiAnalysisRequest {
+    let mut request = request(revision, vec![observation_id]);
+    request.snapshots = vec![SnapshotInput {
+        snapshot_id,
+        floor_id: floor_id(),
+    }];
+    request
+}
+fn synthetic_observation(
+    id_byte: u8,
+    captured: u64,
+    rssi: f64,
+    synthetic_source: bool,
+) -> ObservationEnvelope {
+    let mut data = observation(id_byte, captured, rssi).into_data();
+    if synthetic_source {
+        data.source.kind = SourceKind::SyntheticFixture;
+    }
+    data.quality
+        .push(kyberia_domain::observation::QualityFlag::SyntheticFixture);
+    ObservationEnvelope::new(data).unwrap()
+}
+fn create_synthetic_fixture(path: &Path, synthetic_source: bool) -> (Bundle, ObservationId) {
+    let mut bundle =
+        Bundle::create(path, project_id(), "synthetic stored analysis".into(), 1).unwrap();
+    let evidence = synthetic_observation(40, 150, -48.0, synthetic_source);
+    let mut config = point_config().data().clone();
+    config.allow_synthetic = true;
+    let survey = PointSurvey::start(PointConfig::new(config).unwrap(), stamp(100))
+        .unwrap()
+        .admit(&evidence, stamp(200))
+        .unwrap();
+    bundle
+        .save_survey_snapshot(SnapshotId::from_bytes(id(20)).unwrap(), &survey, 2)
+        .unwrap();
+    bundle
+        .publish_observation_chunk(
+            std::slice::from_ref(&evidence),
+            ObservationChunkProvenance::new("test/synthetic-stored-analysis").unwrap(),
+            3,
+        )
+        .unwrap();
+    (bundle, evidence.data().id)
 }
 fn spatial_config() -> Config {
     Config {
@@ -297,8 +352,8 @@ fn create_fixture(path: &Path) -> (Bundle, Vec<ObservationId>, String, String) {
 
 #[test]
 fn real_bundle_receipt_and_strict_evidence_produce_deterministic_tile() {
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, chunk_hash, snapshot_hash) = create_fixture(&path);
     let request = request(bundle.manifest().unwrap().revision, ids);
     let first = run(
@@ -311,6 +366,17 @@ fn real_bundle_receipt_and_strict_evidence_produce_deterministic_tile() {
     assert_eq!(first.canonical_bytes(), second.canonical_bytes());
     assert_eq!(first.artifact(), second.artifact());
     assert_eq!(first.tile(), second.tile());
+    assert_eq!(
+        first.tile().cells[0].value,
+        Evidence::Known(Dbm::new(-60.0).unwrap())
+    );
+    assert_eq!(
+        first.tile().inputs.evidence_plane,
+        InputEvidencePlane::Measured
+    );
+    let selection = SelectionManifest::from_canonical_bytes(first.selection_manifest()).unwrap();
+    assert_eq!(selection.evidence_plane, SelectionEvidencePlane::Measured);
+    assert_eq!(selection.selected.len(), 2);
     assert_eq!(first.document().source_chunk_hashes.len(), 1);
     assert_eq!(
         String::from(first.document().source_chunk_hashes[0]),
@@ -336,9 +402,48 @@ fn real_bundle_receipt_and_strict_evidence_produce_deterministic_tile() {
 }
 
 #[test]
+fn synthetic_evidence_is_rejected_after_real_bundle_roundtrip() {
+    for (synthetic_source, expected_reason) in [
+        (true, RejectionReason::UnsupportedPayload),
+        (false, RejectionReason::UnusableQuality),
+    ] {
+        let directory = retained_directory();
+        let path = directory.join("bundle");
+        let (bundle, observation_id) = create_synthetic_fixture(&path, synthetic_source);
+        let revision = bundle.manifest().unwrap().revision;
+        let result = run(
+            &bundle,
+            single_snapshot_request(
+                revision,
+                observation_id,
+                SnapshotId::from_bytes(id(20)).unwrap(),
+            ),
+            &kyberia_project_store::NeverCancel,
+        )
+        .unwrap();
+
+        let selection = SelectionManifest::from_canonical_bytes(result.selection_manifest())
+            .expect("stored selection remains canonical");
+        assert!(selection.selected.is_empty());
+        assert_eq!(selection.rejected.len(), 1);
+        assert_eq!(selection.rejected[0].reason, expected_reason);
+        assert_eq!(selection.evidence_plane, SelectionEvidencePlane::Measured);
+        assert_eq!(
+            result.tile().inputs.evidence_plane,
+            InputEvidencePlane::Measured
+        );
+        assert_eq!(
+            result.tile().cells[0].value,
+            Evidence::Unknown(UnknownReason::NotMeasured)
+        );
+        assert!(result.tile().cells[0].contributors.is_empty());
+    }
+}
+
+#[test]
 fn mismatched_revision_floor_and_missing_ids_fail_before_output() {
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, _, _) = create_fixture(&path);
     let revision = bundle.manifest().unwrap().revision;
     assert!(matches!(
@@ -400,8 +505,8 @@ fn revision_change_during_query_is_rejected() {
             false
         }
     }
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, _, _) = create_fixture(&path);
     let revision = bundle.manifest().unwrap().revision;
     // With two snapshots, the sixteenth callback is the query's initial
@@ -422,8 +527,8 @@ fn revision_change_during_query_is_rejected() {
 
 #[test]
 fn tampered_chunk_or_snapshot_is_rejected_and_cancellation_returns_no_result() {
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, chunk_hash, _) = create_fixture(&path);
     let revision = bundle.manifest().unwrap().revision;
     std::fs::write(path.join("artifacts").join(&chunk_hash), b"tampered").unwrap();
@@ -433,8 +538,8 @@ fn tampered_chunk_or_snapshot_is_rejected_and_cancellation_returns_no_result() {
             if message.contains("checksum") || message.contains("Parquet")
     ));
 
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, _, snapshot_hash) = create_fixture(&path);
     let revision = bundle.manifest().unwrap().revision;
     std::fs::write(path.join("artifacts").join(&snapshot_hash), b"tampered").unwrap();
@@ -453,8 +558,8 @@ fn tampered_chunk_or_snapshot_is_rejected_and_cancellation_returns_no_result() {
             true
         }
     }
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, _, _) = create_fixture(&path);
     let revision = bundle.manifest().unwrap().revision;
     assert!(matches!(
@@ -471,8 +576,8 @@ fn tampered_chunk_or_snapshot_is_rejected_and_cancellation_returns_no_result() {
             self.calls.fetch_add(1, Ordering::SeqCst) + 1 >= self.limit
         }
     }
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, _, _) = create_fixture(&path);
     let revision = bundle.manifest().unwrap().revision;
     let cancel_after_snapshot_decode = CancelAfter {
@@ -490,8 +595,8 @@ fn tampered_chunk_or_snapshot_is_rejected_and_cancellation_returns_no_result() {
         Err(StoredAnalysisError::Cancelled)
     ));
 
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, _, _, _) = create_fixture(&path);
     assert!(matches!(
         bundle.load_survey_snapshot_with_cancel(
@@ -516,8 +621,8 @@ fn tampered_chunk_or_snapshot_is_rejected_and_cancellation_returns_no_result() {
         Err(kyberia_project_store::StoreError::Cancelled)
     ));
 
-    let directory = tempfile::tempdir().unwrap();
-    let path = directory.path().join("bundle");
+    let directory = retained_directory();
+    let path = directory.join("bundle");
     let (bundle, ids, _, _) = create_fixture(&path);
     let revision = bundle.manifest().unwrap().revision;
     let cancel_before_publication = CancelAfter {

@@ -120,6 +120,13 @@ impl From<SelectionError> for StoredAnalysisError {
 /// Canonical, versioned output provenance. The exact selection manifest and
 /// tile JSON are retained as bytes so consumers can independently verify what
 /// evidence and computation produced the returned tile.
+///
+/// This public document is an untrusted numerical envelope. Its structural
+/// checks bind bytes, hashes, revisions, geometry, and selection provenance,
+/// but they do not make arbitrary serialized cell values scientifically
+/// trusted. A consumer must independently validate the tile with the spatial
+/// engine and revalidate the referenced observation artifacts before treating
+/// it as measured evidence.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StoredRssiAnalysisDocument {
@@ -315,7 +322,9 @@ impl StoredRssiAnalysisDocument {
     /// Decode only the exact canonical V1 output document. The tile's
     /// numerical invariants remain delegated to the spatial engine, while the
     /// envelope, hashes, geometry binding, and resource limits are checked
-    /// here before bytes are accepted as an output artifact.
+    /// here before bytes are accepted as an output artifact. A successful
+    /// decode therefore authenticates an archival envelope, not arbitrary
+    /// numeric cells as trusted measurements.
     pub fn from_canonical_bytes(bytes: &[u8]) -> Result<Self, StoredAnalysisError> {
         if bytes.len() > MAX_OUTPUT_BYTES {
             return Err(StoredAnalysisError::InvalidOutput("output size"));

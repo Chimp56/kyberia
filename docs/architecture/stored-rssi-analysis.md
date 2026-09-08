@@ -30,7 +30,16 @@ selected source chunk hashes, snapshot artifact hashes/revisions, and the
 serialized numerical tile. The result artifact hash is over those complete
 canonical bytes. The tile is returned separately for numerical consumers, but
 the bytes and provenance document remain available for replay and independent
-verification.
+verification. `StoredRssiAnalysisDocument` is an untrusted numerical envelope:
+its structural validator authenticates the retained bytes and bindings but
+does not certify arbitrary serialized cell values. Consumers must validate the
+tile through the spatial engine before treating numeric cells as trusted.
+
+Selection manifest V1 does not retain a typed `SourceKind` field in each
+selected record. Synthetic source and quality evidence are rejected before
+selection, while archival manifests must still revalidate their referenced
+observation chunks before being imported or cached as measured. Existing
+synthetic artifacts are never reclassified automatically as measured evidence.
 
 The store's `Bundle::load_survey_snapshot_with_cancel` is a deliberately
 narrow adapter extension required by this composition: snapshot replay is
