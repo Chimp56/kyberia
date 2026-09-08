@@ -21,8 +21,8 @@ Current remediation ownership:
 Use immediately retained paths (`TempDir::keep`) or a wrapper owning only the
 retained path. A wrapper must not recursively clean up in `Drop`. Retention
 must happen before assertions or other fallible test work, so test failure
-does not restore automatic deletion. Keep generated directories outside the
-tracked source tree or under ignored build-output directories. Do not remove
+does not restore automatic deletion. Keep generated directories under the assigned worktree’s ignored
+`.trash/test-runs/` directory for manual removal. Do not remove
 old directories while performing this correction.
 
 Root's first-party source audit used `git grep` for temporary-directory and
@@ -35,3 +35,7 @@ about every internal operation of compilers or third-party dependencies.
 Affected suites may resume after the corrections are reviewed. A later cleanup
 requires permission for the concrete retained paths; neither this document
 nor a passing test grants that permission.
+
+Native candidate `2aa0290` and stored-analysis candidate `92cc728` now use
+unique directories created directly in their worktree trash bins. Independent
+review is pending; these corrections are not yet integrated into main.

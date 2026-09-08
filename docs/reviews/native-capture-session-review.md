@@ -35,3 +35,13 @@ documentation. A platform capability boundary should not make an unsupported
 operation indistinguishable from a broken supported collector.
 
 The candidate remains isolated pending corrections and independent review.
+
+Correction `39afc88` binds identifier policy and observation count before
+mapping and adds the unsupported-platform outcome. Root independently ran
+the default parallel package suite: 33 unit and two external-port tests
+passed, with the real-host probe explicitly ignored in this invocation.
+Review remains open: the interface check accepts a mixed-source capture if
+any observation matches the requested interface. Require every observed
+interface to match, with a two-source regression whose count remains within
+the requested limit. The author's earlier parallel lifecycle-test failures
+also need exact diagnosis; serial-only success does not establish reliability.
