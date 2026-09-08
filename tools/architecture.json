@@ -7,7 +7,7 @@
     "kyberia-wifi-semantics": {"layer": "numerical", "external_dependencies": ["serde"]},
     "kyberia-observation-analysis": {"layer": "application", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-survey": {"layer": "application", "external_dependencies": ["serde"]},
-    "kyberia-kismet-adapter": {"layer": "adapter", "external_dependencies": ["libc", "rusqlite", "serde", "serde_json", "sha2", "tempfile", "ureq", "url", "windows-sys"]},
+    "kyberia-kismet-adapter": {"layer": "adapter", "external_dependencies": ["libc", "reqwest", "rusqlite", "serde", "serde_json", "sha2", "tempfile", "url", "windows-sys"]},
     "kyberia-packet-import": {"layer": "adapter", "external_dependencies": ["pcap-parser", "sha2"]},
     "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["arrow-array", "arrow-schema", "bytes", "parquet", "rusqlite", "serde", "serde_json", "sha2", "tempfile"]},
     "kyberia-capture-adapter": {"layer": "adapter", "external_dependencies": ["base64", "time", "serde", "serde_json", "sha2"]},

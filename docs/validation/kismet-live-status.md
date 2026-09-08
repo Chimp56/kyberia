@@ -15,7 +15,7 @@ The focused suite includes unit tests for duplicate keys, producer-version
 shape and policy rejection, unknown optional fields, deterministic ordering,
 inventory/depth limits, cancellation, global deadline checks and injected
 retry clocks. The local TCP fixture tests
-the real ureq transport with exact paths and `KISMET` cookie authentication,
+the real reqwest transport with exact paths and `KISMET` cookie authentication,
 local/remote source flags, absent channel facts, secret-free result bytes,
 401 handling without `/session/check_session`, redirects without credential
 forwarding, oversized bodies, remote-HTTP rejection and a real trickle-body
@@ -25,17 +25,30 @@ sleeping.
 
 The fixture producer identity is the inspected pinned source tuple
 `2026.09.0`/`2d25ad0`; a syntactically valid future date or missing/mismatched
-source identity is rejected. The live transport uses ureq 2.12.1 with rustls,
-redirects disabled and proxy-from-environment disabled. Hostname endpoints
-must provide a bounded explicit address list; literal IP endpoints are bound
-automatically. The resolver rejects an unexpected authority and does not call
-system DNS. The URL hostname remains the TLS/HTTP authority while the address
-list controls only TCP destinations. ureq's pinned source documents that its
-system resolver cannot be interrupted by request deadlines, so automatic DNS
-acquisition remains a separate open capability. The acceptance run
-also passes workspace tests, workspace Clippy with warnings denied, the
-architecture dependency-direction check, the 181-package source inventory,
+source identity is rejected. The live transport uses reqwest 0.12.28 with
+rustls, redirects disabled and environment proxies disabled. Its request
+timeout covers connection establishment, TLS negotiation and completion of the
+response body. Hostname endpoints must provide a bounded explicit address list;
+literal IP endpoints are bound automatically. `resolve_to_addrs` maps the
+validated URL hostname to that list without invoking system DNS, while the URL
+hostname remains the TLS/HTTP authority. The explicit-address TLS fixture also
+observes that hostname in the ClientHello. A pinned reqwest source probe and
+the real incomplete-TLS-record fixture demonstrate that a slow handshake
+cannot outlive the shared deadline. Automatic DNS acquisition remains a
+separate open capability because obtaining addresses outside this adapter still
+needs a mature cancellable resolver. The acceptance run passes workspace
+`cargo check`, workspace Clippy with warnings denied, the
+architecture dependency-direction check, the generated source inventory,
 formatting, cargo-deny advisories/licenses/sources/bans, and `git diff --check`.
+
+The live deadline tests assert wall-clock completion as well as the typed
+error: one server sends an incomplete TLS record in 40 ms fragments and another
+sends a response byte every 10 ms. Both must terminate within a 350 ms test
+bound despite request budgets of 100 ms and 80 ms respectively. These are
+transport-boundary tests, not evidence of Kismet server parity. The blocking
+API retains cooperative cancellation: a token set by another thread cannot
+interrupt a syscall already in progress, so its transport timeout remains the
+hard operation bound.
 
 The golden JSON strings are independently authored test inputs, not Kismet
 source or copied captures. They establish decoder and transport behavior only;

@@ -878,13 +878,25 @@ impl KismetDb {
 mod source_open_tests {
     use super::*;
     use std::os::unix::fs::symlink;
+    use std::path::PathBuf;
+
+    fn retained_test_directory() -> PathBuf {
+        let root =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs/kismet-adapter");
+        fs::create_dir_all(&root).unwrap();
+        tempfile::Builder::new()
+            .prefix("source-open-")
+            .tempdir_in(root)
+            .unwrap()
+            .keep()
+    }
 
     #[test]
     fn replaced_preflight_path_cannot_follow_a_symlink() {
-        let directory = tempfile::tempdir().unwrap();
-        let input = directory.path().join("input");
-        let original = directory.path().join("original");
-        let private = directory.path().join("private");
+        let directory = retained_test_directory();
+        let input = directory.join("input");
+        let original = directory.join("original");
+        let private = directory.join("private");
         fs::write(&input, b"selected input").unwrap();
         fs::write(&private, b"must not be imported").unwrap();
         assert!(fs::symlink_metadata(&input).unwrap().is_file());
@@ -895,9 +907,9 @@ mod source_open_tests {
 
     #[test]
     fn source_handle_survives_path_replacement_and_rejects_directories() {
-        let directory = tempfile::tempdir().unwrap();
-        let input = directory.path().join("input");
-        let original = directory.path().join("original");
+        let directory = retained_test_directory();
+        let input = directory.join("input");
+        let original = directory.join("original");
         fs::write(&input, b"selected input").unwrap();
         let mut file = open_snapshot_source(&input).unwrap();
         fs::rename(&input, &original).unwrap();
@@ -905,6 +917,6 @@ mod source_open_tests {
         let mut bytes = Vec::new();
         file.read_to_end(&mut bytes).unwrap();
         assert_eq!(bytes, b"selected input");
-        assert!(open_snapshot_source(directory.path()).is_err());
+        assert!(open_snapshot_source(&directory).is_err());
     }
 }

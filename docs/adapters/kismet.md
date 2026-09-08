@@ -4,10 +4,13 @@ Kismet remains an external GPL integration. Kyberia owns canonical observations 
 
 ## Live status and capability boundary
 
-`live::KismetLiveClient` uses the pinned `ureq` 2.12.1 blocking HTTP client
-with its rustls TLS feature. Its agent has redirects disabled, environment
-proxy discovery disabled by the selected feature set, and a bounded overall
-attempt timeout; each request also receives the remaining shared poll budget.
+`live::KismetLiveClient` uses pinned `reqwest` 0.12.28 blocking HTTP with its
+`rustls-tls` feature. Each client disables redirects and environment proxies,
+binds the URL host to the caller-supplied bounded address list, and gives each
+request the remaining shared poll budget. Reqwest's request timeout covers
+connection establishment, TLS negotiation and completion of the response body;
+this replaces the previous transport whose TLS handshake could outlive its
+socket inactivity timeout.
 Plaintext HTTP endpoints are accepted only for literal loopback addresses used
 by local fixtures; remote Kismet endpoints must use HTTPS.
 The client requests exactly
@@ -21,10 +24,11 @@ The token and endpoint are opaque, non-serializable values. Their debug
 representations and every public error omit secret and URL details. Response
 bytes, JSON depth, source/type/list counts, string lengths, retries and
 backoff are bounded. A global poll deadline is shared across all three
-requests; the underlying socket is bounded by ureq's attempt timeout, while
-cooperative cancellation is checked before each request and during retry
-backoff. A syscall already blocked in a socket read can finish at that
-timeout before cancellation is observed.
+requests; the reqwest total request timeout bounds the connection, TLS
+handshake and body, while cooperative cancellation is checked before each
+request and during retry backoff. A cancellation token cannot interrupt a
+blocking syscall already in progress, so the transport deadline is the hard
+bound for that operation.
 
 The supported producer version is the inspected acceptance tuple from the
 pinned Kismet source (`2026.09.0` with source identity `2d25ad0`, or its full

@@ -8,27 +8,28 @@ uses fixed messages and status categories, so URLs, headers, response bodies
 and tokens cannot escape through errors. The safe status receipt excludes all
 of them as well.
 
-The pinned ureq 2.12.1 agent uses rustls TLS, disables redirects, and leaves
-proxy-from-environment disabled (`default-features = false`; the
-`proxy-from-env` feature is not selected). Thus a configured proxy cannot
-silently receive a cookie, and a redirect cannot forward it to another host.
+The pinned reqwest 0.12.28 blocking client uses rustls TLS, disables redirects,
+and calls `no_proxy()`. Thus a configured proxy cannot silently receive a
+cookie, and a redirect cannot forward it to another host.
 Endpoint validation rejects credentials, query strings, fragments, control
 characters and whitespace in the authority, and permits plaintext HTTP only
 for literal loopback addresses. Remote endpoints require HTTPS. TLS
-certificate validation uses
-ureq's rustls/webpki-roots path; deployments requiring private roots must
-provide a separately reviewed transport configuration rather than disabling
-verification.
+certificate validation uses reqwest's pinned rustls/webpki-roots feature;
+deployments requiring private roots must provide a separately reviewed
+transport configuration rather than disabling verification. Reqwest's
+`resolve_to_addrs` maps only the validated URL host to the explicit destination
+set, preserving the URL hostname for TLS SNI, certificate verification and
+HTTP authority without invoking system DNS.
 
 Response bytes, content-length declarations, JSON nesting, known string sizes,
 inventory counts and retry/backoff are bounded before values are exposed to
-callers. ureq's overall request timeout and the per-request remaining poll
-budget bound a slow or trickled response. A cooperative cancellation token is
-checked before and after each request, after each decode, and in retry
-backoff; it cannot cancel a kernel socket operation already in progress, so
-the transport timeout is part of the bound. GET retries are limited to
-transient status/transport failures and never retry authentication, redirects
-or malformed successful payloads.
+callers. Reqwest's total request timeout and the per-request remaining poll
+budget bound a slow or trickled response, including TLS negotiation. A
+cooperative cancellation token is checked before and after each request, after
+each decode, and in retry backoff; it cannot cancel a kernel socket operation
+already in progress, so the transport timeout is part of the bound. GET
+retries are limited to transient status/transport failures and never retry
+authentication, redirects or malformed successful payloads.
 
 The adapter does not invoke Kismet capture helpers, list local interfaces,
 write configuration, open WebSockets, persist secrets, or expose datasource

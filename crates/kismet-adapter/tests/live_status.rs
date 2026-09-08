@@ -4,7 +4,7 @@ use kyberia_kismet_adapter::live::{
 use std::io::{BufRead, BufReader, Write};
 use std::net::{Shutdown, TcpListener, TcpStream};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const TOKEN: &str = "local-fixture-secret";
 const STATUS: &str = r#"{"kismet.system.version":"2026.09.0-fixture","kismet.system.git":"2d25ad0","kismet.system.server_name":"local-fixture","kismet.system.devices.count":2}"#;
@@ -23,7 +23,9 @@ fn read_request(stream: TcpStream) -> (String, String) {
         if line == "\r\n" || line.is_empty() {
             break;
         }
-        if let Some(value) = line.strip_prefix("Cookie:") {
+        if let Some((name, value)) = line.split_once(':')
+            && name.eq_ignore_ascii_case("Cookie")
+        {
             cookie = value.trim().to_owned();
         }
     }
@@ -194,11 +196,15 @@ fn trickled_body_hits_the_global_deadline() {
         let _ = read_request(stream.try_clone().unwrap());
         write!(
             stream,
-            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnection: close\r\n\r\nx"
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 32\r\nConnection: close\r\n\r\nx"
         )
         .unwrap();
-        thread::sleep(Duration::from_millis(220));
-        let _ = stream.write_all(b"y");
+        for _ in 0..31 {
+            thread::sleep(Duration::from_millis(10));
+            if stream.write_all(b"x").is_err() {
+                break;
+            }
+        }
     });
     let client = KismetLiveClient::connect(
         Endpoint::new(endpoint).unwrap(),
@@ -210,9 +216,13 @@ fn trickled_body_hits_the_global_deadline() {
         },
     )
     .unwrap();
-    assert_eq!(
-        client.poll(&CancellationToken::default()),
-        Err(LiveError::DeadlineExceeded)
+    let started = Instant::now();
+    let result = client.poll(&CancellationToken::default());
+    let elapsed = started.elapsed();
+    assert_eq!(result, Err(LiveError::DeadlineExceeded));
+    assert!(
+        elapsed < Duration::from_millis(350),
+        "80ms request deadline took {elapsed:?}: {result:?}"
     );
     handle.join().unwrap();
 }

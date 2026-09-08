@@ -16,17 +16,19 @@ validates browser sessions and is not an API-key admission test.
 
 `kyberia-kismet-adapter::live` exposes a read-only `KismetLiveClient` whose
 only requests are GETs to `/system/status.json`, `/datasource/types.json`, and
-`/datasource/all_sources.json`, in that order. It uses ureq 2.12.1 with the
-rustls feature, redirects disabled, proxy-from-environment disabled, and a
-bounded overall attempt timeout plus the remaining shared poll budget on each
-request. Hostname endpoints require a caller-supplied list of at most
-`MAX_ENDPOINT_ADDRESSES` explicit `SocketAddr` values. The adapter installs a
-strict ureq resolver that accepts only the exact URL host/port authority, so
-the system `ToSocketAddrs` resolver is never reached. The original URL host is
-still passed to HTTP and TLS for authority and certificate verification;
-addresses select only the TCP destinations. Literal IP endpoints are bound
-automatically through this resolver. Plaintext HTTP is permitted only for
-literal loopback fixture addresses; remote endpoints require HTTPS. The caller supplies an opaque
+`/datasource/all_sources.json`, in that order. It uses pinned reqwest 0.12.28
+blocking HTTP with the `rustls-tls` feature, redirects disabled, environment
+proxies disabled, and the remaining shared poll budget as the per-request
+total timeout. Reqwest documents this timeout as covering connection
+establishment through completion of the response body, including TLS
+negotiation. Hostname endpoints require a caller-supplied list of at most
+`MAX_ENDPOINT_ADDRESSES` explicit `SocketAddr` values. The adapter uses
+reqwest's `resolve_to_addrs` for the exact URL host, so the system resolver is
+never reached. The original URL host is still passed to HTTP and TLS for
+authority, SNI and certificate verification; addresses select only TCP
+destinations. Literal IP endpoints are bound automatically. Plaintext HTTP is
+permitted only for literal loopback fixture addresses; remote endpoints require
+HTTPS. The caller supplies an opaque
 `ApiToken`; secret values never enter
 URLs, errors, debug output or serialized status receipts.
 
@@ -57,8 +59,18 @@ model, regulatory claim, or final RF metric.
   capture helpers and requires administrative access.
 - A generic JSON map was rejected because it permits unknown fields to become
   semantic data and cannot provide a bounded canonical receipt.
-- A new HTTP implementation was rejected because mature ureq transport and
-  rustls already provide TLS, status handling and socket timeouts.
+- ureq 2.12.1 was rejected after its pinned source and an independent fixture
+  showed that its raw rustls handshake could outlive the socket inactivity
+  timeout while receiving a slow, incomplete TLS record. A post-hoc elapsed
+  check would leave the blocking operation running and was rejected.
+- A detached worker or process wrapper was rejected because it would leave
+  uncancellable I/O and complicate ownership of the authenticated connection.
+- Reqwest 0.12.28 blocking HTTP was selected because its mature rustls client
+  exposes explicit address overrides and a total request timeout. The pinned
+  crate source documents the timeout from connect through body completion, and
+  the retained TLS and trickle-body fixtures assert the wall-clock bound. The
+  source contracts are [RequestBuilder::timeout](https://docs.rs/reqwest/0.12.28/reqwest/blocking/struct.RequestBuilder.html#method.timeout)
+  and [ClientBuilder::resolve_to_addrs](https://docs.rs/reqwest/0.12.28/reqwest/blocking/struct.ClientBuilder.html#method.resolve_to_addrs).
 - A Kismet tracker/device aggregate was rejected as a survey observation;
   time-resolved packet evidence requires a later, separately validated path.
 
@@ -70,10 +82,15 @@ domain. The local fixture proves exact request/cookie behavior, retry and
 decoder limits. It does not prove live-server parity, hardware capture,
 WebSocket framing, source hopping/dwell/drop telemetry, clock correlation,
 packet normalization, remote TLS deployment, or GPL distribution clearance.
-The explicit address list avoids ureq's uninterruptible system DNS path.
+The explicit address list avoids any system DNS call inside the bounded poll.
 Automatic DNS acquisition remains a separate open capability until a mature
 cancellable resolver integration is selected and reviewed; it is not hidden
-inside a detached thread or an uncancellable helper.
+inside a detached thread or an uncancellable helper. The blocking API retains
+cooperative cancellation between requests; a token cannot interrupt a syscall
+already in progress, so the reqwest total request timeout supplies that
+operation's hard bound. The transport decision is reversible because the
+`HttpGet` boundary and wire DTO are unchanged and the dependency is isolated to
+the adapter.
 Those remain Gate H/OSS-001 acceptance work and require a controlled pinned
 Kismet runtime. The source package is tracked only as an external process; no
 GPL source or helper is bundled.

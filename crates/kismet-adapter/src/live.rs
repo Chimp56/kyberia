@@ -75,7 +75,6 @@ pub struct Endpoint {
     base: String,
     host: String,
     port: u16,
-    resolver_netloc: String,
     addresses: Vec<SocketAddr>,
 }
 
@@ -114,7 +113,6 @@ impl Endpoint {
         if base.is_empty() {
             return Err(LiveError::InvalidEndpoint);
         }
-        let resolver_netloc = format!("{host}:{port}");
         let addresses = parse_literal_ip(&host)
             .map(|address| vec![SocketAddr::new(address, port)])
             .unwrap_or_default();
@@ -122,19 +120,18 @@ impl Endpoint {
             base,
             host,
             port,
-            resolver_netloc,
             addresses,
         })
     }
 
     /// Attach a bounded, caller-resolved destination list.
     ///
-    /// ureq's default resolver delegates to `ToSocketAddrs`, whose system DNS
-    /// operation cannot be interrupted by the request deadline. This method
-    /// makes resolution an explicit boundary. For hostname URLs the supplied
-    /// addresses are used only for TCP; the original URL hostname remains the
-    /// TLS server name and HTTP authority. Literal IP URLs may omit this call,
-    /// and a matching address is installed automatically by [`Endpoint::new`].
+    /// The blocking transport's default resolver may perform system DNS outside
+    /// the request deadline. This method makes resolution an explicit boundary.
+    /// For hostname URLs the supplied addresses are used only for TCP; the
+    /// original URL hostname remains the TLS server name and HTTP authority.
+    /// Literal IP URLs may omit this call, and a matching address is installed
+    /// automatically by [`Endpoint::new`].
     pub fn with_resolved_addresses(
         mut self,
         addresses: impl IntoIterator<Item = SocketAddr>,
@@ -163,14 +160,12 @@ impl Endpoint {
         format!("{}{}", self.base, path)
     }
 
-    fn resolver(&self) -> Result<ExplicitResolver, LiveError> {
+    fn require_addresses(&self) -> Result<(), LiveError> {
         if self.addresses.is_empty() {
-            return Err(LiveError::AddressResolutionRequired);
+            Err(LiveError::AddressResolutionRequired)
+        } else {
+            Ok(())
         }
-        Ok(ExplicitResolver {
-            netloc: self.resolver_netloc.clone(),
-            addresses: self.addresses.clone(),
-        })
     }
 }
 
@@ -182,24 +177,6 @@ fn parse_literal_ip(host: &str) -> Option<IpAddr> {
     })
 }
 
-#[derive(Clone, Debug)]
-struct ExplicitResolver {
-    netloc: String,
-    addresses: Vec<SocketAddr>,
-}
-
-impl ureq::Resolver for ExplicitResolver {
-    fn resolve(&self, netloc: &str) -> io::Result<Vec<SocketAddr>> {
-        if netloc != self.netloc {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "unexpected resolver authority",
-            ));
-        }
-        Ok(self.addresses.clone())
-    }
-}
-
 impl fmt::Debug for Endpoint {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("Endpoint(<redacted>)")
@@ -207,8 +184,8 @@ impl fmt::Debug for Endpoint {
 }
 
 /// Cooperative cancellation for polling between bounded HTTP operations and
-/// retry backoff.  A blocking socket read is bounded by the configured ureq
-/// request timeout; cancellation cannot interrupt a syscall already in
+/// retry backoff. A blocking request is bounded by the configured reqwest
+/// total request timeout; cancellation cannot interrupt a syscall already in
 /// progress.
 #[derive(Clone, Default)]
 pub struct CancellationToken(Arc<AtomicBool>);
@@ -537,7 +514,7 @@ impl KismetLiveClient {
         limits: LiveLimits,
     ) -> Result<Self, LiveError> {
         let limits = limits.validate()?;
-        endpoint.resolver()?;
+        endpoint.require_addresses()?;
         Ok(Self {
             endpoint,
             token,
@@ -555,7 +532,7 @@ impl KismetLiveClient {
         cancellation: &CancellationToken,
         clock: &mut C,
     ) -> Result<LiveStatusSnapshot, LiveError> {
-        let executor = UreqHttp;
+        let executor = ReqwestHttp;
         self.poll_with_executor(&executor, cancellation, clock)
     }
 
@@ -692,9 +669,9 @@ trait HttpGet {
     ) -> Result<RawResponse, LiveError>;
 }
 
-struct UreqHttp;
+struct ReqwestHttp;
 
-impl HttpGet for UreqHttp {
+impl HttpGet for ReqwestHttp {
     fn get(
         &self,
         endpoint: &Endpoint,
@@ -705,29 +682,21 @@ impl HttpGet for UreqHttp {
         remaining: Duration,
     ) -> Result<RawResponse, LiveError> {
         let url = endpoint.url_for(path);
-        let agent = ureq::AgentBuilder::new()
-            .redirects(0)
-            .try_proxy_from_env(false)
-            .timeout(remaining)
-            .timeout_connect(remaining)
-            .resolver(endpoint.resolver()?)
-            .build();
-        let response = match agent
+        let client = reqwest::blocking::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .no_proxy()
+            .connect_timeout(remaining)
+            .resolve_to_addrs(&endpoint.host, &endpoint.addresses)
+            .build()
+            .map_err(|_| LiveError::Transport)?;
+        let response = client
             .get(&url)
-            .set("Accept", "application/json")
-            .set("Cookie", cookie)
-            .call()
-        {
-            Ok(response) => response,
-            Err(ureq::Error::Status(_, response)) => response,
-            Err(ureq::Error::Transport(transport)) => {
-                if transport.kind() == ureq::ErrorKind::TooManyRedirects {
-                    return Err(LiveError::Redirect);
-                }
-                return Err(LiveError::Transport);
-            }
-        };
-        let status = response.status();
+            .timeout(remaining)
+            .header(reqwest::header::ACCEPT, "application/json")
+            .header(reqwest::header::COOKIE, cookie)
+            .send()
+            .map_err(map_reqwest_error)?;
+        let status = response.status().as_u16();
         if !(200..300).contains(&status) {
             // Status/error bodies are deliberately discarded.  They cannot
             // affect admission and may contain untrusted or secret-bearing
@@ -830,18 +799,26 @@ fn is_transient_status(status: u16) -> bool {
     matches!(status, 408 | 425 | 429 | 500..=599)
 }
 
-fn read_response_body(response: ureq::Response, limits: &LiveLimits) -> Result<Vec<u8>, LiveError> {
+fn read_response_body(
+    response: reqwest::blocking::Response,
+    limits: &LiveLimits,
+) -> Result<Vec<u8>, LiveError> {
     let declared_length = response
-        .header("Content-Length")
-        .map(|value| value.parse::<usize>().map_err(|_| LiveError::MalformedJson))
+        .headers()
+        .get(reqwest::header::CONTENT_LENGTH)
+        .map(|value| {
+            value
+                .to_str()
+                .map_err(|_| LiveError::MalformedJson)?
+                .parse::<usize>()
+                .map_err(|_| LiveError::MalformedJson)
+        })
         .transpose()?;
     if declared_length.is_some_and(|length| length > limits.max_body_bytes) {
         return Err(LiveError::BodyTooLarge);
     }
     let mut body = Vec::new();
-    let mut reader = response
-        .into_reader()
-        .take(limits.max_body_bytes as u64 + 1);
+    let mut reader = response.take(limits.max_body_bytes as u64 + 1);
     if let Err(error) = reader.read_to_end(&mut body) {
         if declared_length.is_some_and(|length| body.len() < length) {
             return Err(LiveError::TruncatedBody);
@@ -855,6 +832,14 @@ fn read_response_body(response: ureq::Response, limits: &LiveLimits) -> Result<V
         return Err(LiveError::TruncatedBody);
     }
     Ok(body)
+}
+
+fn map_reqwest_error(error: reqwest::Error) -> LiveError {
+    if error.is_timeout() {
+        LiveError::DeadlineExceeded
+    } else {
+        LiveError::Transport
+    }
 }
 
 fn map_io_error(error: &io::Error) -> LiveError {
@@ -1342,7 +1327,6 @@ mod tests {
     use std::cell::{Cell, RefCell};
     use std::collections::VecDeque;
     use std::rc::Rc;
-    use ureq::Resolver;
 
     struct FixtureClock {
         elapsed: Rc<Cell<Duration>>,
@@ -1504,17 +1488,11 @@ mod tests {
             .with_resolved_addresses(["192.0.2.10:2501".parse().unwrap()])
             .unwrap();
         assert_eq!(endpoint.host, "kismet.example.invalid");
-        assert_eq!(endpoint.resolver_netloc, "kismet.example.invalid:2501");
         assert_eq!(
             endpoint.url_for(STATUS_PATH),
             "https://kismet.example.invalid:2501/api/system/status.json"
         );
-        let resolver = endpoint.resolver().unwrap();
-        assert_eq!(
-            resolver.resolve("kismet.example.invalid:2501").unwrap(),
-            vec!["192.0.2.10:2501".parse().unwrap()]
-        );
-        assert!(resolver.resolve("other.example.invalid:2501").is_err());
+        assert_eq!(endpoint.addresses, vec!["192.0.2.10:2501".parse().unwrap()]);
     }
 
     #[test]
@@ -1553,14 +1531,10 @@ mod tests {
     }
 
     #[test]
-    fn literal_ipv6_resolver_authority_matches_ureq_format() {
+    fn literal_ipv6_transport_address_matches_endpoint() {
         let endpoint = Endpoint::new("https://[::1]:2501").unwrap();
         assert_eq!(endpoint.host, "[::1]");
-        assert_eq!(endpoint.resolver_netloc, "[::1]:2501");
-        assert_eq!(
-            endpoint.resolver().unwrap().resolve("[::1]:2501").unwrap(),
-            vec!["[::1]:2501".parse().unwrap()]
-        );
+        assert_eq!(endpoint.addresses, vec!["[::1]:2501".parse().unwrap()]);
     }
 
     #[test]

@@ -35,19 +35,23 @@ reviewed offline capabilities. Their approval does not close this packet or
 the complete Kismet runtime gate.
 
 The bounded implementation now lives in `crates/kismet-adapter/src/live.rs`.
-It uses pinned ureq 2.12.1 with rustls, requests only the three read-only
-resources above, and emits the versioned secret-free
+It uses pinned reqwest 0.12.28 blocking HTTP with rustls, requests only the
+three read-only resources above, and emits the versioned secret-free
 `LiveStatusSnapshot`. Local fixture evidence is recorded in
 `docs/validation/kismet-live-status.md`; no real Kismet binary or privileged
 capture helper has been run. Compatibility is deliberately restricted to the
 inspected acceptance tuple `2026.09.0` plus Kismet source identity `2d25ad0`
 (or its full pinned commit); build-date versions are not treated as a broad
-API compatibility promise. ureq's pinned source documents that its default
-`ToSocketAddrs` resolver cannot be interrupted by a request timeout, so
-`Endpoint::with_resolved_addresses` is the explicit resolution boundary.
+API compatibility promise. `Endpoint::with_resolved_addresses` is the
+explicit resolution boundary: reqwest's `resolve_to_addrs` maps only the
+validated URL host to caller-provided TCP destinations and does not invoke
+system DNS.
 DNS acquisition, including a bounded cancellable resolver, remains an open
 transport capability and is not performed by this adapter. Per-request
-connection and body deadlines are still applied after address resolution.
+connection, TLS-handshake and body deadlines are enforced by reqwest's total
+request timeout after address resolution. The blocking API retains cooperative
+cancellation between requests; a cancellation token cannot interrupt a
+blocking syscall already in progress.
 
 ## Local runtime preparation
 
