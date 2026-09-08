@@ -622,6 +622,23 @@ fn measured_selection_rejects_synthetic_source_and_quality_evidence() {
         synthetic_quality_result.manifest().evidence_plane,
         SelectionEvidencePlane::Measured
     );
+
+    let selected = ValidatedObservedRssiSet::build(
+        request(vec![original.data().id]),
+        metric(),
+        spatial_config(),
+        &input,
+        std::slice::from_ref(&original),
+    )
+    .unwrap();
+    let mut forged = selected.manifest().clone();
+    forged.selected[0]
+        .quality
+        .push(QualityFlag::SyntheticFixture);
+    assert!(matches!(
+        SelectionManifest::from_canonical_bytes(&serde_json::to_vec(&forged).unwrap()),
+        Err(SelectionError::InvalidManifest("unusable selected quality"))
+    ));
 }
 
 #[test]
