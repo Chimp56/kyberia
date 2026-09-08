@@ -32,7 +32,7 @@ use std::{
     collections::BTreeMap,
     fs,
     num::NonZeroU32,
-    path::Path,
+    path::{Path, PathBuf},
     rc::Rc,
     time::{Duration, Instant},
 };
@@ -218,6 +218,25 @@ fn project(path: &Path) -> Bundle {
     .unwrap()
 }
 
+/// Test stores are intentionally retained so dropping a test value never
+/// performs implicit recursive deletion under the repository test policy.
+struct RetainedTempDir {
+    path: PathBuf,
+}
+
+impl RetainedTempDir {
+    fn path(&self) -> &Path {
+        &self.path
+    }
+}
+
+fn retained_tempdir() -> RetainedTempDir {
+    let directory = tempfile::tempdir().unwrap();
+    RetainedTempDir {
+        path: directory.keep(),
+    }
+}
+
 #[cfg(unix)]
 #[derive(Clone, Copy)]
 enum SyntheticCollectorBehavior {
@@ -234,8 +253,8 @@ enum SyntheticCollectorBehavior {
 fn synthetic_collector(
     fixture: &[u8],
     behavior: SyntheticCollectorBehavior,
-) -> (tempfile::TempDir, TrustedCollector) {
-    let directory = tempfile::tempdir().unwrap();
+) -> (RetainedTempDir, TrustedCollector) {
+    let directory = retained_tempdir();
     let fixture_path = directory.path().join("synthetic.ndjson");
     fs::write(&fixture_path, fixture).unwrap();
     let script_path = directory.path().join("synthetic-collector");
@@ -396,9 +415,9 @@ fn two_observation_batch() -> ReceivedObservationBatch {
     ReceivedObservationBatch::from_normalized_capture(capture).unwrap()
 }
 
-fn stage_manifest_and_chunk(envelope: ObservationEnvelope) -> (tempfile::TempDir, Bundle, String) {
+fn stage_manifest_and_chunk(envelope: ObservationEnvelope) -> (RetainedTempDir, Bundle, String) {
     let batch = batch();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let manifest = bundle
@@ -432,7 +451,7 @@ fn stage_manifest_and_chunk(envelope: ObservationEnvelope) -> (tempfile::TempDir
 fn normalized_native_capture_associates_and_reopens_with_manifest_and_link() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(60), &NeverCancel).unwrap();
@@ -497,7 +516,7 @@ fn source_order_is_kept_for_association_while_chunk_rows_are_canonical() {
             .collect::<Vec<_>>()
     );
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(59), &NeverCancel).unwrap();
@@ -526,7 +545,7 @@ fn source_order_is_kept_for_association_while_chunk_rows_are_canonical() {
 fn exact_retry_is_idempotent_for_chunk_snapshot_and_capture_link() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let first = ingest(&mut bundle, &survey, &batch, &request(61), &NeverCancel).unwrap();
@@ -542,7 +561,7 @@ fn exact_retry_is_idempotent_for_chunk_snapshot_and_capture_link() {
 fn capture_manifest_hash_tampering_is_detected_on_publication_read() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(62), &NeverCancel).unwrap();
@@ -561,7 +580,7 @@ fn capture_manifest_hash_tampering_is_detected_on_publication_read() {
 fn read_only_capture_publication_is_inspectable_but_not_writable() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(63), &NeverCancel).unwrap();
@@ -609,7 +628,7 @@ fn terminal_empty_and_cancelled_captures_persist_capability_and_status() {
         assert!(batch.observations().is_empty());
         assert!(batch.manifest().capabilities().as_known().is_some());
         let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-        let directory = tempfile::tempdir().unwrap();
+        let directory = retained_tempdir();
         let path = directory.path().join("project");
         let mut bundle = project(&path);
         let outcome = ingest(&mut bundle, &survey, &batch, &request(byte), &NeverCancel).unwrap();
@@ -634,7 +653,7 @@ fn cancellation_after_empty_manifest_publication_is_recoverable() {
     );
     let batch = ReceivedObservationBatch::from_normalized_capture(capture).unwrap();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
 
@@ -711,7 +730,7 @@ fn retained_raw_records_have_verified_artifact_closure() {
         RawSourceDisposition::Retained
     );
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(74), &NeverCancel).unwrap();
@@ -731,7 +750,7 @@ fn retained_raw_records_have_verified_artifact_closure() {
 fn cancellation_before_chunk_leaves_recoverable_manifest_without_association() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let cancel = CancelAfter::new(4);
@@ -769,7 +788,7 @@ fn cancellation_before_chunk_leaves_recoverable_manifest_without_association() {
 fn cancellation_during_retained_raw_publication_is_recoverable() {
     let batch = retained_batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let cancel = CancelAfter::new(5);
@@ -883,7 +902,7 @@ fn future_wire_and_duplicate_observations_fail_closed() {
 fn public_port_rejects_manifest_observation_mismatch_before_publication() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let req = request(60);
@@ -905,7 +924,7 @@ fn public_port_rejects_manifest_observation_mismatch_before_publication() {
 fn public_port_rejects_unassociated_survey_before_publication() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let req = request(83);
@@ -934,7 +953,7 @@ fn public_port_rejects_unassociated_survey_before_publication() {
 fn capture_links_reject_same_count_chunk_with_different_observation_identity() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(84), &NeverCancel).unwrap();
@@ -965,7 +984,7 @@ fn capture_links_reject_same_count_chunk_with_different_observation_identity() {
 fn capture_links_reject_same_project_snapshot_without_manifest_associations() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(85), &NeverCancel).unwrap();
@@ -993,7 +1012,7 @@ fn capture_links_reject_same_project_snapshot_without_manifest_associations() {
 fn capture_snapshot_link_rejects_same_id_with_different_canonical_metadata() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let manifest = bundle
@@ -1115,7 +1134,7 @@ fn capture_snapshot_link_rejects_canonical_capture_mode_substitution() {
 fn capture_publication_readback_rejects_contradictory_snapshot_association() {
     let batch = batch();
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let outcome = ingest(&mut bundle, &survey, &batch, &request(90), &NeverCancel).unwrap();
@@ -1173,7 +1192,7 @@ fn raw_reference_metadata_must_match_the_referenced_source_record() {
 fn supervised_scan_normalizes_persists_and_reopens_exactly() {
     let (_collector_dir, collector) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
@@ -1266,7 +1285,7 @@ fn supervised_process_accepts_probe_denied_partial_error_and_empty_terminals() {
     {
         let (_collector_dir, collector) =
             synthetic_collector(fixture, SyntheticCollectorBehavior::Fixture { exit_code });
-        let directory = tempfile::tempdir().unwrap();
+        let directory = retained_tempdir();
         let path = directory.path().join("project");
         let mut bundle = project(&path);
         let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
@@ -1297,7 +1316,7 @@ fn supervised_process_accepts_probe_denied_partial_error_and_empty_terminals() {
 #[cfg(unix)]
 #[test]
 fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
@@ -1402,7 +1421,7 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
 #[cfg(unix)]
 #[test]
 fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain() {
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
@@ -1481,7 +1500,7 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
 fn supervised_process_rejects_identifier_policy_mismatch_before_persistence() {
     let (_script, collector) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
@@ -1510,7 +1529,7 @@ fn supervised_process_rejects_identifier_policy_mismatch_before_persistence() {
 fn supervised_process_rejects_included_identifiers_for_redacted_request_before_owned_mapping() {
     let (_script, collector) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
@@ -1615,7 +1634,7 @@ fn supervised_process_binds_requested_limit_and_mixed_active_interfaces_before_m
             fixture.as_bytes(),
             SyntheticCollectorBehavior::Fixture { exit_code: 0 },
         );
-        let directory = tempfile::tempdir().unwrap();
+        let directory = retained_tempdir();
         let path = directory.path().join("project");
         let mut bundle = project(&path);
         let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
@@ -1658,7 +1677,7 @@ fn supervised_real_redacted_capability_probe_uses_the_rust_boundary() {
         "build collectors/macos/build.py before running this host probe"
     );
     let collector = TrustedCollector::new(collector_path, built_native_collector_hash()).unwrap();
-    let directory = tempfile::tempdir().unwrap();
+    let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(false), stamp(100)).unwrap();
