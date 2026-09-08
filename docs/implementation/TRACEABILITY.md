@@ -9,7 +9,7 @@ Inventory: 3335 leaf obligations; 433 obligation groups; 1624 coverage-only bloc
 
 Source SHA-256: `57b6bb686456a567f882a8e4a1eec7bcdcfafea843dd060f224e76c7122328ea`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 69 | NOT_STARTED: 3201 | VALIDATED: 65
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 70 | NOT_STARTED: 3200 | VALIDATED: 65
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3733,7 +3733,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 69 | NO
 | `backlog:UX-003:1` | [L4375](../../plan.md#L4375) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-003 &#124; P0 &#124; Selection/context chips &#124; Screenshots always reveal scope &#124; | obligation | NOT_STARTED |  |
 | `backlog:UX-004:1` | [L4376](../../plan.md#L4376) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-004 &#124; P0 &#124; Unknown/provenance visual language &#124; Usability test distinguishes states &#124; | obligation | NOT_STARTED |  |
 | `backlog:UX-005:1` | [L4377](../../plan.md#L4377) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-005 &#124; P1 &#124; Report AST and HTML/PDF &#124; Rebuild from immutable manifest &#124; | obligation | NOT_STARTED |  |
-| `backlog:UX-006:1` | [L4378](../../plan.md#L4378) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-006 &#124; P1 &#124; CSV/Parquet/GeoPackage exports &#124; Round-trip/schema documentation &#124; | obligation | NOT_STARTED |  |
+| `backlog:UX-006:1` | [L4378](../../plan.md#L4378) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-006 &#124; P1 &#124; CSV/Parquet/GeoPackage exports &#124; Round-trip/schema documentation &#124; | obligation | IN_PROGRESS | [implementation](../../apps/cli/src/observation_export.rs), [implementation](../../docs/data/observation-parquet-export.md) |
 | `backlog:UX-007:1` | [L4379](../../plan.md#L4379) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-007 &#124; P1 &#124; Easy-mode guided diagnosis &#124; Home workflow usability test &#124; | obligation | NOT_STARTED |  |
 | `backlog:UX-008:1` | [L4380](../../plan.md#L4380) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-008 &#124; P1 &#124; Large-project AP search/groups &#124; 10k AP performance fixture &#124; | obligation | NOT_STARTED |  |
 | `backlog:UX-009:1` | [L4381](../../plan.md#L4381) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — &#124; UX-009 &#124; P1 &#124; Accessibility/print palettes &#124; Contrast/color-blind tests &#124; | obligation | NOT_STARTED |  |
