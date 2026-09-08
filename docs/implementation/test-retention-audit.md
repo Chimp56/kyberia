@@ -45,3 +45,9 @@ and passed the complete adapter suite afterward. Root independently passed
 native candidate `2aa0290` with its direct retained-directory helper (33 unit
 and two external-port tests, one explicit real-host probe ignored). Its fresh
 subsystem review remains pending, so the native implementation is still isolated.
+
+Native retention is integrated through `365a8e6`; stored retention through
+`64af05e`. The fresh native review approved the correction. Root then resumed
+the full Rust workspace suite successfully (426 passed, nine ignored), with
+all identified automatic test-directory cleanup corrected. Retained artifacts
+remain for manual deletion; no automatic trash emptying was introduced.

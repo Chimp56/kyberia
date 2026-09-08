@@ -83,3 +83,20 @@ Hardware validation still needs a real signed/approved collector, CoreWLAN
 authorization behavior, source-build attestation provisioning, operator
 consent UX and a production identity-mapping implementation. Those gates are
 outside this deterministic synthetic process harness.
+
+## Independent integration regression
+
+Integrated through `365a8e6`. Root executed:
+
+- `cargo test --workspace --locked --offline`: 426 passed, zero failed,
+  nine explicitly ignored tests/benchmarks, including doctests in the total.
+- `python3 tools/dev.py lint`: workspace formatting, Clippy and architecture passed.
+- `.tools/venv/bin/python -m unittest discover -s tests -p 'test_*.py'`:
+  179 run, 19 skipped, no failures.
+- `python3 tools/validation/fixtures.py check`: passed.
+- `.tools/venv/bin/python tools/source_inventory.py check`: 223 packages passed.
+- `python3 tools/ledger.py check`: complete source coverage and evidence passed.
+
+The ignored native probe is not RF scan validation. The full suite resumed
+only after all identified automatic test-directory cleanup was replaced with
+retained fixtures. Hardware and product workflow acceptance remain separate.

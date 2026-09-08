@@ -39322,14 +39322,20 @@
         {
           "path": "crates/observation-pipeline/src/lib.rs",
           "description": "Reviewed normalization-to-survey and immutable bundle composition; product workflow remains open",
-          "revision": "005d17a792ab0744773de64a7b2b6483e933c86efc9edd9e63d4a8f67fd71662",
-          "sha256": "005d17a792ab0744773de64a7b2b6483e933c86efc9edd9e63d4a8f67fd71662"
+          "revision": "9b2539a0c2002d9c4a6f073f7e7cf52e2bbae35d567b88d289ecca9b7f74fc7e",
+          "sha256": "9b2539a0c2002d9c4a6f073f7e7cf52e2bbae35d567b88d289ecca9b7f74fc7e"
         },
         {
           "path": "crates/stored-analysis/src/lib.rs",
           "description": "Reviewed revision-bound stored observation and survey composition into RSSI tiles; UI remains open",
           "revision": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7",
           "sha256": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7"
+        },
+        {
+          "path": "crates/observation-pipeline/src/process.rs",
+          "description": "Reviewed native collector supervision and request privacy binding; authorized RF scan/product wiring remain open",
+          "revision": "5328abb3010bbf4e22776470862e0a737da154039bac0252f1702a171d6757a9",
+          "sha256": "5328abb3010bbf4e22776470862e0a737da154039bac0252f1702a171d6757a9"
         }
       ],
       "validation": [
@@ -39354,8 +39360,8 @@
         {
           "path": "crates/observation-pipeline/src/tests.rs",
           "description": "Recoverable native persistence, exact raw and observation closure, hostile snapshot readback",
-          "revision": "2843d69979001e06347d1aa20278504b1134346cada5017266ad83e71915f717",
-          "sha256": "2843d69979001e06347d1aa20278504b1134346cada5017266ad83e71915f717",
+          "revision": "4d17ee98964c2a388785759e52e379a54ebe203f73aa5872bcc19ae8ffb68101",
+          "sha256": "4d17ee98964c2a388785759e52e379a54ebe203f73aa5872bcc19ae8ffb68101",
           "command": "cargo test -p kyberia-observation-pipeline --locked --offline",
           "scope": "native_persistence_contract",
           "result": "PASS"
@@ -39424,6 +39430,15 @@
           "revision": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
           "sha256": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
           "reviewer": "/root/operation_log_luna and /root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/native-capture-session-review.md",
+          "description": "Fresh independent native session review with concurrency and lifecycle regressions",
+          "revision": "f3f83455e368aa04e0bec3cddf6c795d02df4bd6575a4baa921a1a9243d637e7",
+          "sha256": "f3f83455e368aa04e0bec3cddf6c795d02df4bd6575a4baa921a1a9243d637e7",
+          "reviewer": "/root/operation_log_review_luna and /root",
           "disposition": "APPROVED",
           "findings": []
         }

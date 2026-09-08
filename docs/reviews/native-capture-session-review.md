@@ -1,3 +1,23 @@
+# Current native session disposition
+
+APPROVED at candidate `2aa0290`, integrated through `365a8e6`.
+Independent reviewer /root/operation_log_review_luna found no unresolved
+BLOCKER, MAJOR, MINOR or NIT findings. Typed identifier policy is bound before
+mapping; every source interface must match the request. Forced pipe drains
+fail closed, child process supervision is bounded, and unsupported platforms
+return an explicit capability outcome.
+
+The reviewer passed 33 unit and two external-port tests, repeated the package
+with 16 test threads, and passed the lifecycle regression three times. Root
+separately passed the default package suite. The real-host probe was explicitly
+ignored in those invocations. Capture adapter tests, focused Clippy, formatting,
+architecture and source inventory checks passed in independent review.
+
+Retained fixtures now create unique directories directly under `.trash/test-runs`.
+Real authorized RF scanning, consent behavior, production identity mapping and
+cross-platform runtime gates remain open. Historical findings below document
+the corrections and are superseded only for the reviewed bounded session scope.
+
 # Native capture session review
 
 Candidate: `652c6c7`. Author: /root/operation_log_luna.
