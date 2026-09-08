@@ -436,6 +436,39 @@ fn actual_capture_time_is_never_reinterpreted_as_retrieval_time() {
 }
 
 #[test]
+fn admitted_observation_query_rejects_same_id_substitutions() {
+    let original = observation(1, 500_000_000);
+    let accepted = start().admit(&original, stamp(500_000_000)).unwrap();
+    assert_eq!(accepted.validate_admitted_observation(&original), Ok(()));
+
+    let mut changed_rssi = original.clone().into_data();
+    let ObservationPayload::Scan(scan) = &mut changed_rssi.payload else {
+        unreachable!()
+    };
+    scan.signal.rssi_dbm = Evidence::Known(Dbm::new(-61.).unwrap());
+    assert_eq!(
+        accepted.validate_admitted_observation(&ObservationEnvelope::new(changed_rssi).unwrap()),
+        Err(SurveyError::InvalidSnapshot)
+    );
+
+    let mut changed_time = original.clone().into_data();
+    changed_time.time.monotonic = Evidence::Known(stamp(400_000_000));
+    assert_eq!(
+        accepted.validate_admitted_observation(&ObservationEnvelope::new(changed_time).unwrap()),
+        Err(SurveyError::InvalidSnapshot)
+    );
+
+    let mut changed_pose = original.into_data();
+    let mut pose = pose();
+    pose.position.x = CoordinateMeters::new(1.1).unwrap();
+    changed_pose.pose = Evidence::Known(pose);
+    assert_eq!(
+        accepted.validate_admitted_observation(&ObservationEnvelope::new(changed_pose).unwrap()),
+        Err(SurveyError::InvalidSnapshot)
+    );
+}
+
+#[test]
 fn monitor_frames_and_finite_snr_require_actual_supported_evidence() {
     let mut cfg = config();
     cfg.mode = CaptureMode::Frame;

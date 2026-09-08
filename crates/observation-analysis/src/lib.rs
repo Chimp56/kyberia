@@ -229,6 +229,8 @@ pub struct AssociationTime {
 #[serde(rename_all = "snake_case", tag = "kind", content = "reason")]
 pub enum RejectionReason {
     MissingObservation,
+    MissingAssociation,
+    AdmissionMismatch,
     WrongBssid,
     UnknownBssid(UnknownReason),
     UnknownRssi(UnknownReason),
@@ -627,7 +629,11 @@ impl ValidatedObservedRssiSet {
                 rejected.push(RejectedEvidence {
                     observation_id: id,
                     association_hash: None,
-                    reason: RejectionReason::MissingObservation,
+                    reason: if by_id.contains_key(&id) {
+                        RejectionReason::MissingAssociation
+                    } else {
+                        RejectionReason::MissingObservation
+                    },
                 });
                 continue;
             };
@@ -806,6 +812,17 @@ fn select_one(
 ) -> Result<SelectedRssiRecord, SelectionFailure> {
     let data = observation.data();
     let association_hash = candidate.association_hash().ok();
+    if let Candidate::Strict { input } = candidate
+        && input
+            .survey
+            .validate_admitted_observation(observation)
+            .is_err()
+    {
+        return Err(SelectionFailure {
+            reason: RejectionReason::AdmissionMismatch,
+            association_hash,
+        });
+    }
     let config = candidate_config(candidate);
     let configured = config.data();
     if request
@@ -1071,11 +1088,14 @@ fn validate_metric(
     config
         .validate()
         .map_err(|_| SelectionError::InvalidRequest("invalid spatial configuration"))?;
-    if metric.definition().unit() != kyberia_spatial_analysis::PhysicalUnit::Dbm
+    let canonical_rssi = kyberia_spatial_analysis::MetricDefinition::signal_rssi()
+        .map_err(|_| SelectionError::InvalidRequest("canonical RSSI metric unavailable"))?;
+    if metric.definition() != &canonical_rssi
+        || metric.definition().unit() != kyberia_spatial_analysis::PhysicalUnit::Dbm
         || metric.spatial_method() != Some(config_method(config))
     {
         return Err(SelectionError::InvalidRequest(
-            "metric is not measured RSSI",
+            "metric is not canonical observed RSSI",
         ));
     }
     Ok(())

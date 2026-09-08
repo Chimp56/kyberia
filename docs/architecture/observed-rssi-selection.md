@@ -32,8 +32,17 @@ storage a domain or numerical dependency.
 
 The envelope is authoritative for BSSID, RSSI, source/session identity,
 payload kind, capture time, calibration, channel, dwell, quality, and raw
-source reference. A survey contributes only the admitted observation IDs and
-its spatial/time assignment. Association records intentionally do not carry a
+source reference. A survey contributes the admitted observation IDs and its
+spatial/time assignment. For strict captures, the bridge calls
+`PointSurvey::validate_admitted_observation`, which compares the supplied
+envelope with the private persisted admission record and reapplies the
+original admission constraints before any value becomes a sample. This closes
+same-ID substitution of RSSI, timestamps, pose, source metadata, or retained
+evidence. The historical strict snapshot stores the monotonic capture value
+and selected evidence projections rather than every envelope byte, so
+unretained wall-clock or synchronization fields are not independently
+rechecked here; the canonical envelope and storage query receipt remain the
+source identity boundary. Association records intentionally do not carry a
 second BSSID or RSSI value, so the bridge always rechecks those fields in the
 envelope.
 
@@ -89,8 +98,9 @@ observation pose separately. Receipt records include a hash of the complete
 canonical point association plus its point and observation IDs. Strict manual
 anchor records carry the survey point, anchor pose, and explicit manual-anchor
 pose policy. Validation rejects reordered IDs, duplicate or incomplete
-results, changed assignment poses, inconsistent capture/receipt provenance,
-calibration-policy changes, unusable quality, stale scans, and unknown fields.
+results, missing survey assignments, changed strict admissions, changed
+assignment poses, inconsistent capture/receipt provenance, calibration-policy
+changes, unusable quality, stale scans, and unknown fields.
 
 The manifest's canonical bytes are content-addressed as an
 `ArtifactReference`. Those bytes are used as `SpatialInputs.source_artifact`,

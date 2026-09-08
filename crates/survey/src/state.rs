@@ -328,6 +328,109 @@ impl PointSurvey {
         Ok(next)
     }
 
+    /// Validate that a canonical envelope is byte-for-byte equivalent, for
+    /// every field retained by the strict survey record, to the evidence that
+    /// was admitted under this point's original constraints.  The compact
+    /// record remains private; callers only receive the existing structured
+    /// survey errors.
+    pub fn validate_admitted_observation(
+        &self,
+        observation: &ObservationEnvelope,
+    ) -> Result<(), SurveyError> {
+        let record = self
+            .0
+            .records
+            .iter()
+            .find(|record| record.observation_id == observation.data().id)
+            .ok_or(SurveyError::InvalidSnapshot)?;
+        let cfg = self.0.config.data();
+        let data = observation.data();
+        if data.session_id != cfg.session_id {
+            return Err(SurveyError::WrongSession);
+        }
+        if data.source.source_id != cfg.source_id
+            || data.source.collector_id != cfg.collector_id
+            || data.source.adapter_version != cfg.adapter_version
+        {
+            return Err(SurveyError::WrongSource);
+        }
+        if !cfg.allow_synthetic
+            && (data.source.kind == SourceKind::SyntheticFixture
+                || data.quality.contains(&QualityFlag::SyntheticFixture))
+        {
+            return Err(SurveyError::UnusableQuality);
+        }
+        if bad_quality(&data.quality) {
+            return Err(SurveyError::UnusableQuality);
+        }
+        let captured = data
+            .time
+            .monotonic
+            .as_known()
+            .ok_or(SurveyError::TimestampUnavailable)?;
+        if captured.epoch != cfg.epoch {
+            return Err(SurveyError::WrongClock);
+        }
+        if captured.nanoseconds != record.captured {
+            return Err(SurveyError::InvalidSnapshot);
+        }
+        self.0.config.check_pose(&data.pose)?;
+        let (signal, identity, result_age) = match (&data.payload, cfg.mode) {
+            (ObservationPayload::Scan(scan), CaptureMode::Scan) => {
+                let age = *scan.result_age.as_known().ok_or(SurveyError::StaleScan)?;
+                if age > cfg.maximum_scan_age {
+                    return Err(SurveyError::StaleScan);
+                }
+                (&scan.signal, &scan.identity, Some(age))
+            }
+            (ObservationPayload::Frame(frame), CaptureMode::Frame) => {
+                (&frame.signal, &frame.identity, None)
+            }
+            _ => return Err(SurveyError::UnsupportedPayload),
+        };
+        let bssid = *identity
+            .bssid
+            .as_known()
+            .ok_or(SurveyError::UnsupportedPayload)?;
+        if let Some(age) = result_age
+            && nanos(age)? > record.admitted - record.captured
+        {
+            return Err(SurveyError::InconsistentScanAge);
+        }
+        if bssid != record.bssid
+            || signal.rssi_dbm != record.rssi
+            || signal.noise_dbm != record.noise
+            || data.pose != record.pose
+            || signal.calibration != record.calibration
+            || data.raw_source != record.raw_source
+            || data.source.source_version != record.source_version
+            || data.source.parser_version != record.parser_version
+            || data.quality != record.quality
+            || result_age != record.result_age
+        {
+            return Err(SurveyError::InvalidSnapshot);
+        }
+        let mut dwell = None;
+        let mut tuned_frequency = Evidence::Unknown(UnknownReason::NotObservable);
+        if !incomplete_dwell(&data.quality)
+            && let Evidence::Known(context) = &data.dwell
+            && let Evidence::Known(window) = context.window
+        {
+            if window.start().epoch != cfg.epoch
+                || window.end().nanoseconds > record.admitted
+                || !window.contains(*captured)
+            {
+                return Err(SurveyError::InvalidSnapshot);
+            }
+            dwell = Some(window);
+            tuned_frequency = context.tuned_channel.primary_frequency.clone();
+        }
+        if dwell != record.dwell || tuned_frequency != record.tuned_frequency {
+            return Err(SurveyError::InvalidSnapshot);
+        }
+        Ok(())
+    }
+
     pub fn progress(&self) -> PointProgress {
         let cfg = self.0.config.data();
         let mut metrics: BTreeMap<_, _> =

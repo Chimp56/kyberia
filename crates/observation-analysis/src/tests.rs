@@ -674,6 +674,19 @@ fn strict_selection_rejects_scientifically_unsafe_inputs() {
             scan.identity.bssid = Evidence::Unknown(UnknownReason::UnsupportedCapability);
         }
     });
+    let changed_rssi = mutate_observation(original.clone(), |data| {
+        if let ObservationPayload::Scan(scan) = &mut data.payload {
+            scan.signal.rssi_dbm = Evidence::Known(Dbm::new(-61.).unwrap());
+        }
+    });
+    let changed_time = mutate_observation(original.clone(), |data| {
+        data.time.monotonic = Evidence::Known(stamp(400_000_000));
+    });
+    let changed_pose = mutate_observation(original.clone(), |data| {
+        let mut pose = anchor();
+        pose.position.x = CoordinateMeters::new(1.1).unwrap();
+        data.pose = Evidence::Known(pose);
+    });
     let unsupported_health = mutate_observation(original.clone(), |data| {
         data.payload = ObservationPayload::Health(CaptureHealth {
             dropped_events: unknown(),
@@ -687,23 +700,38 @@ fn strict_selection_rejects_scientifically_unsafe_inputs() {
         (
             "wrong reported frame",
             wrong_frame,
-            RejectionReason::ScopeMismatch,
+            RejectionReason::AdmissionMismatch,
         ),
-        ("stale scan", stale_scan, RejectionReason::StaleScan),
+        ("stale scan", stale_scan, RejectionReason::AdmissionMismatch),
         (
             "outside calibration",
             outside_calibration,
-            RejectionReason::Uncalibrated,
+            RejectionReason::AdmissionMismatch,
         ),
         (
             "unknown BSSID",
             unknown_bssid,
-            RejectionReason::UnknownBssid(UnknownReason::UnsupportedCapability),
+            RejectionReason::AdmissionMismatch,
         ),
         (
             "health payload",
             unsupported_health,
-            RejectionReason::UnsupportedPayload,
+            RejectionReason::AdmissionMismatch,
+        ),
+        (
+            "changed RSSI",
+            changed_rssi,
+            RejectionReason::AdmissionMismatch,
+        ),
+        (
+            "changed time",
+            changed_time,
+            RejectionReason::AdmissionMismatch,
+        ),
+        (
+            "changed pose",
+            changed_pose,
+            RejectionReason::AdmissionMismatch,
         ),
     ];
     for (label, altered, expected) in cases {
@@ -735,7 +763,45 @@ fn strict_selection_rejects_scientifically_unsafe_inputs() {
             std::slice::from_ref(&original),
         ),
         Err(SelectionError::InvalidRequest(
-            "metric is not measured RSSI"
+            "metric is not canonical observed RSSI"
+        ))
+    ));
+
+    let definition = MetricDefinition::signal_rssi().unwrap();
+    let mut altered_bytes = definition.canonical_bytes().unwrap();
+    let signal = b"signal";
+    let replacement = b"noisex";
+    let offset = altered_bytes
+        .windows(signal.len())
+        .position(|window| window == signal)
+        .unwrap();
+    altered_bytes[offset..offset + signal.len()].copy_from_slice(replacement);
+    let altered_artifact = kyberia_domain::analysis::VersionedArtifact {
+        version: definition.version().clone(),
+        sha256: ContentHash::from_sha256(Sha256::digest(&altered_bytes).into()),
+        byte_length: ExactU64::new(altered_bytes.len() as u64),
+        media_type: text(kyberia_spatial_analysis::METRIC_DEFINITION_MEDIA_TYPE),
+    };
+    let incompatible_metric =
+        kyberia_spatial_analysis::MetricDefinitionBinding::from_artifact_bytes(
+            altered_artifact,
+            &altered_bytes,
+            metric().signal_aggregation(),
+        )
+        .unwrap();
+    assert!(matches!(
+        ValidatedObservedRssiSet::build(
+            request(vec![original.data().id]),
+            incompatible_metric,
+            spatial_config(),
+            &[SurveyInput {
+                survey: &survey,
+                floor_id: FloorId::from_bytes(id(9)).unwrap(),
+            }],
+            std::slice::from_ref(&original),
+        ),
+        Err(SelectionError::InvalidRequest(
+            "metric is not canonical observed RSSI"
         ))
     ));
 }
@@ -779,6 +845,24 @@ fn maximum_unique_selection_is_bounded_and_preserves_unknowns() {
             .iter()
             .all(|record| matches!(record.reason, RejectionReason::MissingObservation))
     );
+}
+
+#[test]
+fn supplied_observation_without_a_survey_assignment_is_distinctly_rejected() {
+    let envelope = strict_observation(22, -63.);
+    let set = ValidatedObservedRssiSet::build(
+        request(vec![envelope.data().id]),
+        metric(),
+        spatial_config(),
+        &[],
+        std::slice::from_ref(&envelope),
+    )
+    .unwrap();
+    assert_eq!(set.samples().count(), 0);
+    assert!(matches!(
+        set.rejected()[0].reason,
+        RejectionReason::MissingAssociation
+    ));
 }
 
 #[test]
