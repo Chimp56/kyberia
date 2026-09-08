@@ -712,6 +712,40 @@
         "crates/kismet-adapter"
       ],
       "acceptance": "Authenticated bounded read-only status/capability transport and independent HTTP fixture tests; separate real-server and radio execution gates remain explicit."
+    },
+    {
+      "id": "iteration-4-stored-rssi-analysis",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "storage-proof",
+        "contracts"
+      ],
+      "owner": "analysis composition",
+      "requirements": [
+        "backlog:ANA-005:1",
+        "catalog:PAS-001:1"
+      ],
+      "owned_paths": [
+        "crates/stored-analysis"
+      ],
+      "acceptance": "Real verified bundle snapshots and indexed observations produce reproducible RSSI tiles with one project revision, exact source bindings, cancellation and hostile-input tests."
+    },
+    {
+      "id": "iteration-4-native-capture-session",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "native-capability-proof",
+        "storage-proof"
+      ],
+      "owner": "capture composition",
+      "requirements": [
+        "catalog:PAS-001:1"
+      ],
+      "owned_paths": [
+        "crates/observation-pipeline",
+        "collectors/macos"
+      ],
+      "acceptance": "Bounded real collector process supervision through validated normalization and durable survey association; consent and actual RF gates remain explicit."
     }
   ]
 }
