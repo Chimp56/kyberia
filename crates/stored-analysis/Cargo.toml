@@ -1,0 +1,21 @@
+[package]
+name = "kyberia-stored-analysis"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+kyberia-domain = { version = "=0.1.0", path = "../domain" }
+kyberia-observation-analysis = { version = "=0.1.0", path = "../observation-analysis" }
+kyberia-project-store = { version = "=0.1.0", path = "../project-store" }
+kyberia-spatial-analysis = { version = "=0.1.0", path = "../spatial-analysis" }
+kyberia-survey = { version = "=0.1.0", path = "../survey" }
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.149"
+sha2 = "=0.10.9"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tempfile = "=3.23.0"

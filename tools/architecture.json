@@ -6,6 +6,7 @@
     "kyberia-spatial-analysis": {"layer": "numerical", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-wifi-semantics": {"layer": "numerical", "external_dependencies": ["serde"]},
     "kyberia-observation-analysis": {"layer": "application", "external_dependencies": ["serde", "serde_json", "sha2"]},
+    "kyberia-stored-analysis": {"layer": "composition", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-survey": {"layer": "application", "external_dependencies": ["serde"]},
     "kyberia-kismet-adapter": {"layer": "adapter", "external_dependencies": ["libc", "reqwest", "rusqlite", "serde", "serde_json", "sha2", "tempfile", "url", "windows-sys"]},
     "kyberia-packet-import": {"layer": "adapter", "external_dependencies": ["pcap-parser", "sha2"]},

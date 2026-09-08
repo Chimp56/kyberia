@@ -8,7 +8,10 @@
 
 use crate::bundle::{atomic_projection, bounded_read, load_manifest, regular};
 use crate::manifest::{MAX_ARTIFACT_BYTES, validate_hash};
-use crate::{ArtifactEntry, ArtifactKind, Bundle, Result, StoreError, content_hash, sqlite_guard};
+use crate::{
+    ArtifactEntry, ArtifactKind, Bundle, Cancellation, NeverCancel, Result, StoreError,
+    content_hash, sqlite_guard,
+};
 use kyberia_domain::identity::{CollectorId, ProjectId, SessionId, SnapshotId, SourceId, Text};
 use kyberia_survey::{
     DecodedPointSurvey, PointId, PointSnapshotDecodeReceipt, PointSnapshotInputVersion,
@@ -605,14 +608,24 @@ fn read_and_replay_snapshot(
     root: &Path,
     manifest: &crate::BundleManifest,
     record: &SurveySnapshotRecord,
+    cancel: &dyn Cancellation,
 ) -> Result<DecodedPointSurvey> {
+    if cancel.is_cancelled() {
+        return Err(StoreError::Cancelled);
+    }
     let entry = manifest
         .artifacts
         .get(&record.artifact_hash)
         .ok_or_else(|| StoreError::Corrupt("survey snapshot artifact is unregistered".into()))?;
     validate_snapshot_entry(entry, record)?;
     let bytes = read_snapshot_bytes(root, &record.artifact_hash, entry.bytes)?;
+    if cancel.is_cancelled() {
+        return Err(StoreError::Cancelled);
+    }
     let decoded = decode_snapshot(&bytes)?;
+    if cancel.is_cancelled() {
+        return Err(StoreError::Cancelled);
+    }
     check_row_matches(record, manifest.project_id, record.snapshot_id, &decoded)?;
     Ok(decoded)
 }
@@ -867,7 +880,7 @@ impl Bundle {
     /// Load and verify one immutable snapshot. The returned survey has passed
     /// the survey crate's semantic replay validation before it is exposed.
     pub fn load_survey_snapshot(&self, snapshot_id: SnapshotId) -> Result<LoadedSurveySnapshot> {
-        self.load_survey_snapshot_for_session(snapshot_id, None)
+        self.load_survey_snapshot_with_cancel(snapshot_id, None, &NeverCancel)
     }
 
     /// Optional session checking makes accidental cross-session reuse explicit
@@ -877,6 +890,22 @@ impl Bundle {
         snapshot_id: SnapshotId,
         expected_session: Option<SessionId>,
     ) -> Result<LoadedSurveySnapshot> {
+        self.load_survey_snapshot_with_cancel(snapshot_id, expected_session, &NeverCancel)
+    }
+
+    /// Cancellation-aware snapshot replay. Cancellation is checked before
+    /// schema/database work and around the bounded artifact read and survey
+    /// decoder. The complete validated survey is returned or no snapshot is
+    /// returned; a partially decoded state never crosses this boundary.
+    pub fn load_survey_snapshot_with_cancel(
+        &self,
+        snapshot_id: SnapshotId,
+        expected_session: Option<SessionId>,
+        cancel: &dyn Cancellation,
+    ) -> Result<LoadedSurveySnapshot> {
+        if cancel.is_cancelled() {
+            return Err(StoreError::Cancelled);
+        }
         self.start_operation()?;
         ensure_snapshot_schema(self)?;
         let transaction =
@@ -896,7 +925,10 @@ impl Bundle {
             ));
         }
         validate_snapshot_history_pair(&transaction, &record, &manifest)?;
-        let decoded = read_and_replay_snapshot(&self.root, &manifest, &record)?;
+        let decoded = read_and_replay_snapshot(&self.root, &manifest, &record, cancel)?;
+        if cancel.is_cancelled() {
+            return Err(StoreError::Cancelled);
+        }
         transaction.commit()?;
         Ok(LoadedSurveySnapshot {
             record,
@@ -922,7 +954,7 @@ impl Bundle {
         // projection. A filtered query must not conceal corruption in another
         // session or return metadata detached from its evidence bytes.
         for index in &indexes {
-            read_and_replay_snapshot(&self.root, &manifest, index)?;
+            read_and_replay_snapshot(&self.root, &manifest, index, &NeverCancel)?;
         }
         let result: Vec<_> = histories
             .into_iter()
