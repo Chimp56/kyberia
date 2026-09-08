@@ -1,6 +1,7 @@
 # Canonical project materialization task
 
-Status: NOT_STARTED. Prerequisite inspection completed on `b774693`.
+Status: IN_PROGRESS (architecture investigation; bridge implementation remains open).
+Canonical name-command prerequisite integrated in `4482b36`.
 Requirements: plan §§10.5–10.8, source-qualified `backlog:FND-006:1`,
 and ADR 0016's explicitly open application bridge.
 
@@ -14,7 +15,7 @@ existence, calibration ownership, or evidence-locked coordinate frames.
 
 The operation schema currently admits project/site renames, calibration
 activation, and floor-evidence binding. The canonical project command enum
-has no rename variants. Calibration activation and evidence binding have
+now includes reviewed project/site rename variants with exact inverse receipts. Calibration activation and evidence binding have
 additional aggregate invariants, including frame migration restrictions and
 non-reversible evidence binding. A bridge must preserve these invariants and
 cannot assume that a structurally valid inverse describes the prior state.

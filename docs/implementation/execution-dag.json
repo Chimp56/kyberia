@@ -781,6 +781,25 @@
         "crates/observation-analysis"
       ],
       "acceptance": "Canonical registered observed RSSI nearest/IDW semantics with immutable point-value compatibility, exact admission, deterministic measured tile tests and honest unknown/extrapolation policy."
+    },
+    {
+      "id": "iteration-4-stored-rssi-cli",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-stored-rssi-analysis",
+        "iteration-4-rssi-spatial-metrics"
+      ],
+      "owner": "CLI application composition",
+      "requirements": [
+        "backlog:ANA-005:1",
+        "catalog:PAS-001:1"
+      ],
+      "owned_paths": [
+        "apps/cli/src/stored_analysis.rs",
+        "apps/cli/tests",
+        "docs/architecture/stored-rssi-analysis.md"
+      ],
+      "acceptance": "Real CLI request-to-stored-evidence analysis with exact canonical metric selection, bounded hostile requests, numerical and unknown inspection, no overwrite, source provenance and independent end-to-end review."
     }
   ]
 }
