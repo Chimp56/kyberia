@@ -299,6 +299,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-operation-log"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "proptest",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "kyberia-packet-import"
 version = "0.1.0"
 dependencies = [

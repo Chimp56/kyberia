@@ -19,6 +19,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0013](0013-spatial-signal-aggregation-boundary.md) | Accepted bounded numerical boundary; integration open | Spatial coincident groups consume typed Wi-Fi aggregation through verified metric-definition bytes; temporal methods require monotonic evidence |
 | [0014](0014-transactional-survey-snapshots.md) | Accepted bounded snapshot boundary; broader storage gates open | Persist immutable, checksummed survey snapshots with transactional history and verified replay |
 | [0015](0015-wifi-channel-coupling.md) | Accepted bounded numerical contract; full PHY/MAC integration open | Versioned channel geometry, spectral coupling, explicit utilization evidence, canonical-radio deduplication, and same-BSS policy |
+| [0016](0016-operation-log.md) | Accepted for Phase 0 contract work; integration open | Canonical immutable typed operation DAG with deterministic replay, bounded offline merge, explicit conflicts, and auditable undo/redo |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

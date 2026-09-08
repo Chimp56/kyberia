@@ -2,6 +2,7 @@
   "schema_version": 1,
   "packages": {
     "kyberia-domain": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
+    "kyberia-operation-log": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-spatial-analysis": {"layer": "numerical", "external_dependencies": ["serde", "serde_json"]},
     "kyberia-wifi-semantics": {"layer": "numerical", "external_dependencies": ["serde"]},
     "kyberia-survey": {"layer": "application", "external_dependencies": ["serde"]},
