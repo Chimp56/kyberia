@@ -1,5 +1,6 @@
 use super::*;
 use kyberia_domain::{
+    analysis::VersionedArtifact,
     capability::{Capability, CapabilityDocument, CapabilityState, RawPayloadPolicy},
     evidence::*,
     identity::*,
@@ -8,7 +9,10 @@ use kyberia_domain::{
     time::*,
     units::*,
 };
-use kyberia_spatial_analysis::{Extrapolation, Grid, Method, MetricDefinition};
+use kyberia_spatial_analysis::{
+    CellClass, Extrapolation, Grid, Method, MetricDefinition, MetricDefinitionBinding, Point2,
+    SpatialMethod,
+};
 use kyberia_survey::{
     CaptureMode, ChannelRequirement, PointConfigData, PointId, PointMetric, Target,
 };
@@ -191,8 +195,8 @@ fn strict_observation(value: u8, rssi: f64) -> ObservationEnvelope {
         Evidence::Known(RSSI),
     )
 }
-fn metric() -> kyberia_spatial_analysis::MetricDefinitionBinding {
-    let definition = MetricDefinition::signal_rssi().unwrap();
+fn metric_for(method: SpatialMethod) -> kyberia_spatial_analysis::MetricDefinitionBinding {
+    let definition = MetricDefinition::observed_rssi(method).unwrap();
     let bytes = definition.canonical_bytes().unwrap();
     let artifact = kyberia_domain::analysis::VersionedArtifact {
         version: definition.version().clone(),
@@ -202,12 +206,24 @@ fn metric() -> kyberia_spatial_analysis::MetricDefinitionBinding {
     };
     definition.bind(artifact).unwrap()
 }
+fn metric() -> kyberia_spatial_analysis::MetricDefinitionBinding {
+    metric_for(SpatialMethod::PointValue)
+}
 fn spatial_config() -> SpatialConfig {
     SpatialConfig {
         method: Method::PointValue,
         support_radius: Meters::new(1.).unwrap(),
         minimum_locations: 1,
         maximum_neighbors: 1,
+        extrapolation: Extrapolation::Disabled,
+    }
+}
+fn spatial_config_for(method: Method) -> SpatialConfig {
+    SpatialConfig {
+        method,
+        support_radius: Meters::new(2.).unwrap(),
+        minimum_locations: 1,
+        maximum_neighbors: 2,
         extrapolation: Extrapolation::Disabled,
     }
 }
@@ -238,6 +254,17 @@ fn source_binding() -> SelectionSourceBinding {
 }
 fn survey_with_strict(observation: &ObservationEnvelope) -> PointSurvey {
     PointSurvey::start(config(), stamp(0))
+        .unwrap()
+        .admit(observation, stamp(500_000_000))
+        .unwrap()
+}
+fn survey_at(point_byte: u8, x: f64, y: f64, observation: &ObservationEnvelope) -> PointSurvey {
+    let mut data = config().data().clone();
+    data.point_id = PointId::from_bytes(id(point_byte)).unwrap();
+    data.anchor.position.x = CoordinateMeters::new(x).unwrap();
+    data.anchor.position.y = CoordinateMeters::new(y).unwrap();
+    let point_config = PointConfig::new(data).unwrap();
+    PointSurvey::start(point_config, stamp(0))
         .unwrap()
         .admit(observation, stamp(500_000_000))
         .unwrap()
@@ -359,6 +386,197 @@ fn strict_manual_anchor_builds_observed_tile_and_binds_manifest() {
 }
 
 #[test]
+fn canonical_observed_rssi_variants_drive_real_interpolated_tiles() {
+    let first = strict_observation(30, -40.);
+    let second = strict_observation(31, -60.);
+    let first_survey = survey_at(40, 1., 2., &first);
+    let second_survey = survey_at(41, 3., 2., &second);
+    let floor_id = FloorId::from_bytes(id(9)).unwrap();
+    let frame_id = anchor().frame_id;
+    let ids = vec![first.data().id, second.data().id];
+    let grid = Grid {
+        floor_id,
+        frame_id,
+        origin: Point2 {
+            x: CoordinateMeters::new(1.5).unwrap(),
+            y: CoordinateMeters::new(1.5).unwrap(),
+        },
+        resolution: Meters::new(1.).unwrap(),
+        column_offset: 0,
+        row_offset: 0,
+        width: 1,
+        height: 1,
+    };
+
+    let nearest = ValidatedObservedRssiSet::build(
+        request(ids.clone()),
+        metric_for(SpatialMethod::Nearest),
+        spatial_config_for(Method::Nearest),
+        &[
+            SurveyInput {
+                survey: &first_survey,
+                floor_id,
+            },
+            SurveyInput {
+                survey: &second_survey,
+                floor_id,
+            },
+        ],
+        &[first.clone(), second.clone()],
+    )
+    .unwrap();
+    let nearest_tile = nearest.tile(grid, || false).unwrap();
+    assert_eq!(nearest_tile.cells[0].class, CellClass::Interpolated);
+    assert_eq!(
+        nearest_tile.cells[0].value,
+        Evidence::Known(Dbm::new(-40.).unwrap())
+    );
+    assert_eq!(nearest_tile.cells[0].support_locations, 2);
+    assert_eq!(
+        nearest.manifest().metric.spatial_method,
+        SpatialMethod::Nearest
+    );
+
+    let idw = ValidatedObservedRssiSet::build(
+        request(ids.clone()),
+        metric_for(SpatialMethod::InverseDistanceWeighted),
+        spatial_config_for(Method::Idw { power: 2. }),
+        &[
+            SurveyInput {
+                survey: &first_survey,
+                floor_id,
+            },
+            SurveyInput {
+                survey: &second_survey,
+                floor_id,
+            },
+        ],
+        &[first.clone(), second.clone()],
+    )
+    .unwrap();
+    let idw_tile = idw.tile(grid, || false).unwrap();
+    assert_eq!(idw_tile.cells[0].class, CellClass::Interpolated);
+    let value = idw_tile.cells[0].value.as_known().unwrap().get();
+    assert!((value + 50.).abs() < 1e-12, "unexpected IDW value {value}");
+    assert_eq!(idw_tile.cells[0].support_locations, 2);
+    assert_eq!(
+        idw.manifest().metric.spatial_method,
+        SpatialMethod::InverseDistanceWeighted
+    );
+
+    let reordered = ValidatedObservedRssiSet::build(
+        request(vec![ids[1], ids[0]]),
+        metric_for(SpatialMethod::InverseDistanceWeighted),
+        spatial_config_for(Method::Idw { power: 2. }),
+        &[
+            SurveyInput {
+                survey: &second_survey,
+                floor_id,
+            },
+            SurveyInput {
+                survey: &first_survey,
+                floor_id,
+            },
+        ],
+        &[second, first],
+    )
+    .unwrap();
+    assert_eq!(idw.canonical_manifest(), reordered.canonical_manifest());
+    assert_eq!(
+        serde_json::to_vec(&idw.tile(grid, || false).unwrap()).unwrap(),
+        serde_json::to_vec(&reordered.tile(grid, || false).unwrap()).unwrap()
+    );
+}
+
+#[test]
+fn selection_requires_exact_spatial_rssi_definition_and_manifest_identity() {
+    let envelope = strict_observation(32, -52.);
+    let survey = survey_with_strict(&envelope);
+    let floor_id = FloorId::from_bytes(id(9)).unwrap();
+    let input = [SurveyInput {
+        survey: &survey,
+        floor_id,
+    }];
+    let observations = [envelope.clone()];
+
+    assert!(matches!(
+        ValidatedObservedRssiSet::build(
+            request(vec![envelope.data().id]),
+            metric_for(SpatialMethod::Nearest),
+            spatial_config(),
+            &input,
+            &observations,
+        ),
+        Err(SelectionError::InvalidRequest(
+            "metric is not canonical observed RSSI"
+        ))
+    ));
+    assert!(matches!(
+        ValidatedObservedRssiSet::build(
+            request(vec![envelope.data().id]),
+            metric(),
+            spatial_config_for(Method::Nearest),
+            &input,
+            &observations,
+        ),
+        Err(SelectionError::InvalidRequest(
+            "metric is not canonical observed RSSI"
+        ))
+    ));
+
+    let nearest = MetricDefinition::signal_rssi_nearest().unwrap();
+    let nearest_bytes = nearest.canonical_bytes().unwrap();
+    let mut impostor_bytes = nearest_bytes.clone();
+    let original_id = b"wifi.rssi.nearest";
+    let replacement_id = b"wifi.test.nearest";
+    let offset = impostor_bytes
+        .windows(original_id.len())
+        .position(|window| window == original_id)
+        .unwrap();
+    impostor_bytes[offset..offset + original_id.len()].copy_from_slice(replacement_id);
+    let impostor = MetricDefinitionBinding::from_artifact_bytes(
+        VersionedArtifact {
+            version: text("wifi.test.nearest/1"),
+            sha256: ContentHash::from_sha256(Sha256::digest(&impostor_bytes).into()),
+            byte_length: ExactU64::new(impostor_bytes.len() as u64),
+            media_type: text(kyberia_spatial_analysis::METRIC_DEFINITION_MEDIA_TYPE),
+        },
+        &impostor_bytes,
+        nearest.signal_aggregation(),
+    )
+    .unwrap();
+    assert!(matches!(
+        ValidatedObservedRssiSet::build(
+            request(vec![envelope.data().id]),
+            impostor,
+            spatial_config_for(Method::Nearest),
+            &input,
+            &observations,
+        ),
+        Err(SelectionError::InvalidRequest(
+            "metric is not canonical observed RSSI"
+        ))
+    ));
+
+    let valid = ValidatedObservedRssiSet::build(
+        request(vec![envelope.data().id]),
+        metric_for(SpatialMethod::Nearest),
+        spatial_config_for(Method::Nearest),
+        &input,
+        &observations,
+    )
+    .unwrap();
+    let mut forged = valid.manifest().clone();
+    let forged_hash = ContentHash::from_sha256([0xabu8; 32]);
+    forged.metric.artifact.sha256 = forged_hash;
+    forged.metric.definition_hash = forged_hash;
+    assert!(matches!(
+        SelectionManifest::from_canonical_bytes(&serde_json::to_vec(&forged).unwrap()),
+        Err(SelectionError::InvalidManifest("metric identity"))
+    ));
+}
+
+#[test]
 fn measured_selection_rejects_synthetic_source_and_quality_evidence() {
     let original = strict_observation(35, -54.);
     let survey = survey_with_strict(&original);
@@ -404,23 +622,59 @@ fn measured_selection_rejects_synthetic_source_and_quality_evidence() {
         synthetic_quality_result.manifest().evidence_plane,
         SelectionEvidencePlane::Measured
     );
+}
 
-    let selected = ValidatedObservedRssiSet::build(
-        request(vec![original.data().id]),
-        metric(),
-        spatial_config(),
-        &input,
-        std::slice::from_ref(&original),
+#[test]
+fn interpolated_rssi_gap_remains_unknown_without_support() {
+    let first = strict_observation(33, -40.);
+    let second = strict_observation(34, -60.);
+    let first_survey = survey_at(42, 1., 2., &first);
+    let second_survey = survey_at(43, 3., 2., &second);
+    let floor_id = FloorId::from_bytes(id(9)).unwrap();
+    let frame_id = anchor().frame_id;
+    let mut config = spatial_config_for(Method::Idw { power: 2. });
+    config.support_radius = Meters::new(0.5).unwrap();
+    config.maximum_neighbors = 2;
+    let set = ValidatedObservedRssiSet::build(
+        request(vec![first.data().id, second.data().id]),
+        metric_for(SpatialMethod::InverseDistanceWeighted),
+        config,
+        &[
+            SurveyInput {
+                survey: &first_survey,
+                floor_id,
+            },
+            SurveyInput {
+                survey: &second_survey,
+                floor_id,
+            },
+        ],
+        &[first, second],
     )
     .unwrap();
-    let mut forged = selected.manifest().clone();
-    forged.selected[0].quality.push(QualityFlag::SyntheticFixture);
-    assert!(matches!(
-        SelectionManifest::from_canonical_bytes(
-            &serde_json::to_vec(&forged).unwrap()
-        ),
-        Err(SelectionError::InvalidManifest("unusable selected quality"))
-    ));
+    let tile = set
+        .tile(
+            Grid {
+                floor_id,
+                frame_id,
+                origin: Point2 {
+                    x: CoordinateMeters::new(5.5).unwrap(),
+                    y: CoordinateMeters::new(1.5).unwrap(),
+                },
+                resolution: Meters::new(1.).unwrap(),
+                column_offset: 0,
+                row_offset: 0,
+                width: 1,
+                height: 1,
+            },
+            || false,
+        )
+        .unwrap();
+    assert_eq!(tile.cells[0].class, CellClass::Unknown);
+    assert_eq!(
+        tile.cells[0].value,
+        Evidence::Unknown(UnknownReason::OutsideEvidenceSupport)
+    );
 }
 
 #[test]

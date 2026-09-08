@@ -2,23 +2,30 @@
 
 Date: 2026-09-08
 
-Scope: plan §11.8, §12.5, FND-010, and ADR-0017. This increment provides one
-canonical bounded definition in `kyberia-spatial-analysis`; it does not claim
-that capacity, SINR, throughput, or predictive metrics are implemented.
+Scope: plan §11.8, §12.5, FND-010, and ADR-0017. This increment provides three
+canonical bounded observed-RSSI definitions in `kyberia-spatial-analysis`; it
+does not claim that capacity, SINR, throughput, or predictive metrics are
+implemented.
 
 `MetricDefinition` contains typed ID/revision, semantic description, unit,
 valid range, evidence/capability requirements, aggregation, spatial method,
 selection filters/grouping, uncertainty method, explicit unknown compatibility,
 compatibility rules, compliance direction, and separate visualization defaults.
-The only builtin is observed Wi-Fi RSSI and it delegates signal aggregation to
-the existing versioned `kyberia-wifi-semantics` contract.
+The observed Wi-Fi RSSI builtins are `wifi.rssi/1` (point-value),
+`wifi.rssi.nearest/1` (nearest-neighbor), and `wifi.rssi.idw/1`
+(inverse-distance weighted). They all delegate signal aggregation to the
+existing versioned `kyberia-wifi-semantics` contract. The original point-value
+artifact remains byte- and hash-identical; the two interpolation definitions
+are additive artifacts with distinct identities.
 
 Canonical bytes are compact pinned Serde JSON under
 `kyberia.metric-definition/1`, with the media type
 `application/kyberia-metric-definition+json`, a 16 KiB byte limit, and depth 16
 limit. Parsing requires closed typed fields and byte-for-byte canonical
 equality. `content_hash`, `ui_help`, `compute_contract`, and verified spatial
-bindings all derive their identity from those same bytes. Unknown values remain
+bindings all derive their identity from those same bytes. Selection accepts
+only the exact built-in definition matching the requested spatial method; a
+dBm unit alone is insufficient. Unknown values remain
 unknown by reason under `PropagateReason`; no zero or synthetic fallback is
 introduced.
 

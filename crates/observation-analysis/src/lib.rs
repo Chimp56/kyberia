@@ -344,6 +344,11 @@ impl SelectionManifest {
         if self.metric.spatial_method != config_method(self.spatial_configuration) {
             return Err(SelectionError::InvalidManifest("spatial method"));
         }
+        let expected_metric = canonical_observed_rssi(self.spatial_configuration)
+            .map_err(|_| SelectionError::InvalidManifest("canonical RSSI metric unavailable"))?;
+        if !metric_reference_matches(&self.metric, &expected_metric)? {
+            return Err(SelectionError::InvalidManifest("metric identity"));
+        }
         if self.policy.observation_ids.is_empty()
             || self.policy.observation_ids.len() > MAX_OBSERVATIONS
             || self.selected.len() > MAX_OBSERVATIONS
@@ -1104,10 +1109,9 @@ fn validate_metric(
     config
         .validate()
         .map_err(|_| SelectionError::InvalidRequest("invalid spatial configuration"))?;
-    let canonical_rssi = kyberia_spatial_analysis::MetricDefinition::signal_rssi()
+    let canonical_rssi = canonical_observed_rssi(config)
         .map_err(|_| SelectionError::InvalidRequest("canonical RSSI metric unavailable"))?;
     if metric.definition() != &canonical_rssi
-        || metric.definition().unit() != kyberia_spatial_analysis::PhysicalUnit::Dbm
         || metric.spatial_method() != Some(config_method(config))
     {
         return Err(SelectionError::InvalidRequest(
@@ -1115,6 +1119,33 @@ fn validate_metric(
         ));
     }
     Ok(())
+}
+
+fn canonical_observed_rssi(
+    config: SpatialConfig,
+) -> Result<
+    kyberia_spatial_analysis::MetricDefinition,
+    kyberia_spatial_analysis::MetricDefinitionError,
+> {
+    kyberia_spatial_analysis::MetricDefinition::observed_rssi(config_method(config))
+}
+
+fn metric_reference_matches(
+    reference: &MetricReference,
+    expected: &kyberia_spatial_analysis::MetricDefinition,
+) -> Result<bool, SelectionError> {
+    let bytes = expected
+        .canonical_bytes()
+        .map_err(|_| SelectionError::InvalidManifest("canonical RSSI metric unavailable"))?;
+    let expected_hash = ContentHash::from_sha256(Sha256::digest(&bytes).into());
+    Ok(reference.definition_hash == expected_hash
+        && reference.artifact.sha256 == expected_hash
+        && reference.artifact.version == *expected.version()
+        && reference.artifact.byte_length.get() == bytes.len() as u64
+        && reference.artifact.media_type.as_str()
+            == kyberia_spatial_analysis::METRIC_DEFINITION_MEDIA_TYPE
+        && reference.spatial_method == expected.spatial_method()
+        && reference.signal_aggregation == expected.signal_aggregation())
 }
 
 fn config_method(config: SpatialConfig) -> kyberia_spatial_analysis::SpatialMethod {

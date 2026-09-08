@@ -525,9 +525,12 @@ impl MetricDefinition {
         })
     }
 
-    /// Construct an RSSI definition with the only aggregation implemented by
-    /// the current numerical engine.  Callers adding another metric must use
-    /// [`MetricDefinition::from_spec`] and provide every semantic field.
+    /// Construct a point-value RSSI definition.
+    ///
+    /// This is the original public constructor and remains pinned to
+    /// `wifi.rssi/1`.  Its canonical bytes are an existing project artifact;
+    /// changing this definition would silently change the meaning of stored
+    /// point-value analyses.
     pub fn new(
         version_label: Text,
         signal_aggregation: SignalAggregationSelection,
@@ -550,10 +553,46 @@ impl MetricDefinition {
     }
 
     pub fn signal_rssi() -> Result<Self, MetricDefinitionError> {
-        Self::new(
-            Text::new("wifi.rssi/1").expect("valid builtin metric version"),
-            SignalAggregationSelection::new(AggregateMethod::MedianDbm),
-        )
+        Self::observed_rssi(SpatialMethod::PointValue)
+    }
+
+    /// Construct the canonical observed-RSSI definition for one spatial
+    /// method.  The spatial method is part of the metric identity because it
+    /// changes the meaning of every non-exact cell in a derived layer.
+    pub fn observed_rssi(method: SpatialMethod) -> Result<Self, MetricDefinitionError> {
+        let selection = SignalAggregationSelection::new(AggregateMethod::MedianDbm);
+        let (version_label, description) = match method {
+            SpatialMethod::PointValue => (
+                "wifi.rssi/1",
+                "Received Wi-Fi signal power at the observation point",
+            ),
+            SpatialMethod::Nearest => (
+                "wifi.rssi.nearest/1",
+                "Nearest supported observed Wi-Fi signal power",
+            ),
+            SpatialMethod::InverseDistanceWeighted => (
+                "wifi.rssi.idw/1",
+                "Inverse-distance weighted observed Wi-Fi signal power",
+            ),
+        };
+        let (id, version) = parse_artifact_version(
+            &Text::new(version_label).expect("valid builtin metric version"),
+        )?;
+        Self::from_spec(signal_metric_spec_with_method(
+            id,
+            version,
+            selection,
+            method,
+            Text::new(description).expect("valid builtin metric description"),
+        )?)
+    }
+
+    pub fn signal_rssi_nearest() -> Result<Self, MetricDefinitionError> {
+        Self::observed_rssi(SpatialMethod::Nearest)
+    }
+
+    pub fn signal_rssi_idw() -> Result<Self, MetricDefinitionError> {
+        Self::observed_rssi(SpatialMethod::InverseDistanceWeighted)
     }
 
     pub fn id(&self) -> &MetricId {
@@ -678,11 +717,27 @@ fn signal_metric_spec(
     version: MetricVersion,
     signal_aggregation: SignalAggregationSelection,
 ) -> Result<MetricDefinitionSpec, MetricDefinitionError> {
+    signal_metric_spec_with_method(
+        id,
+        version,
+        signal_aggregation,
+        SpatialMethod::PointValue,
+        Text::new("Received Wi-Fi signal power at the observation point")
+            .map_err(|_| MetricDefinitionError::InvalidConfiguration("description"))?,
+    )
+}
+
+fn signal_metric_spec_with_method(
+    id: MetricId,
+    version: MetricVersion,
+    signal_aggregation: SignalAggregationSelection,
+    spatial_method: SpatialMethod,
+    semantic_description: Text,
+) -> Result<MetricDefinitionSpec, MetricDefinitionError> {
     Ok(MetricDefinitionSpec {
         id,
         version,
-        semantic_description: Text::new("Received Wi-Fi signal power at the observation point")
-            .map_err(|_| MetricDefinitionError::InvalidConfiguration("description"))?,
+        semantic_description,
         unit: PhysicalUnit::Dbm,
         valid_range: ValidRange::Numeric {
             minimum: -200.0,
@@ -697,7 +752,7 @@ fn signal_metric_spec(
         aggregation: AggregationDefinition::SignalDbm {
             selection: signal_aggregation,
         },
-        spatial_method: SpatialMethod::PointValue,
+        spatial_method,
         selection: SelectionPolicy {
             filters: vec![SelectionDimension::Band, SelectionDimension::Channel],
             grouping: vec![SelectionDimension::AccessPoint],
@@ -811,7 +866,11 @@ impl MetricRegistry {
         })
     }
     pub fn builtins() -> Result<Self, RegistryError> {
-        Self::new(vec![MetricDefinition::signal_rssi()?])
+        Self::new(vec![
+            MetricDefinition::signal_rssi()?,
+            MetricDefinition::signal_rssi_nearest()?,
+            MetricDefinition::signal_rssi_idw()?,
+        ])
     }
     pub fn lookup(&self, id: &MetricId, version: MetricVersion) -> Option<&MetricDefinition> {
         self.definitions.get(&(id.clone(), version))

@@ -30,11 +30,16 @@ of the immutable metric-definition artifact reference and its typed
 `SignalAggregationSelection`. Its validating constructor accepts only bounded
 canonical bytes with the expected schema, content hash, byte length, media type,
 artifact version identity and exact method projection. Current definitions also
-bind `Config::method` to their declared spatial method, so a PointValue
-definition cannot silently run IDW or nearest-neighbor interpolation. Historical
-signal-only artifacts remain readable through a strict compatibility decoder;
-they preserve their original schema, media type, canonical bytes and hash and
-retain the pre-registry caller-supplied spatial method. The canonical
+bind `Config::method` to their declared spatial method, so a point-value
+definition cannot silently run IDW or nearest-neighbor interpolation. The
+canonical observed-RSSI builtins are additive and exact: `wifi.rssi/1` is
+point-value, `wifi.rssi.nearest/1` is nearest-neighbor, and `wifi.rssi.idw/1` is
+inverse-distance weighted. The IDW power remains an explicit `Config` parameter
+and is retained in the spatial configuration; it is not hidden in the metric
+identity. The original `wifi.rssi/1` canonical bytes and hash are unchanged.
+Historical signal-only artifacts remain readable through a strict compatibility
+decoder; they preserve their original schema, media type, canonical bytes and
+hash and retain the pre-registry caller-supplied spatial method. The canonical
 `MetricDefinition` supplies the semantic description, typed unit and valid
 range, evidence/capability requirements, aggregation, spatial method,
 selection filters/grouping, uncertainty and unknown policy, compatibility,
@@ -51,7 +56,12 @@ respective pinned Serde JSON encoding.
 
 The input evidence plane distinguishes measured evidence from synthetic test
 evidence. Cell class `Observed` means exact input-coordinate support, within that
-plane; it never converts a synthetic fixture into a real RF measurement.
+plane; it never converts a synthetic fixture into a real RF measurement. The
+observed-RSSI selection boundary rejects `SyntheticFixture` sources and
+`SyntheticFixture` quality flags before they can become measured samples. It
+uses the existing V1 rejection vocabulary (`UnsupportedPayload` for a synthetic
+source and `UnusableQuality` for a synthetic quality flag), so this admission
+correction does not change the selection-manifest schema.
 
 No statistical independence is inferred from observation count. Position
 covariance is retained, but this baseline does not propagate it. Height,

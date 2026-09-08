@@ -30,10 +30,15 @@ serialized with the pinned Serde JSON encoding, limited to 16 KiB and depth 16,
 and content-addressed with SHA-256. A binding authenticates bytes, length,
 hash, media type, version identity, and the exact typed aggregation before a
 spatial computation can use it. `MetricRegistry` rejects duplicate ID/revision
-pairs and returns deterministic ID/revision order. The Phase 0 builtin is
-observed Wi-Fi RSSI using the already implemented versioned signal aggregation;
-capacity, SINR, throughput, and predictive metrics are not registered until
-their semantics are implemented.
+pairs and returns deterministic ID/revision order. The Phase 0 builtins are
+observed Wi-Fi RSSI for point-value, nearest-neighbor, and inverse-distance-
+weighted output, each using the already implemented versioned signal
+aggregation. They are additive identities: `wifi.rssi/1` remains the original
+point-value artifact, while `wifi.rssi.nearest/1` and `wifi.rssi.idw/1` identify
+the two interpolation contracts. IDW power remains an explicit spatial
+configuration value rather than hidden metric metadata. Capacity, SINR,
+throughput, and predictive metrics are not registered until their semantics
+are implemented.
 
 UI help and compute contracts both carry the definition's canonical hash.
 Unknown evidence is preserved by reason through an explicit
@@ -65,14 +70,20 @@ definition, but those fields are visibly separate and are never consumed by
 numerical aggregation. New metric revisions are additive; an unknown revision fails
 closed at the boundary. The registry does not persist definitions or execute
 analysis; project storage and analysis-manifest adapters remain outer-layer
-work.
+work. The observed-RSSI selection boundary admits only the exact canonical
+definition for the requested spatial method, so a same-unit dBm or point-value
+artifact cannot silently drive nearest or IDW interpolation.
 
 ## Validation
 
 `crates/spatial-analysis/tests/metric_registry.rs` covers complete builtin
-fields, canonical round-trip, future/unknown-field rejection, invalid ranges,
-bounded bytes, duplicate registry versions, deterministic lookup/listing,
-same-hash UI/compute bindings, legacy schema/media byte and hash preservation,
-dBm-to-dB difference, categorical arithmetic, rank dimensions and the
-PointValue/model-method contract. Existing spatial tests continue to
-independently verify the signal aggregation and tile provenance contract.
+fields for all three observed-RSSI identities, canonical round-trip,
+future/unknown-field rejection, invalid ranges, bounded bytes, duplicate
+registry versions, deterministic lookup/listing, same-hash UI/compute
+bindings, legacy schema/media byte and hash preservation, dBm-to-dB
+difference, categorical arithmetic, rank dimensions and the
+PointValue/model-method contract. `crates/observation-analysis` additionally
+checks exact method-specific metric identity, deterministic nearest/IDW
+selection, honest unknown gaps, and rejection of synthetic evidence from the
+measured plane. Existing spatial tests continue to independently verify the
+signal aggregation and tile provenance contract.

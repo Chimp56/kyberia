@@ -49,6 +49,50 @@ fn builtin_is_complete_and_help_and_compute_share_identity() {
 }
 
 #[test]
+fn observed_rssi_spatial_variants_are_additive_and_exact() {
+    let point = MetricDefinition::signal_rssi().unwrap();
+    let nearest = MetricDefinition::signal_rssi_nearest().unwrap();
+    let idw = MetricDefinition::signal_rssi_idw().unwrap();
+
+    assert_eq!(point.version().as_str(), "wifi.rssi/1");
+    assert_eq!(
+        String::from(point.content_hash().unwrap()),
+        "f6de5b42acb1cc5fc15889a2076ca6eaff0a4a465fdc1707d23151f3950e5eb9"
+    );
+    assert_eq!(point.spatial_method(), SpatialMethod::PointValue);
+    assert_eq!(nearest.id().as_str(), "wifi.rssi.nearest");
+    assert_eq!(nearest.version().as_str(), "wifi.rssi.nearest/1");
+    assert_eq!(nearest.spatial_method(), SpatialMethod::Nearest);
+    assert_eq!(idw.id().as_str(), "wifi.rssi.idw");
+    assert_eq!(idw.version().as_str(), "wifi.rssi.idw/1");
+    assert_eq!(idw.spatial_method(), SpatialMethod::InverseDistanceWeighted);
+    assert_ne!(
+        point.content_hash().unwrap(),
+        nearest.content_hash().unwrap()
+    );
+    assert_ne!(point.content_hash().unwrap(), idw.content_hash().unwrap());
+    assert_ne!(nearest.content_hash().unwrap(), idw.content_hash().unwrap());
+    assert_eq!(
+        MetricDefinition::from_canonical_bytes(&nearest.canonical_bytes().unwrap()).unwrap(),
+        nearest
+    );
+    assert_eq!(
+        MetricDefinition::from_canonical_bytes(&idw.canonical_bytes().unwrap()).unwrap(),
+        idw
+    );
+
+    let registry = MetricRegistry::builtins().unwrap();
+    let variants: Vec<_> = registry
+        .list()
+        .map(|definition| definition.version().as_str())
+        .collect();
+    assert_eq!(
+        variants,
+        vec!["wifi.rssi/1", "wifi.rssi.idw/1", "wifi.rssi.nearest/1"]
+    );
+}
+
+#[test]
 fn canonical_bytes_include_all_semantic_fields_and_round_trip() {
     let definition = MetricDefinition::signal_rssi().unwrap();
     let bytes = definition.canonical_bytes().unwrap();

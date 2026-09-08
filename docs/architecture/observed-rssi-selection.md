@@ -50,9 +50,11 @@ Only scan observations from scan surveys or frame observations from frame
 surveys can produce this RSSI metric. A known `Evidence<Dbm>` RSSI and a known
 exact `MacAddress` equal to the requested BSSID are required. Unknown values,
 SSID-only identities, identity-graph BSS nodes, active measurements, spectrum
-energy, health payloads, and Kismet raw PHY integers cannot become measured
-RSSI samples. Each rejected requested ID remains in the manifest with its
-reason.
+energy, health payloads, synthetic fixtures, and Kismet raw PHY integers cannot
+become measured RSSI samples. A `SyntheticFixture` source is rejected as an
+unsupported payload and a `SyntheticFixture` quality flag is rejected as
+unusable quality, preserving the V1 rejection vocabulary. Each rejected
+requested ID remains in the manifest with its reason.
 
 Strict survey records use a reported capture pose when the envelope supplies
 one. If the survey uses `ManualAnchor` and the envelope pose is unknown, the
@@ -108,6 +110,15 @@ so a tile's numeric `Sample` IDs resolve back through the retained manifest to
 the exact BSSID and evidence record used for computation. `tile` composes the
 validated samples with the existing spatial model and returns the model's
 explicit Observed, Interpolated, Extrapolated, or Unknown classes.
+
+The selection boundary admits only the exact canonical observed-RSSI metric
+definition whose spatial method matches the requested configuration:
+`wifi.rssi/1` for point-value, `wifi.rssi.nearest/1` for nearest-neighbor, and
+`wifi.rssi.idw/1` for inverse-distance weighting. It verifies the metric
+artifact's version, media type, byte length, SHA-256, aggregation, and spatial
+method. A same-unit dBm definition with different semantics is rejected. The
+selection manifest schema remains V1 because this is an additive metric
+registry extension and the manifest's metric-reference shape is unchanged.
 
 ## Bounds and failure behavior
 
