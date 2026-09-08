@@ -323,6 +323,7 @@ name = "kyberia-project-store"
 version = "0.1.0"
 dependencies = [
  "kyberia-domain",
+ "kyberia-operation-log",
  "kyberia-survey",
  "rusqlite",
  "serde",

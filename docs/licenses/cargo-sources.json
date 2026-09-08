@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "All resolved targets and development dependencies; not a shipped-binary SBOM",
-  "cargo_lock_sha256": "99045395bac83f0dd11943f3f999dc5145ddada1bfd9bcc8b23b57509e4a8c8a",
+  "cargo_lock_sha256": "8f2fdf3fa55d770fd953bdbe69b56d5600a3865a5418568a6ef6a5c4f6b28119",
   "packages": [
     {
       "name": "autocfg",

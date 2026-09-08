@@ -42,6 +42,9 @@ operation format with:
 - concurrent duplicate toggles of one exact target and direction collapse to
   one deterministic replay effect; mixed undo/redo intent remains a conflict;
 - content-addressed artifact references with no raw observation bytes.
+- the outer `project-store` adapter persists exact wire/canonical bytes and
+  hashes transactionally, with a separate operation-only project revision;
+  this adapter does not make SQLite types part of the inward contract.
 
 The immutable operation's `causal_depth` is separate from the linear
 `ProjectVersion` revision maintained by `OperationLog`; adapters must keep
@@ -72,13 +75,15 @@ unresolved conflict records exist.
 The core contract can be tested on every platform and persisted by multiple
 adapters without importing UI or storage types. Offline branches can be merged
 deterministically while retaining provenance and refusing silent data loss.
-The current scope does not apply mutations to the full project aggregate,
-persist operation rows, sign actor claims, or render conflicts; those remain
-open integration work and must use this contract rather than weaken it.
+The project-store increment persists immutable operation rows and validates
+their exact bytes, hashes, project identity, parent graph, and replay before
+commit. The current scope does not apply mutations to the full project
+aggregate, sign actor claims, or render conflicts; those remain open
+integration work and must use this contract rather than weaken it.
 
 ## Evidence
 
-The focused executable evidence is recorded in the
+The pure-contract executable evidence is recorded in the
 [operation-log validation document](../../validation/operation-log.md). Its
 [operation-log test suite](../../../crates/operation-log/tests/operation_log.rs)
 covers unequal-length joins, equal-effect frontier collapse at width 100,000,
@@ -87,30 +92,39 @@ resolution, strict encoding, tamper detection, and replayability. The
 [architecture test](../../../crates/operation-log/tests/architecture.rs)
 checks that the crate remains inward and free of storage, packet, wall-clock,
 and generic JSON-value dependencies.
+The outer persistence evidence is recorded in the
+[operation-store validation document](../../validation/operation-store.md),
+whose focused tests cover exact duplicate retry, canonical/hash tamper
+detection, bounded scalar BLOB-length reads, sequential toggle admission,
+additive migration, read-only access, transactional rollback, projection-ahead
+recovery, and reopen/replay.
 
 ## Reversibility
 
-This Phase 0 increment is reversible before downstream integration: it adds a
-pure crate and documentation, without changing project-store schemas,
-materialization, or the legacy `kyberia-domain::project::OperationRecord`.
-Reverting the crate and its workspace, architecture, and source-inventory
-entries restores the prior implementation boundary. Durable persistence and
-application adoption must first pass the reserved ADR-0014 persistence and
-ADR-0015 channel decisions, with migration and recovery fixtures reviewed at
-those boundaries.
+The pure contract and the persistence adapter can be disabled before
+downstream materialization without changing project state. The adapter's
+schema change is additive: new bundles create empty operation tables, and
+older bundles gain those tables only through a writable migration that leaves
+the manifest revision unchanged. After a bundle has migrated or accepted
+operation rows, reverting binaries alone is unsafe because an older schema
+guard would reject the additional tables; recovery requires retaining the
+operation-aware reader or a reviewed migration, and operation rows must never
+be deleted as rollback. The legacy
+`kyberia-domain::project::OperationRecord` remains untouched.
 
 ## Validation plan
 
-The current contract checks are the focused command, query, merge, encoding,
-and replay suite in the
-[validation record](../../validation/operation-log.md), run with
-`cargo test -p kyberia-operation-log --locked --offline`, together with
-`cargo fmt --all -- --check`, workspace clippy with `-D warnings`, the
-architecture check, source-inventory check, ledger check, and
-`git diff --check`. Before product promotion, the remaining gates are crash-safe
-operation-row persistence and reopen/recovery, source-hash verification and
-migration fixtures, typed mutation materialization with entity-reference
-checks, authorization/signatures, reordered and duplicated delivery with
-replay protection, content-chunk availability, and bounded coordinator merge
-stress. The concrete follow-up scope is maintained in the validation
-document; these gates are outside this pure crate.
+The pure contract checks remain in the
+[operation-log validation record](../../validation/operation-log.md). The
+SQLite adapter checks in the
+[operation-store validation record](../../validation/operation-store.md) run
+with `cargo test -p kyberia-project-store --locked --offline`. The combined
+increment is formatted and linted with `cargo fmt --all -- --check` and
+workspace clippy with `-D warnings`, then checked by the architecture,
+source-inventory, ledger, and `git diff --check` gates. Before product
+promotion, the remaining gates are typed mutation materialization with
+entity-reference checks, authorization/signatures, reordered and duplicated
+delivery with replay protection, content-chunk availability, and bounded
+coordinator merge stress. Persistence crash/recovery, migration, and source
+hash checks are covered by the current adapter fixtures; production power-loss
+and cross-platform validation remain open.

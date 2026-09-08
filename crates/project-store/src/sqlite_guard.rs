@@ -12,6 +12,8 @@ use std::time::{Duration, Instant};
 pub(crate) const CREATE_MANIFEST: &str = "CREATE TABLE bundle_manifest (singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL CHECK(revision>=0), body BLOB NOT NULL)";
 pub(crate) const CREATE_SURVEY_SNAPSHOTS: &str = "CREATE TABLE survey_snapshots (snapshot_id TEXT PRIMARY KEY CHECK(length(snapshot_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), point_id TEXT NOT NULL CHECK(length(point_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), collector_id TEXT NOT NULL CHECK(length(collector_id)=32), artifact_hash TEXT NOT NULL CHECK(length(artifact_hash)=64), input_schema TEXT NOT NULL, output_schema TEXT NOT NULL, decoder_version TEXT NOT NULL, source_version TEXT NOT NULL, created_utc_ms INTEGER NOT NULL CHECK(created_utc_ms>=0), revision INTEGER NOT NULL CHECK(revision>=0))";
 pub(crate) const CREATE_SURVEY_SNAPSHOT_HISTORY: &str = "CREATE TABLE survey_snapshot_history (revision INTEGER PRIMARY KEY CHECK(revision>=0), snapshot_id TEXT NOT NULL CHECK(length(snapshot_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), point_id TEXT NOT NULL CHECK(length(point_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), collector_id TEXT NOT NULL CHECK(length(collector_id)=32), artifact_hash TEXT NOT NULL CHECK(length(artifact_hash)=64), input_schema TEXT NOT NULL, output_schema TEXT NOT NULL, decoder_version TEXT NOT NULL, source_version TEXT NOT NULL, operation TEXT NOT NULL, committed_utc_ms INTEGER NOT NULL CHECK(committed_utc_ms>=0))";
+pub(crate) const CREATE_OPERATION_LOG_STATE: &str = "CREATE TABLE operation_log_state (singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL CHECK(length(project_id)=32), project_revision INTEGER NOT NULL CHECK(project_revision>=0))";
+pub(crate) const CREATE_OPERATIONS: &str = "CREATE TABLE project_operations (operation_id TEXT PRIMARY KEY CHECK(length(operation_id)=32), project_id TEXT NOT NULL CHECK(length(project_id)=32), project_revision INTEGER NOT NULL CHECK(project_revision>0), logical_time INTEGER NOT NULL CHECK(logical_time>0), causal_depth INTEGER NOT NULL CHECK(causal_depth>=0), content_hash TEXT NOT NULL CHECK(length(content_hash)=64), canonical_bytes BLOB NOT NULL CHECK(length(canonical_bytes)>0 AND length(canonical_bytes)<=32768), wire_bytes BLOB NOT NULL CHECK(length(wire_bytes)>0 AND length(wire_bytes)<=49152))";
 pub(crate) const MAX_DATABASE_BYTES: u64 = 64 * 1024 * 1024;
 const MAX_SCHEMA_OBJECTS: usize = 64;
 const MAX_VM_OPERATIONS: u64 = 2_000_000;
@@ -64,6 +66,9 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
         let allowed = context.accessor.is_none()
             && match context.action {
                 AuthAction::Select | AuthAction::Transaction { .. } => true,
+                AuthAction::Function {
+                    function_name: "length",
+                } => true,
                 AuthAction::Read { table_name, .. } => {
                     context.database_name == Some("main")
                         && [
@@ -72,12 +77,22 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                             "bundle_manifest",
                             "survey_snapshots",
                             "survey_snapshot_history",
+                            "operation_log_state",
+                            "project_operations",
                         ]
                         .contains(&table_name)
                 }
                 AuthAction::Insert {
-                    table_name: "survey_snapshots" | "survey_snapshot_history",
+                    table_name:
+                        "survey_snapshots"
+                        | "survey_snapshot_history"
+                        | "operation_log_state"
+                        | "project_operations",
                 } => writable,
+                AuthAction::Update {
+                    table_name: "operation_log_state",
+                    column_name: "project_revision",
+                } => writable && context.database_name == Some("main"),
                 AuthAction::Update {
                     table_name: "bundle_manifest",
                     column_name: "revision" | "body",
@@ -114,7 +129,7 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
 /// actually written; an older manifest-only bundle remains readable and is
 /// upgraded by the writable open path before snapshot operations are attempted.
 pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
-    // A canonical bundle has at most three user tables and their SQLite-owned
+    // A canonical bundle has at most five user tables and their SQLite-owned
     // autoindexes. Read a bounded inventory so malformed schema input cannot
     // allocate from an unbounded sqlite_schema result.
     let mut statement = connection
@@ -159,27 +174,58 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
         "survey_snapshot_history",
         Some(CREATE_SURVEY_SNAPSHOT_HISTORY),
     );
-    let valid_manifest_only = entries.len() == 1
-        && entries.iter().any(|entry| {
-            entry.0 == expected_manifest.0
-                && entry.1 == expected_manifest.1
-                && entry.2 == expected_manifest.2
-                && entry.3.as_deref() == expected_manifest.3
-        });
-    let valid_current = entries.len() == 3
-        && [expected_manifest, expected_snapshots, expected_history]
-            .into_iter()
-            .all(|expected| {
+    let expected_operation_state = (
+        "table",
+        "operation_log_state",
+        "operation_log_state",
+        Some(CREATE_OPERATION_LOG_STATE),
+    );
+    let expected_operations = (
+        "table",
+        "project_operations",
+        "project_operations",
+        Some(CREATE_OPERATIONS),
+    );
+    let manifest_valid = entries.iter().any(|entry| {
+        entry.0 == expected_manifest.0
+            && entry.1 == expected_manifest.1
+            && entry.2 == expected_manifest.2
+            && entry.3.as_deref() == expected_manifest.3
+    });
+    let optional_groups = [
+        [expected_snapshots, expected_history],
+        [expected_operation_state, expected_operations],
+    ];
+    let mut known_objects = usize::from(manifest_valid);
+    let groups_valid = optional_groups.iter().all(|group| {
+        let present = entries
+            .iter()
+            .filter(|entry| group.iter().any(|candidate| entry.1 == candidate.1))
+            .count();
+        if present == 0 {
+            return true;
+        }
+        if present != group.len()
+            || !group.iter().all(|candidate| {
                 entries.iter().any(|entry| {
-                    entry.0 == expected.0
-                        && entry.1 == expected.1
-                        && entry.2 == expected.2
-                        && entry.3.as_deref() == expected.3
+                    entry.0 == candidate.0
+                        && entry.1 == candidate.1
+                        && entry.2 == candidate.2
+                        && entry.3.as_deref() == candidate.3
                 })
-            });
-    if !valid_manifest_only && !valid_current {
+            })
+        {
+            return false;
+        }
+        known_objects += present;
+        true
+    });
+    // Optional table groups are validated independently. This keeps future
+    // additive groups composable while still rejecting partial groups and any
+    // unrecognized schema object.
+    if !manifest_valid || !groups_valid || entries.len() != known_objects {
         return Err(StoreError::Corrupt(
-            "unsupported physical metadata schema; expected the canonical manifest and survey tables"
+            "unsupported physical metadata schema; expected canonical manifest, survey, or operation tables"
                 .into(),
         ));
     }
@@ -196,6 +242,22 @@ pub(crate) fn has_survey_snapshot_schema(connection: &Connection) -> Result<bool
         match row.get::<_, String>(0)?.as_str() {
             "survey_snapshots" => names[0] = true,
             "survey_snapshot_history" => names[1] = true,
+            _ => {}
+        }
+    }
+    Ok(names.into_iter().all(|present| present))
+}
+
+pub(crate) fn has_operation_schema(connection: &Connection) -> Result<bool> {
+    let mut statement = connection.prepare(
+        "SELECT name FROM main.sqlite_schema WHERE type='table' AND name IN ('operation_log_state','project_operations')",
+    )?;
+    let mut rows = statement.query([])?;
+    let mut names = [false; 2];
+    while let Some(row) = rows.next()? {
+        match row.get::<_, String>(0)?.as_str() {
+            "operation_log_state" => names[0] = true,
+            "project_operations" => names[1] = true,
             _ => {}
         }
     }

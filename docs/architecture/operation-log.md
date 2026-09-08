@@ -34,6 +34,36 @@ single-project receipt until an application integration deliberately migrates
 to this contract. This increment does not silently make either model the
 project-store truth.
 
+## SQLite persistence adapter
+
+`kyberia-project-store` is the outer persistence adapter for this contract.
+Each immutable row stores the exact operation wire bytes, the exact unsigned
+canonical bytes, the SHA-256 content hash, project and operation identities,
+logical time, causal depth, and an operation-only `project_revision`. The
+adapter re-parses the wire bytes through `kyberia-operation-log`, verifies the
+canonical bytes and digest, validates the complete bounded operation graph,
+checks replay semantics before accepting sequential toggles (while retaining
+unresolved concurrent conflicts), and only then commits the row. SQLite BLOB
+lengths are queried as scalars before canonical or wire bytes are selected into
+the adapter.
+
+The adapter's `project_revision` is a local linear count of accepted unique
+operation rows. It is persisted in `operation_log_state` and is separate from
+the `causal_depth` carried by each operation. `bundle_manifest.revision` is a
+third counter for all committed bundle metadata, including artifacts and
+survey snapshots. An operation append advances both the operation revision
+and bundle revision in one SQLite transaction; artifact or snapshot commits
+advance only the bundle revision. No adapter may derive one counter from
+another.
+
+Operation tables are an optional validated schema group. New bundles create
+the group empty; writable opens add it transactionally to older valid bundles
+without rewriting the manifest revision. Read-only opens never migrate. A
+projection failure rolls the transaction back; if a process stops after the
+redundant projection is written but before SQLite commit, verification detects
+the projection-ahead state and `recover_manifest` restores the committed
+SQLite projection.
+
 ## Operation format
 
 An operation is a version-1 closed record with these fields:
@@ -133,12 +163,11 @@ validation and replay.
 
 ## Open integration decisions
 
-Phase 0 intentionally leaves these decisions to the application and
-persistence increments:
+Phase 0 intentionally leaves these decisions to the application and later
+collaboration increments:
 
 - mapping each typed mutation to the full `Project` aggregate and checking
   entity-reference existence;
-- durable SQLite/bundle tables and crash-safe append transactions;
 - server or file exchange for operation DAGs and content-addressed chunks;
 - authorization, actor enrollment, signatures, and encrypted project keys;
 - migration from the existing linear `ProjectCommand` receipt model;

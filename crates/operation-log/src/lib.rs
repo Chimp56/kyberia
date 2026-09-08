@@ -1209,16 +1209,26 @@ impl OperationSet {
     }
 
     pub fn replay(&self) -> Result<Vec<AppliedMutation>, MergeError> {
-        Ok(self.replay_internal()?.0)
-    }
-
-    fn replay_internal(
-        &self,
-    ) -> Result<(Vec<AppliedMutation>, BTreeMap<OperationId, bool>), MergeError> {
         let conflicts = self.conflicts()?;
         if !conflicts.is_empty() {
             return Err(MergeError::Conflicts(conflicts));
         }
+        Ok(self.replay_without_conflict_check()?.0)
+    }
+
+    /// Validate replayable toggle state without requiring semantic field
+    /// conflicts to be resolved. Admission uses this before persistence so an
+    /// unrelated unresolved edit conflict cannot mask a repeated sequential
+    /// undo or redo. The returned state is intentionally discarded: callers
+    /// that need mutations must use [`Self::replay`], which still refuses to
+    /// apply a conflicting set.
+    pub fn validate_replay_semantics(&self) -> Result<(), MergeError> {
+        self.replay_without_conflict_check().map(|_| ())
+    }
+
+    fn replay_without_conflict_check(
+        &self,
+    ) -> Result<(Vec<AppliedMutation>, BTreeMap<OperationId, bool>), MergeError> {
         let mut active = BTreeMap::new();
         let mut toggle_history: BTreeMap<(OperationReference, ToggleDirection), Vec<OperationId>> =
             BTreeMap::new();

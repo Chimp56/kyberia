@@ -212,10 +212,16 @@ impl Bundle {
         transaction.execute_batch(sqlite_guard::CREATE_MANIFEST)?;
         transaction.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOTS)?;
         transaction.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOT_HISTORY)?;
+        transaction.execute_batch(sqlite_guard::CREATE_OPERATION_LOG_STATE)?;
+        transaction.execute_batch(sqlite_guard::CREATE_OPERATIONS)?;
         transaction.execute_batch("PRAGMA user_version=1")?;
         transaction.execute(
             "INSERT INTO bundle_manifest VALUES (1, ?1, ?2)",
             (0, manifest.encode()?),
+        )?;
+        transaction.execute(
+            "INSERT INTO operation_log_state (singleton,project_id,project_revision) VALUES (1,?1,0)",
+            [String::from(project_id)],
         )?;
         transaction.commit()?;
         sqlite_guard::restrict(&connection, true)?;
@@ -236,7 +242,7 @@ impl Bundle {
             OpenMode::ReadOnly => OpenFlags::SQLITE_OPEN_READ_ONLY,
             OpenMode::ReadWrite => OpenFlags::SQLITE_OPEN_READ_WRITE,
         };
-        if mode == OpenMode::ReadWrite {
+        let preflight = if mode == OpenMode::ReadWrite {
             // Probe through a read-only handle before opening SQLite in a
             // write-capable mode. SQLite may recover a hot rollback journal as
             // part of a writable open, so future compatibility is rejected
@@ -263,17 +269,38 @@ impl Bundle {
                     "database schema version differs from manifest".into(),
                 ));
             }
-        }
+            Some(preflight)
+        } else {
+            None
+        };
         let mut connection = Connection::open_with_flags(root.join("project.sqlite"), flags)?;
         sqlite_guard::initialize(&connection)?;
         sqlite_guard::validate_schema(&connection)?;
-        if mode == OpenMode::ReadWrite && !sqlite_guard::has_survey_snapshot_schema(&connection)? {
-            // V1 bundles predate the survey tables. This additive migration is
-            // performed before the authorizer is installed and never rewrites
-            // the manifest or its revision.
+        if mode == OpenMode::ReadWrite
+            && (!sqlite_guard::has_survey_snapshot_schema(&connection)?
+                || !sqlite_guard::has_operation_schema(&connection)?)
+        {
+            // V1 bundles predate one or both optional metadata table groups.
+            // This additive migration is performed before the authorizer is
+            // installed and never rewrites the manifest or its revision.
             let migration = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
-            migration.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOTS)?;
-            migration.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOT_HISTORY)?;
+            if !sqlite_guard::has_survey_snapshot_schema(&migration)? {
+                migration.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOTS)?;
+                migration.execute_batch(sqlite_guard::CREATE_SURVEY_SNAPSHOT_HISTORY)?;
+            }
+            if !sqlite_guard::has_operation_schema(&migration)? {
+                migration.execute_batch(sqlite_guard::CREATE_OPERATION_LOG_STATE)?;
+                migration.execute_batch(sqlite_guard::CREATE_OPERATIONS)?;
+                migration.execute(
+                    "INSERT INTO operation_log_state (singleton,project_id,project_revision) VALUES (1,?1,0)",
+                    [String::from(
+                        preflight
+                            .as_ref()
+                            .ok_or_else(|| StoreError::Corrupt("missing migration preflight".into()))?
+                            .project_id,
+                    )],
+                )?;
+            }
             migration.commit()?;
         }
         sqlite_guard::restrict(&connection, mode == OpenMode::ReadWrite)?;
@@ -541,6 +568,11 @@ impl Bundle {
             if let Err(error) = self.list_survey_snapshot_history(None) {
                 failures.push(error.to_string());
             }
+        }
+        if sqlite_guard::has_operation_schema(&self.connection)?
+            && let Err(error) = self.operation_store_state()
+        {
+            failures.push(error.to_string());
         }
         Ok(Verification {
             schema_version: manifest.schema_version,

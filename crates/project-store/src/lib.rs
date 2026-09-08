@@ -2,11 +2,13 @@
 //! human-readable manifest is a recoverable projection, never a second truth.
 mod bundle;
 mod manifest;
+mod operation_log;
 mod sqlite_guard;
 mod survey_snapshot;
 
 pub use bundle::{Bundle, OpenMode, Verification};
 pub use manifest::{ArtifactEntry, ArtifactKind, BundleManifest, content_hash};
+pub use operation_log::{OperationAppendOutcome, OperationStoreState};
 pub use survey_snapshot::MAX_SURVEY_SNAPSHOT_BYTES;
 pub use survey_snapshot::{LoadedSurveySnapshot, SurveySnapshotHistory, SurveySnapshotRecord};
 
@@ -18,6 +20,7 @@ pub enum StoreError {
     Invalid(String),
     ReadOnly,
     Corrupt(String),
+    Operation(String),
     UnsupportedVersion(u32),
 }
 
@@ -30,6 +33,7 @@ impl std::fmt::Display for StoreError {
             Self::Invalid(e) => write!(f, "invalid project input: {e}"),
             Self::ReadOnly => write!(f, "project is read-only"),
             Self::Corrupt(e) => write!(f, "project integrity failure: {e}"),
+            Self::Operation(e) => write!(f, "invalid project operation: {e}"),
             Self::UnsupportedVersion(v) => write!(
                 f,
                 "unsupported project schema {v}; open read-only for metadata inspection"

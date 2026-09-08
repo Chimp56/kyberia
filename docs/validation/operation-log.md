@@ -51,11 +51,12 @@ contract delivered in this increment.
 
 ## Required follow-up validation
 
-The persistence increment must add crash-safe operation-row append/finalization,
-reopen/recovery, source hash verification, and migration fixtures. The
-application increment must apply typed mutations to the canonical project,
-validate entity references, create user-visible conflict-resolution commands,
-and exercise cross-device actor authorization. A coordinator increment must add
-reordered/duplicated delivery, signature/replay protection, chunk availability,
-and bounded merge stress fixtures. None of those concerns belongs in this pure
-crate.
+The SQLite persistence increment is covered by the
+[operation-store validation record](operation-store.md), including
+crash-safe transaction boundaries, reopen/recovery, source hash verification,
+and additive migration fixtures. The application increment must apply typed
+mutations to the canonical project, validate entity references, create
+user-visible conflict-resolution commands, and exercise cross-device actor
+authorization. A coordinator increment must add reordered/duplicated delivery,
+signature/replay protection, chunk availability, and bounded merge stress
+fixtures. None of those concerns belongs in this pure crate.
