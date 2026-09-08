@@ -217,7 +217,7 @@ impl CapturePersistencePort for FakePort {
         if !observations.is_empty() {
             progress.chunk = Some(
                 ObservationChunkReceipt::new(
-                    "11".repeat(32),
+                    ContentHash::try_from("11".repeat(32)).unwrap(),
                     if self.wrong_count {
                         observations.len() as u64 + 1
                     } else {
@@ -502,6 +502,60 @@ fn terminal_empty_and_cancelled_captures_persist_capability_and_status() {
 }
 
 #[test]
+fn cancellation_after_empty_manifest_publication_is_recoverable() {
+    let capture = normalized_capture(
+        include_bytes!("../../../collectors/macos/fixtures/empty.ndjson"),
+        true,
+    );
+    let batch = ReceivedObservationBatch::from_normalized_capture(capture).unwrap();
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+
+    // Calls 1 and 2 occur in ingest, call 3 precedes manifest publication,
+    // and call 4 observes the manifest committed before the empty snapshot.
+    let error = ingest(
+        &mut bundle,
+        &survey,
+        &batch,
+        &request(82),
+        &CancelAfter::new(4),
+    )
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        PipelineError::Partial {
+            progress,
+            error: PortError {
+                kind: PortErrorKind::Cancelled,
+                ..
+            }
+        } if progress.snapshot().is_none()
+    ));
+    let manifest_hash =
+        kyberia_project_store::content_hash(&batch.manifest().canonical_bytes().unwrap());
+    assert_eq!(
+        bundle
+            .capture_publication(&manifest_hash)
+            .unwrap()
+            .unwrap()
+            .status,
+        CapturePublicationStatus::Terminal
+    );
+    assert!(
+        bundle
+            .list_survey_snapshot_history(None)
+            .unwrap()
+            .is_empty()
+    );
+
+    let outcome = ingest(&mut bundle, &survey, &batch, &request(82), &NeverCancel).unwrap();
+    assert!(outcome.publication.snapshot().is_some());
+    assert_eq!(bundle.list_survey_snapshot_history(None).unwrap().len(), 1);
+}
+
+#[test]
 fn malformed_source_reference_and_unsupported_evidence_are_rejected_before_writes() {
     let mut capture = normalized_capture(VALID, false);
     capture.source_records[0].bytes[0] ^= 1;
@@ -720,6 +774,94 @@ fn public_port_rejects_manifest_observation_mismatch_before_publication() {
     });
     assert!(result.is_err());
     assert_eq!(bundle.manifest().unwrap().revision, 0);
+}
+
+#[test]
+fn public_port_rejects_unassociated_survey_before_publication() {
+    let batch = batch();
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let req = request(83);
+    let envelope = batch.observations()[0].envelope().clone();
+    let result = bundle.persist_capture(CapturePersistenceRequest {
+        manifest: batch.manifest(),
+        raw_records: &[],
+        observations: std::slice::from_ref(&envelope),
+        snapshot_id: req.snapshot_id(),
+        survey: &survey,
+        provenance_id: &req.provenance_id,
+        published_utc_ms: req.published_utc_ms,
+        cancel: &NeverCancel,
+    });
+    assert!(matches!(
+        result,
+        Err(PortError {
+            kind: PortErrorKind::Corrupt,
+            ..
+        })
+    ));
+    assert_eq!(bundle.manifest().unwrap().revision, 0);
+}
+
+#[test]
+fn capture_links_reject_same_count_chunk_with_different_observation_identity() {
+    let batch = batch();
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let outcome = ingest(&mut bundle, &survey, &batch, &request(84), &NeverCancel).unwrap();
+    let (envelope, _) = batch.observations()[0].clone().into_parts();
+    let mut data = envelope.into_data();
+    data.id = ObservationId::from_bytes([44; 16]).unwrap();
+    let unrelated = ObservationEnvelope::new(data).unwrap();
+    let wrong_chunk = bundle
+        .publish_observation_chunk(&[unrelated], "unrelated-chunk/v1", 4)
+        .unwrap();
+    let manifest_hash = String::from(outcome.publication.manifest().hash());
+    assert!(matches!(
+        bundle.link_capture_chunk(&manifest_hash, wrong_chunk.hash(), wrong_chunk.row_count()),
+        Err(StoreError::Corrupt(_))
+    ));
+    assert_eq!(
+        bundle
+            .capture_publication(&manifest_hash)
+            .unwrap()
+            .unwrap()
+            .chunk_hash
+            .as_deref(),
+        Some(String::from(outcome.publication.chunk().unwrap().hash()).as_str())
+    );
+}
+
+#[test]
+fn capture_links_reject_same_project_snapshot_without_manifest_associations() {
+    let batch = batch();
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let outcome = ingest(&mut bundle, &survey, &batch, &request(85), &NeverCancel).unwrap();
+    let unrelated_survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let unrelated_snapshot = SnapshotId::from_bytes([86; 16]).unwrap();
+    bundle
+        .save_survey_snapshot(unrelated_snapshot, &unrelated_survey, 5)
+        .unwrap();
+    let manifest_hash = String::from(outcome.publication.manifest().hash());
+    assert!(matches!(
+        bundle.link_capture_snapshot(&manifest_hash, unrelated_snapshot, &unrelated_survey),
+        Err(StoreError::Corrupt(_))
+    ));
+    assert_eq!(
+        bundle
+            .capture_publication(&manifest_hash)
+            .unwrap()
+            .unwrap()
+            .snapshot_id,
+        Some(outcome.publication.snapshot().unwrap().snapshot_id())
+    );
 }
 
 #[test]

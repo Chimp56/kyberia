@@ -35,12 +35,7 @@ fn manifest_receipt(
             "capture manifest persistence returned an invalid hash",
         ))
     })?;
-    Ok(CaptureManifestReceipt {
-        hash,
-        observation_count,
-        raw_record_count,
-        project_revision: revision,
-    })
+    CaptureManifestReceipt::new(hash, observation_count, raw_record_count, revision)
 }
 
 fn progress(
@@ -95,15 +90,14 @@ impl CapturePersistencePort for Bundle {
             .map_err(|error| PortError::new(PortErrorKind::Invalid, error))?;
         let manifest_hash = kyberia_project_store::content_hash(&manifest_bytes);
         let stored = self
-            .persist_capture_manifest(CaptureManifestRegistration {
-                manifest_hash: &manifest_hash,
-                manifest_bytes: &manifest_bytes,
-                provenance_id: provenance_id.as_str(),
-                utc_ms: published_utc_ms,
-                observation_count: observations.len() as u64,
-                raw_record_count: raw_records.len() as u64,
-                terminal: manifest.terminal(),
-            })
+            .persist_capture_manifest(
+                CaptureManifestRegistration::new(
+                    manifest.clone(),
+                    provenance_id.clone(),
+                    published_utc_ms,
+                )
+                .map_err(map_store_error)?,
+            )
             .map_err(map_store_error)?;
         if stored.observation_count != observations.len() as u64
             || stored.raw_record_count != raw_records.len() as u64
@@ -155,14 +149,19 @@ impl CapturePersistencePort for Bundle {
             current.raw_record_count = published_raw;
         }
         if observations.is_empty() {
+            if cancel.is_cancelled() {
+                return Err(PortError::new(
+                    PortErrorKind::Cancelled,
+                    "cancelled before empty survey snapshot publication",
+                )
+                .with_progress(current));
+            }
             let snapshot = self
                 .save_survey_snapshot(snapshot_id, survey, published_utc_ms)
                 .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
-            let snapshot_receipt = SnapshotReceipt {
-                snapshot_id: snapshot.snapshot_id,
-                project_revision: snapshot.revision,
-            };
-            self.link_capture_snapshot(&manifest_hash, snapshot.snapshot_id)
+            let snapshot_receipt = SnapshotReceipt::new(snapshot.snapshot_id, snapshot.revision)
+                .map_err(|error| *error)?;
+            self.link_capture_snapshot(&manifest_hash, snapshot.snapshot_id, survey)
                 .map_err(|error| {
                     map_store_error(error).with_progress({
                         current.snapshot = Some(snapshot_receipt.clone());
@@ -189,12 +188,18 @@ impl CapturePersistencePort for Bundle {
                 || cancel.is_cancelled(),
             )
             .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
-        let chunk = ObservationChunkReceipt::new(
+        let chunk_hash = kyberia_domain::identity::ContentHash::try_from(
             descriptor.hash().to_owned(),
-            descriptor.row_count(),
-            descriptor.revision(),
         )
-        .map_err(|error| *error)?;
+        .map_err(|_| {
+            PortError::new(
+                PortErrorKind::Corrupt,
+                "normalized chunk persistence returned an invalid hash",
+            )
+        })?;
+        let chunk =
+            ObservationChunkReceipt::new(chunk_hash, descriptor.row_count(), descriptor.revision())
+                .map_err(|error| *error)?;
         if chunk.row_count() != observations.len() as u64 {
             return Err(PortError::new(
                 PortErrorKind::Corrupt,
@@ -227,10 +232,8 @@ impl CapturePersistencePort for Bundle {
         let snapshot = self
             .save_survey_snapshot(snapshot_id, survey, published_utc_ms)
             .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
-        let snapshot_receipt = SnapshotReceipt {
-            snapshot_id: snapshot.snapshot_id,
-            project_revision: snapshot.revision,
-        };
+        let snapshot_receipt = SnapshotReceipt::new(snapshot.snapshot_id, snapshot.revision)
+            .map_err(|error| *error)?;
         if snapshot_receipt.snapshot_id != snapshot_id {
             return Err(PortError::new(
                 PortErrorKind::Corrupt,
@@ -238,7 +241,7 @@ impl CapturePersistencePort for Bundle {
             )
             .with_progress(current));
         }
-        self.link_capture_snapshot(&manifest_hash, snapshot.snapshot_id)
+        self.link_capture_snapshot(&manifest_hash, snapshot.snapshot_id, survey)
             .map_err(|error| {
                 map_store_error(error).with_progress({
                     current.snapshot = Some(snapshot_receipt.clone());

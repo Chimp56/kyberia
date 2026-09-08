@@ -8,6 +8,15 @@ Artifact imports persist and sync bytes before registration. Generic imports rej
 
 The native observation composition adds an optional `capture_publications` table as a bounded recovery index. It records the immutable capture-manifest hash, normalized chunk hash, survey snapshot identity, terminal/intermediate status and row counts. The manifest artifact is stored and verified through the ordinary content-addressed artifact path; chunk and snapshot links are validated against their owning indexes and can be retried after a process crash. Its `revision` is the manifest commit revision at capture registration and is deliberately not a second project revision or a measurement clock. The table is additive: historical bundles may omit the complete group and gain it only during writable migration, while read-only inspection remains side-effect free.
 
+Capture publication registration accepts the versioned domain `CaptureManifest`
+DTO plus validated provenance and publication time. The store derives canonical
+manifest bytes, content hash, observation/raw counts and terminal status from
+that DTO. It does not expose an API for independently supplied manifest bytes,
+counts or status, and publication reads decode the canonical artifact and
+cross-check the bounded SQLite row. Public link operations re-read the
+canonical manifest and verify exact chunk observation identities and snapshot
+survey/association closure before changing the publication row.
+
 Version 1 uses SQLite's full synchronization and rollback journal. The main database and any SQLite `-wal`, `-journal`, or `-shm` recovery sidecars must be nonsymlink regular files and share one 64 MiB read budget, checked before open and before each operation. This permits bounded crash recovery without letting a small main file hide an unbounded sidecar. The bundle manifest schema version must match SQLite `user_version`. Unknown logical versions using the same supported physical manifest-table envelope can be inspected read-only; writable opens and already-open writer handles reject unsupported versions and required features. No fictitious upgrade migration is supplied for a nonexistent prior format. Future migrations require archived fixtures, transactional conversion and backup/recovery tests.
 
 Before reading imported metadata, SQLite views and triggers are disabled and defensive mode is enabled. The adapter reads only SQLite's built-in schema catalog to require the exact manifest-table DDL emitted by the existing V1 writer, with no other schema objects. Manually rewritten SQL, extra indexes/tables, virtual or generated-column tables, views and triggers are rejected. This does not change the bytes written by V1; a future physical-schema migration must explicitly extend the reviewed schema allowlist and supply compatibility fixtures. A compatible future JSON version alone does not authorize foreign executable SQL.

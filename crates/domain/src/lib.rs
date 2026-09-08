@@ -37,6 +37,7 @@
 //! ```
 pub mod analysis;
 pub mod capability;
+pub mod capture;
 pub mod evidence;
 pub mod identity;
 pub mod observation;

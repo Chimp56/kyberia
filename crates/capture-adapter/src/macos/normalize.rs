@@ -35,6 +35,33 @@ pub struct Completion {
     pub partial: bool,
     pub observation_count: u16,
 }
+
+impl From<TerminalStatus> for CaptureTerminalStatus {
+    fn from(status: TerminalStatus) -> Self {
+        match status {
+            TerminalStatus::Ok => Self::Ok,
+            TerminalStatus::Partial => Self::Partial,
+            TerminalStatus::PermissionRequired => Self::PermissionRequired,
+            TerminalStatus::Unsupported => Self::Unsupported,
+            TerminalStatus::Unavailable => Self::Unavailable,
+            TerminalStatus::Error => Self::Error,
+            TerminalStatus::Timeout => Self::Timeout,
+            TerminalStatus::Cancelled => Self::Cancelled,
+        }
+    }
+}
+
+impl From<Completion> for CaptureCompletion {
+    fn from(completion: Completion) -> Self {
+        Self::new(
+            completion.status.into(),
+            completion.reason,
+            completion.partial,
+            completion.observation_count,
+        )
+        .expect("adapter completion is bounded by its decoder")
+    }
+}
 /// Canonical observations accompanied by a terminal result, never implied survey admission.
 #[derive(Clone, Debug, Serialize)]
 pub struct SourceRecord {

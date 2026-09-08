@@ -30,6 +30,21 @@ manifest hash to the chunk hash and snapshot identity. Every step is
 exact-idempotent and a failure after any committed step carries progress so a
 retry can complete the links without erasing history.
 
+The canonical capture-manifest DTO is owned by `kyberia-domain`, which keeps
+the project-store dependency pointed inward. Its bounded constructor and
+strict canonical decoder reject unsupported schema/method versions, duplicate
+observation identities, contradictory completion counts and duplicate source
+hashes. `kyberia-project-store` accepts only this DTO with validated
+publication context and derives all stored manifest metadata from it; free-form
+manifest bytes and caller-supplied counts/status are not a storage contract.
+`CapturePersistenceRequest` is created only by the association path, while
+public validating receipt builders keep replacement persistence ports
+implementable outside the composition crate.
+
+Capture output links are also admitted from the canonical manifest: chunk
+linking compares the complete observation-ID set, and snapshot linking checks
+the exact saved survey plus presence of every manifest observation association.
+
 PipelineRequest.published_utc_ms is bundle metadata publication time. It is
 not source response time, RF capture time, monotonic survey time or project
 revision. The manifest revision is a linear storage commit counter shared by

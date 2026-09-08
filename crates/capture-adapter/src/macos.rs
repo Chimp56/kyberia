@@ -2,7 +2,9 @@
 pub use crate::wire::TerminalStatus;
 use crate::{Error, ErrorKind as K, Result, check, wire::*};
 use base64::{Engine, engine::general_purpose::STANDARD};
-use kyberia_domain::{capability::*, evidence::*, identity::*, observation::*, time::*, units::*};
+use kyberia_domain::{
+    capability::*, capture::*, evidence::*, identity::*, observation::*, time::*, units::*,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};

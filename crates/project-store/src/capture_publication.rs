@@ -3,8 +3,12 @@
 use crate::bundle::load_manifest;
 use crate::manifest::validate_hash;
 use crate::{Bundle, Result, StoreError, content_hash, sqlite_guard};
-use kyberia_domain::identity::{ProjectId, SnapshotId};
+use kyberia_domain::{
+    capture::{CaptureManifest, RawSourceDisposition},
+    identity::{ProjectId, SnapshotId, Text},
+};
 use rusqlite::{OptionalExtension, TransactionBehavior};
+use std::collections::BTreeSet;
 
 pub(crate) const CAPTURE_MANIFEST_MEDIA_TYPE: &str =
     "application/vnd.kyberia.capture-manifest+json";
@@ -53,14 +57,29 @@ pub struct CapturePublicationRecord {
     pub revision: u64,
 }
 
-pub struct CaptureManifestRegistration<'a> {
-    pub manifest_hash: &'a str,
-    pub manifest_bytes: &'a [u8],
-    pub provenance_id: &'a str,
-    pub utc_ms: i64,
-    pub observation_count: u64,
-    pub raw_record_count: u64,
-    pub terminal: bool,
+pub struct CaptureManifestRegistration {
+    manifest: CaptureManifest,
+    provenance_id: Text,
+    utc_ms: i64,
+}
+
+impl CaptureManifestRegistration {
+    /// Store a validated domain manifest and its bounded publication context.
+    /// Artifact bytes, hash, counts, and terminal status are derived by the
+    /// store so callers cannot register contradictory free-form metadata.
+    pub fn new(manifest: CaptureManifest, provenance_id: Text, utc_ms: i64) -> Result<Self> {
+        manifest.canonical_bytes().map_err(StoreError::Invalid)?;
+        if utc_ms < 0 {
+            return Err(StoreError::Invalid(
+                "capture publication time must be UTC".into(),
+            ));
+        }
+        Ok(Self {
+            manifest,
+            provenance_id,
+            utc_ms,
+        })
+    }
 }
 
 fn parse_project_id(value: String) -> Result<ProjectId> {
@@ -159,37 +178,64 @@ fn validate_record_shape(record: &CapturePublicationRecord) -> Result<()> {
     Ok(())
 }
 
+fn read_capture_manifest(bundle: &Bundle, manifest_hash: &str) -> Result<CaptureManifest> {
+    let bundle_manifest = bundle.manifest()?;
+    let entry = bundle_manifest
+        .artifacts
+        .get(manifest_hash)
+        .ok_or_else(|| StoreError::Corrupt("capture manifest artifact is missing".into()))?;
+    if entry.kind != crate::ArtifactKind::RawCapture
+        || entry.media_type != CAPTURE_MANIFEST_MEDIA_TYPE
+        || entry.bytes > MAX_CAPTURE_MANIFEST_BYTES
+    {
+        return Err(StoreError::Corrupt(
+            "capture manifest artifact has unexpected semantics".into(),
+        ));
+    }
+    let bytes = bundle.read_registered_artifact(manifest_hash, entry)?;
+    CaptureManifest::from_canonical_bytes(&bytes).map_err(StoreError::Corrupt)
+}
+
+fn manifest_observation_ids(
+    manifest: &CaptureManifest,
+) -> BTreeSet<kyberia_domain::identity::ObservationId> {
+    manifest
+        .observation_ids_in_source_order()
+        .iter()
+        .copied()
+        .collect()
+}
+
 impl Bundle {
     /// Register the immutable capture manifest and its recoverable publication
     /// row. The manifest artifact is content-addressed and this operation is
     /// exact-idempotent.
     pub fn persist_capture_manifest(
         &mut self,
-        input: CaptureManifestRegistration<'_>,
+        input: CaptureManifestRegistration,
     ) -> Result<CapturePublicationRecord> {
         let CaptureManifestRegistration {
-            manifest_hash,
-            manifest_bytes,
+            manifest,
             provenance_id,
             utc_ms,
-            observation_count,
-            raw_record_count,
-            terminal,
         } = input;
         if self.mode == crate::OpenMode::ReadOnly {
             return Err(StoreError::ReadOnly);
         }
+        let manifest_bytes = manifest.canonical_bytes().map_err(StoreError::Invalid)?;
+        let manifest_hash = content_hash(&manifest_bytes);
+        let observation_count = u64::from(manifest.completion().observation_count());
+        let raw_record_count = match manifest.raw_source_disposition() {
+            RawSourceDisposition::Retained => manifest.source_records().len() as u64,
+            RawSourceDisposition::NotRetained => 0,
+        };
+        let terminal = manifest.terminal();
         if manifest_bytes.is_empty() || manifest_bytes.len() as u64 > MAX_CAPTURE_MANIFEST_BYTES {
             return Err(StoreError::Invalid(
                 "capture manifest exceeds resource limit".into(),
             ));
         }
-        validate_hash(manifest_hash)?;
-        if content_hash(manifest_bytes) != manifest_hash {
-            return Err(StoreError::Corrupt(
-                "capture manifest checksum does not match its bytes".into(),
-            ));
-        }
+        validate_hash(&manifest_hash)?;
         if !sqlite_guard::has_capture_publication_schema(&self.connection)? {
             return Err(StoreError::UnsupportedVersion(1));
         }
@@ -197,25 +243,20 @@ impl Bundle {
             kind: crate::ArtifactKind::RawCapture,
             bytes: manifest_bytes.len() as u64,
             media_type: CAPTURE_MANIFEST_MEDIA_TYPE.into(),
-            provenance_id: provenance_id.into(),
+            provenance_id: provenance_id.as_str().to_owned(),
         };
-        self.put_artifact(manifest_bytes, entry, utc_ms)?;
+        self.put_artifact(&manifest_bytes, entry, utc_ms)?;
         let transaction = self
             .connection
             .transaction_with_behavior(TransactionBehavior::Immediate)?;
         let manifest = load_manifest(&transaction)?;
-        let existing = read_record(&transaction, manifest_hash)?;
+        let existing = read_record(&transaction, &manifest_hash)?;
         if let Some(existing) = existing {
             validate_record_shape(&existing)?;
             if existing.project_id != manifest.project_id
                 || existing.observation_count != observation_count
                 || existing.raw_record_count != raw_record_count
-                || existing.status
-                    != if terminal {
-                        CapturePublicationStatus::Terminal
-                    } else {
-                        existing.status
-                    }
+                || (existing.status == CapturePublicationStatus::Terminal) != terminal
             {
                 return Err(StoreError::Corrupt(
                     "capture manifest publication metadata differs".into(),
@@ -232,7 +273,7 @@ impl Bundle {
         transaction.execute(
             "INSERT INTO capture_publications (manifest_hash,project_id,chunk_hash,snapshot_id,status,observation_count,raw_record_count,revision) VALUES (?1,?2,NULL,NULL,?3,?4,?5,?6)",
             (
-                manifest_hash,
+                &manifest_hash,
                 String::from(manifest.project_id),
                 status.as_str(),
                 i64::try_from(observation_count)
@@ -243,7 +284,7 @@ impl Bundle {
                     .map_err(|_| StoreError::Invalid("manifest revision exhausted".into()))?,
             ),
         )?;
-        let record = read_record(&transaction, manifest_hash)?
+        let record = read_record(&transaction, &manifest_hash)?
             .ok_or_else(|| StoreError::Corrupt("capture publication insert disappeared".into()))?;
         transaction.commit()?;
         Ok(record)
@@ -260,6 +301,23 @@ impl Bundle {
         }
         validate_hash(manifest_hash)?;
         validate_hash(chunk_hash)?;
+        let capture_manifest = read_capture_manifest(self, manifest_hash)?;
+        if u64::from(capture_manifest.completion().observation_count()) != observation_count {
+            return Err(StoreError::Corrupt(
+                "capture publication manifest row count differs from its manifest".into(),
+            ));
+        }
+        let expected_ids = manifest_observation_ids(&capture_manifest);
+        let chunk = self.read_observation_chunk(chunk_hash)?;
+        let actual_ids: BTreeSet<_> = chunk
+            .iter()
+            .map(|observation| observation.data().id)
+            .collect();
+        if chunk.len() as u64 != observation_count || actual_ids != expected_ids {
+            return Err(StoreError::Corrupt(
+                "capture publication chunk identities differ from its manifest".into(),
+            ));
+        }
         let transaction = self
             .connection
             .transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -320,11 +378,31 @@ impl Bundle {
         &mut self,
         manifest_hash: &str,
         snapshot_id: SnapshotId,
+        expected_survey: &kyberia_survey::PointSurvey,
     ) -> Result<CapturePublicationRecord> {
         if self.mode == crate::OpenMode::ReadOnly {
             return Err(StoreError::ReadOnly);
         }
         validate_hash(manifest_hash)?;
+        let capture_manifest = read_capture_manifest(self, manifest_hash)?;
+        let loaded_snapshot = self.load_survey_snapshot(snapshot_id)?;
+        if loaded_snapshot.survey != *expected_survey {
+            return Err(StoreError::Corrupt(
+                "capture publication snapshot differs from the supplied survey".into(),
+            ));
+        }
+        let expected_ids = manifest_observation_ids(&capture_manifest);
+        let snapshot_ids: BTreeSet<_> = loaded_snapshot
+            .survey
+            .associations()
+            .iter()
+            .map(|association| association.observation_id())
+            .collect();
+        if !expected_ids.is_subset(&snapshot_ids) {
+            return Err(StoreError::Corrupt(
+                "capture publication snapshot omits a manifest observation association".into(),
+            ));
+        }
         let transaction = self
             .connection
             .transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -448,11 +526,62 @@ impl Bundle {
             }
         }
         transaction.commit()?;
-        if record.is_some() {
+        if let Some(record) = &record {
             // The SQLite row is only a bounded index. Re-read the immutable
             // manifest artifact after leaving the transaction so this query
             // also proves the stored canonical bytes still match its hash.
-            self.read_registered_artifact(manifest_hash, artifact)?;
+            let bytes = self.read_registered_artifact(manifest_hash, artifact)?;
+            let decoded =
+                CaptureManifest::from_canonical_bytes(&bytes).map_err(StoreError::Corrupt)?;
+            let expected_raw_record_count = match decoded.raw_source_disposition() {
+                RawSourceDisposition::Retained => decoded.source_records().len() as u64,
+                RawSourceDisposition::NotRetained => 0,
+            };
+            let expected_status = if decoded.terminal() {
+                CapturePublicationStatus::Terminal
+            } else if record.snapshot_id.is_some() {
+                CapturePublicationStatus::Complete
+            } else if record.chunk_hash.is_some() {
+                CapturePublicationStatus::Chunk
+            } else {
+                CapturePublicationStatus::Manifest
+            };
+            if record.observation_count != u64::from(decoded.completion().observation_count())
+                || record.raw_record_count != expected_raw_record_count
+                || record.status != expected_status
+            {
+                return Err(StoreError::Corrupt(
+                    "capture publication row disagrees with its canonical manifest".into(),
+                ));
+            }
+            let expected_ids = manifest_observation_ids(&decoded);
+            if let Some(chunk_hash) = &record.chunk_hash {
+                let chunk = self.read_observation_chunk(chunk_hash)?;
+                let chunk_ids: BTreeSet<_> = chunk
+                    .iter()
+                    .map(|observation| observation.data().id)
+                    .collect();
+                if chunk.len() as u64 != record.observation_count || chunk_ids != expected_ids {
+                    return Err(StoreError::Corrupt(
+                        "capture publication chunk identities differ from its manifest".into(),
+                    ));
+                }
+            }
+            if let Some(snapshot_id) = record.snapshot_id {
+                let loaded = self.load_survey_snapshot(snapshot_id)?;
+                let snapshot_ids: BTreeSet<_> = loaded
+                    .survey
+                    .associations()
+                    .iter()
+                    .map(|association| association.observation_id())
+                    .collect();
+                if !expected_ids.is_subset(&snapshot_ids) {
+                    return Err(StoreError::Corrupt(
+                        "capture publication snapshot omits a manifest observation association"
+                            .into(),
+                    ));
+                }
+            }
         }
         Ok(record)
     }

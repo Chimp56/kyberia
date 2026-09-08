@@ -20,6 +20,16 @@ remains responsible for session, source, clock, active-window, duplicate and
 unknown-evidence rules. The pipeline does not turn a source receipt into RF
 capture time, pose, dwell or strict metric evidence.
 
+`CapturePersistenceRequest` is an opaque application-owned value: its only
+constructor is the association path in `ingest`, so a caller cannot pair a
+public persistence port with an unrelated survey or manifest. A replacement
+port can inspect the validated request through read-only accessors and return
+validated manifest, chunk, snapshot and progress receipts through their public
+constructors. The canonical `CaptureManifest` wire type lives in
+`kyberia-domain`; project-store accepts that typed value and derives its
+canonical bytes, hash, counts and terminal status rather than accepting
+caller-supplied free-form manifest metadata.
+
 CapturePersistencePort is a versioned inward port. Its receipts contain only
 canonical content hashes, row counts, snapshot identities and project
 manifest revisions. The Bundle implementation adapts those values to the
@@ -30,7 +40,10 @@ without a second chunk or snapshot when the underlying adapter can verify the
 existing bytes. The project store keeps a bounded capture-publication row
 linking the manifest hash to the chunk hash and survey snapshot ID. Link
 updates are idempotent and can be replayed after a process crash between
-separate storage transactions.
+separate storage transactions. The store decodes the typed manifest while
+linking and checks the chunk's complete observation-ID set and the snapshot's
+association set, while snapshot linking also verifies the exact survey bytes
+supplied by the caller.
 
 Chunk and snapshot publication remain separate storage transactions in this
 bounded increment, with a recoverable manifest and link row. If the chunk

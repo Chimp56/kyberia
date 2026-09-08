@@ -17,11 +17,16 @@ composition path. It proves:
   snapshot link;
 * exact duplicate retry is idempotent for chunk, snapshot and publication
   links;
+* same-count chunks with different observation IDs and same-project snapshots
+  without the manifest's associations are rejected before link mutation;
 * every association is checked before a port write, preserving state and
   row counts on source/quality rejection;
 * cancellation before publication leaves the port untouched, and
   cancellation or failure after chunk publication returns an explicit
   partial-publication receipt that can be retried;
+* cancellation after an empty capture manifest is committed returns partial
+  progress before a survey snapshot is written, and the retry completes the
+  terminal link without a duplicate snapshot;
 * retained raw references have verified immutable artifact closure, while
   discarded capture policy is explicit and does not claim raw retention;
 * partial, error, permission and empty captures persist their terminal and

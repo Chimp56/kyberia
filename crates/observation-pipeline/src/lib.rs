@@ -7,10 +7,9 @@
 
 use kyberia_capture_adapter::macos::{Completion as AdapterCompletion, NormalizedCapture};
 use kyberia_domain::{
-    capability::CapabilityDocument,
-    evidence::{ArtifactReference, Evidence, SchemaVersion},
+    evidence::{ArtifactReference, Evidence},
     identity::{ContentHash, ObservationId, SnapshotId, Text},
-    observation::{ObservationEnvelope, PayloadRetention, ReceivedObservation, SourceKind},
+    observation::{ObservationEnvelope, PayloadRetention, ReceivedObservation},
 };
 use kyberia_survey::{PointSurvey, SurveyError};
 use serde::{Deserialize, Serialize};
@@ -19,12 +18,18 @@ use std::{collections::BTreeSet, fmt};
 
 mod bundle;
 
-pub const MAX_BATCH_OBSERVATIONS: usize = 4_096;
-pub const MAX_SOURCE_RECORDS: usize = 4_164;
-pub const MAX_SOURCE_RECORD_BYTES: usize = 16_384;
+pub const MAX_BATCH_OBSERVATIONS: usize = kyberia_domain::capture::MAX_CAPTURE_OBSERVATIONS;
+pub const MAX_SOURCE_RECORDS: usize = kyberia_domain::capture::MAX_CAPTURE_SOURCE_RECORDS;
+pub const MAX_SOURCE_RECORD_BYTES: usize =
+    kyberia_domain::capture::MAX_CAPTURE_SOURCE_RECORD_BYTES as usize;
 pub const MAX_SOURCE_BYTES: u64 = (MAX_SOURCE_RECORDS * MAX_SOURCE_RECORD_BYTES) as u64;
-pub const MAX_CAPTURE_MANIFEST_BYTES: usize = 4 * 1024 * 1024;
-pub const PIPELINE_METHOD_VERSION: &str = "native-observation-pipeline/v1";
+pub const MAX_CAPTURE_MANIFEST_BYTES: usize = kyberia_domain::capture::MAX_CAPTURE_MANIFEST_BYTES;
+pub const PIPELINE_METHOD_VERSION: &str = kyberia_domain::capture::CAPTURE_MANIFEST_METHOD_VERSION;
+
+pub use kyberia_domain::capture::{
+    CaptureCompletion, CaptureManifest, CaptureTerminalStatus, RawSourceDisposition,
+    SourceRecordManifest,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PipelineSchemaVersion {
@@ -32,160 +37,8 @@ pub enum PipelineSchemaVersion {
     V1,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CaptureTerminalStatus {
-    Ok,
-    Partial,
-    PermissionRequired,
-    Unsupported,
-    Unavailable,
-    Error,
-    Timeout,
-    Cancelled,
-}
-
-impl From<kyberia_capture_adapter::macos::TerminalStatus> for CaptureTerminalStatus {
-    fn from(status: kyberia_capture_adapter::macos::TerminalStatus) -> Self {
-        match status {
-            kyberia_capture_adapter::macos::TerminalStatus::Ok => Self::Ok,
-            kyberia_capture_adapter::macos::TerminalStatus::Partial => Self::Partial,
-            kyberia_capture_adapter::macos::TerminalStatus::PermissionRequired => {
-                Self::PermissionRequired
-            }
-            kyberia_capture_adapter::macos::TerminalStatus::Unsupported => Self::Unsupported,
-            kyberia_capture_adapter::macos::TerminalStatus::Unavailable => Self::Unavailable,
-            kyberia_capture_adapter::macos::TerminalStatus::Error => Self::Error,
-            kyberia_capture_adapter::macos::TerminalStatus::Timeout => Self::Timeout,
-            kyberia_capture_adapter::macos::TerminalStatus::Cancelled => Self::Cancelled,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CaptureCompletion {
-    status: CaptureTerminalStatus,
-    reason: Text,
-    partial: bool,
-    observation_count: u16,
-}
-
-impl CaptureCompletion {
-    pub const fn status(&self) -> CaptureTerminalStatus {
-        self.status
-    }
-
-    pub fn reason(&self) -> &Text {
-        &self.reason
-    }
-
-    pub const fn partial(&self) -> bool {
-        self.partial
-    }
-
-    pub const fn observation_count(&self) -> u16 {
-        self.observation_count
-    }
-}
-
-impl From<AdapterCompletion> for CaptureCompletion {
-    fn from(completion: AdapterCompletion) -> Self {
-        Self {
-            status: completion.status.into(),
-            reason: completion.reason,
-            partial: completion.partial,
-            observation_count: completion.observation_count,
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct SourceRecordManifest {
-    reference: ArtifactReference,
-}
-
-impl SourceRecordManifest {
-    pub const fn reference(&self) -> &ArtifactReference {
-        &self.reference
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RawSourceDisposition {
-    NotRetained,
-    Retained,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CaptureManifest {
-    schema_version: SchemaVersion,
-    method_version: Text,
-    evidence_origin: SourceKind,
-    collector_build: ContentHash,
-    capabilities: Evidence<CapabilityDocument>,
-    completion: CaptureCompletion,
-    source_records: Vec<SourceRecordManifest>,
-    raw_source_disposition: RawSourceDisposition,
-    /// IDs in source stream order; the chunk adapter separately sorts rows by
-    /// canonical observation ID for deterministic columnar bytes.
-    observation_ids_in_source_order: Vec<ObservationId>,
-}
-
-impl CaptureManifest {
-    pub const fn schema_version(&self) -> SchemaVersion {
-        self.schema_version
-    }
-
-    pub fn method_version(&self) -> &Text {
-        &self.method_version
-    }
-
-    pub const fn evidence_origin(&self) -> &SourceKind {
-        &self.evidence_origin
-    }
-
-    pub const fn collector_build(&self) -> ContentHash {
-        self.collector_build
-    }
-
-    pub const fn capabilities(&self) -> &Evidence<CapabilityDocument> {
-        &self.capabilities
-    }
-
-    pub const fn completion(&self) -> &CaptureCompletion {
-        &self.completion
-    }
-
-    pub fn source_records(&self) -> &[SourceRecordManifest] {
-        &self.source_records
-    }
-
-    pub const fn raw_source_disposition(&self) -> RawSourceDisposition {
-        self.raw_source_disposition
-    }
-
-    pub fn observation_ids_in_source_order(&self) -> &[ObservationId] {
-        &self.observation_ids_in_source_order
-    }
-
-    pub fn canonical_bytes(&self) -> Result<Vec<u8>, String> {
-        let bytes = serde_json::to_vec(self)
-            .map_err(|error| format!("capture manifest encoding failed: {error}"))?;
-        if bytes.len() > MAX_CAPTURE_MANIFEST_BYTES {
-            return Err("capture manifest exceeds resource limit".into());
-        }
-        Ok(bytes)
-    }
-
-    fn terminal(&self) -> bool {
-        self.completion.status != CaptureTerminalStatus::Ok
-            || self.completion.partial
-            || self.observation_ids_in_source_order.is_empty()
-    }
+fn capture_completion(completion: AdapterCompletion) -> CaptureCompletion {
+    completion.into()
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -285,9 +138,7 @@ impl ReceivedObservationBatch {
             {
                 return Err(BatchError::SourceReferenceMismatch);
             }
-            source_records.push(SourceRecordManifest {
-                reference: source.reference.clone(),
-            });
+            source_records.push(SourceRecordManifest::new(source.reference.clone()));
             raw_records.push(RawCaptureRecord {
                 reference: source.reference,
                 bytes: source.bytes,
@@ -339,22 +190,22 @@ impl ReceivedObservationBatch {
         } else {
             Vec::new()
         };
-        let manifest = CaptureManifest {
-            schema_version: capture.schema_version,
-            method_version: Text::new(PIPELINE_METHOD_VERSION)
-                .map_err(|_| BatchError::SourceReferenceMismatch)?,
-            evidence_origin: capture.evidence_origin,
-            collector_build: capture.collector_build,
-            capabilities: capture.capabilities,
-            completion: capture.completion.into(),
+        let manifest = CaptureManifest::new(
+            capture.schema_version,
+            Text::new(PIPELINE_METHOD_VERSION).map_err(|_| BatchError::SourceReferenceMismatch)?,
+            capture.evidence_origin,
+            capture.collector_build,
+            capture.capabilities,
+            capture_completion(capture.completion),
             source_records,
             raw_source_disposition,
-            observation_ids_in_source_order: capture
+            capture
                 .observations
                 .iter()
                 .map(|observation| observation.envelope().data().id)
                 .collect(),
-        };
+        )
+        .map_err(|_| BatchError::SourceReferenceMismatch)?;
         Ok(Self {
             observations: capture.observations,
             manifest,
@@ -412,6 +263,38 @@ pub struct CaptureManifestReceipt {
 }
 
 impl CaptureManifestReceipt {
+    pub fn new(
+        hash: ContentHash,
+        observation_count: u64,
+        raw_record_count: u64,
+        project_revision: u64,
+    ) -> Result<Self, Box<PortError>> {
+        if observation_count > MAX_BATCH_OBSERVATIONS as u64 {
+            return Err(Box::new(PortError::new(
+                PortErrorKind::Corrupt,
+                "capture manifest receipt exceeds observation limit",
+            )));
+        }
+        if raw_record_count > MAX_SOURCE_RECORDS as u64 {
+            return Err(Box::new(PortError::new(
+                PortErrorKind::Corrupt,
+                "capture manifest receipt exceeds source-record limit",
+            )));
+        }
+        if project_revision == 0 {
+            return Err(Box::new(PortError::new(
+                PortErrorKind::Corrupt,
+                "capture manifest receipt has no project revision",
+            )));
+        }
+        Ok(Self {
+            hash,
+            observation_count,
+            raw_record_count,
+            project_revision,
+        })
+    }
+
     pub const fn hash(&self) -> ContentHash {
         self.hash
     }
@@ -437,19 +320,23 @@ pub struct ObservationChunkReceipt {
 }
 
 impl ObservationChunkReceipt {
-    fn new(hash: String, row_count: u64, project_revision: u64) -> Result<Self, Box<PortError>> {
+    pub fn new(
+        hash: ContentHash,
+        row_count: u64,
+        project_revision: u64,
+    ) -> Result<Self, Box<PortError>> {
         if row_count == 0 {
             return Err(Box::new(PortError::new(
                 PortErrorKind::Corrupt,
                 "durable chunk receipt has no rows",
             )));
         }
-        let hash = ContentHash::try_from(hash).map_err(|_| {
-            Box::new(PortError::new(
+        if project_revision == 0 {
+            return Err(Box::new(PortError::new(
                 PortErrorKind::Corrupt,
-                "durable chunk receipt has an invalid content hash",
-            ))
-        })?;
+                "durable chunk receipt has no project revision",
+            )));
+        }
         Ok(Self {
             hash,
             row_count,
@@ -477,6 +364,19 @@ pub struct SnapshotReceipt {
 }
 
 impl SnapshotReceipt {
+    pub fn new(snapshot_id: SnapshotId, project_revision: u64) -> Result<Self, Box<PortError>> {
+        if project_revision == 0 {
+            return Err(Box::new(PortError::new(
+                PortErrorKind::Corrupt,
+                "survey snapshot receipt has no project revision",
+            )));
+        }
+        Ok(Self {
+            snapshot_id,
+            project_revision,
+        })
+    }
+
     pub const fn snapshot_id(&self) -> SnapshotId {
         self.snapshot_id
     }
@@ -495,6 +395,47 @@ pub struct PublicationProgress {
 }
 
 impl PublicationProgress {
+    pub fn new(
+        manifest: CaptureManifestReceipt,
+        raw_record_count: u64,
+        chunk: Option<ObservationChunkReceipt>,
+        snapshot: Option<SnapshotReceipt>,
+    ) -> Result<Self, Box<PortError>> {
+        if raw_record_count > manifest.raw_record_count {
+            return Err(Box::new(PortError::new(
+                PortErrorKind::Corrupt,
+                "publication progress exceeds manifest raw-record count",
+            )));
+        }
+        if let Some(chunk) = &chunk
+            && (manifest.observation_count == 0
+                || chunk.row_count > manifest.observation_count
+                || chunk.project_revision < manifest.project_revision)
+        {
+            return Err(Box::new(PortError::new(
+                PortErrorKind::Corrupt,
+                "publication progress has an invalid observation chunk receipt",
+            )));
+        }
+        if let Some(snapshot) = &snapshot
+            && (snapshot.project_revision < manifest.project_revision
+                || chunk
+                    .as_ref()
+                    .is_some_and(|chunk| snapshot.project_revision < chunk.project_revision))
+        {
+            return Err(Box::new(PortError::new(
+                PortErrorKind::Corrupt,
+                "publication progress has an invalid snapshot receipt",
+            )));
+        }
+        Ok(Self {
+            manifest,
+            raw_record_count,
+            chunk,
+            snapshot,
+        })
+    }
+
     pub const fn manifest(&self) -> &CaptureManifestReceipt {
         &self.manifest
     }
@@ -578,11 +519,12 @@ pub struct CapturePersistenceRequest<'a> {
 
 impl<'a> CapturePersistenceRequest<'a> {
     /// Construct a request only after checking the cross-object invariants
-    /// that must hold before an adapter can publish anything. The fields are
-    /// private so replaceable persistence ports cannot be bypassed with a
-    /// mismatched manifest, observation list or raw-record closure.
+    /// that must hold before an adapter can publish anything. This constructor
+    /// is crate-private: only [`ingest`] can bind a survey after associating
+    /// the exact batch, while replaceable persistence ports receive an opaque
+    /// validated request through the public trait.
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
+    pub(crate) fn new(
         manifest: &'a CaptureManifest,
         raw_records: &'a [RawCaptureRecord],
         observations: &'a [ObservationEnvelope],
@@ -646,6 +588,17 @@ impl<'a> CapturePersistenceRequest<'a> {
                 return Err(PortError::new(
                     PortErrorKind::Corrupt,
                     "capture manifest observation identity/order differs from request",
+                ));
+            }
+            let data = observation.data();
+            if !self.survey.associations().iter().any(|association| {
+                association.observation_id() == id
+                    && association.session_id() == data.session_id
+                    && association.source_id() == data.source.source_id
+            }) {
+                return Err(PortError::new(
+                    PortErrorKind::Corrupt,
+                    "capture survey has no association for a published observation",
                 ));
             }
         }
