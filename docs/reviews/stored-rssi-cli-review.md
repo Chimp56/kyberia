@@ -43,3 +43,21 @@ Fresh independent reviewer /root/operation_log_review_luna also passed the
 and inventory. Disposition remains REQUEST_CHANGES: missing persistent numeric
 and real nearest/IDW command assertions is MAJOR, despite root's spot checks.
 The author is preparing a separate corrective test commit before integration.
+
+## Cancellation candidate 22d3b59
+
+Root independently passed all 18 tests, including actual SIGINT and permanent
+numerical/method regressions. The earlier numeric test-strength finding is
+corrected. REQUEST_CHANGES remains for two publication/signal findings:
+
+- MAJOR: main installs the SIGINT flag handler for every CLI command, but only
+  stored analysis polls the flag. Other commands lose normal interruption
+  behavior. Limit registration to the analysis command and verify unrelated
+  commands retain their default behavior.
+- MAJOR: final hard-link creation is the commit point, but a subsequent
+  directory-sync failure propagates as an ordinary error without the committed
+  state. Return an explicit committed/durability-failure outcome and test the
+  post-link failure path; do not imply an absent output after publication.
+
+Corrections are isolated in `fix/cli-cancellation-scope`; no candidate is
+integrated before these findings are resolved and reviewed.
