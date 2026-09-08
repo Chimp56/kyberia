@@ -51,12 +51,24 @@ for a producer. The command returns an explicit unsupported-platform error on
 non-Unix hosts until an equivalent no-follow, nonblocking regular-file adapter
 is provided; it does not risk opening an unbounded named pipe there.
 
-The command currently uses `NeverCancel`: it has no implicit SIGINT or process
-signal adapter and does not claim signal cancellation. Parse, integrity,
-revision, resource, and publication failures return JSON errors and publish no
-final artifact. A future job/CLI integration can supply a mature cancellation
-port to the stored-analysis workflow without changing this request or artifact
-contract.
+On Unix, the command installs the maintained `signal-hook` 0.4.4 flag adapter
+before dispatch. Its signal handler only sets an atomic flag; the storage and
+numerical layers poll the existing `Cancellation` port at their documented
+boundaries. The CLI emits an `analysis_started` stderr lifecycle event after
+registration so an orchestrator can establish readiness without a synthetic
+delay. The upstream API documents this flag-polling model and its safe
+deferred handling pattern in the
+[signal-hook 0.4.4 reference](https://docs.rs/signal-hook/0.4.4/signal_hook/).
+
+Cancellation observed before final publication returns exit code 2 and a
+structured stderr error with `code: "cancelled"`; no final artifact is
+published, though a pending artifact may remain after work has begun. The
+final hard-link is the publication commit point. If SIGINT wins immediately
+after that link, the CLI retains the complete artifact, prints a report with
+`publication_status: "published_after_cancellation"` and
+`cancelled_after_commit: true`, and exits nonzero rather than pretending that
+the durable artifact was rolled back. Non-Unix hosts have no signal capability
+in this command and report unsupported request acquisition before work begins.
 
 The command does not persist an analysis result back into the project bundle,
 choose a survey, invent a pose, reinterpret receipt timing, or perform a live

@@ -1,12 +1,16 @@
+mod cancellation;
 mod observation_export;
 mod stored_analysis;
 
 use kyberia_domain::identity::ProjectId;
-use kyberia_project_store::{Bundle, OpenMode};
+use kyberia_project_store::{Bundle, Cancellation, OpenMode};
 use std::path::Path;
 use std::process::ExitCode;
 
-fn run(args: &[String]) -> Result<bool, Box<dyn std::error::Error>> {
+fn run(
+    args: &[String],
+    cancellation: &dyn Cancellation,
+) -> Result<bool, Box<dyn std::error::Error>> {
     if args.is_empty() || args == ["--help"] || args == ["help"] {
         println!(
             "Kyberia project CLI\n\n  kyberia new <directory.rfatlas> <name>\n  kyberia inspect <directory.rfatlas>\n  kyberia verify <directory.rfatlas>\n  kyberia recover-manifest <directory.rfatlas>\n  kyberia export-observations-parquet <directory.rfatlas> <new-directory>\n  kyberia analyze-stored-rssi <directory.rfatlas> <request.json> <new-output-directory>\n\nOutputs are JSON. verify exits nonzero for integrity failures. Exports and analysis outputs never overwrite an existing destination."
@@ -52,24 +56,56 @@ fn run(args: &[String]) -> Result<bool, Box<dyn std::error::Error>> {
             Ok(true)
         }
         Some("analyze-stored-rssi") if args.len() == 4 => {
-            let result = stored_analysis::analyze(
+            eprintln!(
+                "{}",
+                serde_json::json!({
+                    "event": "analysis_started",
+                    "cancellation": "sigint",
+                })
+            );
+            let result = stored_analysis::analyze_with_cancellation(
                 Path::new(&args[1]),
                 Path::new(&args[2]),
                 Path::new(&args[3]),
+                cancellation,
             )?;
+            let completed = result["cancelled_after_commit"].as_bool() != Some(true);
             println!("{}", serde_json::to_string_pretty(&result)?);
-            Ok(true)
+            Ok(completed)
         }
         _ => Err("invalid command or arguments; use kyberia --help".into()),
     }
 }
 
 fn main() -> ExitCode {
-    match run(&std::env::args().skip(1).collect::<Vec<_>>()) {
+    let cancellation = match cancellation::ProcessCancellation::install() {
+        Ok(cancellation) => cancellation,
+        Err(error) => {
+            eprintln!("{}", serde_json::json!({"error": error.to_string()}));
+            return ExitCode::from(2);
+        }
+    };
+    match run(
+        &std::env::args().skip(1).collect::<Vec<_>>(),
+        cancellation.token(),
+    ) {
         Ok(true) => ExitCode::SUCCESS,
         Ok(false) => ExitCode::from(1),
         Err(error) => {
-            eprintln!("{}", serde_json::json!({"error": error.to_string()}));
+            if error.downcast_ref::<cancellation::Cancelled>().is_some() {
+                eprintln!(
+                    "{}",
+                    serde_json::json!({
+                        "error": {
+                            "code": "cancelled",
+                            "message": error.to_string(),
+                            "committed": false,
+                        }
+                    })
+                );
+            } else {
+                eprintln!("{}", serde_json::json!({"error": error.to_string()}));
+            }
             ExitCode::from(2)
         }
     }

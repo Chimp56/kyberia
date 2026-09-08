@@ -27,8 +27,17 @@ path conflict that preserves existing bytes, and the successful pending-file
 and final-link paths. The publication implementation fsyncs the complete
 pending artifact before the same-filesystem hard link and fsyncs its parent
 directory. A crash between those steps is represented by a retained pending
-file with no final artifact; crash-injection and signal cancellation remain
-integration gates because this command intentionally uses `NeverCancel`.
+file with no final artifact. Signal cancellation is covered on Unix through
+the production `signal-hook` adapter; non-Unix signal delivery remains an
+explicit platform capability gap.
+
+The Unix SIGINT subprocess test waits for the production `analysis_started`
+stderr barrier, sends a real signal during a maximum-size valid grid, waits
+with a bounded deadline, and verifies the structured cancellation error and
+absence of `analysis.json`. Unit tests inject cancellation before destination
+creation, after pending-file sync, and at the final-link commit point. The
+nearest and IDW subprocess cases assert numeric `-55 dBm` output and the
+interpolated cell class, so method coverage checks values as well as counts.
 
 The artifact's selected observation and snapshot provenance is independently
 validated by `kyberia-stored-analysis` before the CLI report is emitted. The

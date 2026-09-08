@@ -21,6 +21,7 @@ uuid = { version = "=1.21.0", features = ["v4"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = "=0.2.189"
+signal-hook = "=0.4.4"
 
 [dev-dependencies]
 kyberia-survey = { version = "=0.1.0", path = "../../crates/survey" }

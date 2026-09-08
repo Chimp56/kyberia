@@ -22,9 +22,13 @@ use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     fs,
+    io::{BufRead, BufReader, Read},
     path::{Path, PathBuf},
     process::Command,
+    process::Stdio,
     sync::atomic::{AtomicUsize, Ordering},
+    thread,
+    time::{Duration, Instant},
 };
 
 fn id(byte: u8) -> [u8; 16] {
@@ -464,6 +468,114 @@ fn fifo_request_is_rejected_without_blocking_or_creating_output() {
     );
     let destination = root.join("fifo-output");
     let output = run_cli(&project_path, &fifo, &destination);
-    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(
+        output.status.code(),
+        Some(2),
+        "status={:?} stdout={} stderr={}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(!destination.exists());
+}
+
+#[cfg(unix)]
+#[test]
+fn sigint_cancels_a_large_analysis_before_publication() {
+    let root = retained_directory();
+    let project_path = root.join("bundle.rfatlas");
+    let (project, floor, frame, observation, snapshot, revision) =
+        create_fixture(&project_path, false);
+    let request_path = root.join("request.json");
+    let mut request = request_json(project, floor, frame, observation, snapshot, revision, -1.5);
+    request["grid"]["width"] = serde_json::json!(316);
+    request["grid"]["height"] = serde_json::json!(316);
+    write_json(&request_path, &request);
+    let destination = root.join("output");
+    let mut child = Command::new(env!("CARGO_BIN_EXE_kyberia"))
+        .args([
+            "analyze-stored-rssi",
+            project_path.to_str().unwrap(),
+            request_path.to_str().unwrap(),
+            destination.to_str().unwrap(),
+        ])
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    // The production lifecycle event is emitted only after signal-hook is
+    // installed and immediately before the real workflow begins. Reading it
+    // gives the subprocess test a deterministic readiness barrier without a
+    // test-only delay or fake collector behavior.
+    let mut stderr = BufReader::new(child.stderr.take().unwrap());
+    let mut readiness = String::new();
+    stderr.read_line(&mut readiness).unwrap();
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&readiness).unwrap()["event"],
+        "analysis_started"
+    );
+    assert!(
+        Command::new("kill")
+            .args(["-INT", &child.id().to_string()])
+            .status()
+            .unwrap()
+            .success()
+    );
+
+    let finish_deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        if child.try_wait().unwrap().is_some() {
+            break;
+        }
+        assert!(
+            Instant::now() < finish_deadline,
+            "SIGINT cancellation did not finish"
+        );
+        thread::sleep(Duration::from_millis(10));
+    }
+    let status = child.wait().unwrap();
+    let mut stderr_tail = String::new();
+    stderr.read_to_string(&mut stderr_tail).unwrap();
+    assert_eq!(
+        status.code(),
+        Some(2),
+        "status={status:?} stderr={stderr_tail}"
+    );
+    let error: serde_json::Value = serde_json::from_str(stderr_tail.trim()).unwrap();
+    assert_eq!(error["error"]["code"], "cancelled");
+    assert!(!destination.join("analysis.json").exists());
+}
+
+#[test]
+fn nearest_and_idw_cli_outputs_retain_numeric_measured_values() {
+    for (ordinal, method) in [
+        (0_u8, serde_json::json!({"kind": "nearest"})),
+        (1_u8, serde_json::json!({"kind": "idw", "power": 2.0})),
+    ] {
+        let root = retained_directory();
+        let project_path = root.join("bundle.rfatlas");
+        let (project, floor, frame, observation, snapshot, revision) =
+            create_fixture(&project_path, false);
+        let request_path = root.join("request.json");
+        let mut request =
+            request_json(project, floor, frame, observation, snapshot, revision, -0.5);
+        request["method"] = method;
+        write_json(&request_path, &request);
+        let destination = root.join(format!("output-{ordinal}"));
+        let output = run_cli(&project_path, &request_path, &destination);
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(report["cells"]["known"], 1);
+        assert_eq!(report["cells"]["classes"]["interpolated"], 1);
+        let document = kyberia_stored_analysis::StoredRssiAnalysisDocument::from_canonical_bytes(
+            &fs::read(destination.join("analysis.json")).unwrap(),
+        )
+        .unwrap();
+        let tile: serde_json::Value = serde_json::from_slice(&document.tile_bytes).unwrap();
+        assert!(tile["cells"][0]["value"].to_string().contains("-55"));
+    }
 }

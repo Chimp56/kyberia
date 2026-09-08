@@ -1,3 +1,4 @@
+use crate::cancellation::Cancelled;
 use kyberia_domain::{
     analysis::{ExactU64, VersionedArtifact},
     evidence::{ArtifactReference, Evidence},
@@ -8,7 +9,7 @@ use kyberia_domain::{
     units::{CoordinateMeters, Meters},
 };
 use kyberia_observation_analysis::SelectionManifest;
-use kyberia_project_store::{Bundle, NeverCancel, OpenMode};
+use kyberia_project_store::{Bundle, Cancellation, OpenMode};
 use kyberia_spatial_analysis::{
     Config as SpatialConfig, Extrapolation, Grid, InputEvidencePlane, Method, MetricDefinition,
     MetricDefinitionBinding, Point2, SpatialMethod,
@@ -277,6 +278,8 @@ struct CellSummary {
 #[derive(Clone, Debug, Serialize)]
 struct AnalysisReport {
     schema: &'static str,
+    publication_status: &'static str,
+    cancelled_after_commit: bool,
     project_id: ProjectId,
     project_revision: ExactU64,
     artifact: ArtifactReference,
@@ -330,15 +333,34 @@ fn sync_directory(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn publish(destination: &Path, bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+enum Publication {
+    Committed { cancelled_after_commit: bool },
+}
+
+fn check_cancel(cancel: &dyn Cancellation) -> Result<(), Cancelled> {
+    if cancel.is_cancelled() {
+        Err(Cancelled)
+    } else {
+        Ok(())
+    }
+}
+
+fn publish(
+    destination: &Path,
+    bytes: &[u8],
+    cancel: &dyn Cancellation,
+) -> Result<Publication, Box<dyn std::error::Error>> {
+    check_cancel(cancel)?;
     fs::create_dir(destination)?;
-    publish_in_directory(destination, bytes)
+    publish_in_directory(destination, bytes, cancel)
 }
 
 fn publish_in_directory(
     destination: &Path,
     bytes: &[u8],
-) -> Result<(), Box<dyn std::error::Error>> {
+    cancel: &dyn Cancellation,
+) -> Result<Publication, Box<dyn std::error::Error>> {
+    check_cancel(cancel)?;
     let pending = destination.join(".analysis.json.pending");
     let mut file = OpenOptions::new()
         .write(true)
@@ -346,29 +368,43 @@ fn publish_in_directory(
         .open(&pending)?;
     file.write_all(bytes)?;
     file.sync_all()?;
+    check_cancel(cancel)?;
     // A hard link is an atomic create-new publication on the same filesystem;
     // unlike rename, it cannot replace a final artifact that appeared after
     // the destination directory was created. The pending link is retained so
     // an operator can inspect or manually retire the exact committed bytes.
     fs::hard_link(&pending, destination.join(OUTPUT_FILE))?;
     sync_directory(destination)?;
-    Ok(())
+    Ok(Publication::Committed {
+        cancelled_after_commit: cancel.is_cancelled(),
+    })
 }
 
-pub fn analyze(
+pub fn analyze_with_cancellation(
     project_path: &Path,
     request_path: &Path,
     destination: &Path,
+    cancel: &dyn Cancellation,
 ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    check_cancel(cancel)?;
     let request = parse_request(request_path)?;
+    check_cancel(cancel)?;
     let bundle = Bundle::open(project_path, OpenMode::ReadOnly)?;
-    let result = run(&bundle, request, &NeverCancel)?;
+    let result = run(&bundle, request, cancel).map_err(|error| match error {
+        kyberia_stored_analysis::StoredAnalysisError::Cancelled => {
+            Box::new(Cancelled) as Box<dyn std::error::Error>
+        }
+        other => Box::new(other) as Box<dyn std::error::Error>,
+    })?;
+    check_cancel(cancel)?;
     if result.canonical_bytes().len() > MAX_OUTPUT_BYTES {
         return Err("stored RSSI output exceeds resource limit".into());
     }
     let selection = SelectionManifest::from_canonical_bytes(result.selection_manifest())?;
-    let report = AnalysisReport {
+    let mut report = AnalysisReport {
         schema: OUTPUT_SCHEMA,
+        publication_status: "published",
+        cancelled_after_commit: false,
         project_id: result.document().project_id,
         project_revision: result.document().project_revision,
         artifact: result.artifact().clone(),
@@ -379,8 +415,18 @@ pub fn analyze(
         cells: cell_summary(&result)?,
         privacy_warning: PRIVACY_WARNING,
     };
+    let publication = publish(destination, result.canonical_bytes(), cancel)?;
+    match publication {
+        Publication::Committed {
+            cancelled_after_commit,
+        } => {
+            report.cancelled_after_commit = cancelled_after_commit;
+            if cancelled_after_commit {
+                report.publication_status = "published_after_cancellation";
+            }
+        }
+    }
     let report_value = serde_json::to_value(&report)?;
-    publish(destination, result.canonical_bytes())?;
     Ok(report_value)
 }
 
@@ -441,7 +487,14 @@ mod tests {
         let pending = destination.join(".analysis.json.pending");
         fs::write(&pending, b"partial artifact").unwrap();
 
-        assert!(publish(&destination, b"replacement").is_err());
+        assert!(
+            publish(
+                &destination,
+                b"replacement",
+                &kyberia_project_store::NeverCancel
+            )
+            .is_err()
+        );
         assert_eq!(fs::read(&pending).unwrap(), b"partial artifact");
         assert!(!destination.join(OUTPUT_FILE).exists());
     }
@@ -453,7 +506,14 @@ mod tests {
         fs::create_dir(&destination).unwrap();
         fs::write(destination.join(OUTPUT_FILE), b"authoritative prior output").unwrap();
 
-        assert!(publish_in_directory(&destination, b"replacement").is_err());
+        assert!(
+            publish_in_directory(
+                &destination,
+                b"replacement",
+                &kyberia_project_store::NeverCancel
+            )
+            .is_err()
+        );
         assert_eq!(
             fs::read(destination.join(OUTPUT_FILE)).unwrap(),
             b"authoritative prior output"
@@ -461,6 +521,51 @@ mod tests {
         assert_eq!(
             fs::read(destination.join(".analysis.json.pending")).unwrap(),
             b"replacement"
+        );
+    }
+
+    #[test]
+    fn cancellation_before_publication_leaves_no_final_artifact() {
+        let root = retained_test_directory();
+        let destination = root.join("output");
+        let token = crate::cancellation::CancellationToken::default();
+        token.cancel();
+
+        assert!(publish(&destination, b"cancelled", &token).is_err());
+        assert!(!destination.exists());
+    }
+
+    #[test]
+    fn cancellation_after_pending_sync_retains_pending_without_final() {
+        let root = retained_test_directory();
+        let destination = root.join("output");
+        let checks = AtomicUsize::new(0);
+        let cancel = || checks.fetch_add(1, Ordering::SeqCst) >= 2;
+
+        assert!(publish(&destination, b"cancelled", &cancel).is_err());
+        assert_eq!(
+            fs::read(destination.join(".analysis.json.pending")).unwrap(),
+            b"cancelled"
+        );
+        assert!(!destination.join(OUTPUT_FILE).exists());
+    }
+
+    #[test]
+    fn cancellation_after_final_link_reports_committed_outcome() {
+        let root = retained_test_directory();
+        let destination = root.join("output");
+        let checks = AtomicUsize::new(0);
+        let cancel = || checks.fetch_add(1, Ordering::SeqCst) >= 3;
+
+        assert!(matches!(
+            publish(&destination, b"committed", &cancel),
+            Ok(Publication::Committed {
+                cancelled_after_commit: true
+            })
+        ));
+        assert_eq!(
+            fs::read(destination.join(OUTPUT_FILE)).unwrap(),
+            b"committed"
         );
     }
 }
