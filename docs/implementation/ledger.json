@@ -39304,8 +39304,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69188,8 +69188,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69331,8 +69331,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69463,8 +69463,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69552,8 +69552,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69641,8 +69641,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69730,8 +69730,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69819,8 +69819,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -69908,8 +69908,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -70052,8 +70052,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         }
       ],
       "validation": [
@@ -70185,8 +70185,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -70333,8 +70333,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -70465,8 +70465,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -70597,8 +70597,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -70729,8 +70729,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -70861,8 +70861,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -70993,8 +70993,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -71123,8 +71123,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -71243,17 +71243,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:f13d3cd775ea4b8073e6:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:433",
@@ -71347,17 +71422,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Coupling coefficient is bounded, deterministic, frequency dependent, and independently checked for co-channel, separated, punctured, and unequal-width cases"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71433,17 +71583,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Effective interference equals the linear sum of coupling times received power times labeled utilization without dBm addition"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71519,17 +71744,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71605,17 +71905,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71648,17 +72023,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "2.4/5/6 GHz primary, bonded, 80+80, and 320 MHz geometry rejects shifted or impossible centers and serializes canonical centers"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71691,17 +72141,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71734,17 +72259,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Utilization distinguishes measured evidence from scenario assumptions and preserves unknown/unsupported states"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71777,17 +72377,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Canonical radio identity deduplicates aliases and conflicting duplicate evidence fails closed"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71820,17 +72495,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Same-BSS and same-MLD handling is an explicit versioned policy with tested exclusions"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71863,17 +72613,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -71949,17 +72774,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:56c03dfae342f0fd0ae8:1",
       "children": []
     },
@@ -120362,8 +121262,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         }
       ],
       "validation": [
@@ -120523,8 +121423,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         }
       ],
       "validation": [
@@ -120670,8 +121570,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         }
       ],
       "validation": [
@@ -120903,8 +121803,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         }
       ],
       "validation": [
@@ -165023,8 +165923,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c",
-          "sha256": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c"
+          "revision": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13",
+          "sha256": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -168934,17 +169834,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "spatial analysis",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:715a4a51da0e83b78896:1",
       "children": []
     },
@@ -172981,8 +173956,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c",
-          "sha256": "afccbdfda9839e24ac22007615414d6e1db2da9f30da7cc94f779ff8699e485c"
+          "revision": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13",
+          "sha256": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -230948,8 +231923,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Shared static aggregation boundary with explicit temporal-method rejection",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         }
       ],
       "validation": [
@@ -233134,8 +234109,8 @@
         {
           "path": "crates/wifi-semantics/src/lib.rs",
           "description": "Pure deterministic signal aggregation and fundamental RF calculations",
-          "revision": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d",
-          "sha256": "447df14a7589895ea81bb4bf50fceee60e6f34bf666582cf940093e226ae381d"
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
         },
         {
           "path": "crates/domain/src/units.rs",
@@ -233211,17 +234186,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "Wi-Fi semantics",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
@@ -235341,17 +236391,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "Wi-Fi semantics",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
@@ -235384,17 +236509,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "Wi-Fi semantics",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
@@ -235513,17 +236713,92 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "Wi-Fi semantics",
+      "status": "IN_PROGRESS",
+      "owner": "wifi-semantics",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded V1 channel geometry/coupling is implemented; calibrated masks, spatial binding, complete regulations, CCA/airtime, final SINR, PHY and capacity remain open as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/wifi-semantics/src/channel.rs",
+          "description": "Versioned band/channel/width/center/puncturing geometry with canonical bonded centers",
+          "revision": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305",
+          "sha256": "b196dc1ae0495f583a3ccad0672ea7df8fb209eb933ed81f1596e50119441305"
+        },
+        {
+          "path": "crates/wifi-semantics/src/interference.rs",
+          "description": "Asymmetric spectral coupling, typed utilization, radio deduplication, and linear effective-interference aggregation",
+          "revision": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f",
+          "sha256": "24848cee272b4cc445c383109b740cafc55bcc73f794c2453028444d872f7f7f"
+        },
+        {
+          "path": "crates/wifi-semantics/src/lib.rs",
+          "description": "Pure Wi-Fi semantics public boundary",
+          "revision": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498",
+          "sha256": "5a56c4c59e0470003d33a00fada51bb3f8e618d7f46628aa14df034e03ab5498"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/wifi-semantics/tests/channel_coupling.rs",
+          "description": "Independent-oracle, adversarial, property, identity, unknown-state, puncturing, and bonded-center tests",
+          "revision": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "sha256": "0a33af28103a6553508b93c61ef71b527fd1b94cdbc632949c7cd8f96f4d2e68",
+          "command": "cargo test -p kyberia-wifi-semantics --locked --offline",
+          "scope": "wifi_channel_coupling",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/wifi-channel-coupling.md",
+          "description": "Pinned assumptions, reproducible commands, and bounded validation claims",
+          "revision": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "sha256": "83829ca64e159cbbad68cd88a3e93c22d43635de400a33612f50efacaf4fd8a8",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-channel-coupling-review.md",
+          "description": "Independent multi-round RF, numerical, architecture, test, and provenance review",
+          "revision": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "sha256": "f04cf3a24c90a3285da33165b8623ba42976dbe13a16efa4f11bee88afef6194",
+          "reviewer": "/root/channel_coupling_review_luna with final provenance correction verified by /root",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Initial puncturing admission and bonded-center validation were too permissive",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial coupling convention and observation-set completeness were ambiguous",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Linux puncturing source initially used a mutable branch URL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0015-wifi-channel-coupling.md",
+        "description": "Versioned bounded Wi-Fi channel-coupling numerical boundary",
+        "revision": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "sha256": "816438e1b49769112d1e54c3f3ee27a64e1b9002e0c7d68b78b4d51578eb8397",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/channel_coupling_review_luna review",
+        "reason": "Keep deterministic Wi-Fi spectral and interference semantics in Kyberia rather than external propagation or capture models",
+        "preserved_product_intent": "Preserves explicit unknowns, linear power, inspectable assumptions, physical-radio identity, puncturing, and separation from final PHY/MAC claims"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
