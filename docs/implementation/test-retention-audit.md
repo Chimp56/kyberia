@@ -39,3 +39,9 @@ nor a passing test grants that permission.
 Native candidate `2aa0290` and stored-analysis candidate `92cc728` now use
 unique directories created directly in their worktree trash bins. Independent
 review is pending; these corrections are not yet integrated into main.
+
+Kismet retention is integrated in `f826a18`; root inspected immediate `.keep()`
+and passed the complete adapter suite afterward. Root independently passed
+native candidate `2aa0290` with its direct retained-directory helper (33 unit
+and two external-port tests, one explicit real-host probe ignored). Its fresh
+subsystem review remains pending, so the native implementation is still isolated.

@@ -57,3 +57,15 @@ record the exact binary/version/revision, TLS/authentication mode, endpoint
 responses, field availability, controlled datasource state, and license/package
 review. Capture control, privileged helper installation, WebSocket evidence,
 packet observations, clock correlation and KismetDB/PCAPNG parity remain open.
+
+## Integrated reqwest correction regression
+
+At integration `4ff7569`, root independently ran `python3 tools/dev.py lint`
+successfully across the workspace. The pinned cargo-deny 0.20.2 executable
+also passed `--manifest-path Cargo.toml --config deny.toml --locked --offline
+check`: advisories, bans, licenses and sources all passed for the workspace,
+including the newly added reqwest closure. This is broader dependency coverage
+than the current release CLI audit command; it does not validate other-language
+release environments. The 40 adapter tests separately passed after integration.
+Full workspace tests remain paused only for the native pipeline's pending
+retained-directory integration.
