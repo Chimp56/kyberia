@@ -102504,15 +102504,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Canonical normalized observations round-trip through a deterministic fixed Arrow/Parquet schema without external objects entering the domain"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:5a9d739fee9a5fa61783:1",
@@ -104939,14 +105035,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -105175,14 +105271,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -105394,14 +105490,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -105613,14 +105709,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -105789,14 +105885,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -105966,14 +106062,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -106143,14 +106239,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -106320,14 +106416,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -106497,14 +106593,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -106692,13 +106788,14 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "Architecture / Storage",
+      "status": "VALIDATED",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
         "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
+        "High-volume observation envelopes persist as immutable content-addressed chunks; manifests and bounded operation payloads retain only verified references",
         "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
       ],
       "implementation": [
@@ -106716,15 +106813,27 @@
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
-          "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
-          "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
         }
       ],
       "validation": [
@@ -106771,6 +106880,33 @@
           "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
           "result": "PASS"
         }
       ],
@@ -106821,6 +106957,46 @@
             {
               "severity": "MAJOR",
               "description": "Unrelated conflicts could mask sequential invalid undo or redo toggles",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
               "resolution": "RESOLVED"
             }
           ]
@@ -113025,15 +113201,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Canonical project operations retain typed stable IDs across exact SQLite persistence and deterministic replay"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:68c3fc2faca1867da0d9:1",
@@ -113068,15 +113340,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "VALIDATED",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Observation chunk names and descriptors are bound to SHA-256 content hashes and verified on every read"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:68c3fc2faca1867da0d9:1",
@@ -116333,14 +116701,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116512,14 +116880,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116679,14 +117047,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116803,14 +117171,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -116927,14 +117295,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117051,14 +117419,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -117158,12 +117526,13 @@
         }
       ],
       "status": "VALIDATED",
-      "owner": "storage/data",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Artifact hash, byte length, kind, media type, and provenance are verified on replay"
+        "Artifact hash, byte length, kind, media type, and provenance are verified on replay",
+        "Committed manifests retain exact observation chunk hashes, byte sizes, media types, schema/codec versions, row counts, and provenance"
       ],
       "implementation": [
         {
@@ -117174,21 +117543,33 @@
         },
         {
           "path": "crates/project-store/src/bundle.rs",
-          "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
-          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
           "description": "Typed point identity and versioned survey snapshot conversion contract",
           "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
           "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        },
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
         }
       ],
       "validation": [
@@ -117207,6 +117588,33 @@
           "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
           "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
           "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
         }
@@ -117233,6 +117641,46 @@
             {
               "severity": "MAJOR",
               "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
               "resolution": "RESOLVED"
             }
           ]
@@ -119339,14 +119787,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124317,14 +124765,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124493,14 +124941,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124661,14 +125109,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -124828,14 +125276,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -157569,12 +158017,13 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "storage/data",
+      "status": "VALIDATED",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
+        "Immutable normalized observations publish durable Parquet bytes before one SQLite metadata transaction and remain invisible on cancellation or rollback",
         "Point-survey snapshots round-trip through immutable checked artifacts and transactional SQLite indexes",
         "Raw observation Parquet chunks and remaining project artifact classes remain open"
       ],
@@ -157587,21 +158036,33 @@
         },
         {
           "path": "crates/project-store/src/bundle.rs",
-          "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
-          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
           "description": "Typed point identity and versioned survey snapshot conversion contract",
           "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
           "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        },
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
         }
       ],
       "validation": [
@@ -157620,6 +158081,33 @@
           "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
           "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
           "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
           "scope": "workspace_regression",
           "result": "PASS"
         }
@@ -157646,6 +158134,46 @@
             {
               "severity": "MAJOR",
               "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        },
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
               "resolution": "RESOLVED"
             }
           ]
@@ -158079,14 +158607,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -167392,20 +167920,20 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Adversarial schema, sidecar, exact-boundary and recovery regressions",
-          "revision": "49ebabde6f2dff92a5d729cd908894dfc7bc568c2df0122dc90114b7a119a59f",
-          "sha256": "49ebabde6f2dff92a5d729cd908894dfc7bc568c2df0122dc90114b7a119a59f"
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84"
         },
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
@@ -167570,8 +168098,8 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
@@ -167582,8 +168110,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -167691,18 +168219,44 @@
           "level": 3
         }
       ],
-      "status": "IN_PROGRESS",
-      "owner": "/root/storage_data",
+      "status": "VALIDATED",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "Fixed-schema Parquet writer/reader, hash verification, crash-window rollback, malformed-input preflight, and PyArrow dataset fixtures pass independent review"
+      ],
       "implementation": [
         {
           "path": "research/storage/engines.py",
           "description": "Real three-engine research comparison; production Rust chunk storage remains open",
           "revision": "e19c72fc1fae92710fb0c7f979da207e390834d71a9865e3e502bef015963359",
           "sha256": "e19c72fc1fae92710fb0c7f979da207e390834d71a9865e3e502bef015963359"
+        },
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         }
       ],
       "validation": [
@@ -167713,6 +168267,33 @@
           "sha256": "fb5e5b764996221e8ea441e9abd6c0d1d725fb8cdb791f6bf4ada66d60a1fa24",
           "command": "research/storage/.venv/bin/python research/storage/benchmark.py --output .tools/storage-review/corrected.json --data-root research/storage/.venv/review-corrected-data",
           "scope": "research_runtime",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
           "result": "PASS"
         }
       ],
@@ -167740,6 +168321,46 @@
           "reviewer": "/root/rf_numerical_review",
           "disposition": "APPROVED",
           "findings": []
+        },
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
@@ -168071,14 +168692,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -168242,8 +168863,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13",
-          "sha256": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13"
+          "revision": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0",
+          "sha256": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -176275,8 +176896,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13",
-          "sha256": "323b0e2336ff95fc6cbde76479b157083ad0460bbddec4bffdb510ee83e7ac13"
+          "revision": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0",
+          "sha256": "a3337e26f95878be99ba4c71cbfd09455411e56bdbf3f1bf4912c80d37ee7dc0"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -176931,14 +177552,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -183434,15 +184055,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:c39574f2c9835ca6b8c1:1",
@@ -183532,15 +184249,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:1cadcbf30c105eb33aa1:1",
@@ -183618,15 +184431,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:1cadcbf30c105eb33aa1:1",
@@ -183704,15 +184613,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:1cadcbf30c105eb33aa1:1",
@@ -183747,15 +184752,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:1cadcbf30c105eb33aa1:1",
@@ -183790,15 +184891,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:1cadcbf30c105eb33aa1:1",
@@ -183876,15 +185073,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:1cadcbf30c105eb33aa1:1",
@@ -187396,15 +188689,111 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "Storage / Data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "The reviewed production SQLite/Parquet port and current-host evidence are complete; Gate C remains open for sustained live workload, second-OS portability, production analytical queries, process/disk failure injection, and packaging evidence as applicable"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/observation_chunks.rs",
+          "description": "Transactional immutable content-addressed observation chunk store and bounded descriptor/index contracts",
+          "revision": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571",
+          "sha256": "c8aac2222bb819b79926b5f6764cc60fb9cec46f4add397949d5f79df0c9a571"
+        },
+        {
+          "path": "crates/project-store/src/parquet_codec.rs",
+          "description": "Deterministic fixed-schema Parquet V2 writer/reader with predecode schema and allocation budgets",
+          "revision": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d",
+          "sha256": "5da6c14a2e949f810a6b8bcd6fbabde247b7884c888804b338845077b37b646d"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Exact composable survey, operation, and observation table-group validation and least-authority access",
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/observation_chunks.rs",
+          "description": "Roundtrip, fixed-schema, unknown, cancellation, rollback, corruption, migration, and PyArrow oracle tests",
+          "revision": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "sha256": "889528445d941690ac9dbdb10cdf7a58f4b0a6d3987c8e347e6a71c6354f0bc6",
+          "command": "KYBERIA_PYARROW_PYTHON=research/storage/.venv/bin/python cargo test -p kyberia-project-store --locked --offline",
+          "scope": "persistence_interoperability",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/schema_guard.rs",
+          "description": "Combined optional-table schema, malformed object, sidecar, migration, and recovery tests",
+          "revision": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "sha256": "6a4d2feca3320d5d73e9b1f529002082c9e1d2b29d6a8e9fa2efd507abf83b84",
+          "command": "cargo test -p kyberia-project-store --test schema_guard --locked --offline",
+          "scope": "migration_security",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/observation-chunks.md",
+          "description": "Observation chunk contract, reviewed limits, runtime results, and remaining Gate C portability scope",
+          "revision": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "sha256": "0ef438bbb420cd1af36d9f255b8208707a72e57b7e4b6b75bdc702a9de2c734c",
+          "command": "cargo test --workspace --all-targets --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/observation-chunks-review.md",
+          "description": "Independent multi-round schema, interoperability, resource, transaction, and recovery review",
+          "revision": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "sha256": "7708df5656694e2dad109f0bf5e8bc9cb76807f5e3a0e2b864fcdc605ae3f554",
+          "reviewer": "/root/operation_log_review_luna after adversarial review by /root/channel_coupling_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Dynamic V2 schemas could not form one PyArrow dataset",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Generic artifact publication could poison normalized-observation metadata",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Resource limits were enforced after Arrow allocation",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Nested list field identity and nullability were incompletely validated",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Dictionary and RLE expansion lacked a decoded-allocation budget",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "The 1,024-element list bound admitted one extra value before decoding",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:ce9856ec797cab458008:1",
@@ -233944,14 +235333,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -234069,14 +235458,14 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -234200,14 +235589,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -236446,14 +237835,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [
@@ -241450,14 +242839,14 @@
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
           "description": "Exact additive operation table group and least-authority SQLite authorizer",
-          "revision": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc",
-          "sha256": "fc520c80d04752e00c11d5e78162e2a2bad6b61889ec5f883754d218e51197dc"
+          "revision": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e",
+          "sha256": "aa694b85b22509ae8fb91c8db0ca2e846aeb5a3b20d6079c12d72d009db2e72e"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739",
-          "sha256": "d3dbaf24c5229211e024f3b73b3881d726e01d053c493aa314fbf76636bdb739"
+          "revision": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0",
+          "sha256": "1d35f721a3db9dfba08eb733dd483f9055a5e15b8b13e9958003bd6c604696a0"
         }
       ],
       "validation": [

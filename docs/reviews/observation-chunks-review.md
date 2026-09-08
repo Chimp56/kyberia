@@ -27,6 +27,14 @@ fixed schema, cancellation visibility, generic publication rejection,
 projection rollback/recovery, and legitimate reopen/read round trips. It
 reported no BLOCKER, MAJOR, MINOR, or NIT findings.
 
+The same independent reviewer then inspected the integration resolution at
+`f976958`. All eight combinations of the three optional SQLite table groups
+(survey, operation, observation) passed historical open and writable-migration
+probes. Partial groups and unknown tables, indexes, or views were rejected; the
+authorizer remained least-authority; and verification checked both operation
+and observation integrity. The combined schema regression is committed in
+`3d91127`.
+
 Validated commands included:
 
 ```text
