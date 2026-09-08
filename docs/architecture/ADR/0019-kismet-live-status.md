@@ -19,7 +19,9 @@ only requests are GETs to `/system/status.json`, `/datasource/types.json`, and
 `/datasource/all_sources.json`, in that order. It uses ureq 2.12.1 with the
 rustls feature, redirects disabled, proxy-from-environment disabled, and a
 bounded overall attempt timeout plus the remaining shared poll budget on each
-request. The caller supplies an opaque `ApiToken`; secret values never enter
+request. Plaintext HTTP is permitted only for literal loopback fixture
+addresses; remote endpoints require HTTPS. The caller supplies an opaque
+`ApiToken`; secret values never enter
 URLs, errors, debug output or serialized status receipts.
 
 Each response is bounded by bytes, nesting, string/list/inventory counts and a

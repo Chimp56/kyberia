@@ -12,6 +12,7 @@ use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::fmt;
 use std::io::{self, Read};
+use std::net::IpAddr;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
@@ -89,6 +90,9 @@ impl Endpoint {
         {
             return Err(LiveError::InvalidEndpoint);
         }
+        if base.starts_with("http://") && !is_literal_loopback_authority(authority) {
+            return Err(LiveError::InvalidEndpoint);
+        }
         while base.ends_with('/') {
             base.pop();
         }
@@ -101,6 +105,30 @@ impl Endpoint {
     fn url_for(&self, path: &str) -> String {
         format!("{}{}", self.0, path)
     }
+}
+
+fn is_literal_loopback_authority(authority: &str) -> bool {
+    let host = if let Some(bracketed) = authority.strip_prefix('[') {
+        let Some((host, remainder)) = bracketed.split_once(']') else {
+            return false;
+        };
+        if !remainder.is_empty()
+            && !(remainder.starts_with(':') && remainder[1..].parse::<u16>().is_ok())
+        {
+            return false;
+        }
+        host
+    } else if let Some((host, port)) = authority.rsplit_once(':') {
+        if port.parse::<u16>().is_ok() {
+            host
+        } else {
+            authority
+        }
+    } else {
+        authority
+    };
+    host.parse::<IpAddr>()
+        .is_ok_and(|address| address.is_loopback())
 }
 
 impl fmt::Debug for Endpoint {
@@ -1375,6 +1403,21 @@ mod tests {
             parse_json(br#"{"a":1,"a":2}"#, 8),
             Err(LiveError::DuplicateJsonKey)
         );
+    }
+
+    #[test]
+    fn plaintext_http_is_loopback_only() {
+        assert!(Endpoint::new("http://127.0.0.1:2501").is_ok());
+        assert!(Endpoint::new("http://[::1]:2501").is_ok());
+        assert_eq!(
+            Endpoint::new("http://kismet.example.invalid"),
+            Err(LiveError::InvalidEndpoint)
+        );
+        assert_eq!(
+            Endpoint::new("http://[::1]untrusted"),
+            Err(LiveError::InvalidEndpoint)
+        );
+        assert!(Endpoint::new("https://kismet.example.invalid").is_ok());
     }
 
     #[test]

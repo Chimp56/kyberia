@@ -18,7 +18,8 @@ retry clocks. The local TCP fixture tests
 the real ureq transport with exact paths and `KISMET` cookie authentication,
 local/remote source flags, absent channel facts, secret-free result bytes,
 401 handling without `/session/check_session`, redirects without credential
-forwarding, and oversized bodies. Separate injected transport tests prove
+forwarding, oversized bodies, remote-HTTP rejection and a real trickle-body
+deadline. Separate injected transport tests prove
 transport/status retries and bounded retry schedules without wall-clock
 sleeping.
 

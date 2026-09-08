@@ -4,6 +4,7 @@ use kyberia_kismet_adapter::live::{
 use std::io::{BufRead, BufReader, Write};
 use std::net::{Shutdown, TcpListener, TcpStream};
 use std::thread;
+use std::time::Duration;
 
 const TOKEN: &str = "local-fixture-secret";
 const STATUS: &str = r#"{"kismet.system.version":"2026.09.0-fixture","kismet.system.git":"2d25ad0","kismet.system.server_name":"local-fixture","kismet.system.devices.count":2}"#;
@@ -180,6 +181,38 @@ fn declared_truncation_is_rejected_before_json_decode() {
     assert_eq!(
         client.poll(&CancellationToken::default()),
         Err(LiveError::TruncatedBody)
+    );
+    handle.join().unwrap();
+}
+
+#[test]
+fn trickled_body_hits_the_global_deadline() {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let endpoint = format!("http://{}", listener.local_addr().unwrap());
+    let handle = thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        let _ = read_request(stream.try_clone().unwrap());
+        write!(
+            stream,
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnection: close\r\n\r\nx"
+        )
+        .unwrap();
+        thread::sleep(Duration::from_millis(220));
+        let _ = stream.write_all(b"y");
+    });
+    let client = KismetLiveClient::connect(
+        Endpoint::new(endpoint).unwrap(),
+        ApiToken::new(TOKEN).unwrap(),
+        LiveLimits {
+            request_timeout: Duration::from_millis(80),
+            max_retries: 0,
+            ..LiveLimits::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        client.poll(&CancellationToken::default()),
+        Err(LiveError::DeadlineExceeded)
     );
     handle.join().unwrap();
 }

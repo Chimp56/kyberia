@@ -8,6 +8,8 @@ Kismet remains an external GPL integration. Kyberia owns canonical observations 
 with its rustls TLS feature. Its agent has redirects disabled, environment
 proxy discovery disabled by the selected feature set, and a bounded overall
 attempt timeout; each request also receives the remaining shared poll budget.
+Plaintext HTTP endpoints are accepted only for literal loopback addresses used
+by local fixtures; remote Kismet endpoints must use HTTPS.
 The client requests exactly
 `/system/status.json`, `/datasource/types.json`, and
 `/datasource/all_sources.json` with an API token in the `KISMET` cookie. It

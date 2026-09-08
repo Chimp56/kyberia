@@ -13,7 +13,9 @@ proxy-from-environment disabled (`default-features = false`; the
 `proxy-from-env` feature is not selected). Thus a configured proxy cannot
 silently receive a cookie, and a redirect cannot forward it to another host.
 Endpoint validation rejects credentials, query strings, fragments, control
-characters and whitespace in the authority. TLS certificate validation uses
+characters and whitespace in the authority, and permits plaintext HTTP only
+for literal loopback addresses. Remote endpoints require HTTPS. TLS
+certificate validation uses
 ureq's rustls/webpki-roots path; deployments requiring private roots must
 provide a separately reviewed transport configuration rather than disabling
 verification.
