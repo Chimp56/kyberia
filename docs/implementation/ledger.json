@@ -114124,16 +114124,95 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "/root/storage",
+      "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:d9466dfa2e0a27ae0628:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:749",
@@ -114223,17 +114302,96 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:1973ab995410d574fc48:1",
       "children": []
     },
@@ -114309,17 +114467,98 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "VALIDATED",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Manifest schema versions round-trip and unsupported future versions fail closed"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:1973ab995410d574fc48:1",
       "children": []
     },
@@ -114352,17 +114591,98 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "VALIDATED",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Project identity and name round-trip through create, reopen, and verified snapshot replay"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:1973ab995410d574fc48:1",
       "children": []
     },
@@ -114395,17 +114715,98 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "VALIDATED",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Manifest and snapshot timestamps are monotonic, bounded, and validated against project lifetime"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:1973ab995410d574fc48:1",
       "children": []
     },
@@ -114438,17 +114839,98 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "VALIDATED",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Unknown required features permit bounded read-only inspection and reject writable open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:1973ab995410d574fc48:1",
       "children": []
     },
@@ -114481,17 +114963,98 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "VALIDATED",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Artifact hash, byte length, kind, media type, and provenance are verified on replay"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:1973ab995410d574fc48:1",
       "children": []
     },
@@ -116566,17 +117129,96 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:ef8af7277e969195069f:1",
       "children": []
     },
@@ -120642,17 +121284,96 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:d9466dfa2e0a27ae0628:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:777",
@@ -120736,17 +121457,99 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Complete project-schema backup/recovery and every-version migration fixtures remain open",
+        "Legacy point snapshot V1-to-V2 receipt preserves immutable source bytes"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:15c3f0f824ce5b016a16:1",
       "children": []
     },
@@ -120822,17 +121625,99 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Complete project-schema backup/recovery and every-version migration fixtures remain open",
+        "Legacy point snapshot V1-to-V2 receipt preserves immutable source bytes"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:15c3f0f824ce5b016a16:1",
       "children": []
     },
@@ -120908,17 +121793,98 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "VALIDATED",
       "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Future schema and unknown required features open only through the side-effect-free read-only compatibility path"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:15c3f0f824ce5b016a16:1",
       "children": []
     },
@@ -153586,17 +154552,99 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration/release",
+      "status": "IN_PROGRESS",
+      "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Point-survey snapshots round-trip through immutable checked artifacts and transactional SQLite indexes",
+        "Raw observation Parquet chunks and remaining project artifact classes remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:282df4efb234e8d43080:1",
       "children": []
     },
@@ -153995,17 +155043,99 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration/release",
+      "status": "IN_PROGRESS",
+      "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Point-survey snapshots round-trip through immutable checked artifacts and transactional SQLite indexes",
+        "Raw observation Parquet chunks and remaining project artifact classes remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:282df4efb234e8d43080:1",
       "children": []
     },
@@ -163232,31 +164362,45 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "/root/storage",
+      "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Combined SQLite main/WAL/journal/SHM file-type, exact-size, overflow and recovery-sidecar validation"
+        "Combined SQLite main/WAL/journal/SHM file-type, exact-size, overflow and recovery-sidecar validation",
+        "Point-survey snapshots round-trip through immutable checked artifacts and transactional SQLite indexes",
+        "Raw observation Parquet chunks and remaining project artifact classes remain open"
       ],
       "implementation": [
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
-          "description": "Canonical physical-schema validation, disabled executable schema and cooperative SQL limits",
-          "revision": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002",
-          "sha256": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002"
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
-          "description": "Bounded transactional bundle and combined SQLite sidecar envelope",
-          "revision": "07aa55aab40d9e7571cb8958c9afd91af71d657367a9057a05b6ae0edf8f6d82",
-          "sha256": "07aa55aab40d9e7571cb8958c9afd91af71d657367a9057a05b6ae0edf8f6d82"
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
         },
         {
           "path": "crates/project-store/tests/schema_guard.rs",
           "description": "Adversarial schema, sidecar, exact-boundary and recovery regressions",
           "revision": "49ebabde6f2dff92a5d729cd908894dfc7bc568c2df0122dc90114b7a119a59f",
           "sha256": "49ebabde6f2dff92a5d729cd908894dfc7bc568c2df0122dc90114b7a119a59f"
+        },
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
         }
       ],
       "validation": [
@@ -163267,6 +164411,24 @@
           "sha256": "058749dd55d56a8f51df6ad5daddb6d62fa9103e7a7b1ee8546601fbf5c3ad07",
           "command": "cargo test -p kyberia-project-store --locked --offline && cargo clippy -p kyberia-project-store --all-targets --locked --offline -- -D warnings",
           "scope": "security_recovery",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
           "result": "PASS"
         }
       ],
@@ -163308,10 +164470,44 @@
               "description": "Filesystem replacement races remain outside the documented non-concurrent bundle boundary"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:e06648333b04880af91d:1",
       "children": []
     },
@@ -163345,20 +164541,60 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "Complete project-schema backup/recovery and every-version migration fixtures remain open",
+        "Legacy point snapshot V1-to-V2 receipt preserves immutable source bytes"
+      ],
       "implementation": [
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
-          "description": "Canonical physical-schema validation, disabled executable schema and cooperative SQL limits",
-          "revision": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002",
-          "sha256": "883c88db72bad01bf3d7151d62c3683a13d6b653737b81a374ca47ced1eb1002"
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
         }
       ],
-      "validation": [],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
       "reviews": [
         {
           "path": "docs/reviews/storage-schema-guard-review.md",
@@ -163368,10 +164604,44 @@
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
+        },
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:e06648333b04880af91d:1",
       "children": []
     },
@@ -172349,17 +173619,98 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "specification/review",
+      "status": "VALIDATED",
+      "owner": "storage/data",
       "phase": null,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "SQLite-backed project manifest creates, reopens, verifies, exports, and rejects corruption"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:75b558be369108b46e57:1",
       "children": []
     },
@@ -229197,16 +230548,98 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Point-survey snapshots round-trip through immutable checked artifacts and transactional SQLite indexes",
+        "Raw observation Parquet chunks and remaining project artifact classes remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
@@ -229240,16 +230673,98 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "storage/data",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Complete project-schema backup/recovery and every-version migration fixtures remain open",
+        "Legacy point snapshot V1-to-V2 receipt preserves immutable source bytes"
+      ],
+      "implementation": [
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
+          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
+          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+        },
+        {
+          "path": "crates/project-store/src/bundle.rs",
+          "description": "Transactional project manifest and defensive read-only compatibility preflight",
+          "revision": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46",
+          "sha256": "4f044a52905108aeca4a7425ba80df4961dec094b1c01007eed58fb257976d46"
+        },
+        {
+          "path": "crates/project-store/src/sqlite_guard.rs",
+          "description": "Validated SQLite snapshot schema and bounded defensive connection policy",
+          "revision": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3",
+          "sha256": "ce3ac5baa25a082a97d7370ed255cbe70d1b07b920f1a7eadc3e5a59f8cd8eb3"
+        },
+        {
+          "path": "crates/survey/src/config.rs",
+          "description": "Typed point identity and versioned survey snapshot conversion contract",
+          "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
+          "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/project-store/tests/survey_snapshot.rs",
+          "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
+          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
+          "scope": "survey_snapshot_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "docs/validation/survey-snapshot-persistence.md",
+          "description": "Reproducible validation record for the immutable survey snapshot boundary",
+          "revision": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
+          "command": "cargo test --workspace --locked --offline",
+          "scope": "workspace_regression",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/survey-snapshot-persistence-review.md",
+          "description": "Three-round independent review of persistence correctness, compatibility, resource bounds, and replay integrity",
+          "revision": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "sha256": "09e97c5d7156e53a45b4584ef204fab7845d3fd61a8a3993726122c74fc7ac9c",
+          "reviewer": "/root/survey_store_review_luna",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Future-version preflight originally occurred after a writable SQLite open",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial replay validation did not prove complete index/history/artifact bijection",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Initial read-only preflight lacked defensive SQLite resource limits before manifest SQL",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0014-transactional-survey-snapshots.md",
+        "description": "Transactional immutable snapshot boundary and compatibility policy",
+        "revision": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "sha256": "9ce6d6951ecd9345cb7da928ec84c12fa58c2a5a4cb3b819402504b76e3464ab",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent /root/survey_store_review_luna review",
+        "reason": "Persist complete point-survey evidence with bounded deterministic replay and fail-closed compatibility",
+        "preserved_product_intent": "Preserves canonical Kyberia identities, raw artifact bytes, migration receipts, provenance, and explicit future-version handling"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
