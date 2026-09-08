@@ -5,6 +5,13 @@ use std::num::NonZeroU64;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum ProjectCommand {
+    SetProjectName {
+        name: Text,
+    },
+    SetSiteName {
+        site_id: SiteId,
+        name: Text,
+    },
     CreateSite(Site),
     RemoveSite {
         site_id: SiteId,
@@ -59,6 +66,15 @@ pub enum EntityRef {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ProjectEvent {
+    ProjectNameChanged {
+        previous: Text,
+        current: Text,
+    },
+    SiteNameChanged {
+        site_id: SiteId,
+        previous: Text,
+        current: Text,
+    },
     Created {
         entity: EntityRef,
     },
@@ -188,6 +204,35 @@ impl Project {
     ) -> Result<(ProjectEvent, Evidence<ProjectCommand>), ProjectError> {
         use ProjectCommand::*;
         match command {
+            SetProjectName { name } => {
+                let previous = std::mem::replace(&mut self.0.name, name.clone());
+                Ok((
+                    ProjectEvent::ProjectNameChanged {
+                        previous: previous.clone(),
+                        current: name.clone(),
+                    },
+                    Evidence::Known(SetProjectName { name: previous }),
+                ))
+            }
+            SetSiteName { site_id, name } => {
+                let site = self
+                    .0
+                    .sites
+                    .get_mut(site_id)
+                    .ok_or(ProjectError::MissingEntity)?;
+                let previous = std::mem::replace(&mut site.name, name.clone());
+                Ok((
+                    ProjectEvent::SiteNameChanged {
+                        site_id: *site_id,
+                        previous: previous.clone(),
+                        current: name.clone(),
+                    },
+                    Evidence::Known(SetSiteName {
+                        site_id: *site_id,
+                        name: previous,
+                    }),
+                ))
+            }
             CreateSite(site) => {
                 if self.0.sites.insert(site.id, site.clone()).is_some() {
                     return Err(ProjectError::DuplicateEntity);

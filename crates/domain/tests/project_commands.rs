@@ -234,6 +234,134 @@ fn commands_are_deterministic_atomic_and_replay_validates_receipts() {
 }
 
 #[test]
+fn name_changes_preserve_geometry_and_have_replayable_exact_inverses() {
+    let original = populated();
+    let site_id = SiteId::from_bytes([1; 16]).unwrap();
+    for command in [
+        ProjectCommand::SetProjectName {
+            name: text("Office"),
+        },
+        ProjectCommand::SetSiteName {
+            site_id,
+            name: text("West campus"),
+        },
+    ] {
+        let renamed = original
+            .execute(request(&original, 20, command.clone()))
+            .unwrap();
+        assert_eq!(
+            renamed,
+            original.execute(request(&original, 20, command)).unwrap()
+        );
+        assert_eq!(renamed.project.id(), original.id());
+        assert_eq!(renamed.project.revision(), original.revision() + 1);
+        assert_eq!(
+            renamed.project.floor(FloorId::from_bytes([1; 16]).unwrap()),
+            original.floor(FloorId::from_bytes([1; 16]).unwrap())
+        );
+        assert_eq!(
+            renamed
+                .project
+                .building(BuildingId::from_bytes([1; 16]).unwrap()),
+            original.building(BuildingId::from_bytes([1; 16]).unwrap())
+        );
+        assert_eq!(
+            renamed
+                .project
+                .map(MapAssetId::from_bytes([1; 16]).unwrap()),
+            original.map(MapAssetId::from_bytes([1; 16]).unwrap())
+        );
+        let encoded = serde_json::to_vec(&renamed.record).unwrap();
+        let decoded: OperationRecord = serde_json::from_slice(&encoded).unwrap();
+        assert_eq!(original.replay(&decoded).unwrap(), renamed.project);
+        let inverse = renamed.record.undo.as_known().unwrap().clone();
+        let restored = renamed
+            .project
+            .execute(request(&renamed.project, 21, inverse))
+            .unwrap();
+        assert_eq!(restored.project.name(), original.name());
+        assert_eq!(restored.project.site(site_id), original.site(site_id));
+        let redo = restored.record.undo.as_known().unwrap().clone();
+        let redone = restored
+            .project
+            .execute(request(&restored.project, 22, redo))
+            .unwrap();
+        assert_eq!(redone.project.name(), renamed.project.name());
+        assert_eq!(redone.project.site(site_id), renamed.project.site(site_id));
+        match renamed.record.event {
+            ProjectEvent::ProjectNameChanged { previous, current } => {
+                assert_eq!(previous.as_str(), "Home");
+                assert_eq!(current.as_str(), "Office");
+                assert_eq!(renamed.project.name().as_str(), "Office");
+                assert_eq!(renamed.project.site(site_id), original.site(site_id));
+            }
+            ProjectEvent::SiteNameChanged {
+                site_id: actual,
+                previous,
+                current,
+            } => {
+                assert_eq!(actual, site_id);
+                assert_eq!(previous.as_str(), "Site");
+                assert_eq!(current.as_str(), "West campus");
+                assert_eq!(
+                    renamed.project.site(site_id).unwrap().name.as_str(),
+                    "West campus"
+                );
+                assert_eq!(renamed.project.name(), original.name());
+            }
+            _ => panic!("name command returned an unrelated event"),
+        }
+    }
+    assert_eq!(original.name().as_str(), "Home");
+    assert_eq!(original.site(site_id).unwrap().name.as_str(), "Site");
+}
+
+#[test]
+fn name_receipts_reject_forged_prior_values_and_stale_or_missing_targets() {
+    let state = populated();
+    let missing = ProjectCommand::SetSiteName {
+        site_id: SiteId::from_bytes([99; 16]).unwrap(),
+        name: text("missing"),
+    };
+    assert_eq!(
+        state.execute(request(&state, 20, missing)),
+        Err(ProjectError::MissingEntity)
+    );
+    let applied = state
+        .execute(request(
+            &state,
+            20,
+            ProjectCommand::SetProjectName {
+                name: text("Office"),
+            },
+        ))
+        .unwrap();
+    let mut forged = applied.record.clone();
+    forged.undo = Evidence::Known(ProjectCommand::SetProjectName {
+        name: text("forged"),
+    });
+    assert_eq!(state.replay(&forged), Err(ProjectError::InvalidReceipt));
+    let mut forged = applied.record.clone();
+    if let ProjectEvent::ProjectNameChanged { previous, .. } = &mut forged.event {
+        *previous = text("forged");
+    }
+    assert_eq!(state.replay(&forged), Err(ProjectError::InvalidReceipt));
+    let stale = request(
+        &state,
+        21,
+        ProjectCommand::SetProjectName {
+            name: text("stale"),
+        },
+    );
+    assert!(matches!(
+        applied.project.execute(stale),
+        Err(ProjectError::RevisionConflict { .. })
+    ));
+    assert_eq!(state.name().as_str(), "Home");
+    assert_eq!(state.revision(), 4);
+}
+
+#[test]
 fn calibration_undo_retains_history_and_evidence_binding_prevents_scale_changes() {
     let state = populated();
     let change = MapCalibration {
