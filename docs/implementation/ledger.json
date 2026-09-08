@@ -39324,6 +39324,12 @@
           "description": "Reviewed normalization-to-survey and immutable bundle composition; product workflow remains open",
           "revision": "005d17a792ab0744773de64a7b2b6483e933c86efc9edd9e63d4a8f67fd71662",
           "sha256": "005d17a792ab0744773de64a7b2b6483e933c86efc9edd9e63d4a8f67fd71662"
+        },
+        {
+          "path": "crates/stored-analysis/src/lib.rs",
+          "description": "Reviewed revision-bound stored observation and survey composition into RSSI tiles; UI remains open",
+          "revision": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7",
+          "sha256": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7"
         }
       ],
       "validation": [
@@ -39352,6 +39358,15 @@
           "sha256": "2843d69979001e06347d1aa20278504b1134346cada5017266ad83e71915f717",
           "command": "cargo test -p kyberia-observation-pipeline --locked --offline",
           "scope": "native_persistence_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/stored-analysis/tests/workflow.rs",
+          "description": "Real bundle numerical, synthetic rejection, tampering and cancellation regressions",
+          "revision": "490983224fbae5c4277742dcdae5866b1cd930f7dc737f446e9eb27bffbcf558",
+          "sha256": "490983224fbae5c4277742dcdae5866b1cd930f7dc737f446e9eb27bffbcf558",
+          "command": "cargo test -p kyberia-stored-analysis --locked --offline",
+          "scope": "stored_composition_contract",
           "result": "PASS"
         }
       ],
@@ -39400,6 +39415,15 @@
           "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
           "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/stored-rssi-analysis-review.md",
+          "description": "Independent corrected stored composition review",
+          "revision": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
+          "sha256": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
+          "reviewer": "/root/operation_log_luna and /root",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -116752,8 +116776,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -116931,8 +116955,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -117098,8 +117122,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -117222,8 +117246,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -117346,8 +117370,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -117470,8 +117494,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -117595,8 +117619,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -119838,8 +119862,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -124933,8 +124957,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -125109,8 +125133,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -125277,8 +125301,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -125444,8 +125468,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -158205,8 +158229,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -158775,8 +158799,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -168112,8 +168136,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -168278,8 +168302,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -172873,6 +172897,12 @@
           "description": "Reviewed bounded observed RSSI selection and manifest-to-tile composition; full metric maps and product workflow remain open",
           "revision": "0b1c4bbb7801c9113da232c1becd684f4f2db613cb14f71ea5bf5ced11b46a8c",
           "sha256": "0b1c4bbb7801c9113da232c1becd684f4f2db613cb14f71ea5bf5ced11b46a8c"
+        },
+        {
+          "path": "crates/stored-analysis/src/lib.rs",
+          "description": "Reviewed revision-bound stored observation and survey composition into RSSI tiles; UI remains open",
+          "revision": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7",
+          "sha256": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7"
         }
       ],
       "validation": [
@@ -172883,6 +172913,15 @@
           "sha256": "be7df2a05f1c95cf1d30949421e186af2ef0b91722a1be3ba64e57b9be8f17c6",
           "command": "cargo test -p kyberia-observation-analysis --locked --offline",
           "scope": "pure_selection_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/stored-analysis/tests/workflow.rs",
+          "description": "Real bundle numerical, synthetic rejection, tampering and cancellation regressions",
+          "revision": "490983224fbae5c4277742dcdae5866b1cd930f7dc737f446e9eb27bffbcf558",
+          "sha256": "490983224fbae5c4277742dcdae5866b1cd930f7dc737f446e9eb27bffbcf558",
+          "command": "cargo test -p kyberia-stored-analysis --locked --offline",
+          "scope": "stored_composition_contract",
           "result": "PASS"
         }
       ],
@@ -172902,6 +172941,15 @@
           "revision": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
           "sha256": "c1a9520820a0f2cd3f56bac24d2049c7f1828e63e8855e1f76472f91c1c98a1a",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/stored-rssi-analysis-review.md",
+          "description": "Independent corrected stored composition review",
+          "revision": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
+          "sha256": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
+          "reviewer": "/root/operation_log_luna and /root",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -177866,8 +177914,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -235656,8 +235704,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
@@ -235781,8 +235829,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15",
-          "sha256": "74f1b97d038b01b62f616cc8c73407fe077ab67cd2185f4c27eb25550e5ecb15"
+          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
+          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
         },
         {
           "path": "crates/project-store/src/bundle.rs",

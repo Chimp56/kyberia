@@ -1,3 +1,17 @@
+# Current stored-analysis disposition
+
+APPROVED at candidate `92cc728`, integrated as `49cf41b`, `fad7739` and
+`64af05e`. Independent reviewer /root/operation_log_luna found no BLOCKER or
+MAJOR issues; root separately inspected and reran the six stored tests.
+Both source-kind and quality-flag synthetic routes are rejected after actual
+bundle roundtrips. Expected -60 dBm and explicit unknown cells are asserted.
+Retained test directories have no recursive cleanup. The stale source inventory
+MINOR finding is corrected by regeneration against the integrated lockfile.
+
+Standalone snapshot provenance richness and complete numerical envelope
+validation remain documented follow-up; no importer treats the document as
+trusted numerical evidence. Historical findings below remain for audit.
+
 # Stored RSSI composition review
 
 Candidate: `778cc5260da712f9e44e913fd93614e29e3f4bb4`.
