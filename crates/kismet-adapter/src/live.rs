@@ -507,7 +507,9 @@ impl KismetLiveClient {
         let mut last_transient = false;
         for attempt in 0..=self.limits.max_retries {
             check_budget(cancellation, clock, deadline)?;
-            let remaining = deadline.saturating_sub(clock.elapsed());
+            let remaining = deadline
+                .saturating_sub(clock.elapsed())
+                .min(self.limits.attempt_timeout());
             let response = match executor.get(
                 &self.endpoint,
                 &self.token,
@@ -1539,8 +1541,14 @@ mod tests {
                 .iter()
                 .all(|(_, cookie, _)| cookie == "KISMET=fixture-secret")
         );
-        assert_eq!(http.requests.borrow()[0].2, Duration::from_secs(1));
-        assert_eq!(http.requests.borrow()[1].2, Duration::from_millis(980));
+        assert_eq!(
+            http.requests.borrow()[0].2,
+            Duration::from_nanos(333_333_333)
+        );
+        assert_eq!(
+            http.requests.borrow()[1].2,
+            Duration::from_nanos(333_333_333)
+        );
         assert_eq!(
             clock.sleeps.borrow().as_slice(),
             &[Duration::from_millis(20)]
