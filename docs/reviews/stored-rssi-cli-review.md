@@ -25,3 +25,15 @@ implementation gate: a bounded backend wired to `NeverCancel` does not provide
 CLI signal cancellation. Treat any initial bounded command acceptance as an
 increment and implement cancellation next, with honest documented guarantees.
 No product workflow completion is claimed by this draft review.
+
+## Frozen candidate checks
+
+At `ba52325`, root independently passed all 12 CLI tests. Root decoded the
+retained known artifact and confirmed -55 dBm with Observed classification.
+Two additional real CLI invocations using that original fixture moved the grid
+center one meter from the sample: nearest and IDW each returned -55 dBm with
+Interpolated classification. These are independent runtime spot checks, not
+persistent regression coverage. The author was asked to add numerical/class
+assertions and actual method-selection subprocess cases to the ongoing follow-up.
+The hard-link publication correction is present; final independent review of
+the frozen candidate is still pending, and signal cancellation remains open.
