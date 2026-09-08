@@ -11,20 +11,22 @@ use kyberia_domain::{
     spatial::PositionCovariance,
     units::{CoordinateMeters, Dbm},
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-pub const ALGORITHM_VERSION: &str = "kyberia-spatial/1";
+pub use kyberia_wifi_semantics::{AggregateMethod, SignalAggregate, SignalAlgorithmVersion};
+
+pub const ALGORITHM_VERSION: &str = "kyberia-spatial/2";
 pub const MAX_SAMPLES: usize = 100_000;
 pub const MAX_CELLS: usize = 100_000;
 pub const MAX_NEIGHBORS: usize = 64;
 pub const MAX_DISTANCE_EVALUATIONS: usize = 100_000_000;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Point2 {
     pub x: CoordinateMeters,
     pub y: CoordinateMeters,
 }
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sample {
     pub observation_id: ObservationId,
     pub floor_id: FloorId,
@@ -42,6 +44,9 @@ pub enum Error {
     FrameMismatch,
     FloorMismatch,
     NumericalFailure(&'static str),
+    AggregationVersionMismatch,
+    TemporalAggregationRequiresMonotonicEvidence,
+    InvalidAggregationConfiguration(&'static str),
     Cancelled,
 }
 impl std::fmt::Display for Error {

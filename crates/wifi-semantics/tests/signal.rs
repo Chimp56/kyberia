@@ -23,6 +23,12 @@ fn sample(value: u8, time: u64, rssi: f64) -> SignalSample {
         rssi: Dbm::new(rssi).unwrap(),
     }
 }
+fn static_sample(value: u8, rssi: f64) -> StaticSignalSample {
+    StaticSignalSample {
+        observation_id: id(value),
+        rssi: Dbm::new(rssi).unwrap(),
+    }
+}
 fn known(result: &SignalAggregate) -> f64 {
     result.estimate.as_known().unwrap().get()
 }
@@ -189,6 +195,41 @@ fn ordered_live_aggregators_retain_order_and_reject_bad_time() {
             }
         ),
         Err(Error::ClockEpochMismatch)
+    );
+}
+
+#[test]
+fn static_aggregator_rejects_temporal_methods_without_monotonic_evidence() {
+    let samples = [static_sample(1, -70.0), static_sample(2, -60.0)];
+    assert_eq!(
+        aggregate_static(
+            &samples,
+            AggregateMethod::EwmaDbm {
+                alpha: Probability::new(0.5).unwrap(),
+            }
+        ),
+        Err(Error::TemporalMethodRequiresMonotonicTime)
+    );
+    assert_eq!(
+        aggregate_static(
+            &samples,
+            AggregateMethod::RobustStateSpaceDbm {
+                process_stddev: Db::new(1.0).unwrap(),
+                measurement_stddev: Db::new(2.0).unwrap(),
+                huber_threshold_stddevs: Dimensionless::new(1.5).unwrap(),
+            }
+        ),
+        Err(Error::TemporalMethodRequiresMonotonicTime)
+    );
+}
+
+#[test]
+fn aggregate_method_wire_rejects_unknown_parameters() {
+    assert!(
+        serde_json::from_str::<AggregateMethod>(
+            r#"{"method":"trimmed_mean_dbm","trim_each_tail":0.25,"unexpected":true}"#
+        )
+        .is_err()
     );
 }
 

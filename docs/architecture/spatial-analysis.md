@@ -1,10 +1,13 @@
-# Numerical spatial baseline, version 1
+# Numerical spatial analysis, version 2
 
-`crates/spatial-analysis` implements the first bounded numerical part of
-plan.md §7.21, §7.24–7.25, §11.7, §12.1–12.2 and iteration 4. It is an
-inward Rust computation crate, depending only on canonical domain units and
-Serde. It does not read files, obtain clocks, filter live collectors, calculate
-Wi-Fi metrics, render colors, or import foreign project objects.
+`crates/spatial-analysis` implements the bounded numerical part of plan.md
+§7.9, §7.21, §7.24–7.25, §11.7, §12.1–12.2 and iteration 4. It is an inward
+Rust computation crate, depending only on canonical domain units, the pure
+`kyberia-wifi-semantics` crate, and Serde/serde_json. The Wi-Fi dependency is a narrow
+directional dependency: it supplies signal aggregation and RF arithmetic, but
+does not know spatial coordinates, grids, geometry, persistence, or rendering.
+The spatial crate does not read files, obtain clocks, filter live collectors,
+render colors, or import foreign project objects.
 
 ## Inputs and responsibility boundary
 
@@ -21,6 +24,17 @@ unknown scalar dBm values and position covariance evidence. Unknown values are
 retained in the numerical tile input manifest but do not provide scalar support.
 Duplicate observation IDs are rejected even if their contents match. Different
 observations at the same coordinate remain different evidence records.
+
+`Inputs::metric_definition` is a verified `MetricDefinitionBinding`, consisting
+of the immutable metric-definition artifact reference and its typed
+`SignalAggregationSelection`. Its validating constructor accepts only bounded
+canonical bytes with the expected schema, content hash, byte length, media type,
+artifact version identity and exact method projection. There is no second
+spatial aggregation setting that can diverge from this binding. The selection
+is closed and versioned by `kyberia-wifi-semantics`; malformed, duplicate,
+unknown or future wire values fail validation. The canonical JSON artifact uses
+media type `application/kyberia-signal-metric-definition+json`, is bounded to
+16 KiB and depth 16, and must byte-for-byte equal the pinned Serde JSON encoding.
 
 The input evidence plane distinguishes measured evidence from synthetic test
 evidence. Cell class `Observed` means exact input-coordinate support, within that
@@ -44,14 +58,23 @@ radius; the UI must display this assumption and the sample count. A radius can
 bridge an unsampled hole if the user chooses it too large. TIN/hull support and
 barrier-aware support remain separate planned methods.
 
-Coincident known readings form one location group. Its value is the arithmetic
-mean in dBm (`arithmetic-mean-dbm/1`), not the linear-power mean and not summed
-power. Observation IDs sort lexicographically before this mean. Group positions
-sort by x then y. Every group preserves all contributing observation IDs. One
-group contributes once to spatial weighting regardless of its repeat count;
+Coincident known readings form one location group. Its value is produced by the
+typed aggregation selected by the retained metric definition: median dBm,
+trimmed mean dBm, linear-power mean converted back to dBm, or percentile range
+with a median scalar estimate. Every group retains the complete
+`SignalAggregate`, including method parameters, semantic algorithm version,
+sample count and canonical observation IDs. Group positions sort by x then y.
+One group contributes once to spatial weighting regardless of its repeat count;
 both distinct-location and known-observation support counts are reported.
 
-At an exact coordinate, the group mean is returned as `Observed`, even if the
+The spatial sample shape carries no capture monotonic timestamp. Consequently,
+EWMA and robust state-space aggregation are rejected with
+`TemporalAggregationRequiresMonotonicEvidence`; observation IDs and coordinate
+ordering are never used as a fabricated time sequence. A future time-aware
+spatial input must carry a validated single clock epoch and strictly increasing
+monotonic timestamps before those methods can be admitted.
+
+At an exact coordinate, the selected group aggregate is returned as `Observed`, even if the
 minimum count for interpolation is not met. Otherwise:
 
 1. Neighbors are bounded by the configured radius and maximum neighbor count.
@@ -59,8 +82,9 @@ minimum count for interpolation is not met. Otherwise:
 3. Nearest returns the first neighbor; supporting counts still describe all
    known evidence inside the support radius.
 4. IDW uses `w_i = (d_min / d_i)^p`, then `sum(w_i * v_i) / sum(w_i)`, where
-   `v_i` is the location mean in dBm. This is algebraically the usual inverse
-   distance weight, rescaled to keep the closest weight 1 and others at most 1.
+   `v_i` is the selected location-group aggregate in dBm. This is algebraically
+   the usual inverse distance weight, rescaled to keep the closest weight 1 and
+   others at most 1.
 
 The same method interface returns numeric values, classes, support, distance
 and contributors. A bounded max-heap retains the nearest locations during the
@@ -94,7 +118,8 @@ predicted, hybrid, GP or calibrated uncertainty outputs in this increment.
 
 Original fixtures in `tests/baselines.rs` cover a symmetric affine field,
 two-point rational IDW weights, a radial center holdout, separated clusters with
-an unknown gap, coincident repeats and sparse one/two-point cases. For the radial
+an unknown gap, coincident repeats with each static signal aggregation, and sparse
+one/two-point cases. For the radial
 field `-40 - 10r`, four samples at radius 1 all read -50 dBm. IDW predicts -50 dBm
 at the held-out center whose truth is -40 dBm: **10 dB error is expected and
 asserted**, demonstrating why smooth interpolation and low neighbor spread do
@@ -105,14 +130,24 @@ The fixtures are independently authored numerical examples, not field data,
 material presets, copied competitor fixtures or upstream executions. The existing
 clean-room `fixtures/wifiheatmap-oracle/tin-v1.json` was inspected as a boundary
 reference. Its triangle/hull behavior is not claimed implemented by this IDW
-method. No third-party source or dataset was copied. Existing Serde, serde_json
-and proptest pins are reused; no additional external dependency was added.
+method. No third-party source or dataset was copied. The pure
+`kyberia-wifi-semantics` dependency is intentionally added to the production path
+so aggregation cannot drift between live/RF arithmetic and spatial layers.
+Existing Serde, serde_json and proptest pins are reused; no statistics or geometry
+dependency was added.
 
 ## Tiles, exports and bounded execution
 
-`kyberia.numeric-rssi-tile/1` is a Serialize-only numerical export shape. It
+`kyberia.numeric-rssi-tile/2` is a Serialize-only numerical export shape. It
 contains the complete sorted inputs, immutable source reference, configuration,
 algorithm/aggregation versions, location dictionary, grid and row-major cells.
+The top-level `signal_aggregation` field and each location group's
+`signal_aggregate` field make the selected method, exact parameters, version and
+sample identity audit-visible in the tile. The top-level field is private in the
+Rust API and is populated only from the verified binding, so it cannot diverge
+through a public struct literal. The previous v1 artifact encoded a
+hidden arithmetic dBm coincidence rule and is not semantically interchangeable;
+old artifacts remain historical evidence and are not silently reinterpreted.
 Values/masks/uncertainty/support are independent of palette/presentation. There
 is deliberately no unchecked deserializer or production file import path.
 Future persisted imports must validate resource limits, manifests, references,
@@ -147,15 +182,15 @@ clockless numerical core does not enforce wall-clock deadlines itself.
 On macOS 26.6.2 build 25G83, arm64, rustc 1.98.1 (2026-09-01):
 
 ```sh
-rustfmt --edition 2024 crates/spatial-analysis/src/*.rs crates/spatial-analysis/tests/*.rs
-cargo test -p kyberia-domain -p kyberia-spatial-analysis --offline
-cargo clippy -p kyberia-spatial-analysis --all-targets --offline -- -D warnings
-cargo test -p kyberia-spatial-analysis --release --offline benchmark_tiles -- --ignored --nocapture
+cargo fmt --all -- --check
+cargo test -p kyberia-domain -p kyberia-spatial-analysis -p kyberia-wifi-semantics --locked --offline
+cargo clippy -p kyberia-spatial-analysis -p kyberia-wifi-semantics --all-targets --locked --offline -- -D warnings
+cargo test -p kyberia-spatial-analysis --release --locked --offline benchmark_tiles -- --ignored --nocapture
 ```
 
-Results: 16 spatial tests passed, one explicit benchmark excluded from normal
-tests; 32 domain tests and 7 domain compile-fail documentation tests passed;
-Clippy passed with warnings denied. Properties exercise convex bounds,
+Results: 23 spatial tests passed, one explicit benchmark excluded from normal
+tests; 13 Wi-Fi semantic tests, 32 domain tests and 7 domain compile-fail
+documentation tests passed; Clippy passed with warnings denied. Properties exercise convex bounds,
 permuted-input determinism and integer translation invariance. Tests also cover
 schema output inspection, tile seam equality, cancellation, duplicates, frame and
 floor mismatch, unsupported inputs, extreme finite/subnormal arithmetic, and
@@ -166,11 +201,11 @@ CI performance threshold):
 
 | Cells | Input locations | Radius / resolution m | Build ms | Tile ms | Known / unknown cells |
 |---:|---:|---:|---:|---:|---:|
-| 10,000 | 100 | 5 / 1 | excluded | 4.002 | 7,220 / 2,780 |
-| 100,000 | 100 | 5 / 1 | excluded | 32.115 | 7,220 / 92,780 |
-| 100,000 | 100 | 15 / 0.1 | excluded | 56.838 | 100,000 / 0 |
-| 100 | 10,000 | 5 / 1 | 1.002 | 3.379 | not recorded by timing loop |
-| 100 | 100,000 | 5 / 1 | 13.727 | 33.332 | not recorded by timing loop |
+| 10,000 | 100 | 5 / 1 | excluded | 20.489 | 7,220 / 2,780 |
+| 100,000 | 100 | 5 / 1 | excluded | 54.236 | 7,220 / 92,780 |
+| 100,000 | 100 | 15 / 0.1 | excluded | 60.396 | 100,000 / 0 |
+| 100 | 10,000 | 5 / 1 | 2.602 | 4.010 | not recorded by timing loop |
+| 100 | 100,000 | 5 / 1 | 23.304 | 78.802 | not recorded by timing loop |
 
 All use IDW power 2 and at most 8 neighbors. The first three input sets are a
 10×10 grid spaced 10 m with values `-40 - id/10` dBm. The last two are 1000-column

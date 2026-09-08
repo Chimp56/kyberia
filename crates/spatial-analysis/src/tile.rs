@@ -68,12 +68,19 @@ impl Grid {
 pub struct Tile {
     pub schema_version: &'static str,
     pub algorithm_version: &'static str,
-    pub coincident_aggregation: &'static str,
+    /// Private so a public struct literal cannot fabricate metadata that
+    /// differs from the verified metric binding held in `inputs`.
+    signal_aggregation: SignalAggregationSelection,
     pub inputs: Inputs,
     pub configuration: Config,
     pub location_groups: Vec<LocationGroup>,
     pub grid: Grid,
     pub cells: Vec<Cell>,
+}
+impl Tile {
+    pub const fn signal_aggregation(&self) -> SignalAggregationSelection {
+        self.signal_aggregation
+    }
 }
 impl Model {
     /// All-or-error; cancellation never returns incomplete cells as complete data.
@@ -106,9 +113,9 @@ impl Model {
             return Err(Error::Cancelled);
         }
         Ok(Tile {
-            schema_version: "kyberia.numeric-rssi-tile/1",
+            schema_version: "kyberia.numeric-rssi-tile/2",
             algorithm_version: ALGORITHM_VERSION,
-            coincident_aggregation: "arithmetic-mean-dbm/1",
+            signal_aggregation: self.inputs.metric_definition.signal_aggregation(),
             inputs: self.inputs.clone(),
             configuration: self.config,
             location_groups: self.groups.clone(),

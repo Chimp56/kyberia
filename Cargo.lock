@@ -324,9 +324,11 @@ name = "kyberia-spatial-analysis"
 version = "0.1.0"
 dependencies = [
  "kyberia-domain",
+ "kyberia-wifi-semantics",
  "proptest",
  "serde",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]

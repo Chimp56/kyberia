@@ -30,6 +30,7 @@ pub enum Error {
     DuplicateObservation(ObservationId),
     ClockEpochMismatch,
     NonMonotonicSequence,
+    TemporalMethodRequiresMonotonicTime,
     ResourceLimit,
     NumericalFailure,
 }
@@ -51,7 +52,7 @@ pub struct SignalSample {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "method", rename_all = "snake_case")]
+#[serde(tag = "method", deny_unknown_fields, rename_all = "snake_case")]
 pub enum AggregateMethod {
     MedianDbm,
     TrimmedMeanDbm {
@@ -70,6 +71,18 @@ pub enum AggregateMethod {
         measurement_stddev: Db,
         huber_threshold_stddevs: Dimensionless,
     },
+}
+
+/// A signal value without a temporal claim.
+///
+/// Spatial aggregation receives samples whose capture ordering is deliberately
+/// outside this crate's input shape. Static methods can consume this type;
+/// EWMA and state-space methods must use [`SignalSample`] so their monotonic
+/// ordering is explicit and validated.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct StaticSignalSample {
+    pub observation_id: ObservationId,
+    pub rssi: Dbm,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -203,14 +216,67 @@ pub fn aggregate(
     }
 
     let values: Vec<f64> = samples.iter().map(|sample| sample.rssi.get()).collect();
-    let (estimate, interval) = match method {
-        AggregateMethod::MedianDbm => (median(&values), None),
-        AggregateMethod::TrimmedMeanDbm { trim_each_tail } => {
-            (trimmed_mean(&values, trim_each_tail.get())?, None)
+    aggregate_values(&values, method, observation_order)
+}
+
+/// Aggregate values when no monotonic capture timestamps are available.
+///
+/// This deliberately rejects temporal methods instead of fabricating an order
+/// from observation IDs or spatial coordinates. Spatial callers should use
+/// this entry point for coincident groups and preserve the returned method,
+/// version, and observation order in their derived artifact.
+pub fn aggregate_static(
+    samples: &[StaticSignalSample],
+    method: AggregateMethod,
+) -> Result<SignalAggregate, Error> {
+    validate_method(method)?;
+    if matches!(
+        method,
+        AggregateMethod::EwmaDbm { .. } | AggregateMethod::RobustStateSpaceDbm { .. }
+    ) {
+        return Err(Error::TemporalMethodRequiresMonotonicTime);
+    }
+    if samples.len() > MAX_SAMPLES {
+        return Err(Error::ResourceLimit);
+    }
+    let mut ids = BTreeSet::new();
+    for sample in samples {
+        if !ids.insert(sample.observation_id) {
+            return Err(Error::DuplicateObservation(sample.observation_id));
         }
-        AggregateMethod::LinearPowerMean => (linear_power_mean(&values)?, None),
+    }
+    let observation_order = ids.into_iter().collect();
+    if samples.is_empty() {
+        return Ok(SignalAggregate {
+            algorithm_version: ALGORITHM_VERSION,
+            method,
+            estimate: Evidence::Unknown(UnknownReason::NotMeasured),
+            percentile_interval: if matches!(method, AggregateMethod::PercentileRange { .. }) {
+                Evidence::Unknown(UnknownReason::NotMeasured)
+            } else {
+                Evidence::Unknown(UnknownReason::NotApplicable)
+            },
+            sample_count: 0,
+            observation_order,
+        });
+    }
+    let values: Vec<f64> = samples.iter().map(|sample| sample.rssi.get()).collect();
+    aggregate_values(&values, method, observation_order)
+}
+
+fn aggregate_values(
+    values: &[f64],
+    method: AggregateMethod,
+    observation_order: Vec<ObservationId>,
+) -> Result<SignalAggregate, Error> {
+    let (estimate, interval) = match method {
+        AggregateMethod::MedianDbm => (median(values), None),
+        AggregateMethod::TrimmedMeanDbm { trim_each_tail } => {
+            (trimmed_mean(values, trim_each_tail.get())?, None)
+        }
+        AggregateMethod::LinearPowerMean => (linear_power_mean(values)?, None),
         AggregateMethod::PercentileRange { lower, upper } => {
-            let mut sorted = values.clone();
+            let mut sorted = values.to_vec();
             sorted.sort_by(f64::total_cmp);
             let low = percentile(&sorted, lower.get());
             let high = percentile(&sorted, upper.get());
@@ -229,7 +295,7 @@ pub fn aggregate(
             huber_threshold_stddevs,
         } => (
             robust_state_space(
-                &values,
+                values,
                 process_stddev.get(),
                 measurement_stddev.get(),
                 huber_threshold_stddevs.get(),
@@ -248,7 +314,7 @@ pub fn aggregate(
             }),
             None => Evidence::Unknown(UnknownReason::NotApplicable),
         },
-        sample_count: samples.len() as u32,
+        sample_count: values.len() as u32,
         observation_order,
     })
 }

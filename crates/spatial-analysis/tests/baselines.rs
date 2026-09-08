@@ -1,10 +1,12 @@
 use kyberia_domain::{
+    analysis::{ExactU64, VersionedArtifact},
     evidence::{ArtifactReference, Evidence, UnknownReason},
     identity::{ContentHash, FloorId, FrameId, ObservationId, Text},
-    units::{CoordinateMeters, Dbm, Meters},
+    units::{CoordinateMeters, Db, Dbm, Dimensionless, Meters, Probability},
 };
 use kyberia_spatial_analysis::*;
 use proptest::prelude::*;
+use sha2::{Digest, Sha256};
 
 fn point(x: f64, y: f64) -> Point2 {
     Point2 {
@@ -31,11 +33,30 @@ fn config() -> Config {
         extrapolation: Extrapolation::Disabled,
     }
 }
+fn artifact_for(version: &Text, bytes: &[u8]) -> VersionedArtifact {
+    VersionedArtifact {
+        version: version.clone(),
+        sha256: ContentHash::from_sha256(Sha256::digest(bytes).into()),
+        byte_length: ExactU64::new(bytes.len() as u64),
+        media_type: Text::new(SIGNAL_METRIC_DEFINITION_MEDIA_TYPE).unwrap(),
+    }
+}
+fn metric_binding(method: AggregateMethod) -> MetricDefinitionBinding {
+    let selection = SignalAggregationSelection::new(method);
+    let definition = SignalMetricDefinition::new(
+        Text::new("test/synthetic-single-transmitter-rssi/1").unwrap(),
+        selection,
+    )
+    .unwrap();
+    let bytes = definition.canonical_bytes().unwrap();
+    let artifact = artifact_for(definition.version(), &bytes);
+    definition.bind(artifact).unwrap()
+}
 fn inputs(samples: Vec<Sample>) -> Inputs {
     Inputs {
         floor_id: FloorId::from_bytes([1; 16]).unwrap(),
         frame_id: FrameId::from_bytes([2; 16]).unwrap(),
-        metric_definition: Text::new("test/synthetic-single-transmitter-rssi/1").unwrap(),
+        metric_definition: metric_binding(AggregateMethod::MedianDbm),
         evidence_plane: InputEvidencePlane::Synthetic,
         source_artifact: ArtifactReference {
             sha256: ContentHash::from_sha256([1; 32]),
@@ -45,8 +66,16 @@ fn inputs(samples: Vec<Sample>) -> Inputs {
         samples,
     }
 }
+fn inputs_with_aggregation(samples: Vec<Sample>, method: AggregateMethod) -> Inputs {
+    let mut inputs = inputs(samples);
+    inputs.metric_definition = metric_binding(method);
+    inputs
+}
 fn model(samples: Vec<Sample>) -> Model {
     Model::new(inputs(samples), config()).unwrap()
+}
+fn model_with_aggregation(samples: Vec<Sample>, method: AggregateMethod) -> Model {
+    Model::new(inputs_with_aggregation(samples, method), config()).unwrap()
 }
 fn estimate(model: &Model, x: f64, y: f64) -> Cell {
     model.estimate(point(x, y), &mut || false).unwrap()
@@ -160,6 +189,296 @@ fn coincident_mean_is_dbm_and_repeats_do_not_inflate_location_count() {
     assert_eq!(estimate(&m, 1.0, 0.0).class, CellClass::Unknown);
     assert_eq!(estimate(&m, 0.0, 0.0).class, CellClass::Observed);
 }
+
+#[test]
+fn coincident_groups_use_the_metric_selected_static_aggregation() {
+    let samples = vec![
+        sample(1, 0.0, 0.0, -80.0),
+        sample(2, 0.0, 0.0, -70.0),
+        sample(3, 0.0, 0.0, -60.0),
+        sample(4, 0.0, 0.0, -20.0),
+    ];
+    let median = model_with_aggregation(samples.clone(), AggregateMethod::MedianDbm);
+    assert_eq!(value(&estimate(&median, 0.0, 0.0)), -65.0);
+    let trimmed = model_with_aggregation(
+        samples.clone(),
+        AggregateMethod::TrimmedMeanDbm {
+            trim_each_tail: Probability::new(0.25).unwrap(),
+        },
+    );
+    assert_eq!(value(&estimate(&trimmed, 0.0, 0.0)), -65.0);
+    let linear = model_with_aggregation(
+        vec![sample(1, 0.0, 0.0, -80.0), sample(2, 0.0, 0.0, -70.0)],
+        AggregateMethod::LinearPowerMean,
+    );
+    assert!((value(&estimate(&linear, 0.0, 0.0)) + 72.596_373_105_057_56).abs() < 1e-12);
+    let range = model_with_aggregation(
+        samples,
+        AggregateMethod::PercentileRange {
+            lower: Probability::new(0.25).unwrap(),
+            upper: Probability::new(0.75).unwrap(),
+        },
+    );
+    assert_eq!(value(&estimate(&range, 0.0, 0.0)), -65.0);
+    let interval = &range.groups()[0].signal_aggregate.percentile_interval;
+    assert_eq!(
+        interval
+            .as_known()
+            .map(|range| (range.lower.get(), range.upper.get())),
+        Some((-72.5, -50.0))
+    );
+}
+
+#[test]
+fn selected_static_aggregation_is_permutation_deterministic() {
+    let samples = vec![
+        sample(1, 0.0, 0.0, -80.0),
+        sample(2, 0.0, 0.0, -70.0),
+        sample(3, 0.0, 0.0, -60.0),
+        sample(4, 0.0, 0.0, -20.0),
+    ];
+    let methods = [
+        AggregateMethod::MedianDbm,
+        AggregateMethod::TrimmedMeanDbm {
+            trim_each_tail: Probability::new(0.25).unwrap(),
+        },
+        AggregateMethod::LinearPowerMean,
+        AggregateMethod::PercentileRange {
+            lower: Probability::new(0.25).unwrap(),
+            upper: Probability::new(0.75).unwrap(),
+        },
+    ];
+    for method in methods {
+        let forward = model_with_aggregation(samples.clone(), method);
+        let reverse = model_with_aggregation(samples.iter().rev().cloned().collect(), method);
+        assert_eq!(forward.groups(), reverse.groups());
+        assert_eq!(estimate(&forward, 0.0, 0.0), estimate(&reverse, 0.0, 0.0));
+    }
+}
+
+#[test]
+fn temporal_aggregation_is_rejected_without_ordered_sample_evidence() {
+    for method in [
+        AggregateMethod::EwmaDbm {
+            alpha: Probability::new(0.5).unwrap(),
+        },
+        AggregateMethod::RobustStateSpaceDbm {
+            process_stddev: Db::new(1.0).unwrap(),
+            measurement_stddev: Db::new(2.0).unwrap(),
+            huber_threshold_stddevs: Dimensionless::new(1.5).unwrap(),
+        },
+    ] {
+        assert!(matches!(
+            Model::new(
+                inputs_with_aggregation(vec![sample(1, 0.0, 0.0, -60.0)], method),
+                config()
+            ),
+            Err(Error::TemporalAggregationRequiresMonotonicEvidence)
+        ));
+    }
+}
+
+#[test]
+fn malformed_typed_aggregation_configuration_is_rejected() {
+    let mut json =
+        serde_json::to_value(SignalAggregationSelection::new(AggregateMethod::MedianDbm)).unwrap();
+    json["unexpected"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<SignalAggregationSelection>(json).is_err());
+    assert!(
+        serde_json::from_str::<SignalAggregationSelection>(
+            r#"{"algorithm_version":"kyberia-wifi-signal/2","method":{"method":"median_dbm"}}"#
+        )
+        .is_err()
+    );
+    let mut config_json = serde_json::to_value(config()).unwrap();
+    config_json["signal_aggregation"] = serde_json::json!({
+        "algorithm_version": "kyberia-wifi-signal/1",
+        "method": {"method": "median_dbm"}
+    });
+    assert!(serde_json::from_value::<Config>(config_json).is_err());
+}
+
+#[test]
+fn metric_definition_binding_round_trips_only_verified_canonical_bytes() {
+    let selection = SignalAggregationSelection::new(AggregateMethod::LinearPowerMean);
+    let definition =
+        SignalMetricDefinition::new(Text::new("test/linear-power-rssi/1").unwrap(), selection)
+            .unwrap();
+    let bytes = definition.canonical_bytes().unwrap();
+    let binding = definition
+        .bind(artifact_for(definition.version(), &bytes))
+        .unwrap();
+    assert_eq!(binding.signal_aggregation(), selection);
+    assert_eq!(binding.artifact().version, *definition.version());
+    assert_eq!(binding.canonical_bytes().unwrap(), bytes);
+
+    let mut mutated = bytes.clone();
+    let mutation = mutated
+        .iter_mut()
+        .find(|byte| **byte == b'1')
+        .expect("canonical schema has a version digit");
+    *mutation = b'2';
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(definition.version(), &bytes),
+            &mutated,
+            selection,
+        ),
+        Err(MetricDefinitionError::ArtifactHashMismatch)
+    );
+}
+
+#[test]
+fn metric_definition_binding_rejects_method_mismatch_and_untrusted_wire_forms() {
+    let linear = SignalMetricDefinition::new(
+        Text::new("test/linear-power-rssi/1").unwrap(),
+        SignalAggregationSelection::new(AggregateMethod::LinearPowerMean),
+    )
+    .unwrap();
+    let linear_bytes = linear.canonical_bytes().unwrap();
+    let median = SignalAggregationSelection::new(AggregateMethod::MedianDbm);
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(linear.version(), &linear_bytes),
+            &linear_bytes,
+            median,
+        ),
+        Err(MetricDefinitionError::SelectionMismatch)
+    );
+
+    let mut wrong_length = artifact_for(linear.version(), &linear_bytes);
+    wrong_length.byte_length = ExactU64::new(linear_bytes.len() as u64 + 1);
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            wrong_length,
+            &linear_bytes,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::ArtifactLengthMismatch)
+    );
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(&Text::new("test/other-rssi/1").unwrap(), &linear_bytes),
+            &linear_bytes,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::ArtifactVersionMismatch)
+    );
+    let mut wrong_media_type = artifact_for(linear.version(), &linear_bytes);
+    wrong_media_type.media_type = Text::new("application/octet-stream").unwrap();
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            wrong_media_type,
+            &linear_bytes,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::ArtifactMediaTypeMismatch)
+    );
+
+    let duplicate = String::from_utf8(linear_bytes.clone()).unwrap().replacen(
+        ",\"signal_aggregation\":",
+        ",\"version\":\"test/linear-power-rssi/1\",\"signal_aggregation\":",
+        1,
+    );
+    let duplicate = duplicate.into_bytes();
+    assert!(matches!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(linear.version(), &duplicate),
+            &duplicate,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::NonCanonicalBytes | MetricDefinitionError::MalformedBytes)
+    ));
+
+    let pretty = serde_json::to_vec_pretty(
+        &serde_json::from_slice::<serde_json::Value>(&linear_bytes).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(linear.version(), &pretty),
+            &pretty,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::NonCanonicalBytes)
+    );
+
+    let unknown = String::from_utf8(linear_bytes.clone()).unwrap().replacen(
+        ",\"signal_aggregation\":",
+        ",\"unexpected\":true,\"signal_aggregation\":",
+        1,
+    );
+    let unknown = unknown.into_bytes();
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(linear.version(), &unknown),
+            &unknown,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::MalformedBytes)
+    );
+
+    let future = String::from_utf8(linear_bytes.clone())
+        .unwrap()
+        .replacen(
+            "kyberia.signal-metric-definition/1",
+            "kyberia.signal-metric-definition/2",
+            1,
+        )
+        .into_bytes();
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(linear.version(), &future),
+            &future,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::MalformedBytes)
+    );
+
+    let malformed = linear_bytes[..linear_bytes.len() - 1].to_vec();
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(linear.version(), &malformed),
+            &malformed,
+            linear.signal_aggregation(),
+        ),
+        Err(MetricDefinitionError::MalformedBytes)
+    );
+}
+
+#[test]
+fn metric_definition_binding_enforces_byte_and_depth_limits() {
+    let version = Text::new("test/bounded-rssi/1").unwrap();
+    let selection = SignalAggregationSelection::new(AggregateMethod::MedianDbm);
+    let oversized = vec![b' '; MAX_SIGNAL_METRIC_DEFINITION_BYTES + 1];
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(&version, &oversized),
+            &oversized,
+            selection,
+        ),
+        Err(MetricDefinitionError::ResourceLimit(
+            "signal metric definition bytes"
+        ))
+    );
+    let deeply_nested = format!(
+        "{}null{}",
+        "[".repeat(MAX_SIGNAL_METRIC_DEFINITION_DEPTH + 1),
+        "]".repeat(MAX_SIGNAL_METRIC_DEFINITION_DEPTH + 1)
+    )
+    .into_bytes();
+    assert_eq!(
+        MetricDefinitionBinding::from_artifact_bytes(
+            artifact_for(&version, &deeply_nested),
+            &deeply_nested,
+            selection,
+        ),
+        Err(MetricDefinitionError::ResourceLimit(
+            "signal metric definition depth"
+        ))
+    );
+}
+
 #[test]
 fn nearest_ties_and_neighbor_truncation_are_deterministic() {
     let mut cfg = config();
@@ -250,14 +569,39 @@ fn affine_symmetric_and_radial_independent_truth() {
 }
 #[test]
 fn tile_serialization_retains_numeric_unknown_and_provenance() {
-    let m = model(vec![sample(1, 0.5, 0.5, -40.0)]);
+    let m = model_with_aggregation(
+        vec![sample(1, 0.5, 0.5, -40.0)],
+        AggregateMethod::TrimmedMeanDbm {
+            trim_each_tail: Probability::new(0.25).unwrap(),
+        },
+    );
     let t = m.tile(grid(10, 1), || false).unwrap();
     assert_eq!(t.cells.len(), 10);
+    assert_eq!(
+        t.signal_aggregation(),
+        m.inputs().metric_definition.signal_aggregation()
+    );
     assert_eq!(t.cells[0].class, CellClass::Observed);
     assert_eq!(t.cells[9].class, CellClass::Unknown);
     let json = serde_json::to_value(t).unwrap();
     assert_eq!(json["cells"][9]["value"]["state"], "unknown");
-    assert_eq!(json["coincident_aggregation"], "arithmetic-mean-dbm/1");
+    assert_eq!(
+        json["signal_aggregation"],
+        json["inputs"]["metric_definition"]["signal_aggregation"]
+    );
+    assert_eq!(
+        json["signal_aggregation"]["algorithm_version"],
+        "kyberia-wifi-signal/1"
+    );
+    assert_eq!(
+        json["signal_aggregation"]["method"]["method"],
+        "trimmed_mean_dbm"
+    );
+    assert_eq!(json["signal_aggregation"]["method"]["trim_each_tail"], 0.25);
+    assert_eq!(
+        json["location_groups"][0]["signal_aggregate"]["observation_order"][0],
+        "00000000000000000000000000000001"
+    );
     assert_eq!(
         json["location_groups"][0]["observation_ids"][0],
         "00000000000000000000000000000001"

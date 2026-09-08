@@ -15,6 +15,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0010](0010-portable-2d-geometry-boundary.md) | Accepted provisional proposal; production Gate E open | Portable 2-D Rust geometry boundary with bounded import, floor filtering, validation, and explicit repair provenance |
 | [0011](0011-explicit-wifi-signal-aggregation.md) | Accepted bounded numerical contract; PAS-001 integration open | Explicit versioned aggregation, linear-power arithmetic, evidence-strict SNR/SIR/SINR, and deterministic provenance |
 | [0012](0012-receipt-point-association.md) | Accepted bounded contract; integration open | Keep receipt-based point association separate from strict capture admission; preserve a separate event-ordering watermark |
+| [0013](0013-spatial-signal-aggregation-boundary.md) | Accepted bounded numerical boundary; integration open | Spatial coincident groups consume typed Wi-Fi aggregation through verified metric-definition bytes; temporal methods require monotonic evidence |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 
