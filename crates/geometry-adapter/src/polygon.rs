@@ -17,6 +17,10 @@ pub const MAX_MULTIPOLYGON_COORDINATES: usize = 16_384;
 /// results grow; callers receive an explicit resource error instead of
 /// allowing an unbounded overlay workload.
 pub const MAX_BOOLEAN_WORK: usize = 4_194_304;
+/// Maximum tolerated area discrepancy in normalized coordinate-area units. A fixed
+/// absolute bound prevents a large valid residual from masking a missing
+/// small residual through relative-error scaling.
+const BOOLEAN_AREA_ERROR_TOLERANCE: f64 = 1e-7;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PolygonError {
@@ -353,7 +357,6 @@ impl ValidatedMultiPolygon {
         if work > MAX_BOOLEAN_WORK {
             return Err(BooleanError::ResourceLimit);
         }
-
         let scale = normalization_scale(
             self.max_absolute_coordinate()
                 .max(other.max_absolute_coordinate()),
@@ -400,6 +403,11 @@ impl ValidatedMultiPolygon {
                 if result.0.is_empty() {
                     return Ok(Self::empty(self.floor_id, self.frame_id));
                 }
+                if !multipolygon_covers_with_tolerance(&left, &result)
+                    || !multipolygon_covers_with_tolerance(&right, &result)
+                {
+                    return Err(BooleanError::InvalidKernelResult);
+                }
                 ensure_intersection_completeness(&left, &right, &result)?;
             }
             BooleanOperation::Difference => {
@@ -409,7 +417,7 @@ impl ValidatedMultiPolygon {
                     }
                     return Ok(Self::empty(self.floor_id, self.frame_id));
                 }
-                if !multipolygon_covers(&left, &result) {
+                if !multipolygon_covers_with_tolerance(&left, &result) {
                     return Err(BooleanError::InvalidKernelResult);
                 }
                 ensure_difference_completeness(&left, &right, &result)?;
@@ -597,8 +605,16 @@ fn componentwise_intersection(
     let mut total_coordinates = 0usize;
     for left in &left.0 {
         for right in &right.0 {
-            let pair = left.intersection(right);
-            for polygon in pair.0 {
+            let kernel = left.intersection(right);
+            bounded_output_coordinates(&kernel)?;
+            let expected = convex_intersection_area(left, right)?;
+            // The pinned overlay kernel is used as an independent topological
+            // sanity check. Its floating output is not trusted for coordinates
+            // or area: the bounded convex clipper below supplies the result.
+            if kernel.0.len() > 1 || (expected > 0.0) == kernel.0.is_empty() {
+                return Err(BooleanError::UnsupportedCoordinateResolution);
+            }
+            if let Some(polygon) = convex_intersection_polygon(left, right)? {
                 append_bounded_polygon(&mut result, &mut total_coordinates, polygon)?;
             }
         }
@@ -628,7 +644,9 @@ fn componentwise_difference(
                 if work_used > MAX_BOOLEAN_WORK {
                     return Err(BooleanError::ResourceLimit);
                 }
-                for polygon in remaining.difference(right).0 {
+                let difference = remaining.difference(right);
+                bounded_output_coordinates(&difference)?;
+                for polygon in difference.0 {
                     append_bounded_polygon(&mut next, &mut next_coordinates, polygon)?;
                 }
             }
@@ -668,6 +686,21 @@ fn append_bounded_polygon(
         return Err(BooleanError::ResourceLimit);
     }
     polygons.push(polygon);
+    Ok(())
+}
+
+fn bounded_output_coordinates(multi: &MultiPolygon<f64>) -> Result<(), BooleanError> {
+    if multi.0.len() > MAX_MULTIPOLYGON_POLYGONS {
+        return Err(BooleanError::ResourceLimit);
+    }
+    let coordinates = multi.0.iter().try_fold(0usize, |total, polygon| {
+        total
+            .checked_add(polygon_coordinate_count(polygon))
+            .ok_or(BooleanError::ResourceLimit)
+    })?;
+    if coordinates > MAX_MULTIPOLYGON_COORDINATES {
+        return Err(BooleanError::ResourceLimit);
+    }
     Ok(())
 }
 
@@ -871,6 +904,47 @@ fn multipolygon_covers(container: &MultiPolygon<f64>, target: &MultiPolygon<f64>
         .all(|target| container.0.iter().any(|container| container.covers(target)))
 }
 
+fn multipolygon_covers_with_tolerance(
+    container: &MultiPolygon<f64>,
+    target: &MultiPolygon<f64>,
+) -> bool {
+    target.0.iter().all(|target| {
+        container
+            .0
+            .iter()
+            .any(|container| polygon_covers_with_tolerance(container, target))
+    })
+}
+
+fn polygon_covers_with_tolerance(container: &Polygon<f64>, target: &Polygon<f64>) -> bool {
+    let points = &container.exterior().0;
+    if points.len() < 4 || points.first() != points.last() {
+        return false;
+    }
+    let orientation = signed_area(points);
+    if !orientation.is_finite() || orientation == 0.0 {
+        return false;
+    }
+    let origin = points[0];
+    let extent = points.iter().fold(0.0_f64, |extent, point| {
+        extent
+            .max((point.x - origin.x).abs())
+            .max((point.y - origin.y).abs())
+    });
+    // Allow only ordinary f64 evaluation error. Kernel grid quantization that
+    // exceeds this bound is rejected instead of being hidden by a scale-sized
+    // geometric tolerance.
+    let tolerance = (extent * f64::EPSILON * 32.0).max(1e-8);
+    target.exterior().0.iter().all(|point| {
+        points.windows(2).all(|edge| {
+            let edge_x = edge[1].x - edge[0].x;
+            let edge_y = edge[1].y - edge[0].y;
+            let cross = edge_x * (point.y - edge[0].y) - edge_y * (point.x - edge[0].x);
+            cross * orientation.signum() >= -tolerance * edge_x.hypot(edge_y)
+        })
+    })
+}
+
 fn ensure_intersection_completeness(
     left: &MultiPolygon<f64>,
     right: &MultiPolygon<f64>,
@@ -878,12 +952,18 @@ fn ensure_intersection_completeness(
 ) -> Result<(), BooleanError> {
     for left in &left.0 {
         for right in &right.0 {
-            if polygons_have_interior_overlap(left, right)
-                && !result.0.iter().any(|result| {
-                    polygons_have_interior_overlap(result, left)
-                        && polygons_have_interior_overlap(result, right)
-                })
-            {
+            let expected = convex_intersection_area(left, right)?;
+            let actual = checked_sum(
+                result
+                    .0
+                    .iter()
+                    .filter(|candidate| {
+                        polygon_covers_with_tolerance(left, candidate)
+                            && polygon_covers_with_tolerance(right, candidate)
+                    })
+                    .map(polygon_area),
+            )?;
+            if !areas_match(actual, expected) {
                 return Err(BooleanError::UnsupportedCoordinateResolution);
             }
         }
@@ -896,21 +976,280 @@ fn ensure_difference_completeness(
     right: &MultiPolygon<f64>,
     result: &MultiPolygon<f64>,
 ) -> Result<(), BooleanError> {
-    if has_interior_overlap(result, right) {
+    // For each left component, containment of the result in left, negligible
+    // result/right overlap, and area conservation together prove equality up
+    // to the explicit finite-precision tolerance. This is stronger than
+    // merely requiring one surviving result component per left component.
+    if has_significant_interior_overlap(result, right)? {
         return Err(BooleanError::InvalidKernelResult);
     }
     for left in &left.0 {
-        let fully_removed = right.0.iter().any(|right| right.covers(left));
-        if !fully_removed
-            && !result
+        let expected_overlap = right
+            .0
+            .iter()
+            .map(|right| convex_intersection_area(left, right))
+            .collect::<Result<Vec<_>, _>>()
+            .and_then(checked_sum)?;
+        let left_area = polygon_area(left);
+        if !left_area.is_finite() || left_area <= 0.0 {
+            return Err(BooleanError::InvalidKernelResult);
+        }
+        let expected = left_area - expected_overlap;
+        if !expected.is_finite() || expected < 0.0 {
+            return Err(BooleanError::UnsupportedCoordinateResolution);
+        }
+        if expected > 0.0 && expected / left_area < 1e-12 {
+            return Err(BooleanError::UnsupportedCoordinateResolution);
+        }
+        let actual = checked_sum(
+            result
                 .0
                 .iter()
-                .any(|result| polygons_have_interior_overlap(result, left))
-        {
+                .filter(|candidate| polygon_covers_with_tolerance(left, candidate))
+                .map(polygon_area),
+        )?;
+        if !areas_match(actual, expected) {
             return Err(BooleanError::UnsupportedCoordinateResolution);
         }
     }
     Ok(())
+}
+
+fn has_significant_interior_overlap(
+    left: &MultiPolygon<f64>,
+    right: &MultiPolygon<f64>,
+) -> Result<bool, BooleanError> {
+    let mut work_used = 0usize;
+    for left in &left.0 {
+        for right in &right.0 {
+            let pair_work = polygon_coordinate_count(left)
+                .checked_mul(polygon_coordinate_count(right))
+                .ok_or(BooleanError::ResourceLimit)?;
+            work_used = work_used
+                .checked_add(pair_work)
+                .ok_or(BooleanError::ResourceLimit)?;
+            if work_used > MAX_BOOLEAN_WORK {
+                return Err(BooleanError::ResourceLimit);
+            }
+            let overlap = left.intersection(right);
+            bounded_output_coordinates(&overlap)?;
+            let area = checked_sum(overlap.0.iter().map(polygon_area))?;
+            if area > BOOLEAN_AREA_ERROR_TOLERANCE {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
+/// Independently compute the intersection of two convex exteriors. The
+/// operation boundary rejects non-convex and holed inputs before reaching this
+/// helper. Sutherland-Hodgman clipping supplies a bounded candidate whose
+/// containment and per-component area are checked independently of the pinned
+/// overlay kernel.
+fn convex_intersection_polygon(
+    left: &Polygon<f64>,
+    right: &Polygon<f64>,
+) -> Result<Option<Polygon<f64>>, BooleanError> {
+    let subject = open_exterior(left)?;
+    let clip = open_exterior(right)?;
+    let orientation = signed_area(&clip);
+    if !orientation.is_finite() || orientation == 0.0 {
+        return Err(BooleanError::UnsupportedCoordinateResolution);
+    }
+    let work = subject
+        .len()
+        .checked_mul(clip.len())
+        .ok_or(BooleanError::ResourceLimit)?;
+    if work > MAX_BOOLEAN_WORK {
+        return Err(BooleanError::ResourceLimit);
+    }
+    let mut subject = subject;
+    for index in 0..clip.len() {
+        let edge_start = clip[index];
+        let edge_end = clip[(index + 1) % clip.len()];
+        let previous = subject;
+        if previous.is_empty() {
+            return Ok(None);
+        }
+        let mut next = Vec::new();
+        let mut previous_point = *previous.last().ok_or(BooleanError::InvalidKernelResult)?;
+        let mut previous_inside = inside_clip(previous_point, edge_start, edge_end, orientation)?;
+        for current_point in previous {
+            if next.len() >= MAX_POLYGON_COORDINATES {
+                return Err(BooleanError::ResourceLimit);
+            }
+            let current_inside = inside_clip(current_point, edge_start, edge_end, orientation)?;
+            if current_inside != previous_inside {
+                if next.len() >= MAX_POLYGON_COORDINATES {
+                    return Err(BooleanError::ResourceLimit);
+                }
+                next.push(line_boundary_intersection(
+                    previous_point,
+                    current_point,
+                    edge_start,
+                    edge_end,
+                )?);
+            }
+            if current_inside {
+                next.push(current_point);
+            }
+            previous_point = current_point;
+            previous_inside = current_inside;
+        }
+        subject = next;
+    }
+    if subject.len() < 3 {
+        return Ok(None);
+    }
+    let area = signed_area(&subject).abs();
+    if !area.is_finite() {
+        return Err(BooleanError::UnsupportedCoordinateResolution);
+    }
+    if area == 0.0 {
+        return Ok(None);
+    }
+    let mut closed = subject;
+    closed.push(closed[0]);
+    Ok(Some(Polygon::new(LineString::from(closed), Vec::new())))
+}
+
+fn convex_intersection_area(
+    left: &Polygon<f64>,
+    right: &Polygon<f64>,
+) -> Result<f64, BooleanError> {
+    match convex_intersection_polygon(left, right)? {
+        Some(polygon) => Ok(polygon_area(&polygon)),
+        None => Ok(0.0),
+    }
+}
+
+fn checked_sum<I>(values: I) -> Result<f64, BooleanError>
+where
+    I: IntoIterator<Item = f64>,
+{
+    let mut sum = 0.0;
+    let mut compensation = 0.0;
+    for value in values {
+        if !value.is_finite() {
+            return Err(BooleanError::UnsupportedCoordinateResolution);
+        }
+        let next = sum + value;
+        if !next.is_finite() {
+            return Err(BooleanError::ResourceLimit);
+        }
+        compensation += if sum.abs() >= value.abs() {
+            (sum - next) + value
+        } else {
+            (value - next) + sum
+        };
+        sum = next;
+    }
+    let result = sum + compensation;
+    if result.is_finite() {
+        Ok(result)
+    } else {
+        Err(BooleanError::ResourceLimit)
+    }
+}
+
+fn open_exterior(polygon: &Polygon<f64>) -> Result<Vec<Coord<f64>>, BooleanError> {
+    let points = polygon.exterior().0.as_slice();
+    if points.len() < 4 || points.first() != points.last() {
+        return Err(BooleanError::InvalidKernelResult);
+    }
+    Ok(points[..points.len() - 1].to_vec())
+}
+
+fn signed_area(points: &[Coord<f64>]) -> f64 {
+    let Some(origin) = points.first().copied() else {
+        return 0.0;
+    };
+    let mut sum = 0.0;
+    let mut compensation = 0.0;
+    let terms = points.iter().enumerate().map(|(index, first)| {
+        let second = points[(index + 1) % points.len()];
+        let first_x = first.x - origin.x;
+        let first_y = first.y - origin.y;
+        let second_x = second.x - origin.x;
+        let second_y = second.y - origin.y;
+        first_x * second_y - second_x * first_y
+    });
+    for term in terms {
+        let next = sum + term;
+        let correction = if sum.abs() >= term.abs() {
+            (sum - next) + term
+        } else {
+            (term - next) + sum
+        };
+        compensation += correction;
+        sum = next;
+    }
+    (sum + compensation) / 2.0
+}
+
+fn polygon_area(polygon: &Polygon<f64>) -> f64 {
+    let hole_area = polygon
+        .interiors()
+        .iter()
+        .map(|ring| signed_area(&ring.0).abs())
+        .fold(0.0, |sum, area| sum + area);
+    signed_area(&polygon.exterior().0).abs() - hole_area
+}
+
+fn inside_clip(
+    point: Coord<f64>,
+    edge_start: Coord<f64>,
+    edge_end: Coord<f64>,
+    orientation: f64,
+) -> Result<bool, BooleanError> {
+    let cross = (edge_end.x - edge_start.x) * (point.y - edge_start.y)
+        - (edge_end.y - edge_start.y) * (point.x - edge_start.x);
+    if !cross.is_finite() {
+        return Err(BooleanError::UnsupportedCoordinateResolution);
+    }
+    Ok(cross * orientation >= 0.0)
+}
+
+fn line_boundary_intersection(
+    subject_start: Coord<f64>,
+    subject_end: Coord<f64>,
+    edge_start: Coord<f64>,
+    edge_end: Coord<f64>,
+) -> Result<Coord<f64>, BooleanError> {
+    let subject_delta = Coord {
+        x: subject_end.x - subject_start.x,
+        y: subject_end.y - subject_start.y,
+    };
+    let edge_delta = Coord {
+        x: edge_end.x - edge_start.x,
+        y: edge_end.y - edge_start.y,
+    };
+    let denominator = subject_delta.x * edge_delta.y - subject_delta.y * edge_delta.x;
+    if !denominator.is_finite() || denominator == 0.0 {
+        return Err(BooleanError::UnsupportedCoordinateResolution);
+    }
+    let offset = Coord {
+        x: edge_start.x - subject_start.x,
+        y: edge_start.y - subject_start.y,
+    };
+    let parameter = (offset.x * edge_delta.y - offset.y * edge_delta.x) / denominator;
+    let point = Coord {
+        x: subject_start.x + parameter * subject_delta.x,
+        y: subject_start.y + parameter * subject_delta.y,
+    };
+    if point.x.is_finite() && point.y.is_finite() {
+        Ok(point)
+    } else {
+        Err(BooleanError::UnsupportedCoordinateResolution)
+    }
+}
+
+fn areas_match(actual: f64, expected: f64) -> bool {
+    if !actual.is_finite() || !expected.is_finite() || actual < 0.0 || expected < 0.0 {
+        return false;
+    }
+    (actual - expected).abs() <= BOOLEAN_AREA_ERROR_TOLERANCE
 }
 
 fn from_geo_ring(ring: &LineString<f64>, scale: f64) -> Result<Vec<Point2>, BooleanError> {
@@ -976,4 +1315,53 @@ fn from_geo_multi_polygon(
         return Ok(ValidatedMultiPolygon::empty(floor_id, frame_id));
     }
     ValidatedMultiPolygon::new(floor_id, frame_id, polygons)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn rectangle(x0: f64, y0: f64, x1: f64, y1: f64) -> Polygon<f64> {
+        Polygon::new(
+            LineString::from(vec![(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]),
+            Vec::new(),
+        )
+    }
+
+    #[test]
+    fn convex_verifier_rejects_excess_intermediate_work() {
+        let mut coordinates = Vec::with_capacity(MAX_POLYGON_COORDINATES + 1);
+        for index in 0..MAX_POLYGON_COORDINATES {
+            let angle = index as f64 * std::f64::consts::TAU / MAX_POLYGON_COORDINATES as f64;
+            coordinates.push(Coord {
+                x: angle.cos(),
+                y: angle.sin(),
+            });
+        }
+        coordinates.push(coordinates[0]);
+        let polygon = Polygon::new(LineString::from(coordinates), Vec::new());
+
+        assert_eq!(
+            convex_intersection_polygon(&polygon, &polygon),
+            Err(BooleanError::ResourceLimit)
+        );
+    }
+
+    #[test]
+    fn difference_verifier_rejects_missing_small_residual_beside_large_one() {
+        let left = MultiPolygon(vec![rectangle(0.0, 0.0, 1_000_000_000.0, 1_000_000_000.0)]);
+        let right = MultiPolygon(vec![
+            rectangle(1.0, 0.0, 2.0, 1_000_000_000.0),
+            rectangle(999_999_998.0, 0.0, 999_999_999.9, 1_000_000_000.0),
+        ]);
+        let result = MultiPolygon(vec![
+            rectangle(0.0, 0.0, 1.0, 1_000_000_000.0),
+            rectangle(2.0, 0.0, 999_999_998.0, 1_000_000_000.0),
+        ]);
+
+        assert_eq!(
+            ensure_difference_completeness(&left, &right, &result),
+            Err(BooleanError::UnsupportedCoordinateResolution)
+        );
+    }
 }

@@ -100,8 +100,15 @@ fn tiny_polygon_is_normalized_for_validation_without_altering_source() {
 }
 
 fn area_ring(ring: &[Point2]) -> f64 {
+    let origin = ring[0];
     ring.windows(2)
-        .map(|points| points[0].x.get() * points[1].y.get() - points[1].x.get() * points[0].y.get())
+        .map(|points| {
+            let first_x = points[0].x.get() - origin.x.get();
+            let first_y = points[0].y.get() - origin.y.get();
+            let second_x = points[1].x.get() - origin.x.get();
+            let second_y = points[1].y.get() - origin.y.get();
+            first_x * second_y - second_x * first_y
+        })
         .sum::<f64>()
         .abs()
         / 2.0
@@ -460,4 +467,115 @@ fn boolean_non_convex_overlay_is_explicitly_unsupported() {
         holed.intersection(&square),
         Err(BooleanError::UnsupportedTopology)
     );
+}
+
+#[test]
+fn boolean_intersection_rejects_or_corrects_escaped_kernel_vertices() {
+    let left = polygon(
+        ring(&[
+            (56384.0, 93040.0),
+            (121920.0, 93040.0),
+            (56384.0, 158576.0),
+            (56384.0, 93040.0),
+        ]),
+        vec![],
+    )
+    .unwrap();
+    let right = polygon(
+        ring(&[
+            (64547.2, 106243.2),
+            (130083.2, 99689.6),
+            (57993.6, 171779.2),
+            (64547.2, 106243.2),
+        ]),
+        vec![],
+    )
+    .unwrap();
+
+    match left.intersection(&right) {
+        Ok(result) => {
+            assert_eq!(result.polygons().len(), 1);
+            assert!(
+                result.polygons()[0]
+                    .exterior()
+                    .iter()
+                    .all(|point| { point.x.get() + point.y.get() <= 214960.0 + 1e-9 })
+            );
+            assert!(area(&result) > 0.0);
+        }
+        Err(BooleanError::UnsupportedCoordinateResolution) => {}
+        Err(error) => panic!("unexpected escaped-vertex outcome: {error:?}"),
+    }
+}
+
+#[test]
+fn boolean_translated_small_intersection_preserves_area() {
+    let left = rectangle(999_999_000.0, 999_999_000.0, 999_999_050.0, 999_999_050.0).unwrap();
+    let right = rectangle(999_999_025.0, 999_999_025.0, 999_999_075.0, 999_999_075.0).unwrap();
+
+    let result = left.intersection(&right).unwrap();
+    assert_eq!(result.polygons().len(), 1);
+    assert!((area(&result) - 625.0).abs() <= 1e-12);
+}
+
+#[test]
+fn boolean_difference_preserves_multiple_residuals_including_a_small_one() {
+    let left = rectangle(0.0, 0.0, 10.0, 10.0).unwrap();
+    let right_first = rectangle(1.0, 0.0, 1.5, 10.0).unwrap();
+    let right_last = rectangle(8.0, 0.0, 9.5, 10.0).unwrap();
+    let right = ValidatedMultiPolygon::new(
+        left.floor_id(),
+        left.frame_id(),
+        vec![right_first, right_last],
+    )
+    .unwrap();
+
+    let result = left.as_multipolygon().difference(&right).unwrap();
+    assert_eq!(result.polygons().len(), 3);
+    assert!((area(&result) - 80.0).abs() <= 1e-8);
+    assert!(result.polygons().iter().any(|polygon| {
+        polygon
+            .exterior()
+            .iter()
+            .all(|point| point.x.get() >= 9.5 - 1e-9)
+    }));
+}
+
+#[test]
+fn boolean_difference_accepts_a_representable_five_centimetre_residual() {
+    let left = rectangle(0.0, 0.0, 10.0, 10.0).unwrap();
+    let right = rectangle(9.9, 0.0, 9.95, 10.0).unwrap();
+
+    let result = left.difference(&right).unwrap();
+    assert_eq!(result.polygons().len(), 2);
+    assert!((area(&result) - 99.5).abs() <= 1e-6);
+}
+
+#[test]
+fn boolean_difference_accepts_other_representable_narrow_residuals() {
+    for (start, end) in [(9.8, 9.9), (9.85, 9.92)] {
+        let left = rectangle(0.0, 0.0, 10.0, 10.0).unwrap();
+        let right = rectangle(start, 0.0, end, 10.0).unwrap();
+        let result = left.difference(&right).unwrap();
+        assert_eq!(result.polygons().len(), 2);
+        assert!((area(&result) - (100.0 - (end - start) * 10.0)).abs() <= 1e-6);
+    }
+}
+
+#[test]
+fn boolean_difference_accepts_a_representable_narrow_second_cut() {
+    let left = rectangle(0.0, 0.0, 10.0, 10.0).unwrap();
+    let right = ValidatedMultiPolygon::new(
+        left.floor_id(),
+        left.frame_id(),
+        vec![
+            rectangle(1.0, 0.0, 1.5, 10.0).unwrap(),
+            rectangle(9.9, 0.0, 9.95, 10.0).unwrap(),
+        ],
+    )
+    .unwrap();
+
+    let result = left.as_multipolygon().difference(&right).unwrap();
+    assert_eq!(result.polygons().len(), 3);
+    assert!((area(&result) - 94.5).abs() <= 1e-6);
 }

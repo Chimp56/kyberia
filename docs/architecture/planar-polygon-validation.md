@@ -45,17 +45,29 @@ provably disjoint, union/intersection/difference use exact component-set
 semantics and avoid the overlay kernel. This preserves valid narrow components
 that the kernel's integer conversion could otherwise alias away.
 
-For overlapping intersection and difference, the adapter invokes the kernel
-per component pair and per sequential subtraction step, with the same limits
-applied to every intermediate result. Each positive-area intersection pair
-must contribute to the result, difference output must not overlap the excluded
-right-hand set, and every left component with a residual must remain present.
+For overlapping intersection and difference, the adapter invokes the pinned
+kernel per component pair and per sequential subtraction step, with the same
+limits applied to every intermediate result. Intersection coordinates are
+produced by a bounded Sutherland-Hodgman clipper for each convex pair. The
+kernel is only an independent empty/positive-area and component-count sanity
+check; its floating coordinates are not admitted directly. Every positive-area
+pair is required to contribute a contained result with matching pair area.
+Difference output must not overlap the excluded right-hand set, and each left
+component is checked for area conservation against independently clipped
+overlap areas. Containment allows only `max(1e-8, 32 * f64::EPSILON *
+container_extent)` normalized coordinate units. A fixed absolute area tolerance
+of `1e-7` normalized-coordinate area units means a large residual cannot mask a
+missing small residual; uncertain results return
+`UnsupportedCoordinateResolution`.
+
 This avoids a global multipolygon overlay silently losing a component. The
 supported overlapping overlay contract currently requires simple convex,
 hole-free input components; a non-convex or holed overlapping input returns
 `UnsupportedTopology` until an independently verified decomposition is
 available. Difference may still produce a validated hole when subtracting a
-contained simple component.
+contained simple component. The clipper and area checks are finite-precision
+guards with bounded numerical tolerances, not an arbitrary-precision or exact
+component guarantee.
 
 For workloads requiring overlay, the adapter models the pinned kernel's
 float-to-integer grid and requires two grid steps between distinct normalized

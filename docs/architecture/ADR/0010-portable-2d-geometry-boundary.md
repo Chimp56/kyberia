@@ -50,6 +50,18 @@ engine, CAD/BIM importer, material intersection policy, ray tracer, or custom
 production geometry implementation. No library result may be interpreted as
 separating same-XY geometry on different floors.
 
+For the bounded Phase 0 boolean increment, the adapter keeps `geo` 0.33.1 as
+the portable overlay dependency but does not trust its floating intersection
+coordinates for simple convex pairs. A bounded Sutherland-Hodgman clipper
+supplies those intersection candidates; `geo` supplies an independent
+empty/positive-area and component-count check. Containment, per-component area
+conservation, intermediate work limits, and a capped absolute area tolerance
+must pass before a result is admitted. A failed numerical proof returns an
+explicit unsupported-resolution error. This is a finite-precision, fail-closed
+contract and does not claim arbitrary-precision booleans. The geometry result
+itself carries no request provenance; an outer operation record must retain the
+adapter/kernel versions and input hashes when persistence needs that evidence.
+
 The fixture carries a material identity only as application metadata. The
 proof reports topological XY intersections and does not claim material
 attenuation or material intersection behavior; a future propagation adapter
