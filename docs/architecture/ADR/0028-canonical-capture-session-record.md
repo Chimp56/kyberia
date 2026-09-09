@@ -159,9 +159,9 @@ The implementation is split for review:
   manifest/envelope evidence after independent review findings.
 - `ed28ba2` adds the store table, migration and APIs; `27ca746` pins the V1
   row revision and makes `Bundle::verify` inventory every session row. The
-  project-store suite has 33 passing tests covering corruption, retry, empty,
+  project-store suite has 34 passing tests covering corruption, retry, empty,
   cancellation, migration, read-only, concurrent-writer and
-  verification-inventory cases. The domain suite has 11 passing tests.
+  verification-inventory cases. The domain suite has 12 passing tests.
 - The project-store schema guard has 14 passing tests after adding the new
   table to the current schema inventory.
 - The focused domain, project-store, schema-guard and native-composition
