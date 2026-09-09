@@ -1,8 +1,12 @@
 mod cancellation;
+mod canonical_project;
 mod observation_export;
 mod stored_analysis;
 
-use kyberia_domain::identity::ProjectId;
+use kyberia_domain::{
+    identity::{ProjectId, Text},
+    project::Project,
+};
 use kyberia_project_store::{Bundle, Cancellation, NeverCancel, OpenMode};
 use std::path::Path;
 use std::process::ExitCode;
@@ -13,7 +17,7 @@ fn run(
 ) -> Result<bool, Box<dyn std::error::Error>> {
     if args.is_empty() || args == ["--help"] || args == ["help"] {
         println!(
-            "Kyberia project CLI\n\n  kyberia new <directory.rfatlas> <name>\n  kyberia inspect <directory.rfatlas>\n  kyberia verify <directory.rfatlas>\n  kyberia recover-manifest <directory.rfatlas>\n  kyberia export-observations-parquet <directory.rfatlas> <new-directory>\n  kyberia analyze-stored-rssi <directory.rfatlas> <request.json> <new-output-directory>\n  kyberia export-stored-rssi-scene <directory.rfatlas> <request.json> <new-output-directory>\n\nOutputs are JSON. verify exits nonzero for integrity failures. Exports and analysis outputs never overwrite an existing destination."
+            "Kyberia project CLI\n\n  kyberia new <directory.rfatlas> <name>\n  kyberia query-canonical-project <directory.rfatlas>\n  kyberia inspect <directory.rfatlas>\n  kyberia verify <directory.rfatlas>\n  kyberia recover-manifest <directory.rfatlas>\n  kyberia export-observations-parquet <directory.rfatlas> <new-directory>\n  kyberia analyze-stored-rssi <directory.rfatlas> <request.json> <new-output-directory>\n  kyberia export-stored-rssi-scene <directory.rfatlas> <request.json> <new-output-directory>\n\nOutputs are JSON. new registers an empty canonical baseline bound to the supplied project name. query-canonical-project reports materialized, baseline-only, or explicit legacy absence. verify exits nonzero for integrity failures. Exports and analysis outputs never overwrite an existing destination."
         );
         return Ok(true);
     }
@@ -24,13 +28,20 @@ fn run(
     match args.first().map(String::as_str) {
         Some("new") if args.len() == 3 => {
             let id = ProjectId::from_bytes(*uuid::Uuid::new_v4().as_bytes())?;
+            let project_name = Text::new(args[2].clone())?;
             let now = i64::try_from(
                 std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)?
                     .as_millis(),
             )?;
-            let bundle = Bundle::create(Path::new(&args[1]), id, args[2].clone(), now)?;
+            let mut bundle = Bundle::create(Path::new(&args[1]), id, args[2].clone(), now)?;
+            bundle.register_materialization_baseline(&Project::new(id, project_name), now)?;
             println!("{}", serde_json::to_string_pretty(&bundle.manifest()?)?);
+            Ok(true)
+        }
+        Some("query-canonical-project") if args.len() == 2 => {
+            let report = canonical_project::query(Path::new(&args[1]))?;
+            println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(true)
         }
         Some("inspect") if args.len() == 2 => {

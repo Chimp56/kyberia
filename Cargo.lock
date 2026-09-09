@@ -907,8 +907,10 @@ dependencies = [
 name = "kyberia-cli"
 version = "0.1.0"
 dependencies = [
+ "kyberia-causal-materializer",
  "kyberia-domain",
  "kyberia-observation-analysis",
+ "kyberia-operation-log",
  "kyberia-project-store",
  "kyberia-rendering-scene",
  "kyberia-spatial-analysis",

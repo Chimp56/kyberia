@@ -32,9 +32,10 @@ The caller supplies timestamps and provenance IDs. An update timestamp older tha
 
 ```sh
 cargo run -p kyberia-cli -- new /private/tmp/home.rfatlas Home
+cargo run -p kyberia-cli -- query-canonical-project /private/tmp/home.rfatlas
 cargo run -p kyberia-cli -- inspect /private/tmp/home.rfatlas
 cargo run -p kyberia-cli -- verify /private/tmp/home.rfatlas
 cargo run -p kyberia-cli -- recover-manifest /private/tmp/home.rfatlas
 ```
 
-Commands output JSON. Exit 0 means successful requested operation; exit 1 means completed verification found integrity failures; exit 2 means invalid arguments or an operation error. `new` never overwrites an existing directory. The desktop survey workflow remains under implementation.
+Commands output JSON. Exit 0 means successful requested operation; exit 1 means completed verification found integrity failures; exit 2 means invalid arguments or an operation error. `new` never overwrites an existing directory and registers an empty canonical baseline. `query-canonical-project` opens read-only and reports a verified current publication, baseline-only state, or explicit absence for a legacy bundle; it never reconstructs a project from manifest metadata. See the [canonical project CLI guide](../development/canonical-project-cli.md) for the versioned query fields and revision distinctions. The desktop survey workflow remains under implementation.

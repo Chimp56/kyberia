@@ -34,11 +34,12 @@ On Windows, use `.tools\venv\Scripts\python.exe` and activate with `.tools\venv\
 
 ```sh
 cargo run -p kyberia-cli -- new /private/tmp/home.rfatlas Home
+cargo run -p kyberia-cli -- query-canonical-project /private/tmp/home.rfatlas
 cargo run -p kyberia-cli -- inspect /private/tmp/home.rfatlas
 cargo run -p kyberia-cli -- verify /private/tmp/home.rfatlas
 ```
 
-`new` requires a path that does not already exist. Read the [bundle format and recovery guide](docs/architecture/project-bundle.md) before diagnosing damaged data. Keep original evidence when verification fails. No recursive cleanup is automatic; repository agent instructions require explicit user permission for recursive deletion.
+`new` requires a path that does not already exist and registers an empty canonical baseline. The read-only query reports the verified baseline or materialized state, or explicit absence for a legacy bundle. Read the [canonical project CLI guide](docs/development/canonical-project-cli.md) and [bundle format and recovery guide](docs/architecture/project-bundle.md) before diagnosing damaged data. Keep original evidence when verification fails. No recursive cleanup is automatic; repository agent instructions require explicit user permission for recursive deletion.
 
 On Unix, `analyze-stored-rssi` computes numerical RSSI artifacts from committed
 survey evidence. See the [stored RSSI CLI guide](docs/development/stored-rssi-cli.md)

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "All resolved targets and development dependencies; not a shipped-binary SBOM",
-  "cargo_lock_sha256": "b6897c3d6b1bd87cb0ad3182a7c7a2ed921bcbd16d0640a200437c395b1f8bdd",
+  "cargo_lock_sha256": "326bee717be830c1991f9f642a6ffff768e64a0d7f9578160ae63d37db83d7d4",
   "packages": [
     {
       "name": "ahash",

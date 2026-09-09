@@ -25,6 +25,8 @@ libc = "=0.2.189"
 signal-hook = "=0.4.4"
 
 [dev-dependencies]
+kyberia-causal-materializer = { version = "=0.1.0", path = "../../crates/causal-materializer" }
+kyberia-operation-log = { version = "=0.1.0", path = "../../crates/operation-log" }
 kyberia-survey = { version = "=0.1.0", path = "../../crates/survey" }
 
 [lints]
