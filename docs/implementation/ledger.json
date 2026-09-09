@@ -105158,8 +105158,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -105205,8 +105205,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -105214,8 +105214,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -105403,8 +105403,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -105450,8 +105450,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -105459,8 +105459,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -105631,8 +105631,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -105678,8 +105678,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -105687,8 +105687,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -105859,8 +105859,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -105879,8 +105879,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -105897,8 +105897,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -106044,8 +106044,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -106091,8 +106091,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106100,8 +106100,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -106230,8 +106230,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -106277,8 +106277,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106286,8 +106286,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -106416,8 +106416,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -106463,8 +106463,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106472,8 +106472,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -106602,8 +106602,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -106649,8 +106649,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106658,8 +106658,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -106788,8 +106788,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -106835,8 +106835,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106844,8 +106844,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -107018,8 +107018,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -107077,8 +107077,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -107086,8 +107086,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -169040,8 +169040,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -169060,6 +169060,12 @@
           "description": "Canonical replayable project/site names and exact inverse receipts; full immutable operation materialization remains open",
           "revision": "869455ce36f7e1b2eb61c08f9a9e5e516cd22cc8a1c7ca0cc9345b800da0756e",
           "sha256": "869455ce36f7e1b2eb61c08f9a9e5e516cd22cc8a1c7ca0cc9345b800da0756e"
+        },
+        {
+          "path": "crates/materialization-identity/src/lib.rs",
+          "description": "Canonical baseline and exact operation-set identities; causal application remains open",
+          "revision": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334",
+          "sha256": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334"
         }
       ],
       "validation": [
@@ -169093,8 +169099,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -169102,8 +169108,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -169115,6 +169121,15 @@
           "sha256": "ed2c5166dfea87825f8b2a76a2dc71b5e0f37feaecc47a1b070e7029edb59ae0",
           "command": "cargo test -p kyberia-domain --test project_commands --locked --offline",
           "scope": "canonical_commands",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/materialization-identity/src/lib.rs",
+          "description": "Twelve independently run identity, tamper, ordering and bounds tests",
+          "revision": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334",
+          "sha256": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334",
+          "command": "cargo test -p kyberia-materialization-identity --locked --offline",
+          "scope": "materialization_input_identity",
           "result": "PASS"
         }
       ],
@@ -169183,6 +169198,24 @@
           "description": "Independent corrected V2 inverse, typed conflict and resolution contract review; causal materialization remains open",
           "revision": "16731b6e4e2272e95a3aa15154578f315d713badf3baf87c0d3fa147b94f9678",
           "sha256": "16731b6e4e2272e95a3aa15154578f315d713badf3baf87c0d3fa147b94f9678",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/materialization-identity-review.md",
+          "description": "Independent canonical identity review",
+          "revision": "6f78836eec7a5b95a8997cf16cde3769103534228e2a5d57a9d31608b2602475",
+          "sha256": "6f78836eec7a5b95a8997cf16cde3769103534228e2a5d57a9d31608b2602475",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/typed-operation-store-replay-review.md",
+          "description": "Independent typed SQLite replay review; causal priors remain downstream",
+          "revision": "afe7630872aff09350bdac37f377740bf3f721b4be12ddc07f324c481fe33cbf",
+          "sha256": "afe7630872aff09350bdac37f377740bf3f721b4be12ddc07f324c481fe33cbf",
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
@@ -236161,8 +236194,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -236208,8 +236241,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -236217,8 +236250,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -238416,8 +238449,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -238463,8 +238496,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -238472,8 +238505,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
@@ -243429,8 +243462,8 @@
         {
           "path": "crates/project-store/src/operation_log.rs",
           "description": "Transactional exact-byte SQLite operation persistence, deterministic replay, recovery, and bounded untrusted-row handling",
-          "revision": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba",
-          "sha256": "fc946ad38f4b810bb1249f01fee1bcc7432cee7b1a528b0f831d361ffdeb7aba"
+          "revision": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778",
+          "sha256": "f81950228529f8495a383b7c49dd28adc3ca27f0eb94f6706a842b5a22fd2778"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -243476,8 +243509,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
-          "sha256": "52e0f9e3c0719b4412ecccefbdff4c47755708ffaf3b8160f1e4c39756847941",
+          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -243485,8 +243518,8 @@
         {
           "path": "docs/validation/operation-store.md",
           "description": "Operation persistence validation and remaining application/coordinator boundaries",
-          "revision": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
-          "sha256": "a9bd0b84359da02ef7719098c4b2d2adfff82755b324520e152c32d6c7574276",
+          "revision": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
+          "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
           "result": "PASS"
