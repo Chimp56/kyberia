@@ -86,6 +86,13 @@ def main():
     try:
         command(args.command)
     except subprocess.CalledProcessError as error:
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            # Only identify repository-defined developer commands. Never emit
+            # child output or environment values into public annotations.
+            command_text = " ".join(map(str, error.cmd))
+            message = f"Validation command failed (exit {error.returncode}): {command_text}"
+            message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print("::error title=Validation command failed::" + message, flush=True)
         raise SystemExit(error.returncode)
 
 
