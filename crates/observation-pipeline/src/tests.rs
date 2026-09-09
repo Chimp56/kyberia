@@ -1932,3 +1932,6 @@ fn supervised_real_redacted_capability_probe_uses_the_rust_boundary() {
     assert_eq!(outcome.pipeline.association_count, 0);
     assert!(outcome.pipeline.publication.snapshot().is_some());
 }
+
+#[path = "spool_tests.rs"]
+mod spool_tests;

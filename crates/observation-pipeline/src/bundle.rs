@@ -72,160 +72,17 @@ impl CapturePersistencePort for Bundle {
             published_utc_ms,
             cancel,
         } = request;
-        if cancel.is_cancelled() {
-            return Err(PortError::new(
-                PortErrorKind::Cancelled,
-                "cancelled before capture manifest publication",
-            ));
-        }
-        if raw_records.len() as u64
-            != match manifest.raw_source_disposition() {
-                crate::RawSourceDisposition::Retained => manifest.source_records().len() as u64,
-                crate::RawSourceDisposition::NotRetained => 0,
-            }
-        {
-            return Err(PortError::new(
-                PortErrorKind::Corrupt,
-                "raw capture records do not match capture manifest disposition",
-            ));
-        }
-        let manifest_bytes = manifest
-            .canonical_bytes()
-            .map_err(|error| PortError::new(PortErrorKind::Invalid, error))?;
-        let manifest_hash = kyberia_project_store::content_hash(&manifest_bytes);
-        let stored = self
-            .persist_capture_manifest(
-                CaptureManifestRegistration::new(
-                    manifest.clone(),
-                    provenance_id.clone(),
-                    published_utc_ms,
-                )
-                .map_err(map_store_error)?,
-            )
-            .map_err(map_store_error)?;
-        if stored.observation_count != observations.len() as u64
-            || stored.raw_record_count != raw_records.len() as u64
-            || stored.manifest_hash != manifest_hash
-        {
-            return Err(PortError::new(
-                PortErrorKind::Corrupt,
-                "capture manifest persistence returned mismatched metadata",
-            ));
-        }
-        let manifest_receipt = manifest_receipt(
-            stored.manifest_hash,
-            stored.observation_count,
-            stored.raw_record_count,
-            stored.revision,
-        )
-        .map_err(|error| *error)?;
-        let mut published_raw = 0_u64;
-        let mut current = progress(manifest_receipt.clone(), 0, None, None);
-        for record in raw_records {
-            if cancel.is_cancelled() {
-                return Err(PortError::new(
-                    PortErrorKind::Cancelled,
-                    "cancelled during raw capture publication",
-                )
-                .with_progress(current));
-            }
-            if record.reference().byte_length != record.bytes().len() as u64
-                || record.reference().sha256
-                    != kyberia_domain::identity::ContentHash::from_sha256(
-                        Sha256::digest(record.bytes()).into(),
-                    )
-            {
-                return Err(PortError::new(
-                    PortErrorKind::Corrupt,
-                    "raw capture reference does not match bytes",
-                )
-                .with_progress(current));
-            }
-            let entry = ArtifactEntry {
-                kind: ArtifactKind::RawCapture,
-                bytes: record.bytes().len() as u64,
-                media_type: record.reference().media_type.as_str().to_owned(),
-                provenance_id: provenance_id.as_str().to_owned(),
-            };
-            self.put_artifact(record.bytes(), entry, published_utc_ms)
-                .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
-            published_raw += 1;
-            current.raw_record_count = published_raw;
-        }
-        if observations.is_empty() {
-            if cancel.is_cancelled() {
-                return Err(PortError::new(
-                    PortErrorKind::Cancelled,
-                    "cancelled before empty survey snapshot publication",
-                )
-                .with_progress(current));
-            }
-            let snapshot = self
-                .save_survey_snapshot(snapshot_id, survey, published_utc_ms)
-                .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
-            let snapshot_receipt = SnapshotReceipt::new(snapshot.snapshot_id, snapshot.revision)
-                .map_err(|error| *error)?;
-            self.link_capture_snapshot(&manifest_hash, snapshot.snapshot_id, survey)
-                .map_err(|error| {
-                    map_store_error(error).with_progress({
-                        current.snapshot = Some(snapshot_receipt.clone());
-                        current.clone()
-                    })
-                })?;
-            current.snapshot = Some(snapshot_receipt);
-            return Ok(current);
-        }
-        if cancel.is_cancelled() {
-            return Err(PortError::new(
-                PortErrorKind::Cancelled,
-                "cancelled before normalized chunk publication",
-            )
-            .with_progress(current));
-        }
-        let provenance = ObservationChunkProvenance::new(provenance_id.as_str().to_owned())
-            .map_err(map_store_error)?;
-        let descriptor = self
-            .publish_observation_chunk_with_cancel(
-                observations,
-                provenance,
-                published_utc_ms,
-                || cancel.is_cancelled(),
-            )
-            .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
-        let chunk_hash = kyberia_domain::identity::ContentHash::try_from(
-            descriptor.hash().to_owned(),
-        )
-        .map_err(|_| {
-            PortError::new(
-                PortErrorKind::Corrupt,
-                "normalized chunk persistence returned an invalid hash",
-            )
-        })?;
-        let chunk =
-            ObservationChunkReceipt::new(chunk_hash, descriptor.row_count(), descriptor.revision())
-                .map_err(|error| *error)?;
-        if chunk.row_count() != observations.len() as u64 {
-            return Err(PortError::new(
-                PortErrorKind::Corrupt,
-                "normalized chunk returned a mismatched row count",
-            )
-            .with_progress(progress(
-                manifest_receipt.clone(),
-                published_raw,
-                Some(chunk),
-                None,
-            )));
-        }
-        self.link_capture_chunk(&manifest_hash, descriptor.hash(), descriptor.row_count())
-            .map_err(|error| {
-                map_store_error(error).with_progress(progress(
-                    manifest_receipt.clone(),
-                    published_raw,
-                    Some(chunk.clone()),
-                    None,
-                ))
-            })?;
-        current.chunk = Some(chunk);
+        let mut current = persist_evidence(
+            self,
+            manifest,
+            raw_records,
+            observations,
+            provenance_id,
+            published_utc_ms,
+            cancel,
+        )?;
+        let manifest_hash = String::from(current.manifest.hash());
+
         if cancel.is_cancelled() {
             return Err(PortError::new(
                 PortErrorKind::Cancelled,
@@ -255,4 +112,149 @@ impl CapturePersistencePort for Bundle {
         current.snapshot = Some(snapshot_receipt);
         Ok(current)
     }
+}
+
+// Shared evidence publication; survey association remains a separate step.
+#[allow(clippy::too_many_arguments)]
+pub(super) fn persist_evidence(
+    bundle: &mut Bundle,
+    manifest: &crate::CaptureManifest,
+    raw_records: &[crate::RawCaptureRecord],
+    observations: &[kyberia_domain::observation::ObservationEnvelope],
+    provenance_id: &kyberia_domain::identity::Text,
+    published_utc_ms: i64,
+    cancel: &dyn crate::Cancellation,
+) -> Result<PublicationProgress, PortError> {
+    if cancel.is_cancelled() {
+        return Err(PortError::new(
+            PortErrorKind::Cancelled,
+            "cancelled before capture manifest publication",
+        ));
+    }
+    if raw_records.len() as u64
+        != match manifest.raw_source_disposition() {
+            crate::RawSourceDisposition::Retained => manifest.source_records().len() as u64,
+            crate::RawSourceDisposition::NotRetained => 0,
+        }
+    {
+        return Err(PortError::new(
+            PortErrorKind::Corrupt,
+            "raw capture records do not match capture manifest disposition",
+        ));
+    }
+    let manifest_bytes = manifest
+        .canonical_bytes()
+        .map_err(|error| PortError::new(PortErrorKind::Invalid, error))?;
+    let manifest_hash = kyberia_project_store::content_hash(&manifest_bytes);
+    let stored = bundle
+        .persist_capture_manifest(
+            CaptureManifestRegistration::new(
+                manifest.clone(),
+                provenance_id.clone(),
+                published_utc_ms,
+            )
+            .map_err(map_store_error)?,
+        )
+        .map_err(map_store_error)?;
+    if stored.observation_count != observations.len() as u64
+        || stored.raw_record_count != raw_records.len() as u64
+        || stored.manifest_hash != manifest_hash
+    {
+        return Err(PortError::new(
+            PortErrorKind::Corrupt,
+            "capture manifest persistence returned mismatched metadata",
+        ));
+    }
+    let manifest_receipt = manifest_receipt(
+        stored.manifest_hash,
+        stored.observation_count,
+        stored.raw_record_count,
+        stored.revision,
+    )
+    .map_err(|error| *error)?;
+    let mut published_raw = 0_u64;
+    let mut current = progress(manifest_receipt.clone(), 0, None, None);
+    for record in raw_records {
+        if cancel.is_cancelled() {
+            return Err(PortError::new(
+                PortErrorKind::Cancelled,
+                "cancelled during raw capture publication",
+            )
+            .with_progress(current));
+        }
+        if record.reference().byte_length != record.bytes().len() as u64
+            || record.reference().sha256
+                != kyberia_domain::identity::ContentHash::from_sha256(
+                    Sha256::digest(record.bytes()).into(),
+                )
+        {
+            return Err(PortError::new(
+                PortErrorKind::Corrupt,
+                "raw capture reference does not match bytes",
+            )
+            .with_progress(current));
+        }
+        let entry = ArtifactEntry {
+            kind: ArtifactKind::RawCapture,
+            bytes: record.bytes().len() as u64,
+            media_type: record.reference().media_type.as_str().to_owned(),
+            provenance_id: provenance_id.as_str().to_owned(),
+        };
+        bundle
+            .put_artifact(record.bytes(), entry, published_utc_ms)
+            .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
+        published_raw += 1;
+        current.raw_record_count = published_raw;
+    }
+    if observations.is_empty() {
+        return Ok(current);
+    }
+    if cancel.is_cancelled() {
+        return Err(PortError::new(
+            PortErrorKind::Cancelled,
+            "cancelled before normalized chunk publication",
+        )
+        .with_progress(current));
+    }
+    let provenance = ObservationChunkProvenance::new(provenance_id.as_str().to_owned())
+        .map_err(map_store_error)?;
+    let descriptor = bundle
+        .publish_observation_chunk_with_cancel(observations, provenance, published_utc_ms, || {
+            cancel.is_cancelled()
+        })
+        .map_err(|error| map_store_error(error).with_progress(current.clone()))?;
+    let chunk_hash = kyberia_domain::identity::ContentHash::try_from(descriptor.hash().to_owned())
+        .map_err(|_| {
+            PortError::new(
+                PortErrorKind::Corrupt,
+                "normalized chunk persistence returned an invalid hash",
+            )
+        })?;
+    let chunk =
+        ObservationChunkReceipt::new(chunk_hash, descriptor.row_count(), descriptor.revision())
+            .map_err(|error| *error)?;
+    if chunk.row_count() != observations.len() as u64 {
+        return Err(PortError::new(
+            PortErrorKind::Corrupt,
+            "normalized chunk returned a mismatched row count",
+        )
+        .with_progress(progress(
+            manifest_receipt.clone(),
+            published_raw,
+            Some(chunk),
+            None,
+        )));
+    }
+    bundle
+        .link_capture_chunk(&manifest_hash, descriptor.hash(), descriptor.row_count())
+        .map_err(|error| {
+            map_store_error(error).with_progress(progress(
+                manifest_receipt.clone(),
+                published_raw,
+                Some(chunk.clone()),
+                None,
+            ))
+        })?;
+    current.chunk = Some(chunk);
+    Ok(current)
 }
