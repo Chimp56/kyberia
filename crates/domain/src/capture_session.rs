@@ -16,7 +16,7 @@ use crate::{
         AdapterId, BssId, ClockEpochId, CollectorId, ContentHash, ObservationId, RadioId, SensorId,
         SessionId, SourceId, Text,
     },
-    observation::{ObservationEnvelope, PayloadRetention, PrivacyState},
+    observation::{ObservationEnvelope, ObservationPayload, PayloadRetention, PrivacyState},
 };
 use serde::{Deserialize, Deserializer, Serialize};
 use sha2::{Digest, Sha256};
@@ -395,9 +395,9 @@ fn validate_terminal_exit(
             "capture session terminal and exit code",
         ));
     }
-    if terminal == CaptureTerminalStatus::Partial && !partial {
+    if partial != (terminal == CaptureTerminalStatus::Partial) {
         return Err(ValidationError::Inconsistent(
-            "partial terminal must carry partial evidence",
+            "capture session partial terminal flag",
         ));
     }
     Ok(())
@@ -570,6 +570,81 @@ impl CaptureSessionRecordV1 {
                     "capture session observation closure",
                 ));
             }
+            if let Evidence::Known(time) = &data.time.monotonic
+                && time.epoch != self.clock_epoch_id
+            {
+                return Err(ValidationError::ClockEpochMismatch);
+            }
+            if let Evidence::Known(model) = &data.time.synchronization
+                && model.epoch != self.clock_epoch_id
+            {
+                return Err(ValidationError::ClockEpochMismatch);
+            }
+            let source_mapping = self
+                .mapping
+                .source_mappings
+                .iter()
+                .find(|mapping| mapping.source_id == data.source.source_id)
+                .ok_or(ValidationError::Inconsistent(
+                    "capture session source mapping closure",
+                ))?;
+            if source_mapping.sensor_id != data.source.sensor_id
+                || source_mapping.adapter_id != data.source.adapter_id
+            {
+                return Err(ValidationError::Inconsistent(
+                    "capture session source mapping evidence",
+                ));
+            }
+            let observation_mapping = self
+                .mapping
+                .observation_mappings
+                .iter()
+                .find(|mapping| mapping.observation_id == data.id)
+                .ok_or(ValidationError::Inconsistent(
+                    "capture session observation mapping closure",
+                ))?;
+            match &data.payload {
+                ObservationPayload::Scan(scan) => {
+                    if observation_mapping.transmitter_radio != scan.identity.radio
+                        || observation_mapping.transmitter_bss != scan.identity.bss
+                        || observation_mapping.identity_evidence != scan.identity.grouping_evidence
+                    {
+                        return Err(ValidationError::Inconsistent(
+                            "capture session observation mapping evidence",
+                        ));
+                    }
+                }
+                ObservationPayload::Frame(frame) => {
+                    if observation_mapping.transmitter_radio != frame.identity.radio
+                        || observation_mapping.transmitter_bss != frame.identity.bss
+                        || observation_mapping.identity_evidence != frame.identity.grouping_evidence
+                    {
+                        return Err(ValidationError::Inconsistent(
+                            "capture session observation mapping evidence",
+                        ));
+                    }
+                }
+                ObservationPayload::Health(_) => {
+                    if matches!(observation_mapping.transmitter_radio, Evidence::Known(_))
+                        || matches!(observation_mapping.transmitter_bss, Evidence::Known(_))
+                        || matches!(observation_mapping.identity_evidence, Evidence::Known(_))
+                    {
+                        return Err(ValidationError::Inconsistent(
+                            "capture session health mapping evidence",
+                        ));
+                    }
+                }
+            }
+            if let Evidence::Known(reference) = &data.raw_source
+                && !manifest
+                    .source_records()
+                    .iter()
+                    .any(|source| source.reference() == reference)
+            {
+                return Err(ValidationError::Inconsistent(
+                    "capture session raw source reference closure",
+                ));
+            }
             source_ids.insert(data.source.source_id);
         }
         let mapped_observation_ids: BTreeSet<_> = self
@@ -659,9 +734,10 @@ mod tests {
     use super::*;
     use crate::{
         capability::{CapabilityDocument, RawPayloadPolicy},
+        capture::{CaptureCompletion, SourceRecordManifest},
         evidence::{SchemaVersion, UnknownReason},
-        observation::IdentifierPolicy,
-        time::CaptureTime,
+        observation::{EnvelopeData, IdentifierPolicy},
+        time::{CaptureTime, ClockModel, MonotonicTimestamp, UtcTimestamp},
     };
     use std::collections::BTreeMap;
 
@@ -729,6 +805,88 @@ mod tests {
             77,
         )
         .unwrap()
+    }
+
+    fn populated_fixture() -> (CaptureSessionRecordV1, CaptureManifest, ObservationEnvelope) {
+        let wire: serde_json::Value = serde_json::from_str(include_str!(
+            "../../capture-adapter/tests/fixtures/macos-valid-canonical.json"
+        ))
+        .unwrap();
+        let envelope: ObservationEnvelope =
+            serde_json::from_value(wire["envelope"].clone()).unwrap();
+        let data = envelope.data();
+        let raw_reference = match &data.raw_source {
+            Evidence::Known(reference) => reference.clone(),
+            Evidence::Unknown(_) => panic!("fixture must retain a raw reference"),
+        };
+        let (radio, bss, grouping_evidence) = match &data.payload {
+            ObservationPayload::Scan(scan) => (
+                scan.identity.radio.clone(),
+                scan.identity.bss.clone(),
+                scan.identity.grouping_evidence.clone(),
+            ),
+            ObservationPayload::Frame(frame) => (
+                frame.identity.radio.clone(),
+                frame.identity.bss.clone(),
+                frame.identity.grouping_evidence.clone(),
+            ),
+            ObservationPayload::Health(_) => panic!("fixture must carry a radio payload"),
+        };
+        let completion = CaptureCompletion::new(
+            CaptureTerminalStatus::PermissionRequired,
+            Text::new("permission required").unwrap(),
+            false,
+            1,
+        )
+        .unwrap();
+        let manifest = CaptureManifest::new(
+            SchemaVersion::V1,
+            Text::new(crate::capture::CAPTURE_MANIFEST_METHOD_VERSION).unwrap(),
+            data.source.kind.clone(),
+            ContentHash::from_sha256([9; 32]),
+            Evidence::Unknown(UnknownReason::SourceDidNotProvide),
+            completion,
+            vec![SourceRecordManifest::new(raw_reference)],
+            RawSourceDisposition::NotRetained,
+            vec![data.id],
+        )
+        .unwrap();
+        let manifest_hash =
+            ContentHash::from_sha256(Sha256::digest(manifest.canonical_bytes().unwrap()).into());
+        let mapping = MappingEvidenceV1::new(
+            Text::new("registry/v1").unwrap(),
+            vec![SourceMappingEvidenceV1::new(
+                Text::new("source").unwrap(),
+                data.source.source_id,
+                data.source.sensor_id.clone(),
+                data.source.adapter_id.clone(),
+            )],
+            vec![ObservationMappingEvidenceV1::new(
+                Text::new("observation").unwrap(),
+                data.id,
+                radio,
+                bss,
+                grouping_evidence,
+            )],
+        )
+        .unwrap();
+        let record = CaptureSessionRecordV1::new(
+            data.session_id,
+            data.source.collector_id,
+            ClockEpochId::from_bytes([3; 16]).unwrap(),
+            NativeUuid::new("00000000-0000-4000-8000-000000000001").unwrap(),
+            NativeUuid::new("00000000-0000-4000-8000-000000000002").unwrap(),
+            manifest_hash,
+            mapping,
+            data.privacy.clone(),
+            CaptureTerminalStatus::PermissionRequired,
+            Text::new("permission required").unwrap(),
+            false,
+            1,
+            77,
+        )
+        .unwrap();
+        (record, manifest, envelope)
     }
 
     #[test]
@@ -816,6 +974,97 @@ mod tests {
             0,
         );
         assert!(result.is_err());
+
+        let partial_ok = CaptureSessionRecordV1::new(
+            id(1),
+            collector,
+            ClockEpochId::from_bytes([3; 16]).unwrap(),
+            NativeUuid::new("00000000-0000-4000-8000-000000000001").unwrap(),
+            NativeUuid::new("00000000-0000-4000-8000-000000000002").unwrap(),
+            ContentHash::from_sha256(Sha256::digest(manifest.canonical_bytes().unwrap()).into()),
+            MappingEvidenceV1::new(Text::new("registry/v1").unwrap(), vec![], vec![]).unwrap(),
+            privacy(),
+            CaptureTerminalStatus::Ok,
+            Text::new("completed").unwrap(),
+            true,
+            0,
+            0,
+        );
+        assert!(partial_ok.is_err());
+    }
+
+    #[test]
+    fn manifest_binding_rejects_contradictory_clock_mapping_and_raw_evidence() {
+        let (record, manifest, envelope) = populated_fixture();
+        record
+            .validate_against_manifest(&manifest, std::slice::from_ref(&envelope))
+            .unwrap();
+
+        let reject = |label: &str, data: EnvelopeData| {
+            let candidate = ObservationEnvelope::new(data).unwrap();
+            let result = record.validate_against_manifest(&manifest, &[candidate]);
+            assert!(result.is_err(), "accepted contradictory {label}");
+        };
+
+        let mut data = envelope.data().clone();
+        data.time.monotonic = Evidence::Known(MonotonicTimestamp {
+            epoch: ClockEpochId::from_bytes([48; 16]).unwrap(),
+            nanoseconds: 1,
+        });
+        reject("clock epoch", data);
+
+        let mut data = envelope.data().clone();
+        data.time.synchronization = Evidence::Known(ClockModel {
+            epoch: ClockEpochId::from_bytes([49; 16]).unwrap(),
+            reference_monotonic_nanoseconds: 1,
+            reference_utc: UtcTimestamp(0),
+            offset_to_reference: Evidence::Unknown(UnknownReason::SourceDidNotProvide),
+            drift: Evidence::Unknown(UnknownReason::SourceDidNotProvide),
+            error: Evidence::Unknown(UnknownReason::SourceDidNotProvide),
+            method_version: Text::new("clock/v1").unwrap(),
+        });
+        reject("clock model epoch", data);
+
+        let mut data = envelope.data().clone();
+        data.source.sensor_id = Evidence::Known(SensorId::from_bytes([41; 16]).unwrap());
+        reject("sensor mapping", data);
+
+        let mut data = envelope.data().clone();
+        data.source.adapter_id = Evidence::Known(AdapterId::from_bytes([42; 16]).unwrap());
+        reject("adapter mapping", data);
+
+        let mut data = envelope.data().clone();
+        let ObservationPayload::Scan(scan) = &mut data.payload else {
+            panic!("fixture must carry a scan payload")
+        };
+        scan.identity.radio = Evidence::Known(RadioId::from_bytes([43; 16]).unwrap());
+        reject("radio mapping", data);
+
+        let mut data = envelope.data().clone();
+        let ObservationPayload::Scan(scan) = &mut data.payload else {
+            panic!("fixture must carry a scan payload")
+        };
+        scan.identity.bss = Evidence::Known(BssId::from_bytes([44; 16]).unwrap());
+        reject("BSS mapping", data);
+
+        let mut data = envelope.data().clone();
+        let ObservationPayload::Scan(scan) = &mut data.payload else {
+            panic!("fixture must carry a scan payload")
+        };
+        scan.identity.grouping_evidence = Evidence::Known(ArtifactReference {
+            sha256: ContentHash::from_sha256([45; 32]),
+            media_type: Text::new("application/octet-stream").unwrap(),
+            byte_length: 45,
+        });
+        reject("grouping evidence", data);
+
+        let mut data = envelope.data().clone();
+        data.raw_source = Evidence::Known(ArtifactReference {
+            sha256: ContentHash::from_sha256([46; 32]),
+            media_type: Text::new("application/octet-stream").unwrap(),
+            byte_length: 46,
+        });
+        reject("raw source membership", data);
     }
 
     #[test]
