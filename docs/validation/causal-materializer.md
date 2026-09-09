@@ -12,6 +12,9 @@ Focused evidence includes:
 - V1 project JSON preservation and V2 canonical serde round-trip;
 - V2 typed calibration undo restoring `Unknown(NotMeasured)`;
 - structurally valid forged V2 prior rejection against the causal baseline;
+- a forged prior in an earlier conflict branch is rejected before a later
+  valid resolution can mask it, with the same error under operation-input
+  permutation and no baseline mutation;
 - resolution prior validation from the common causal subgraph and its
   unambiguous maximal field frontier;
 - concurrent floor-evidence lock and calibration activation rejection as an

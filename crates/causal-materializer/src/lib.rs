@@ -1680,6 +1680,53 @@ mod tests {
     }
 
     #[test]
+    fn forged_prior_in_a_resolved_branch_is_rejected_before_resolution() {
+        let baseline = project();
+        let original_baseline = baseline.clone();
+        let forged_left = set_project_name(id(10), 1, 10, vec![], "Office", "Forged");
+        let valid_right = set_project_name(id(20), 1, 20, vec![], "Lab", "Home");
+        let resolution = Operation::try_resolve_v2(
+            id(30),
+            baseline.id(),
+            actor(30),
+            device(30),
+            kyberia_operation_log::LogicalTimestamp::new(2).unwrap(),
+            kyberia_operation_log::CausalDepth::new(1),
+            vec![forged_left.operation_id(), valid_right.operation_id()],
+            OperationReference::from(&forged_left),
+            OperationReference::from(&valid_right),
+            Mutation::set_project_name(Text::new("Lab").unwrap()),
+            InversePrior::ProjectName {
+                name: Text::new("Home").unwrap(),
+            },
+        )
+        .unwrap();
+        let operations = vec![forged_left, valid_right, resolution];
+        let set = OperationSet::from_operations(operations.clone()).unwrap();
+        assert!(set.replay_effects().is_ok());
+        assert_eq!(
+            materialize(&baseline, &set),
+            Err(MaterializationError::CausalPriorMismatch {
+                operation_id: id(10),
+                field: FieldKey::ProjectName,
+            })
+        );
+        assert_eq!(baseline, original_baseline);
+
+        let mut reversed = operations;
+        reversed.reverse();
+        let reversed_set = OperationSet::from_operations(reversed).unwrap();
+        assert_eq!(
+            materialize(&baseline, &reversed_set),
+            Err(MaterializationError::CausalPriorMismatch {
+                operation_id: id(10),
+                field: FieldKey::ProjectName,
+            })
+        );
+        assert_eq!(baseline, original_baseline);
+    }
+
+    #[test]
     fn edit_after_resolution_uses_resolved_frontier_not_old_conflict_arms() {
         let baseline = project();
         let left = set_project_name(id(10), 1, 10, vec![], "Office", "Home");
