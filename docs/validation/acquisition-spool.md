@@ -37,3 +37,10 @@ terminals, negative time, read-only rejection and cancellation after the durable
 manifest followed by retry. Existing associated-publication tests cover the
 shared evidence path and its subsequent survey snapshot step. Independent
 review is required before integration.
+
+The retained-payload cancellation regression stops after raw evidence is
+published but before normalized chunk publication. It drops and reopens the
+bundle, checks exact retained bytes and absence of observation chunks, then
+retries to one chunk with the same manifest hash and native completion. This
+is a batch recovery check, not an in-flight process journal or completed
+durable session identity gate.

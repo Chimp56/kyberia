@@ -217,3 +217,51 @@ fn spool_outcome_constructor_rejects_partial_and_survey_receipts() {
         complete
     );
 }
+
+#[test]
+fn retained_spool_cancel_after_raw_publication_reopens_and_retries_exactly() {
+    let batch = retained_batch();
+    assert!(!batch.raw_records.is_empty());
+    let directory = retained_tempdir();
+    let path = directory.path().join("retained-cancel-spool");
+    let mut bundle = project(&path);
+    let calls = Cell::new(0);
+    // Request admission, manifest admission, each raw record, then chunk admission.
+    let stop_at = 3 + batch.raw_records.len();
+    let cancel = || {
+        calls.set(calls.get() + 1);
+        calls.get() >= stop_at
+    };
+    let provenance = text("retained-spool-cancel/v1");
+    let error = bundle
+        .persist_acquisition(AcquisitionSpoolRequest::new(&batch, &provenance, 2, &cancel).unwrap())
+        .unwrap_err();
+    assert_eq!(error.kind(), PortErrorKind::Cancelled);
+    let progress = error.progress().unwrap().clone();
+    assert_eq!(progress.raw_record_count(), batch.raw_records.len() as u64);
+    assert!(progress.chunk().is_none());
+    assert!(progress.snapshot().is_none());
+    drop(bundle);
+    let mut reopened = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    for record in &batch.raw_records {
+        assert_eq!(
+            reopened
+                .read_artifact(&String::from(record.reference().sha256))
+                .unwrap(),
+            record.bytes()
+        );
+    }
+    assert!(reopened.list_observation_chunks().unwrap().is_empty());
+    let receipt = reopened
+        .persist_acquisition(
+            AcquisitionSpoolRequest::new(&batch, &provenance, 2, &NeverCancel).unwrap(),
+        )
+        .unwrap();
+    assert_eq!(
+        receipt.publication().manifest().hash(),
+        progress.manifest().hash()
+    );
+    assert_eq!(receipt.completion(), batch.manifest().completion());
+    assert_eq!(reopened.list_observation_chunks().unwrap().len(), 1);
+    assert!(reopened.verify().unwrap().failures.is_empty());
+}
