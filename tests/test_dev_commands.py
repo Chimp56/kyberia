@@ -24,8 +24,9 @@ class DeveloperFailureTests(unittest.TestCase):
 
     def test_actions_annotation_is_one_escaped_line_without_child_output(self):
         output = self.run_failure("true")
-        self.assertEqual(output, "::error title=Validation command failed::Validation command failed (exit 17): cargo fmt a%25%0D%0A::warning::injected\n")
+        self.assertEqual(output, "::error title=Validation command failed::Validation command failed (exit 17)\n")
         self.assertNotIn("private", output)
+        self.assertNotIn("injected", output)
         self.assertEqual(len(output.splitlines()), 1)
 
     def test_local_failure_preserves_exit_without_actions_annotation(self):
