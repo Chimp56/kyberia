@@ -379,41 +379,70 @@ pub struct NativeCaptureSessionOutcome {
     pub pipeline: PipelineOutcome,
 }
 
-/// Launch a trusted macOS collector, normalize its bounded NDJSON stream and
-/// persist the resulting point snapshot. The mapping callback must provide
-/// explicit canonical identities for the process session, source and
-/// observations; this function never derives them from foreign fields.
-pub fn run_and_persist<C, F>(
-    bundle: &mut Bundle,
+/// A validated, normalized native capture before any survey or storage
+/// decision. Fields stay private so callers cannot manufacture a session by
+/// mixing a process result, terminal, clock or normalized observations from
+/// different streams.
+#[derive(Clone, Debug)]
+pub struct NativeCaptureSession {
+    process_session: String,
+    clock_epoch: String,
+    terminal: TerminalStatus,
+    exit_code: i32,
+    normalized: NormalizedCapture,
+}
+
+impl NativeCaptureSession {
+    pub fn process_session(&self) -> &str {
+        &self.process_session
+    }
+
+    /// The collector's validated source epoch, preserved in its wire UUID
+    /// representation. It is not a host clock and is not converted into a
+    /// canonical ClockEpochId without an explicit application decision.
+    pub fn clock_epoch(&self) -> &str {
+        &self.clock_epoch
+    }
+
+    pub const fn terminal(&self) -> TerminalStatus {
+        self.terminal
+    }
+
+    pub const fn exit_code(&self) -> i32 {
+        self.exit_code
+    }
+
+    pub const fn normalized(&self) -> &NormalizedCapture {
+        &self.normalized
+    }
+}
+
+fn validate_process_output<C: Cancellation>(
     collector: &TrustedCollector,
-    command: CollectorCommand,
-    mapping: F,
-    survey: &PointSurvey,
-    request: &PipelineRequest,
+    command: &CollectorCommand,
     cancel: &C,
-) -> Result<NativeCaptureSessionOutcome, NativeCaptureSessionError>
-where
-    C: Cancellation,
-    F: FnOnce(&DecodedStream) -> Result<MappingContext, NativeCaptureSessionError>,
-{
+) -> Result<(DecodedStream, i32), NativeCaptureSessionError> {
     if cancel.is_cancelled() {
         return Err(NativeCaptureSessionError::Cancelled);
     }
-    let (stdout, exit_code) = run_process(collector, &command, cancel)?;
+    let (stdout, exit_code) = run_process(collector, command, cancel)?;
     if cancel.is_cancelled() {
         return Err(NativeCaptureSessionError::Cancelled);
     }
     let stream = decode(&stdout).map_err(NativeCaptureSessionError::AdapterDecode)?;
-    let (expected_command, expected_identifiers, expected_limit, expected_interface) =
-        match &command {
-            CollectorCommand::Probe(_) => ("probe", false, None, None),
-            CollectorCommand::Scan(options) => (
-                "scan",
-                options.includes_identifiers(),
-                Some(options.limit()),
-                options.interface(),
-            ),
-        };
+    if cancel.is_cancelled() {
+        return Err(NativeCaptureSessionError::Cancelled);
+    }
+    let (expected_command, expected_identifiers, expected_limit, expected_interface) = match command
+    {
+        CollectorCommand::Probe(_) => ("probe", false, None, None),
+        CollectorCommand::Scan(options) => (
+            "scan",
+            options.includes_identifiers(),
+            Some(options.limit()),
+            options.interface(),
+        ),
+    };
     if stream.command_name() != expected_command
         || stream.declared_timeout_seconds() != command.timeout_seconds()
     {
@@ -443,25 +472,87 @@ where
             }
         }
     }
-    let context = mapping(&stream)?;
-    let normalized =
-        normalize(&stream, &context).map_err(NativeCaptureSessionError::AdapterNormalize)?;
-    let terminal = normalized.completion.status;
-    if !terminal_matches_exit(terminal, exit_code) {
+    if !terminal_matches_exit(stream.terminal_status(), exit_code) {
         return Err(NativeCaptureSessionError::TerminalExitMismatch {
-            terminal,
+            terminal: stream.terminal_status(),
             exit_code,
         });
     }
     if cancel.is_cancelled() {
         return Err(NativeCaptureSessionError::Cancelled);
     }
+    Ok((stream, exit_code))
+}
+
+/// Launch a trusted collector, validate all process and stream provenance,
+/// then normalize exactly once. The mapping callback runs only after command,
+/// source-build, identifier policy, observation-limit, interface,
+/// terminal/exit, and cancellation checks have succeeded.
+pub fn run_and_normalize<C, F>(
+    collector: &TrustedCollector,
+    command: CollectorCommand,
+    mapping: F,
+    cancel: &C,
+) -> Result<NativeCaptureSession, NativeCaptureSessionError>
+where
+    C: Cancellation,
+    F: FnOnce(&DecodedStream) -> Result<MappingContext, NativeCaptureSessionError>,
+{
+    let (stream, exit_code) = validate_process_output(collector, &command, cancel)?;
+    // Keep a final admission check at the call boundary. The validator's
+    // checks are deliberately repeated here because cancellation may change
+    // after validation returns and before the caller's mapping closure runs.
+    if cancel.is_cancelled() {
+        return Err(NativeCaptureSessionError::Cancelled);
+    }
+    let context = mapping(&stream)?;
+    if cancel.is_cancelled() {
+        return Err(NativeCaptureSessionError::Cancelled);
+    }
+    let normalized =
+        normalize(&stream, &context).map_err(NativeCaptureSessionError::AdapterNormalize)?;
+    if cancel.is_cancelled() {
+        return Err(NativeCaptureSessionError::Cancelled);
+    }
+    Ok(NativeCaptureSession {
+        process_session: stream.process_session().to_owned(),
+        clock_epoch: stream.clock_epoch().to_owned(),
+        terminal: stream.terminal_status(),
+        exit_code,
+        normalized,
+    })
+}
+
+/// Launch a trusted macOS collector, normalize its bounded NDJSON stream and
+/// persist the resulting point snapshot. The mapping callback must provide
+/// explicit canonical identities for the process session, source and
+/// observations; this function never derives them from foreign fields.
+pub fn run_and_persist<C, F>(
+    bundle: &mut Bundle,
+    collector: &TrustedCollector,
+    command: CollectorCommand,
+    mapping: F,
+    survey: &PointSurvey,
+    request: &PipelineRequest,
+    cancel: &C,
+) -> Result<NativeCaptureSessionOutcome, NativeCaptureSessionError>
+where
+    C: Cancellation,
+    F: FnOnce(&DecodedStream) -> Result<MappingContext, NativeCaptureSessionError>,
+{
+    let NativeCaptureSession {
+        process_session,
+        terminal,
+        exit_code,
+        normalized,
+        ..
+    } = run_and_normalize(collector, command, mapping, cancel)?;
     let batch = ReceivedObservationBatch::from_normalized_capture(normalized.clone())
         .map_err(NativeCaptureSessionError::Batch)?;
     let pipeline = ingest(bundle, survey, &batch, request, cancel)
         .map_err(NativeCaptureSessionError::Pipeline)?;
     Ok(NativeCaptureSessionOutcome {
-        process_session: stream.process_session().to_owned(),
+        process_session,
         terminal,
         exit_code,
         normalized,

@@ -49,6 +49,14 @@ fn context(stream: &DecodedStream, redacted: bool) -> MappingContext {
         },
     }
 }
+
+#[test]
+fn decoded_stream_exposes_only_its_validated_source_clock_epoch_and_terminal() {
+    let stream = decode(VALID).unwrap();
+    assert_eq!(stream.clock_epoch(), stream.process_session());
+    assert_eq!(stream.clock_epoch(), "00000000-0000-4000-8000-000000000001");
+    assert_eq!(stream.terminal_status(), TerminalStatus::Ok);
+}
 fn events() -> Vec<Value> {
     std::str::from_utf8(VALID)
         .unwrap()

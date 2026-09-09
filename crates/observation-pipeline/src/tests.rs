@@ -1,10 +1,10 @@
 use super::process::{
     CollectorCommand, NativeCaptureSessionError, OutputStream, ProbeOptions, ScanOptions,
-    TrustedCollector, run_and_persist,
+    TrustedCollector, run_and_normalize, run_and_persist,
 };
 use super::*;
 use kyberia_capture_adapter::macos::{
-    MappingContext, ObservationMapping, SourceMapping, decode, normalize,
+    MappingContext, ObservationMapping, SourceMapping, TerminalStatus, decode, normalize,
 };
 use kyberia_domain::{
     capability::{Capability, CapabilityDocument, CapabilityState, RawPayloadPolicy},
@@ -1449,6 +1449,70 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
         ),
         "command mismatch result: {command_mismatch_result:?}"
     );
+}
+
+#[cfg(unix)]
+#[test]
+fn run_and_normalize_returns_opaque_source_clock_and_rejects_terminal_mismatch_before_mapping() {
+    let (_script, collector) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    let mapping_called = Cell::new(false);
+    let session = run_and_normalize(
+        &collector,
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
+        |stream| {
+            mapping_called.set(true);
+            Ok(mapping_context(stream, false))
+        },
+        &NeverCancel,
+    )
+    .unwrap();
+    let decoded = decode(VALID).unwrap();
+    assert!(mapping_called.get());
+    assert_eq!(session.process_session(), decoded.process_session());
+    assert_eq!(session.clock_epoch(), decoded.clock_epoch());
+    assert_eq!(session.terminal(), TerminalStatus::Ok);
+    assert_eq!(session.exit_code(), 0);
+    assert_eq!(session.normalized().observations.len(), 1);
+
+    let (_script, terminal_mismatch) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 1 });
+    let terminal_mapping_called = Cell::new(false);
+    let result = run_and_normalize(
+        &terminal_mismatch,
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
+        |stream| {
+            terminal_mapping_called.set(true);
+            Ok(mapping_context(stream, false))
+        },
+        &NeverCancel,
+    );
+    assert!(matches!(
+        result,
+        Err(NativeCaptureSessionError::TerminalExitMismatch {
+            terminal: TerminalStatus::Ok,
+            exit_code: 1,
+        })
+    ));
+    assert!(!terminal_mapping_called.get());
+
+    let (_script, command_mismatch) =
+        synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    let command_mapping_called = Cell::new(false);
+    let result = run_and_normalize(
+        &command_mismatch,
+        CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
+        |stream| {
+            command_mapping_called.set(true);
+            Ok(mapping_context(stream, false))
+        },
+        &NeverCancel,
+    );
+    assert!(matches!(
+        result,
+        Err(NativeCaptureSessionError::CommandProvenanceMismatch)
+    ));
+    assert!(!command_mapping_called.get());
 }
 
 #[cfg(unix)]
