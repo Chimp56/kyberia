@@ -78,6 +78,12 @@ cannot be hidden by a healthy SQLite quick check or a valid table shape. V1
 rows use the fixed revision marker `1`; other positive revisions are rejected
 until a reviewed schema version defines them.
 
+The indexed columns are query projections, not a second authority or a cache
+that can be trusted independently. Reads rederive them from `canonical_bytes`
+and reject stale or contradictory values before returning a record. The
+canonical BLOB is the only persisted session representation whose hash is
+accepted for identity and retry.
+
 The public API shape is:
 
 ```rust
@@ -158,8 +164,12 @@ The implementation is split for review:
   verification-inventory cases. The domain suite has 11 passing tests.
 - The project-store schema guard has 14 passing tests after adding the new
   table to the current schema inventory.
-- `cargo test --workspace --exclude kyberia-kismet-adapter --locked --offline`
-  passes, including domain and project-store doc tests.
+- The focused domain, project-store, schema-guard and native-composition
+  checks pass. A full workspace-excluding-Kismet run remains timing-sensitive:
+  the existing descendant-drain test exceeded its 3 s per-case bound once
+  under full-workspace load (`3.261677250 s`) but passed in isolation. This
+  retained sandbox timing issue is open and is not evidence against this
+  session-record increment.
 - Affected-package Clippy with warnings denied, `cargo fmt --all -- --check`,
   the architecture dependency check and the 241-entry source-inventory check
   pass.

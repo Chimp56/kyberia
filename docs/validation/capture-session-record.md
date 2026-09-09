@@ -125,6 +125,8 @@ row, chunk linkage, chunk observation IDs, and the full domain closure again.
 reports a failure for any unreadable or contradictory row. V1 rows have the
 fixed indexed revision marker `1`; an unsupported positive revision is corrupt
 until a reviewed schema defines it.
+The indexed fields are query projections; they are never used as an
+independent cache or authority when the canonical BLOB disagrees.
 The session row is immutable; the unique manifest hash prevents one manifest
 from being registered under two session IDs.
 
@@ -149,7 +151,11 @@ cargo test -p kyberia-project-store --test schema_guard --locked --offline
 PASS — 14 tests
 
 cargo test --workspace --exclude kyberia-kismet-adapter --locked --offline
-PASS
+FAIL — the existing descendant-drain timing assertion exceeded its 3 s
+per-case bound under the full workspace run (`3.261677250 s`); see the retained
+`workspace-exclude-kismet-final3.log`. The same test passed in isolation once
+(`descendant-drain-repro-final2.log`, 1 passed), so this is a flaky sandbox
+timing gate and not evidence against the session record.
 
 cargo test -p kyberia-observation-pipeline --lib --locked --offline
 PASS — 42 passed, 1 ignored
