@@ -38,6 +38,7 @@
 pub mod analysis;
 pub mod capability;
 pub mod capture;
+pub mod capture_session;
 pub mod evidence;
 pub mod identity;
 pub mod observation;
