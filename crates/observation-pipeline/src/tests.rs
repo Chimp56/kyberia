@@ -1,10 +1,14 @@
+#[cfg(unix)]
+use super::process::run_and_normalize;
 use super::process::{
     CollectorCommand, NativeCaptureSessionError, OutputStream, ProbeOptions, ScanOptions,
-    TrustedCollector, run_and_normalize, run_and_persist,
+    TrustedCollector, run_and_persist,
 };
 use super::*;
+#[cfg(unix)]
+use kyberia_capture_adapter::macos::TerminalStatus;
 use kyberia_capture_adapter::macos::{
-    MappingContext, ObservationMapping, SourceMapping, TerminalStatus, decode, normalize,
+    MappingContext, ObservationMapping, SourceMapping, decode, normalize,
 };
 use kyberia_domain::{
     capability::{Capability, CapabilityDocument, CapabilityState, RawPayloadPolicy},
