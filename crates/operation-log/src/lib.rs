@@ -438,20 +438,6 @@ pub enum InverseMetadata {
     },
 }
 
-impl InverseMetadata {
-    /// Return the legacy executable mutation when this inverse has one.
-    /// V2 typed unknown state and irreversible evidence deliberately return an
-    /// explicit error so legacy replay cannot silently invent or skip state.
-    fn as_mutation(&self) -> Result<Mutation, OperationError> {
-        match self {
-            Self::Apply { mutation } => Ok(mutation.clone()),
-            Self::ApplyV2 { prior } => prior.as_mutation(),
-            Self::NonReversible { .. } => Err(OperationError::NonReversibleTarget),
-            Self::Toggle { .. } => Err(OperationError::InvalidInverse),
-        }
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ToggleDirection {
@@ -1353,6 +1339,7 @@ enum FrontierIdentity {
     Toggle {
         target: OperationReference,
         direction: ToggleDirection,
+        effect: EffectValue,
     },
 }
 
@@ -1373,20 +1360,52 @@ impl EffectValue {
         }
     }
 
-    fn as_mutation(&self) -> Result<Mutation, OperationError> {
+    /// Normalize equivalent representations before comparing frontier values.
+    ///
+    /// A known calibration prior is emitted as a typed `Calibration` effect so
+    /// replay can retain its evidence class, while a forward activation is a
+    /// mutation effect.  Both describe the same known field value for merge
+    /// identity and must not manufacture a conflict merely because the replay
+    /// event carries different type metadata.
+    fn canonical_identity(&self) -> Self {
         match self {
-            Self::Mutation(mutation) => Ok(mutation.clone()),
             Self::Calibration {
                 map_id,
                 calibration: Evidence::Known(calibration_id),
-            } => Ok(Mutation::ActivateCalibration {
+            } => Self::Mutation(Mutation::ActivateCalibration {
                 map_id: *map_id,
                 calibration_id: *calibration_id,
             }),
+            Self::Mutation(mutation) => Self::Mutation(mutation.clone()),
             Self::Calibration {
-                calibration: Evidence::Unknown(_),
-                ..
-            } => Err(OperationError::TypedPriorRequired),
+                map_id,
+                calibration: Evidence::Unknown(reason),
+            } => Self::Calibration {
+                map_id: *map_id,
+                calibration: Evidence::Unknown(reason.clone()),
+            },
+        }
+    }
+}
+
+impl FrontierIdentity {
+    fn semantically_equal(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Value(left), Self::Value(right)) => left == right,
+            (
+                Self::Toggle {
+                    target: left_target,
+                    direction: left_direction,
+                    ..
+                },
+                Self::Toggle {
+                    target: right_target,
+                    direction: right_direction,
+                    ..
+                },
+            ) => left_target == right_target && left_direction == right_direction,
+            (Self::Toggle { effect: toggle, .. }, Self::Value(value))
+            | (Self::Value(value), Self::Toggle { effect: toggle, .. }) => toggle == value,
         }
     }
 }
@@ -1400,6 +1419,7 @@ fn frontier_identity(
             FrontierIdentity::Toggle {
                 target: *target,
                 direction: ToggleDirection::Undo,
+                effect: effect.canonical_identity(),
             },
             ConflictIntent::Toggle {
                 target: *target,
@@ -1410,6 +1430,7 @@ fn frontier_identity(
             FrontierIdentity::Toggle {
                 target: *target,
                 direction: ToggleDirection::Redo,
+                effect: effect.canonical_identity(),
             },
             ConflictIntent::Toggle {
                 target: *target,
@@ -1417,7 +1438,7 @@ fn frontier_identity(
             },
         ),
         OperationPayload::Apply { .. } | OperationPayload::Resolve { .. } => (
-            FrontierIdentity::Value(effect.clone()),
+            FrontierIdentity::Value(effect.canonical_identity()),
             ConflictIntent::Value,
         ),
     }
@@ -1868,43 +1889,36 @@ impl OperationSet {
         )? {
             return Err(OperationError::InvalidResolution);
         }
-        let left_effect = self.operation_effect(left_operation)?;
-        let right_effect = self.operation_effect(right_operation)?;
+        // Validate the semantic values, rather than converting a typed V2
+        // effect back into the mutation-only V1 representation. In
+        // particular, an unknown calibration prior is a valid conflict arm
+        // and must remain inspectable and resolvable.
+        let left_effect = self.effect(left_operation).map_err(|error| match error {
+            MergeError::Operation(operation_error) => operation_error,
+            MergeError::InvalidToggle => OperationError::InvalidResolution,
+            MergeError::WrongProject
+            | MergeError::TamperedDuplicate
+            | MergeError::Conflicts(_)
+            | MergeError::ResourceLimit(_) => OperationError::InvalidResolution,
+        })?;
+        let right_effect = self.effect(right_operation).map_err(|error| match error {
+            MergeError::Operation(operation_error) => operation_error,
+            MergeError::InvalidToggle => OperationError::InvalidResolution,
+            MergeError::WrongProject
+            | MergeError::TamperedDuplicate
+            | MergeError::Conflicts(_)
+            | MergeError::ResourceLimit(_) => OperationError::InvalidResolution,
+        })?;
         let OperationPayload::Resolve { mutation, .. } = operation.payload() else {
             return Err(OperationError::InvalidResolution);
         };
         if left_effect.field_key() != right_effect.field_key()
             || left_effect.field_key() != mutation.field_key()
-            || left_effect == right_effect
+            || left_effect.canonical_identity() == right_effect.canonical_identity()
         {
             return Err(OperationError::InvalidResolution);
         }
         Ok(())
-    }
-
-    fn operation_effect(&self, operation: &Operation) -> Result<Mutation, OperationError> {
-        match operation.payload() {
-            OperationPayload::Apply { mutation } | OperationPayload::Resolve { mutation, .. } => {
-                Ok(mutation.clone())
-            }
-            OperationPayload::Undo { target } => {
-                let target_operation = self
-                    .operations
-                    .get(&target.operation_id())
-                    .ok_or(OperationError::MissingTarget)?;
-                target_operation.inverse().as_mutation()
-            }
-            OperationPayload::Redo { target } => {
-                let target_operation = self
-                    .operations
-                    .get(&target.operation_id())
-                    .ok_or(OperationError::MissingTarget)?;
-                let OperationPayload::Apply { mutation } = target_operation.payload() else {
-                    return Err(OperationError::InvalidCausality);
-                };
-                Ok(mutation.clone())
-            }
-        }
     }
 
     fn ancestor_with_budget(
@@ -1946,7 +1960,7 @@ impl OperationSet {
             reference: OperationReference,
             identity: FrontierIdentity,
             intent: ConflictIntent,
-            effect: EffectValue,
+            event: AppliedEffect,
         }
 
         type ConflictKey = (OperationId, OperationId);
@@ -1957,13 +1971,14 @@ impl OperationSet {
             if let Some((left, right)) = operation.resolution_references() {
                 conflicts.remove(&(left.operation_id(), right.operation_id()));
             }
-            let effect = self.effect(operation)?;
+            let event = self.effect_event(operation)?;
+            let effect = event.as_effect_value();
             let (identity, intent) = frontier_identity(operation, &effect);
             let key = effect.field_key();
             let previous = frontier.remove(&key).unwrap_or_default();
             let mut next = Vec::with_capacity(previous.len().saturating_add(1));
             for entry in previous {
-                if entry.identity == identity {
+                if entry.identity.semantically_equal(&identity) {
                     // Equal value effects and duplicate same-target toggles
                     // share one representative. The latter is a canonical
                     // replay no-op after the first toggle.
@@ -1998,8 +2013,8 @@ impl OperationSet {
                             OperationReference::from(operation),
                             entry.intent,
                             intent,
-                            entry.effect.as_mutation().map_err(MergeError::Operation)?,
-                            effect.as_mutation().map_err(MergeError::Operation)?,
+                            entry.event.clone(),
+                            event.clone(),
                         )
                     } else {
                         (
@@ -2007,8 +2022,8 @@ impl OperationSet {
                             entry.reference,
                             intent,
                             entry.intent,
-                            effect.as_mutation().map_err(MergeError::Operation)?,
-                            entry.effect.as_mutation().map_err(MergeError::Operation)?,
+                            event.clone(),
+                            entry.event.clone(),
                         )
                     };
                 let conflict_key = (left.operation_id(), right.operation_id());
@@ -2034,7 +2049,7 @@ impl OperationSet {
                 reference: OperationReference::from(operation),
                 identity,
                 intent,
-                effect,
+                event,
             });
             if next.len() > MAX_MERGE_FRONTIER {
                 return Err(MergeError::ResourceLimit("merge_frontier"));
@@ -2079,8 +2094,15 @@ impl OperationSet {
     }
 
     fn effect(&self, operation: &Operation) -> Result<EffectValue, MergeError> {
+        Ok(self.effect_event(operation)?.as_effect_value())
+    }
+
+    fn effect_event(&self, operation: &Operation) -> Result<AppliedEffect, MergeError> {
         match operation.payload() {
-            OperationPayload::Apply { mutation } => Ok(EffectValue::Mutation(mutation.clone())),
+            OperationPayload::Apply { mutation } => Ok(AppliedEffect::Mutation(AppliedMutation {
+                operation_id: operation.operation_id(),
+                mutation: mutation.clone(),
+            })),
             OperationPayload::Undo { target } => {
                 let target_operation = self
                     .operations
@@ -2089,7 +2111,6 @@ impl OperationSet {
                 target_operation
                     .inverse()
                     .as_applied_effect(operation.operation_id())
-                    .map(|effect| effect.as_effect_value())
                     .map_err(MergeError::Operation)
             }
             OperationPayload::Redo { target } => {
@@ -2100,10 +2121,16 @@ impl OperationSet {
                 let OperationPayload::Apply { mutation } = target_operation.payload() else {
                     return Err(MergeError::InvalidToggle);
                 };
-                Ok(EffectValue::Mutation(mutation.clone()))
+                Ok(AppliedEffect::Mutation(AppliedMutation {
+                    operation_id: operation.operation_id(),
+                    mutation: mutation.clone(),
+                }))
             }
             OperationPayload::Resolve { mutation, .. } => {
-                Ok(EffectValue::Mutation(mutation.clone()))
+                Ok(AppliedEffect::Mutation(AppliedMutation {
+                    operation_id: operation.operation_id(),
+                    mutation: mutation.clone(),
+                }))
             }
         }
     }
@@ -2111,7 +2138,8 @@ impl OperationSet {
 
 /// One mutation event emitted by deterministic replay. Consumers can apply
 /// these to their own aggregate through an application-layer port.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AppliedMutation {
     operation_id: OperationId,
     mutation: Mutation,
@@ -2130,7 +2158,13 @@ impl AppliedMutation {
 /// One typed effect emitted by deterministic replay. V1 consumers can use
 /// [`OperationSet::replay`], while V2 consumers use this boundary to retain
 /// an explicitly unknown calibration prior during undo.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    content = "data",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
 pub enum AppliedEffect {
     Mutation(AppliedMutation),
     Calibration {
@@ -2271,8 +2305,8 @@ pub struct MergeConflict {
     right: OperationReference,
     left_intent: ConflictIntent,
     right_intent: ConflictIntent,
-    left_effect: Mutation,
-    right_effect: Mutation,
+    left_effect: AppliedEffect,
+    right_effect: AppliedEffect,
 }
 
 impl MergeConflict {
@@ -2296,12 +2330,28 @@ impl MergeConflict {
         &self.right_intent
     }
 
-    pub const fn left_effect(&self) -> &Mutation {
+    /// The complete typed effect represented by the left operation. Unknown
+    /// calibration state is retained here instead of being coerced into a
+    /// fake identifier.
+    pub const fn left_effect(&self) -> &AppliedEffect {
         &self.left_effect
     }
 
-    pub const fn right_effect(&self) -> &Mutation {
+    /// The complete typed effect represented by the right operation.
+    pub const fn right_effect(&self) -> &AppliedEffect {
         &self.right_effect
+    }
+
+    /// Compatibility view for callers that only handle mutation effects.
+    /// `None` is an honest result for a typed unknown calibration effect.
+    pub const fn left_mutation(&self) -> Option<&Mutation> {
+        self.left_effect.mutation()
+    }
+
+    /// Compatibility view for callers that only handle mutation effects.
+    /// `None` is an honest result for a typed unknown calibration effect.
+    pub const fn right_mutation(&self) -> Option<&Mutation> {
+        self.right_effect.mutation()
     }
 }
 

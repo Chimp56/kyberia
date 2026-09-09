@@ -26,6 +26,12 @@ The focused tests demonstrate:
 - typed conflict resolution that validates exact references and fields, clears
   the exact current conflict pair, preserves unrelated heads, and retains both
   immutable provenance references;
+- a V2 concurrent unknown-calibration undo versus known activation that
+  retains both typed conflict effects, resolves through a selected mutation,
+  and replays deterministically;
+- a representation-independence case proving a typed known-calibration undo
+  and an equivalent activation share merge identity without a manufactured
+  conflict;
 - causal ordering independent of input order;
 - missing parents, mismatched inverses, wrong target hashes, and invalid append
   causal-depth/parent contexts;

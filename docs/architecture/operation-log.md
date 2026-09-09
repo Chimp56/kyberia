@@ -152,19 +152,28 @@ combined DAG. For the same semantic `FieldKey`, a bounded causal frontier
 tracks only maximal effective edits. Two different effective typed mutations
 are a conflict only when neither operation is an ancestor of the other. The
 result retains both immutable operations and emits a `MergeConflict`
-containing both operation references and both typed effects. Conflict and
-frontier limits, plus a deterministic ancestry work budget, fail closed before
-unbounded merge work. `MergeOutcome::into_applyable` returns an error while
-any conflict exists; there is no last-writer-wins or arbitrary sorting-based
-semantic resolution.
+containing both operation references and both complete `AppliedEffect` values.
+An unknown calibration undo remains an explicit `AppliedEffect::Calibration`
+and is never converted to a sentinel mutation. For merge identity only,
+`Evidence::Known(id)` in a typed calibration effect is canonicalized to the
+equivalent `ActivateCalibration` value, so equal known undo/activation branches
+converge despite their replay representation. Mutation-only callers can use
+the optional `left_mutation()`/`right_mutation()` compatibility views.
+Conflict and frontier limits, plus a deterministic ancestry work budget, fail
+closed before unbounded merge work. `MergeOutcome::into_applyable` returns an
+error while any conflict exists; there is no last-writer-wins or arbitrary
+sorting-based semantic resolution.
 
 `Resolve` is an explicit typed operation. It references two exact,
 concurrent, causally joined operations on one field in canonical operation-ID
 order; both references must be the operation's current direct parents. It
 records the selected mutation and its inverse, and clears only that exact
 current conflict pair during merge. Stale ancestor pairs, reversed pairs,
-invalid fields, non-concurrent targets, and attempts to resolve equal effects
-are rejected. The references remain in the immutable operation for
+invalid fields, non-concurrent targets, and attempts to resolve equal semantic
+effects
+are rejected. Validation uses the typed effect path, so a known/unknown
+calibration conflict can be resolved without forcing the unknown side through
+the V1 mutation API. The references remain in the immutable operation for
 auditability. Unrelated heads retain their own conflict records.
 
 Undo and redo are operations in this same DAG. An undo points to the original

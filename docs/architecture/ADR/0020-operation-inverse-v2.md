@@ -71,11 +71,21 @@ made-up mutation or a silently skipped event. A later materializer must consume
 `InversePrior` directly (or consume `OperationSet::replay_effects`) and apply it
 against a validated causal baseline.
 
-`MergeConflict` retains its V1 mutation-shaped public effect accessors. A
-concurrent conflict whose effective side is an unknown typed calibration prior
-therefore returns `TypedPriorRequired` from merge inspection rather than
-fabricating a conflict mutation. Extending conflict records with typed effects
-is a follow-up to the materializer/causal merge increment.
+`MergeConflict` now retains both complete `AppliedEffect` values. A concurrent
+unknown calibration prior is therefore an inspectable conflict arm rather than
+an attempted conversion to a fabricated mutation. Mutation-only callers can
+use `left_mutation()` or `right_mutation()`, which return `None` for an unknown
+typed calibration. Merge identity canonicalizes `Evidence::Known(id)` typed
+calibration effects to the equivalent `ActivateCalibration` value, while
+preserving the typed event for replay and audit. This prevents a conflict from
+being manufactured solely by the V2 representation used by one branch.
+
+V2 resolution validation compares these typed semantic identities, so a
+known/unknown divergence can be resolved by a new selected mutation. The
+resolution still records a typed prior and exact operation references. The
+causal aggregate baseline and full project materializer remain separate work;
+this contract does not claim that either recorded prior matches reconstructed
+project state.
 
 The existing outer `project-store::replay_operations` endpoint is also
 mutation-only and will return the same explicit error for a persisted V2
@@ -94,9 +104,11 @@ migration policy before treating that history as executable.
 The focused suite in
 [`crates/operation-log/tests/operation_log.rs`](../../../crates/operation-log/tests/operation_log.rs)
 checks a fixed V1 canonical byte/hash fixture, V2 known and unknown calibration
-round trips, domain-identity and unknown-reason validation, explicit
-non-reversible binding, cross-version toggle rejection, forged shapes, and
-deterministic decoding. The architecture test remains at
+round trips, typed unknown/known concurrent conflict inspection and
+resolution, representation-independent known-effect convergence,
+domain-identity and unknown-reason validation, explicit non-reversible
+binding, cross-version toggle rejection, forged shapes, and deterministic
+decoding. The architecture test remains at
 [`crates/operation-log/tests/architecture.rs`](../../../crates/operation-log/tests/architecture.rs).
 
 Validation commands for this increment are:

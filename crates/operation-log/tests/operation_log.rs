@@ -6,11 +6,11 @@ use kyberia_domain::{
     },
 };
 use kyberia_operation_log::{
-    AppendError, AppendOutcome, CausalDepth, ConflictIntent, FieldKey, ImmutableReference,
-    InverseMetadata, InversePrior, LogicalTimestamp, MAX_OPERATION_COUNT, MAX_OPERATION_WIRE_BYTES,
-    MergeError, Mutation, NonReversibleReason, Operation, OperationError, OperationLog,
-    OperationPayload, OperationReference, OperationSchemaVersion, OperationSet, ProjectVersion,
-    ToggleDirection,
+    AppendError, AppendOutcome, AppliedEffect, CausalDepth, ConflictIntent, FieldKey,
+    ImmutableReference, InverseMetadata, InversePrior, LogicalTimestamp, MAX_OPERATION_COUNT,
+    MAX_OPERATION_WIRE_BYTES, MergeConflict, MergeError, Mutation, NonReversibleReason, Operation,
+    OperationError, OperationLog, OperationPayload, OperationReference, OperationSchemaVersion,
+    OperationSet, ProjectVersion, ToggleDirection,
 };
 use proptest::prelude::*;
 use sha2::Digest;
@@ -172,12 +172,12 @@ fn concurrent_branch_edits_have_explicit_conflicts_and_are_not_auto_resolved() {
     let conflict = &outcome.conflicts()[0];
     assert_eq!(*conflict.field(), FieldKey::ProjectName);
     assert_eq!(
-        conflict.left_effect(),
-        &Mutation::set_project_name(text("left"))
+        conflict.left_mutation(),
+        Some(&Mutation::set_project_name(text("left")))
     );
     assert_eq!(
-        conflict.right_effect(),
-        &Mutation::set_project_name(text("right"))
+        conflict.right_mutation(),
+        Some(&Mutation::set_project_name(text("right")))
     );
     assert!(matches!(
         outcome.into_applyable(),
@@ -628,6 +628,162 @@ fn v2_resolution_retains_a_typed_prior_and_replays_the_selected_value() {
             .unwrap()[&FieldKey::ProjectName],
         Mutation::set_project_name(text("chosen"))
     );
+}
+
+#[test]
+fn v2_unknown_and_known_concurrent_effects_are_typed_and_resolvable() {
+    let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+    let root_calibration = CalibrationId::from_bytes([8; 16]).unwrap();
+    let right_calibration = CalibrationId::from_bytes([9; 16]).unwrap();
+    let chosen_calibration = CalibrationId::from_bytes([10; 16]).unwrap();
+    let root = Operation::try_apply_v2(
+        op_id(2),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, root_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+    let left = Operation::try_undo_v2(
+        op_id(3),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![root.operation_id()],
+        OperationReference::from(&root),
+    )
+    .unwrap();
+    let right = Operation::try_apply_v2(
+        op_id(4),
+        project(),
+        actor(2),
+        device(2),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![root.operation_id()],
+        Mutation::activate_calibration(map_id, right_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+
+    let branched =
+        OperationSet::from_operations([root.clone(), left.clone(), right.clone()]).unwrap();
+    let outcome = branched.merge(&OperationSet::empty(project())).unwrap();
+    assert_eq!(outcome.conflicts().len(), 1);
+    let conflict = &outcome.conflicts()[0];
+    assert_eq!(conflict.left(), OperationReference::from(&left));
+    assert_eq!(conflict.right(), OperationReference::from(&right));
+    assert!(conflict.left_mutation().is_none());
+    assert_eq!(
+        conflict.right_mutation(),
+        Some(&Mutation::activate_calibration(map_id, right_calibration))
+    );
+    assert!(matches!(
+        conflict.left_effect(),
+        AppliedEffect::Calibration {
+            operation_id,
+            map_id: effect_map,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        } if *operation_id == left.operation_id() && *effect_map == map_id
+    ));
+    let conflict_bytes = serde_json::to_vec(conflict).unwrap();
+    let decoded_conflict: MergeConflict = serde_json::from_slice(&conflict_bytes).unwrap();
+    assert_eq!(&decoded_conflict, conflict);
+
+    let resolution = Operation::try_resolve_v2(
+        op_id(5),
+        project(),
+        actor(3),
+        device(3),
+        LogicalTimestamp::new(3).unwrap(),
+        CausalDepth::new(2),
+        vec![left.operation_id(), right.operation_id()],
+        OperationReference::from(&left),
+        OperationReference::from(&right),
+        Mutation::activate_calibration(map_id, chosen_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+    let resolved = OperationSet::from_operations([root, left, right, resolution]).unwrap();
+    let resolved_outcome = resolved
+        .merge(&OperationSet::empty(project()))
+        .unwrap()
+        .into_applyable()
+        .unwrap();
+    let effects = resolved_outcome.replay_effects().unwrap();
+    assert!(matches!(
+        effects.last(),
+        Some(AppliedEffect::Mutation(applied))
+            if applied.mutation() == &Mutation::activate_calibration(map_id, chosen_calibration)
+    ));
+}
+
+#[test]
+fn v2_known_typed_undo_and_known_activation_share_merge_identity() {
+    let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+    let prior_calibration = CalibrationId::from_bytes([8; 16]).unwrap();
+    let target_calibration = CalibrationId::from_bytes([9; 16]).unwrap();
+    let target = Operation::try_apply_v2(
+        op_id(10),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, target_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Known(prior_calibration),
+        },
+    )
+    .unwrap();
+    let undo = Operation::try_undo_v2(
+        op_id(11),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![target.operation_id()],
+        OperationReference::from(&target),
+    )
+    .unwrap();
+    let activation = Operation::try_apply_v2(
+        op_id(12),
+        project(),
+        actor(2),
+        device(2),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![target.operation_id()],
+        Mutation::activate_calibration(map_id, prior_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Known(target_calibration),
+        },
+    )
+    .unwrap();
+
+    let set = OperationSet::from_operations([target, undo, activation]).unwrap();
+    let outcome = set.merge(&OperationSet::empty(project())).unwrap();
+    assert!(outcome.conflicts().is_empty());
+    assert!(set.replay_effects().is_ok());
 }
 
 #[test]
