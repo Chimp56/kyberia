@@ -54,6 +54,7 @@ def command(name):
         # Executable CLI workflows. Desktop/browser E2E joins this command when
         # the application exists; no current GUI acceptance is implied.
         run("cargo", "test", "-p", "kyberia-cli", "--test", "project_workflow", "--locked", "--offline")
+        run("cargo", "test", "-p", "kyberia-cli", "--test", "stored_analysis", "--locked", "--offline")
     elif name == "test":
         run("cargo", "test", "--workspace", "--locked", "--offline")
         python("-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py")
