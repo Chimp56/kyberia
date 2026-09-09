@@ -1,5 +1,6 @@
 #[cfg(unix)]
 use super::process::run_and_normalize;
+#[cfg(unix)]
 use super::process::{
     CollectorCommand, NativeCaptureSessionError, OutputStream, ProbeOptions, ScanOptions,
     TrustedCollector, run_and_persist,
@@ -39,11 +40,13 @@ use std::{
     path::{Path, PathBuf},
     rc::Rc,
     sync::atomic::{AtomicU64, Ordering},
-    time::{Duration, Instant},
 };
 
 #[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
+use std::{
+    os::unix::fs::PermissionsExt,
+    time::{Duration, Instant},
+};
 
 const VALID: &[u8] = include_bytes!("../../../collectors/macos/fixtures/valid.ndjson");
 
