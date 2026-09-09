@@ -112,3 +112,29 @@ as MAJOR: preserving some overlap or residual does not establish preservation
 of all required geometry. Independent 5,000-case rectangle and multi-cut
 probes passed, but do not discharge these findings. Candidate integration
 remains rejected until corrections and independent verification.
+
+## Evolving correction: difference and tolerance review
+
+Independent reviewer `/root/operation_log_review_luna` still requests changes
+on `fix/polygon-containment-completeness`. Its draft uses convex clipping for
+intersection and an area-based check around kernel difference output. Total
+area and exterior containment alone do not establish every residual region or
+hole's correct position and topology. This is an unresolved proof obligation,
+not a newly demonstrated misplaced equal-area result.
+
+Root inspected the retained `.trash/review-probes/geometry-public/probe-output.txt`
+in that worktree. The recorded public difference of `[0,10]²` and the vertical
+strip `[9.9,9.95]×[0,10]` is `UnsupportedCoordinateResolution`; other ordinary
+strips `[9.8,9.9]` and `[9.85,9.92]` return `InvalidKernelResult`. The review
+message initially named a different error for the first case; the retained
+artifact is the evidence used here. These are evolving-draft observations,
+not a claim about a frozen commit. Normal centimetre-scale geometry needs a
+usable, validated construction or an evidence-backed numerical boundary.
+
+The reviewer also questioned extent-based containment tolerance. Its numeric
+example was incorrect: `1000 * 1e-10` is `1e-7` metres, not `0.1` metres.
+Moreover, actual code normalization must be accounted for before assigning
+physical units to the tolerance. The valid remaining requirement is a justified
+precision contract and tests bounding geometric error; the erroneous magnitude
+claim is not accepted as a finding. Remove draft coordinate debug output and
+run formatting before freezing the next candidate.
