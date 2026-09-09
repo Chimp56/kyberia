@@ -83,3 +83,9 @@ original left polygon, which alone cannot establish completeness when sequential
 convex cuts produce several residual pieces. These are proof gaps under review,
 not yet new reproduced kernel failures. No approval is recorded for this
 correction while numerical probes and containment review remain pending.
+
+Root independently ran `cargo test -p kyberia-geometry-adapter --locked
+--offline` at frozen `d29cf40`: 22 passed (five segment tests and 17 polygon
+tests), zero failed. The supplied regression fixtures pass, including explicit
+narrow-overlap rejection. This does not resolve the proof gaps above; the
+candidate remains unapproved pending independent adversarial review.
