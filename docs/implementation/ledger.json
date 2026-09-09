@@ -186304,14 +186304,14 @@
         {
           "path": "crates/geometry-adapter/src/lib.rs",
           "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
-          "revision": "4a39bf501abaaaecba456648150eabfcc332c46e2139c930d4f06c31c9f5396d",
-          "sha256": "4a39bf501abaaaecba456648150eabfcc332c46e2139c930d4f06c31c9f5396d"
+          "revision": "7b61d99b357d48e3f0fbab87b12c9392bef7e7d04293c6623dd96027a6d28a27",
+          "sha256": "7b61d99b357d48e3f0fbab87b12c9392bef7e7d04293c6623dd96027a6d28a27"
         },
         {
           "path": "crates/geometry-adapter/src/polygon.rs",
           "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
-          "revision": "e9b59e777518a754ef609640411815128d807986a6e894e04e116873f29d6f72",
-          "sha256": "e9b59e777518a754ef609640411815128d807986a6e894e04e116873f29d6f72"
+          "revision": "9016f068259be7a554450dfefbe19b8c929fb441c63c1e86abadb04beb1e6ba2",
+          "sha256": "9016f068259be7a554450dfefbe19b8c929fb441c63c1e86abadb04beb1e6ba2"
         }
       ],
       "validation": [

@@ -977,8 +977,8 @@ fn ensure_difference_completeness(
     result: &MultiPolygon<f64>,
 ) -> Result<(), BooleanError> {
     // For each left component, containment of the result in left, negligible
-    // result/right overlap, and area conservation together prove equality up
-    // to the explicit finite-precision tolerance. This is stronger than
+    // result/right overlap, and area conservation provide a bounded numerical
+    // certificate under the explicit finite-precision tolerance. This is stronger than
     // merely requiring one surviving result component per left component.
     if has_significant_interior_overlap(result, right)? {
         return Err(BooleanError::InvalidKernelResult);

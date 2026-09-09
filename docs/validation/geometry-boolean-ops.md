@@ -50,8 +50,9 @@ The implementation is
 The adapter caps a multipolygon at 256 components and 16,384 total ring
 coordinates. Each boolean estimates coordinate-pair work before calling
 `geo`, with a cap of 4,194,304 units. The independent convex intersection
-clipper applies the same work cap to every edge pass and bounds each
-intermediate vertex vector. Sequential difference applies the cap to every
+clipper checks a coordinate-pair estimate per helper call and bounds each
+intermediate vertex vector. This estimate is not an invocation-wide CPU ceiling.
+Sequential difference applies the cap to every
 subtraction step and bounds each retained intermediate component. Results are
 counted and revalidated after the kernel. No repair, snapping, CRS conversion,
 material attenuation, three-dimensional operation, or import-format handling

@@ -2,15 +2,13 @@
 
 The authoritative specification is [plan.md](plan.md). This is an active implementation, not a completed product.
 
-Current review checkpoint: materializer candidate `cef5716` passes 18 focused
-tests and its copy-work accounting has independent approval, but the combined
-feature remains **IN_PROGRESS** because known-calibration equivalence and
-causal acceptance coverage require correction. See the
-[review findings](docs/reviews/causal-materializer-draft-review.md). Polygon
-candidate `28ab92e` remains under independent numerical review. Capture-test
-diagnostics are being added without relaxing expected errors or deadlines;
-the two earlier parallel failures have not yet been explained. None of these
-candidates is integrated or counted as a completed product capability.
+Current review checkpoint: bounded polygon booleans are independently reviewed
+and integrated through `21f1e16`; all 30 geometry tests pass. Full Gate E remains
+open. Capture diagnostics and separated drain-test deadlines are integrated
+through `93317f2`; 33 unit and two external tests pass, with one real-collector
+test ignored. Materializer corrections remain isolated pending final independent
+review, including the pre-resolution forged-prior regression. These increments
+do not constitute a completed product capability or phase.
 
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **4 — Integration audit remediation, RF semantics, renderer/geometry proofs and supply-chain validation**.

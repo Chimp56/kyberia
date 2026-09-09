@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "purpose": "Phase 0 Gate E geometry-kernel research only; no source or runtime dependency is added to the Kyberia workspace.",
+  "purpose": "Historical Phase 0 Gate E geometry-kernel research inventory. The later production adapter pins geo 0.33.1; its current runtime dependency closure is recorded in cargo-sources.json.",
   "sources": [
     {
       "id": "geo",
@@ -103,7 +103,7 @@
     "python_lock": "research/geometry/shapely-requirements.txt",
     "python_lock_sha256": "dfb393bdccb2cb58f4e0a396d4e6e14e0b450855eba44fddb465f3638e6cc9aa",
     "wasm_target": "wasm32-unknown-unknown",
-    "production_boundary": "research-only; no Cargo workspace member or production crate depends on these libraries"
+    "production_boundary": "Research execution records remain scoped to research/geometry. The kyberia-geometry-adapter workspace crate now uses geo 0.33.1 behind the canonical geometry boundary; other research alternatives are not thereby production dependencies."
   },
   "transitive_scope": {
     "cargo_lock": "research/geometry/Cargo.lock",
