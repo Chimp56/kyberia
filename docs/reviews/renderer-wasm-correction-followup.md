@@ -39,3 +39,28 @@ semantics must survive rasterization, including near cell edges. The author
 is correcting sampling and adding framebuffer checks beyond cell centers;
 OpenLayers sampling also requires inspection. Passing admission tests and
 center probes do not close this rendering correctness finding.
+
+## Raster correction verification
+
+Root independently inspected `7ea934e` and executed:
+
+```text
+npm run test:browser-canonical -- http://127.0.0.1:4173/index.html /private/tmp/kyberia-renderer-root-raster-7ea934e-authorized
+```
+
+The command passed with macOS Chromium process access. The initial sandboxed
+launch failed at Mach port registration before a page opened. Desktop
+1280x900, mobile 390x844 at DPR 2, and desktop OpenLayers probes pass. Both
+IDW and PointValue custom raster probes preserve constant known pixels at
+left/right edges; adjacent unknown samples retain null values and unknown
+pixel classes. Desktop custom known pixels were [153,101,89,217] at center
+and both edges; adjacent unknown pixels were [29,34,45,204]. OpenLayers
+interpolation is disabled and its equivalent edge checks pass.
+
+Root inspected desktop.png: canonical cells render as discrete rectangles
+with visible unknown gaps and numeric inspection. The script reported no
+console errors; it does not collect all warnings. Screenshots and malformed
+input fixtures remain at the output path above. The raster finding is
+corrected for this bounded evidence. The synthetic benchmark's default-source
+mismatch still requires correction before integration; broader Gate B
+acceptance remains open.
