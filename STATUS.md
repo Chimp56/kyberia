@@ -61,7 +61,7 @@ product capability is validated.
 | Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; timing corrections `73111b0` and `1711f13`; exact identity mapping retention sources `ff70362` + `4c47283` independently approved and integrated, including custom and empty-capture identity regressions |
 | Unassociated acquisition spool | Root / `acquisition-spool`; Beauvoir / `capture-session-record` | Explicit terminal receipts and retained identity mappings implemented in candidates; canonical durable session record, SQLite closure and fault-injection gates remain in progress |
 | Hosted Rust diagnostics | Integrated `2452791` + `c9b4bee` | Hosted annotations now identify Windows unused argv and macOS descendant timing failure; reviewed Windows correction integrated as `00ca425`, reviewed timing correction integrated as `1711f13` |
-| Windows native request runtime | CI / integrated `2988bc6` | At `b4c4c33`, hosted lint/typecheck pass; first request-admission regression exposes an open fixture writer conflicting with Windows sharing policy. Test-only close is independently approved; hosted confirmation and remaining runtime suite stay open |
+| Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 
 
 The publication review is approved for the bounded increment in

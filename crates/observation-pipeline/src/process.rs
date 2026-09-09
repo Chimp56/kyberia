@@ -959,9 +959,29 @@ mod tests {
             TrustedCollector::new("relative", hash),
             Err(TrustError::RelativePath)
         );
+        let retained_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs");
+        fs::create_dir_all(&retained_root).unwrap();
+        let directory = tempfile::tempdir_in(&retained_root).unwrap().keep();
+        let missing = directory.join("missing-collector");
+        assert!(missing.is_absolute());
         assert_eq!(
-            TrustedCollector::new("/definitely/missing/collector", hash),
+            TrustedCollector::new(&missing, hash),
             Err(TrustError::MissingOrInaccessible)
         );
+        assert_eq!(
+            TrustedCollector::new(&directory, hash),
+            Err(TrustError::NotRegularFile)
+        );
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let non_executable = directory.join("non-executable-collector");
+            fs::write(&non_executable, b"fixture").unwrap();
+            fs::set_permissions(&non_executable, fs::Permissions::from_mode(0o600)).unwrap();
+            assert_eq!(
+                TrustedCollector::new(&non_executable, hash),
+                Err(TrustError::NotExecutable)
+            );
+        }
     }
 }

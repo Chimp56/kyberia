@@ -119,3 +119,7 @@ stored_analysis::tests::request_acquisition_reads_regular_bytes_and_rejects_inva
 The test-only fixture writer close is independently approved; detailed
 evidence and the distinction between diagnosis and hosted confirmation are in
 [the review packet](../reviews/windows-request-fixture-handle-review.md).
+
+## Trusted-path fixture checkpoint
+
+Run [34341800968](https://github.com/Chimp56/kyberia/actions/runs/34341800968) at c02212d passed macOS and Ubuntu. Windows next failed the trusted-path regression; the earlier request-file writer correction no longer appears as the reported failing test. The reviewed test now uses a platform-absolute missing path; [review and validation](../reviews/windows-trusted-path-fixture-review.md). Windows confirmation remains open.
