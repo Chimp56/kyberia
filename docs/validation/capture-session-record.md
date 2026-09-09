@@ -142,7 +142,7 @@ graph and no network access:
 
 ```text
 cargo test -p kyberia-domain --lib --locked --offline
-PASS — 12 tests
+PASS — 11 tests
 
 cargo test -p kyberia-project-store --lib --locked --offline
 PASS — 33 tests
