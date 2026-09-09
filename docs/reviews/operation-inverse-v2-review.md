@@ -1,5 +1,28 @@
 # Operation inverse V2 review
 
+## Corrected scoped disposition
+
+APPROVED by `/root` for the versioned inverse, typed replay/conflict and typed
+resolution increment through `1530866d61346eeb7b4c231d12d99667b7d21b43`, including
+`4beaa74` and `2f00aa9`. The reviewer did not author this code. Historical
+REQUEST_CHANGES findings below are retained and corrected by the series.
+
+Root independently passed 30 operation tests and one architecture test on the
+frozen correction. Typed unknown resolution is now represented by `ResolveV2`
+and exercised through actual typed replay. The original intent-conflict probe,
+retained against the correction at
+`.trash/review-probes/v2-frontier-corrected-227tjsly`, reports one conflict both
+before and after adding the equal-value branch for IDs 11 and 13. No implicit
+resolution occurs in those reproduced cases. Static review confirms distinct
+toggle entries survive equal ordinary value branches. V1 operation golden
+bytes remain covered by the passing compatibility test.
+
+This is not approval of full FND-011 completion. Baseline binding, causal prior
+validation, aggregate materialization, typed storage replay, and product conflict
+UX remain open. Mutation-only replay explicitly cannot represent unknown
+restoration. Resolution operations remain non-toggle targets; undo behavior for
+resolution must be addressed in the complete product workflow.
+
 Candidate: `4beaa746c791f324ec22defb558d0ffc0a820052`.
 Reviewer: `/root` (not the author). Disposition: REQUEST_CHANGES.
 
