@@ -39340,8 +39340,8 @@
         {
           "path": "apps/cli/src/stored_analysis.rs",
           "description": "Verified stored RSSI analysis and canonical scene export with bounded requests, explicit unknowns, source binding, cooperative cancellation and non-overwriting publication",
-          "revision": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198",
-          "sha256": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198"
+          "revision": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae",
+          "sha256": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae"
         },
         {
           "path": "crates/file-adapter/src/lib.rs",
@@ -39399,8 +39399,8 @@
         {
           "path": "apps/cli/tests/stored_analysis.rs",
           "description": "Real subprocess numerical, synthetic unknown, malformed request and SIGINT regressions",
-          "revision": "98a10d0ce7425fa73174a581b179f22cd1b5344af6018ee936d23e668aa653a2",
-          "sha256": "98a10d0ce7425fa73174a581b179f22cd1b5344af6018ee936d23e668aa653a2",
+          "revision": "a7488866535ab717ecfbb8c0e2565c510b777f52cc1c2cf2e6cf4668c425fc2b",
+          "sha256": "a7488866535ab717ecfbb8c0e2565c510b777f52cc1c2cf2e6cf4668c425fc2b",
           "command": "cargo test -p kyberia-cli --locked --offline",
           "scope": "unix_cli_contract",
           "result": "PASS"
@@ -173231,8 +173231,8 @@
         {
           "path": "apps/cli/src/stored_analysis.rs",
           "description": "Verified stored RSSI analysis and canonical scene export with bounded requests, explicit unknowns, source binding, cooperative cancellation and non-overwriting publication",
-          "revision": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198",
-          "sha256": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198"
+          "revision": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae",
+          "sha256": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae"
         },
         {
           "path": "crates/file-adapter/src/lib.rs",
@@ -173263,8 +173263,8 @@
         {
           "path": "apps/cli/tests/stored_analysis.rs",
           "description": "Real subprocess numerical, synthetic unknown, malformed request and SIGINT regressions",
-          "revision": "98a10d0ce7425fa73174a581b179f22cd1b5344af6018ee936d23e668aa653a2",
-          "sha256": "98a10d0ce7425fa73174a581b179f22cd1b5344af6018ee936d23e668aa653a2",
+          "revision": "a7488866535ab717ecfbb8c0e2565c510b777f52cc1c2cf2e6cf4668c425fc2b",
+          "sha256": "a7488866535ab717ecfbb8c0e2565c510b777f52cc1c2cf2e6cf4668c425fc2b",
           "command": "cargo test -p kyberia-cli --locked --offline",
           "scope": "unix_cli_contract",
           "result": "PASS"

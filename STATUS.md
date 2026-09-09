@@ -70,6 +70,10 @@ An active draft or passing author test is not integration approval.
 
 ## Current validation
 
+At identity-retention integration `5066c6d`, the full workspace regression
+passes **635 tests, zero failures, nine ignored**. Log:
+`.tools/mapping-integrated-workspace.log`.
+
 At `1711f13`, the complete Rust workspace regression passes **634 tests, zero
 failures, nine ignored**. Log: `.tools/drain-integrated-workspace-loopback.log`.
 The initial sandboxed run failed when local Kismet HTTP fixtures could not bind;

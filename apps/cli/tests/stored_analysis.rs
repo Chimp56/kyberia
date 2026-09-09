@@ -22,11 +22,15 @@ use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     fs,
-    io::{BufRead, BufReader, Read},
     path::{Path, PathBuf},
     process::Command,
-    process::Stdio,
     sync::atomic::{AtomicUsize, Ordering},
+};
+
+#[cfg(unix)]
+use std::{
+    io::{BufRead, BufReader, Read},
+    process::Stdio,
     thread,
     time::{Duration, Instant},
 };

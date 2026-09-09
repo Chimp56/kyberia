@@ -21,11 +21,13 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::{Read, Write},
     path::Path,
 };
 
+#[cfg(any(unix, test))]
+use std::fs::File;
 #[cfg(unix)]
 use std::os::unix::fs::OpenOptionsExt;
 
