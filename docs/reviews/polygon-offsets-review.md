@@ -26,4 +26,7 @@ worktree at `.trash/review-probes/offset-correction-21b156e8`.
 
 The existing native/WASM square proof for `3406d6b` does not by itself validate
 the corrected coverage fallback on every geometry or platform. Gate E import,
-3D, precision and broader geometry requirements remain open.
+3D, precision and broader geometry requirements remain open. A subsequent
+[root-executed ten-case proof](../validation/offset-wasm-21b156e8.json) covers
+the corrected mixed-scale rejection at two origins in native and WebAssembly
+runtimes; it supplements the independent review without expanding its scope.

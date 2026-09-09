@@ -96,3 +96,15 @@ python3 tools/architecture.py check
 python3 tools/source_inventory.py check
 git diff --check
 ```
+
+## Corrected native/WebAssembly execution
+
+The [ten-case proof](offset-wasm-21b156e8.json) executes corrected source
+`21b156e8` through actual native Rust and Node WebAssembly runtimes. It checks
+eight square areas (unchanged, outward, inward and erased, at two origins) and
+rejects the original mixed-scale partial-loss fixture at origins 0 m and
+1,000,000 m. Both runtimes return identical results; parity tolerance is 1e-8.
+Analytical rounded-area tolerance is 0.1 m² for polygonal arc approximation;
+other area cases use 1e-5 m². The artifact contains the original harness source
+and its hashes so manually removing retained `.trash/` runs does not remove
+the reproduction inputs. This finite proof does not close broader Gate E.

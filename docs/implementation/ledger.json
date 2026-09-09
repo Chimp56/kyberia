@@ -186476,6 +186476,15 @@
           "command": "cargo test -p kyberia-geometry-adapter --locked --offline",
           "scope": "planar_polygon_offsets",
           "result": "PASS"
+        },
+        {
+          "path": "docs/validation/offset-wasm-21b156e8.json",
+          "description": "Actual native/WASM square-area and corrected mixed-scale rejection parity, ten finite cases",
+          "sha256": "aad2a0b87fd9307760179d2633b811bf7edc8340f73142294d1ef214d4016e13",
+          "revision": "aad2a0b87fd9307760179d2633b811bf7edc8340f73142294d1ef214d4016e13",
+          "command": "cargo run and cargo build --target wasm32-unknown-unknown followed by Node WebAssembly.instantiate as recorded in the artifact",
+          "scope": "offset_native_wasm_ten_cases",
+          "result": "PASS"
         }
       ],
       "reviews": [
@@ -186500,8 +186509,8 @@
         {
           "path": "docs/reviews/polygon-offsets-review.md",
           "description": "Independent offset completeness correction review and tolerance clarification",
-          "revision": "c20b0bc0b0263e1f8ed71395991032edb9d1deb84bace366467c76e3de19b336",
-          "sha256": "c20b0bc0b0263e1f8ed71395991032edb9d1deb84bace366467c76e3de19b336",
+          "revision": "c0f11d2ebade7b138949a3e4786e7c9842b676ed05ca473fd4359f9d1eff9c68",
+          "sha256": "c0f11d2ebade7b138949a3e4786e7c9842b676ed05ca473fd4359f9d1eff9c68",
           "reviewer": "/root/channel_coupling_review_luna",
           "disposition": "APPROVED",
           "findings": []

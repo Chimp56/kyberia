@@ -67,6 +67,9 @@ An active draft or passing author test is not integration approval.
 
 ## Current validation
 
+Corrected polygon offsets also pass [ten native/WASM execution cases](docs/validation/offset-wasm-21b156e8.json),
+including rejection of mixed-scale partial loss at two origins; broader Gate E remains open.
+
 After offset integration, workspace tests and Clippy pass; logs are
 `.tools/offset-integrated-workspace-tests.log` and `.tools/offset-integrated-clippy.log`.
 
