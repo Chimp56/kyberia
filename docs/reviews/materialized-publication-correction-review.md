@@ -36,3 +36,9 @@ passes `cargo check --target x86_64-pc-windows-gnu --locked --offline` with
 `windows-sys 0.61.2`. This checks Windows API names/types, including file-system
 `SECURITY_IDENTIFICATION`, but does not prove full crate compilation, linking,
 filesystem behavior or Windows runtime security. Those remain validation gates.
+
+Subsequent native CI at `d5050f3` passes the complete foundation/CLI build on
+Windows, macOS and Linux. This closes the full Windows build-evidence gap;
+validation jobs are still running. See the [public CI checkpoint](../validation/ci-publication-checkpoint.md).
+The earlier local MinGW failure remains a local-toolchain observation, not a
+claim that Windows compilation is externally blocked.

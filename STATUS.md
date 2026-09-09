@@ -77,6 +77,11 @@ and synthetic fixture verification; log: `.tools/post-scene-complete-check.log`.
 These checks do not replace browser, native hardware, cross-platform, Sionna or
 Kismet runtime gates.
 
+Native CI has passed the complete workspace build on Windows, macOS and Linux
+for `d5050f3`; its validation jobs are still running. Prior macOS/Windows
+validation failures remain under investigation. See the
+[CI checkpoint](docs/validation/ci-publication-checkpoint.md).
+
 ## Blocked capabilities and technical debt
 
 No entire capability is classified externally blocked. Requirement-specific
@@ -86,7 +91,7 @@ runnable implementation and fixture work.
 
 Remaining work includes product capture/point-survey wiring and acquisition
 spooling; final renderer choice, Tauri/WebView and broader host/driver tests;
-full Windows publication validation; geometry imports/offsets/3D/CRS/CAD;
+remaining Windows publication runtime validation; geometry imports/offsets/3D/CRS/CAD;
 complete metric families, regulatory/PHY/airtime/capacity semantics; live Kismet
 and PCAPNG normalization parity; full Sionna runtime/calibration gates; storage
 live-load/failure/fuzz/portability gates; authorization/coordinator/conflict UX;
