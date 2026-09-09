@@ -10,7 +10,7 @@ use kyberia_operation_log::{
     ImmutableReference, InverseMetadata, InversePrior, LogicalTimestamp, MAX_OPERATION_COUNT,
     MAX_OPERATION_WIRE_BYTES, MergeConflict, MergeError, Mutation, NonReversibleReason, Operation,
     OperationError, OperationLog, OperationPayload, OperationReference, OperationSchemaVersion,
-    OperationSet, ProjectVersion, ToggleDirection,
+    OperationSet, ProjectVersion, ResolutionValue, ToggleDirection,
 };
 use proptest::prelude::*;
 use sha2::Digest;
@@ -719,7 +719,9 @@ fn v2_unknown_and_known_concurrent_effects_are_typed_and_resolvable() {
         },
     )
     .unwrap();
-    let resolved = OperationSet::from_operations([root, left, right, resolution]).unwrap();
+    let resolved =
+        OperationSet::from_operations([root.clone(), left.clone(), right.clone(), resolution])
+            .unwrap();
     let resolved_outcome = resolved
         .merge(&OperationSet::empty(project()))
         .unwrap()
@@ -731,6 +733,73 @@ fn v2_unknown_and_known_concurrent_effects_are_typed_and_resolvable() {
         Some(AppliedEffect::Mutation(applied))
             if applied.mutation() == &Mutation::activate_calibration(map_id, chosen_calibration)
     ));
+
+    let unknown_resolution = Operation::try_resolve_v2(
+        op_id(6),
+        project(),
+        actor(3),
+        device(3),
+        LogicalTimestamp::new(3).unwrap(),
+        CausalDepth::new(2),
+        vec![left.operation_id(), right.operation_id()],
+        OperationReference::from(&left),
+        OperationReference::from(&right),
+        ResolutionValue::activate_calibration(
+            map_id,
+            Evidence::Unknown(UnknownReason::NotMeasured),
+        ),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Known(root_calibration),
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        Operation::from_bytes(&unknown_resolution.to_bytes().unwrap()).unwrap(),
+        unknown_resolution
+    );
+    let unknown_resolved =
+        OperationSet::from_operations([root, left.clone(), right.clone(), unknown_resolution])
+            .unwrap();
+    let unknown_effects = unknown_resolved
+        .merge(&OperationSet::empty(project()))
+        .unwrap()
+        .into_applyable()
+        .unwrap()
+        .replay_effects()
+        .unwrap();
+    assert!(matches!(
+        unknown_effects.last(),
+        Some(AppliedEffect::Calibration {
+            map_id: effect_map,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+            ..
+        }) if *effect_map == map_id
+    ));
+    assert!(unknown_resolved.validate_replay_semantics().is_ok());
+
+    assert_eq!(
+        Operation::try_resolve_v2(
+            op_id(7),
+            project(),
+            actor(3),
+            device(3),
+            LogicalTimestamp::new(3).unwrap(),
+            CausalDepth::new(2),
+            vec![left.operation_id(), right.operation_id()],
+            OperationReference::from(&left),
+            OperationReference::from(&right),
+            ResolutionValue::activate_calibration(
+                map_id,
+                Evidence::Unknown(UnknownReason::ClockUnavailable),
+            ),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: Evidence::Known(root_calibration),
+            },
+        ),
+        Err(OperationError::InvalidInverse)
+    );
 }
 
 #[test]
@@ -784,6 +853,104 @@ fn v2_known_typed_undo_and_known_activation_share_merge_identity() {
     let outcome = set.merge(&OperationSet::empty(project())).unwrap();
     assert!(outcome.conflicts().is_empty());
     assert!(set.replay_effects().is_ok());
+}
+
+#[test]
+fn equal_value_branches_do_not_mask_distinct_concurrent_toggle_intents() {
+    let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+    let prior_calibration = CalibrationId::from_bytes([8; 16]).unwrap();
+    let applied_calibration = CalibrationId::from_bytes([9; 16]).unwrap();
+    let first = Operation::try_apply_v2(
+        op_id(1),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, applied_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Known(prior_calibration),
+        },
+    )
+    .unwrap();
+    let second = Operation::try_apply_v2(
+        op_id(2),
+        project(),
+        actor(2),
+        device(2),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, applied_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Known(prior_calibration),
+        },
+    )
+    .unwrap();
+    let undo_first = Operation::try_undo_v2(
+        op_id(10),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![first.operation_id(), second.operation_id()],
+        OperationReference::from(&first),
+    )
+    .unwrap();
+    let activate_prior = Operation::try_apply_v2(
+        op_id(11),
+        project(),
+        actor(3),
+        device(3),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![first.operation_id(), second.operation_id()],
+        Mutation::activate_calibration(map_id, prior_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Known(applied_calibration),
+        },
+    )
+    .unwrap();
+    let undo_second = Operation::try_undo_v2(
+        op_id(12),
+        project(),
+        actor(2),
+        device(2),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![first.operation_id(), second.operation_id()],
+        OperationReference::from(&second),
+    )
+    .unwrap();
+
+    let all = [
+        first.clone(),
+        second.clone(),
+        undo_first.clone(),
+        activate_prior.clone(),
+        undo_second.clone(),
+    ];
+    let set = OperationSet::from_operations(all.clone()).unwrap();
+    let outcome = set.merge(&OperationSet::empty(project())).unwrap();
+    assert_eq!(outcome.conflicts().len(), 1);
+    assert_eq!(
+        outcome.conflicts()[0].left(),
+        OperationReference::from(&undo_first)
+    );
+    assert_eq!(
+        outcome.conflicts()[0].right(),
+        OperationReference::from(&undo_second)
+    );
+
+    let reversed = [undo_second, activate_prior, second, undo_first, first];
+    let reversed_set = OperationSet::from_operations(reversed).unwrap();
+    let reversed_outcome = reversed_set.merge(&OperationSet::empty(project())).unwrap();
+    assert_eq!(reversed_outcome.conflicts(), outcome.conflicts());
 }
 
 #[test]

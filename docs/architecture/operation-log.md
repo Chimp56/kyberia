@@ -79,7 +79,7 @@ fields:
 | `logical_time` | Positive Lamport-style counter supplied by the command layer. |
 | `causal_depth` | DAG depth: zero for a root, otherwise one plus the maximum parent depth. It is not a project revision. |
 | `parents` | Up to eight sorted causal operation IDs. |
-| `payload` | Closed typed `Apply`, `Undo`, `Redo`, or `Resolve` command. |
+| `payload` | Closed typed `Apply`, `Undo`, `Redo`, `Resolve` (V1), or `ResolveV2` command. |
 | `inverse` | V1 typed inverse mutation or toggle reference; V2 typed prior, explicit non-reversible reason, or toggle reference. |
 | `content_hash` | SHA-256 of the canonical unsigned operation bytes. |
 
@@ -97,16 +97,17 @@ ancestry/work steps per validation or replay pass. These are format safety
 bounds, not permission to put observation payloads in commands.
 
 V2 reversible applies and resolutions use `InversePrior` with the same field
-identity as the forward mutation. Project and site names retain bounded text;
-calibration retains either a known ID or `Evidence::Unknown(NotMeasured)`, so
-legacy replay cannot manufacture an ID for an unknown prior. Floor-evidence
+identity as the forward value. A V2 resolution uses `ResolutionValue`, which
+can carry either a mutation or `Evidence::Unknown(NotMeasured)` calibration;
+legacy replay cannot manufacture an ID for an unknown value. Floor-evidence
 binding uses `NonReversible(FloorEvidenceBinding)` and cannot be an undo/redo
 target. V1 constructors and canonical bytes remain unchanged. Cross-version
 toggles and resolution references are rejected explicitly. The mutation-only
-replay API returns an explicit typed error when a V2 unknown prior cannot be
-represented as a legacy `Mutation`; `OperationSet::replay_effects` exposes the
-typed `AppliedEffect::Calibration` instead. The later project materializer must
-consume that typed prior against a validated causal baseline.
+replay API returns an explicit typed error when a V2 unknown prior or selected
+resolution value cannot be represented as a legacy `Mutation`;
+`OperationSet::replay_effects` exposes the typed `AppliedEffect::Calibration`
+instead. The later project materializer must consume that typed value against a
+validated causal baseline.
 
 ## Command/query separation and append admission
 
@@ -164,17 +165,19 @@ closed before unbounded merge work. `MergeOutcome::into_applyable` returns an
 error while any conflict exists; there is no last-writer-wins or arbitrary
 sorting-based semantic resolution.
 
-`Resolve` is an explicit typed operation. It references two exact,
+`Resolve` and `ResolveV2` are explicit typed operations. They reference two exact,
 concurrent, causally joined operations on one field in canonical operation-ID
 order; both references must be the operation's current direct parents. It
-records the selected mutation and its inverse, and clears only that exact
+records the selected mutation/value and its inverse, and clears only that exact
 current conflict pair during merge. Stale ancestor pairs, reversed pairs,
 invalid fields, non-concurrent targets, and attempts to resolve equal semantic
-effects
-are rejected. Validation uses the typed effect path, so a known/unknown
-calibration conflict can be resolved without forcing the unknown side through
-the V1 mutation API. The references remain in the immutable operation for
-auditability. Unrelated heads retain their own conflict records.
+values are rejected, except that a same-value conflict between distinct toggle
+intents may be explicitly acknowledged by a resolution. Validation uses the
+typed effect path, so a known/unknown calibration conflict can be resolved to
+either a known mutation or an explicit unknown value. The references remain in
+the immutable operation for auditability. Unrelated heads retain their own
+conflict records. Resolution operations remain ineligible as undo/redo targets
+under this contract.
 
 Undo and redo are operations in this same DAG. An undo points to the original
 operation ID and hash and applies its stored inverse mutation during replay;

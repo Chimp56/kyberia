@@ -24,8 +24,11 @@ this decision does not prove that a recorded prior matches a reconstructed
 
 Add operation schema V2 as an additive, explicit inverse representation:
 
-- V2 reversible apply/resolve operations use `InverseMetadata::ApplyV2` and a
-  closed `InversePrior` (`ProjectName`, `SiteName`, or `MapCalibration`).
+- V2 reversible apply operations use `InverseMetadata::ApplyV2` and a closed
+  `InversePrior` (`ProjectName`, `SiteName`, or `MapCalibration`). V2
+  resolutions use the additive `OperationPayload::ResolveV2` and its closed
+  `ResolutionValue`, so the selected result can itself be an explicit unknown
+  calibration state.
 - `MapCalibration` carries `Evidence<CalibrationId>`. The only admitted unknown
   prior is `Unknown(NotMeasured)`, matching the domain's calibration admission
   semantics. Legacy replay conversion returns `TypedPriorRequired` for that
@@ -81,11 +84,13 @@ preserving the typed event for replay and audit. This prevents a conflict from
 being manufactured solely by the V2 representation used by one branch.
 
 V2 resolution validation compares these typed semantic identities, so a
-known/unknown divergence can be resolved by a new selected mutation. The
-resolution still records a typed prior and exact operation references. The
-causal aggregate baseline and full project materializer remain separate work;
-this contract does not claim that either recorded prior matches reconstructed
-project state.
+known/unknown divergence can be resolved by a new selected known or unknown
+calibration value. The resolution still records a typed prior and exact
+operation references. As in V1, resolution operations are not undo/redo
+targets in this bounded operation contract; toggles target original `Apply`
+operations only. The causal aggregate baseline and full project materializer
+remain separate work; this contract does not claim that either recorded prior
+matches reconstructed project state.
 
 The existing outer `project-store::replay_operations` endpoint is also
 mutation-only and will return the same explicit error for a persisted V2

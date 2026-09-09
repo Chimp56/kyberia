@@ -29,9 +29,14 @@ The focused tests demonstrate:
 - a V2 concurrent unknown-calibration undo versus known activation that
   retains both typed conflict effects, resolves through a selected mutation,
   and replays deterministically;
+- a V2 `ResolveV2` selecting `Unknown(NotMeasured)` and replaying that typed
+  value without coercion, alongside a known-value resolution;
 - a representation-independence case proving a typed known-calibration undo
   and an equivalent activation share merge identity without a manufactured
   conflict;
+- three concurrent equal-value branches proving an ordinary equal-value
+  activation does not mask a distinct-toggle intent conflict, independent of
+  input ordering;
 - causal ordering independent of input order;
 - missing parents, mismatched inverses, wrong target hashes, and invalid append
   causal-depth/parent contexts;

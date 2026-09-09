@@ -350,6 +350,37 @@ impl InversePrior {
         }
     }
 
+    fn validate_for_resolution(&self, value: &ResolutionValue) -> Result<(), OperationError> {
+        match value {
+            ResolutionValue::Mutation(mutation) => self.validate_for(mutation),
+            ResolutionValue::Calibration {
+                map_id,
+                calibration: selected_calibration,
+            } => {
+                if !matches!(
+                    selected_calibration,
+                    Evidence::Known(_) | Evidence::Unknown(UnknownReason::NotMeasured)
+                ) {
+                    return Err(OperationError::InvalidInverse);
+                }
+                match self {
+                    Self::MapCalibration {
+                        map_id: prior_map_id,
+                        calibration,
+                    } if map_id == prior_map_id
+                        && matches!(
+                            calibration,
+                            Evidence::Known(_) | Evidence::Unknown(UnknownReason::NotMeasured)
+                        ) =>
+                    {
+                        Ok(())
+                    }
+                    _ => Err(OperationError::InvalidInverse),
+                }
+            }
+        }
+    }
+
     /// Convert a representable prior to the legacy mutation form. Unknown
     /// calibration is intentionally not converted: doing so would invent an
     /// identifier and lose the domain's explicit unknown state.
@@ -372,6 +403,46 @@ impl InversePrior {
                 ..
             } => Err(OperationError::TypedPriorRequired),
         }
+    }
+}
+
+/// A V2 resolution value. Unlike the V1 `Resolve` payload, this closed value
+/// can select an explicitly unknown calibration state without inventing a
+/// calibration identifier.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    tag = "kind",
+    content = "data",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+pub enum ResolutionValue {
+    Mutation(Mutation),
+    Calibration {
+        map_id: MapAssetId,
+        calibration: Evidence<CalibrationId>,
+    },
+}
+
+impl ResolutionValue {
+    pub fn activate_calibration(map_id: MapAssetId, calibration: Evidence<CalibrationId>) -> Self {
+        Self::Calibration {
+            map_id,
+            calibration,
+        }
+    }
+
+    pub const fn field_key(&self) -> FieldKey {
+        match self {
+            Self::Mutation(mutation) => mutation.field_key(),
+            Self::Calibration { map_id, .. } => FieldKey::MapCalibration(*map_id),
+        }
+    }
+}
+
+impl From<Mutation> for ResolutionValue {
+    fn from(value: Mutation) -> Self {
+        Self::Mutation(value)
     }
 }
 
@@ -468,6 +539,12 @@ pub enum OperationPayload {
         left: OperationReference,
         right: OperationReference,
         mutation: Mutation,
+    },
+    /// V2 resolution payload retaining the selected typed value.
+    ResolveV2 {
+        left: OperationReference,
+        right: OperationReference,
+        value: ResolutionValue,
     },
 }
 
@@ -791,9 +868,13 @@ impl Operation {
         )
     }
 
-    /// Construct a V2 resolution with a typed inverse prior.
+    /// Construct a V2 resolution with a typed selected value and inverse
+    /// prior. Passing a [`Mutation`] remains supported for known V2 values;
+    /// callers that need to select an explicit unknown calibration use
+    /// [`ResolutionValue::Calibration`] (or
+    /// [`ResolutionValue::activate_calibration`]).
     #[allow(clippy::too_many_arguments)]
-    pub fn try_resolve_v2(
+    pub fn try_resolve_v2<V: Into<ResolutionValue>>(
         operation_id: OperationId,
         project_id: ProjectId,
         actor_id: ActorId,
@@ -803,7 +884,7 @@ impl Operation {
         parents: Vec<OperationId>,
         left: OperationReference,
         right: OperationReference,
-        mutation: Mutation,
+        value: V,
         prior: InversePrior,
     ) -> Result<Self, OperationError> {
         Self::try_parts(
@@ -815,10 +896,10 @@ impl Operation {
             logical_time,
             causal_depth,
             parents,
-            OperationPayload::Resolve {
+            OperationPayload::ResolveV2 {
                 left,
                 right,
-                mutation,
+                value: value.into(),
             },
             InverseMetadata::ApplyV2 { prior },
             None,
@@ -980,13 +1061,14 @@ impl Operation {
         match self.payload {
             OperationPayload::Apply { .. } => None,
             OperationPayload::Undo { target } | OperationPayload::Redo { target } => Some(target),
-            OperationPayload::Resolve { .. } => None,
+            OperationPayload::Resolve { .. } | OperationPayload::ResolveV2 { .. } => None,
         }
     }
 
     pub const fn resolution_references(&self) -> Option<(OperationReference, OperationReference)> {
         match self.payload {
-            OperationPayload::Resolve { left, right, .. } => Some((left, right)),
+            OperationPayload::Resolve { left, right, .. }
+            | OperationPayload::ResolveV2 { left, right, .. } => Some((left, right)),
             _ => None,
         }
     }
@@ -1093,6 +1175,9 @@ fn validate_payload_inverse(
             (OperationPayload::Apply { mutation }, InverseMetadata::ApplyV2 { prior })
             | (OperationPayload::Resolve { mutation, .. }, InverseMetadata::ApplyV2 { prior }) => {
                 prior.validate_for(mutation)?;
+            }
+            (OperationPayload::ResolveV2 { value, .. }, InverseMetadata::ApplyV2 { prior }) => {
+                prior.validate_for_resolution(value)?;
             }
             (
                 OperationPayload::Apply {
@@ -1279,7 +1364,7 @@ impl OperationLog {
             OperationPayload::Redo { target } => {
                 self.active.insert(target.operation_id(), true);
             }
-            OperationPayload::Resolve { .. } => {}
+            OperationPayload::Resolve { .. } | OperationPayload::ResolveV2 { .. } => {}
         }
         self.operations.insert(operation.operation_id(), operation);
         Ok(AppendOutcome::Appended {
@@ -1296,7 +1381,10 @@ impl OperationLog {
     }
 
     fn validate_target(&self, operation: &Operation) -> Result<(), AppendError> {
-        if matches!(operation.payload(), OperationPayload::Resolve { .. }) {
+        if matches!(
+            operation.payload(),
+            OperationPayload::Resolve { .. } | OperationPayload::ResolveV2 { .. }
+        ) {
             // A linear local log has no concurrent heads to resolve. Resolution
             // commands are admitted through a validated OperationSet join.
             return Err(AppendError::InvalidResolution);
@@ -1327,7 +1415,9 @@ impl OperationLog {
             OperationPayload::Undo { .. } | OperationPayload::Redo { .. } => {
                 return Err(AppendError::InvalidToggle);
             }
-            OperationPayload::Apply { .. } | OperationPayload::Resolve { .. } => {}
+            OperationPayload::Apply { .. }
+            | OperationPayload::Resolve { .. }
+            | OperationPayload::ResolveV2 { .. } => {}
         }
         Ok(())
     }
@@ -1388,10 +1478,38 @@ impl EffectValue {
     }
 }
 
+impl ResolutionValue {
+    fn applied_effect(&self, operation_id: OperationId) -> AppliedEffect {
+        match self {
+            Self::Mutation(mutation) => AppliedEffect::Mutation(AppliedMutation {
+                operation_id,
+                mutation: mutation.clone(),
+            }),
+            Self::Calibration {
+                map_id,
+                calibration,
+            } => AppliedEffect::Calibration {
+                operation_id,
+                map_id: *map_id,
+                calibration: calibration.clone(),
+            },
+        }
+    }
+}
+
 impl FrontierIdentity {
-    fn semantically_equal(&self, other: &Self) -> bool {
+    fn value(&self) -> &EffectValue {
+        match self {
+            Self::Value(value) | Self::Toggle { effect: value, .. } => value,
+        }
+    }
+
+    fn is_value(&self) -> bool {
+        matches!(self, Self::Value(_))
+    }
+
+    fn same_toggle_intent(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Value(left), Self::Value(right)) => left == right,
             (
                 Self::Toggle {
                     target: left_target,
@@ -1404,8 +1522,7 @@ impl FrontierIdentity {
                     ..
                 },
             ) => left_target == right_target && left_direction == right_direction,
-            (Self::Toggle { effect: toggle, .. }, Self::Value(value))
-            | (Self::Value(value), Self::Toggle { effect: toggle, .. }) => toggle == value,
+            _ => false,
         }
     }
 }
@@ -1437,7 +1554,9 @@ fn frontier_identity(
                 direction: ToggleDirection::Redo,
             },
         ),
-        OperationPayload::Apply { .. } | OperationPayload::Resolve { .. } => (
+        OperationPayload::Apply { .. }
+        | OperationPayload::Resolve { .. }
+        | OperationPayload::ResolveV2 { .. } => (
             FrontierIdentity::Value(effect.canonical_identity()),
             ConflictIntent::Value,
         ),
@@ -1744,6 +1863,9 @@ impl OperationSet {
                         mutation: mutation.clone(),
                     }));
                 }
+                OperationPayload::ResolveV2 { value, .. } => {
+                    result.push(value.applied_effect(operation.operation_id()));
+                }
             }
         }
         Ok((result, active))
@@ -1909,12 +2031,42 @@ impl OperationSet {
             | MergeError::Conflicts(_)
             | MergeError::ResourceLimit(_) => OperationError::InvalidResolution,
         })?;
-        let OperationPayload::Resolve { mutation, .. } = operation.payload() else {
-            return Err(OperationError::InvalidResolution);
+        let resolution_value = match operation.payload() {
+            OperationPayload::Resolve { mutation, .. } => {
+                ResolutionValue::Mutation(mutation.clone())
+            }
+            OperationPayload::ResolveV2 { value, .. } => value.clone(),
+            OperationPayload::Apply { .. }
+            | OperationPayload::Undo { .. }
+            | OperationPayload::Redo { .. } => return Err(OperationError::InvalidResolution),
+        };
+        let distinct_toggle_intents = match (left_operation.payload(), right_operation.payload()) {
+            (
+                OperationPayload::Undo {
+                    target: left_target,
+                },
+                OperationPayload::Undo {
+                    target: right_target,
+                },
+            )
+            | (
+                OperationPayload::Redo {
+                    target: left_target,
+                },
+                OperationPayload::Redo {
+                    target: right_target,
+                },
+            ) => left_target != right_target,
+            (
+                OperationPayload::Undo { .. } | OperationPayload::Redo { .. },
+                OperationPayload::Undo { .. } | OperationPayload::Redo { .. },
+            ) => true,
+            _ => false,
         };
         if left_effect.field_key() != right_effect.field_key()
-            || left_effect.field_key() != mutation.field_key()
-            || left_effect.canonical_identity() == right_effect.canonical_identity()
+            || left_effect.field_key() != resolution_value.field_key()
+            || (left_effect.canonical_identity() == right_effect.canonical_identity()
+                && !distinct_toggle_intents)
         {
             return Err(OperationError::InvalidResolution);
         }
@@ -1978,7 +2130,28 @@ impl OperationSet {
             let previous = frontier.remove(&key).unwrap_or_default();
             let mut next = Vec::with_capacity(previous.len().saturating_add(1));
             for entry in previous {
-                if entry.identity.semantically_equal(&identity) {
+                let same_value = entry.identity.value() == identity.value();
+                if same_value
+                    && self
+                        .ancestor_with_budget(
+                            entry.operation_id,
+                            operation.operation_id(),
+                            &mut ancestry_work,
+                        )
+                        .map_err(MergeError::Operation)?
+                {
+                    self.remove_superseded_conflicts(
+                        &mut conflicts,
+                        entry.operation_id,
+                        operation.operation_id(),
+                        &mut ancestry_work,
+                    )?;
+                    continue;
+                }
+                if same_value
+                    && (entry.identity.is_value() && identity.is_value()
+                        || entry.identity.same_toggle_intent(&identity))
+                {
                     // Equal value effects and duplicate same-target toggles
                     // share one representative. The latter is a canonical
                     // replay no-op after the first toggle.
@@ -1988,6 +2161,57 @@ impl OperationSet {
                         operation.operation_id(),
                         &mut ancestry_work,
                     )?;
+                    continue;
+                }
+                if same_value && !entry.identity.is_value() && !identity.is_value() {
+                    // Different concurrent toggle intents remain independent
+                    // even when they happen to restore the same value. Keep
+                    // both frontier entries and report their intent conflict.
+                    let (left, right, left_intent, right_intent, left_effect, right_effect) =
+                        if entry.operation_id < operation.operation_id() {
+                            (
+                                entry.reference,
+                                OperationReference::from(operation),
+                                entry.intent,
+                                intent,
+                                entry.event.clone(),
+                                event.clone(),
+                            )
+                        } else {
+                            (
+                                OperationReference::from(operation),
+                                entry.reference,
+                                intent,
+                                entry.intent,
+                                event.clone(),
+                                entry.event.clone(),
+                            )
+                        };
+                    let conflict_key = (left.operation_id(), right.operation_id());
+                    if !conflicts.contains_key(&conflict_key) && conflicts.len() >= MAX_CONFLICTS {
+                        return Err(MergeError::ResourceLimit("merge_conflicts"));
+                    }
+                    conflicts.insert(
+                        conflict_key,
+                        MergeConflict {
+                            field: key.clone(),
+                            left,
+                            right,
+                            left_intent,
+                            right_intent,
+                            left_effect,
+                            right_effect,
+                        },
+                    );
+                    next.push(entry);
+                    continue;
+                }
+                if same_value {
+                    // A value operation and a toggle with the same effective
+                    // value are equivalent for state selection, but the
+                    // toggle entry remains in the frontier so distinct
+                    // toggle intents can still be audited independently.
+                    next.push(entry);
                     continue;
                 }
                 if self
@@ -2131,6 +2355,9 @@ impl OperationSet {
                     operation_id: operation.operation_id(),
                     mutation: mutation.clone(),
                 }))
+            }
+            OperationPayload::ResolveV2 { value, .. } => {
+                Ok(value.applied_effect(operation.operation_id()))
             }
         }
     }
