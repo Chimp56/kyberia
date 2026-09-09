@@ -1350,15 +1350,19 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
     };
 
     let (_script, malformed) = synthetic_collector(VALID, SyntheticCollectorBehavior::Malformed);
-    assert!(matches!(
-        run(
-            &mut bundle,
-            &malformed,
-            CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    let malformed_result = run(
+        &mut bundle,
+        &malformed,
+        CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    );
+    assert!(
+        matches!(
+            &malformed_result,
+            Err(NativeCaptureSessionError::AdapterDecode(_))
         ),
-        Err(NativeCaptureSessionError::AdapterDecode(_))
-    ));
+        "malformed collector result: {malformed_result:?}"
+    );
 
     let (_script, flood_stdout) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::FloodStdout);
@@ -1370,10 +1374,13 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
         CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
         |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
     );
-    assert!(matches!(
-        flood_stdout_result,
-        Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stdout))
-    ));
+    assert!(
+        matches!(
+            &flood_stdout_result,
+            Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stdout))
+        ),
+        "stdout flood result: {flood_stdout_result:?}"
+    );
 
     let (_script, flood_stderr) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::FloodStderr);
@@ -1385,48 +1392,63 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
         CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
         |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
     );
-    assert!(matches!(
-        flood_stderr_result,
-        Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stderr))
-    ));
+    assert!(
+        matches!(
+            &flood_stderr_result,
+            Err(NativeCaptureSessionError::OutputLimit(OutputStream::Stderr))
+        ),
+        "stderr flood result: {flood_stderr_result:?}"
+    );
 
     let (_script, mismatch) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 1 });
-    assert!(matches!(
-        run(
-            &mut bundle,
-            &mismatch,
-            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    let mismatch_result = run(
+        &mut bundle,
+        &mismatch,
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    );
+    assert!(
+        matches!(
+            &mismatch_result,
+            Err(NativeCaptureSessionError::TerminalExitMismatch { exit_code: 1, .. })
         ),
-        Err(NativeCaptureSessionError::TerminalExitMismatch { exit_code: 1, .. })
-    ));
+        "terminal mismatch result: {mismatch_result:?}"
+    );
 
     let (_script, wrong_build) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
     let wrong_build =
         TrustedCollector::new(wrong_build.path(), ContentHash::from_sha256([9; 32])).unwrap();
-    assert!(matches!(
-        run(
-            &mut bundle,
-            &wrong_build,
-            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    let wrong_build_result = run(
+        &mut bundle,
+        &wrong_build,
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    );
+    assert!(
+        matches!(
+            &wrong_build_result,
+            Err(NativeCaptureSessionError::SourceBuildMismatch)
         ),
-        Err(NativeCaptureSessionError::SourceBuildMismatch)
-    ));
+        "source-build mismatch result: {wrong_build_result:?}"
+    );
 
     let (_script, command_mismatch) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
-    assert!(matches!(
-        run(
-            &mut bundle,
-            &command_mismatch,
-            CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    let command_mismatch_result = run(
+        &mut bundle,
+        &command_mismatch,
+        CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+    );
+    assert!(
+        matches!(
+            &command_mismatch_result,
+            Err(NativeCaptureSessionError::CommandProvenanceMismatch)
         ),
-        Err(NativeCaptureSessionError::CommandProvenanceMismatch)
-    ));
+        "command mismatch result: {command_mismatch_result:?}"
+    );
 }
 
 #[cfg(unix)]
@@ -1440,33 +1462,39 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
 
     let (_script, hanging) = synthetic_collector(VALID, SyntheticCollectorBehavior::Hang);
     let start = Instant::now();
-    assert!(matches!(
-        run_and_persist(
-            &mut bundle,
-            &hanging,
-            command(),
-            |stream| Ok(mapping_context(stream, false)),
-            &survey,
-            &request(122),
-            &NeverCancel,
-        ),
-        Err(NativeCaptureSessionError::Timeout)
-    ));
-    assert!(start.elapsed() < Duration::from_secs(3));
+    let timeout_result = run_and_persist(
+        &mut bundle,
+        &hanging,
+        command(),
+        |stream| Ok(mapping_context(stream, false)),
+        &survey,
+        &request(122),
+        &NeverCancel,
+    );
+    assert!(
+        matches!(&timeout_result, Err(NativeCaptureSessionError::Timeout)),
+        "timeout collector result: {timeout_result:?}"
+    );
+    assert!(
+        start.elapsed() < Duration::from_secs(3),
+        "timeout collector elapsed: {:?}",
+        start.elapsed()
+    );
 
     let (_script, cancellable) = synthetic_collector(VALID, SyntheticCollectorBehavior::Hang);
-    assert!(matches!(
-        run_and_persist(
-            &mut bundle,
-            &cancellable,
-            ProbeOptions::new(1).map(CollectorCommand::Probe).unwrap(),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
-            &survey,
-            &request(123),
-            &CancelAfter::new(3),
-        ),
-        Err(NativeCaptureSessionError::Cancelled)
-    ));
+    let cancelled_result = run_and_persist(
+        &mut bundle,
+        &cancellable,
+        ProbeOptions::new(1).map(CollectorCommand::Probe).unwrap(),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        &survey,
+        &request(123),
+        &CancelAfter::new(3),
+    );
+    assert!(
+        matches!(&cancelled_result, Err(NativeCaptureSessionError::Cancelled)),
+        "cancelled collector result: {cancelled_result:?}"
+    );
 
     if std::path::Path::new("/usr/bin/python3").exists() {
         let (_script, descendant) =
@@ -1481,28 +1509,40 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
             &request(124),
             &NeverCancel,
         );
-        assert!(matches!(
-            descendant_result,
-            Err(NativeCaptureSessionError::ProcessIo)
-        ));
-        assert!(start.elapsed() < Duration::from_secs(3));
+        assert!(
+            matches!(
+                &descendant_result,
+                Err(NativeCaptureSessionError::ProcessIo)
+            ),
+            "descendant collector result: {descendant_result:?}"
+        );
+        assert!(
+            start.elapsed() < Duration::from_secs(3),
+            "descendant collector elapsed: {:?}",
+            start.elapsed()
+        );
 
         let (_script, escaped) =
             synthetic_collector(VALID, SyntheticCollectorBehavior::EscapedDescendant);
         let start = Instant::now();
-        assert!(matches!(
-            run_and_persist(
-                &mut bundle,
-                &escaped,
-                command(),
-                |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
-                &survey,
-                &request(125),
-                &NeverCancel,
-            ),
-            Err(NativeCaptureSessionError::ProcessIo)
-        ));
-        assert!(start.elapsed() < Duration::from_secs(3));
+        let escaped_result = run_and_persist(
+            &mut bundle,
+            &escaped,
+            command(),
+            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+            &survey,
+            &request(125),
+            &NeverCancel,
+        );
+        assert!(
+            matches!(&escaped_result, Err(NativeCaptureSessionError::ProcessIo)),
+            "escaped descendant collector result: {escaped_result:?}"
+        );
+        assert!(
+            start.elapsed() < Duration::from_secs(3),
+            "escaped descendant collector elapsed: {:?}",
+            start.elapsed()
+        );
     }
 }
 
