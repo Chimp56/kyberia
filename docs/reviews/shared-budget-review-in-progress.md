@@ -49,3 +49,20 @@ Every input, including duplicates, is charged and cancellation-checked before
 deduplication. The reviewer ran 38 operation integration tests successfully, plus
 Clippy, formatting and whitespace checks. This closes item 2 for the inspected
 consumer candidate; other findings and complete consumer integration remain open.
+
+## Replay follow-up
+
+The current candidate charges referenced Undo payloads before constructing the
+inverse effect. The new constrained-quota test derives its limit from observed
+usage, so removing the very charges under test can also lower that limit and
+leave the test passing. Independent evidence must use an expected accounting
+value or a controlled payload-size delta, covering both large prior payloads for
+Undo and large forward payloads for Redo. Targeted independent review is active.
+
+Root separately verified cancellation after replay has started: the regression
+asserts nonzero witness and project-copy usage before the cancelled result.
+Current direct/nested cancellation mappings preserve the cancellation category.
+Architecture and external source checks pass (241 packages); the most recent
+combined operation/identity/materializer run passed 85 tests before the latest
+referenced-payload correction. These scoped checks do not approve the complete
+consumer candidate.
