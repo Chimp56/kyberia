@@ -158,7 +158,8 @@ per-case bound under the full workspace run (`3.261677250 s`); see the retained
 timing gate and not evidence against the session record.
 
 cargo test -p kyberia-observation-pipeline --lib --locked --offline
-PASS — 42 passed, 1 ignored
+PASS — 42 passed, 1 ignored (the focused `native_acquisition::tests` subset
+also passes 7 tests; see the retained composition log)
 
 cargo clippy -p kyberia-domain -p kyberia-project-store -p kyberia-observation-pipeline --all-targets --locked --offline -- -D warnings
 PASS
