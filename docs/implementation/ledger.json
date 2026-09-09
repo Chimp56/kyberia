@@ -39366,8 +39366,8 @@
         {
           "path": "crates/observation-pipeline/src/tests.rs",
           "description": "Recoverable native persistence, exact raw and observation closure, hostile snapshot readback",
-          "revision": "4d17ee98964c2a388785759e52e379a54ebe203f73aa5872bcc19ae8ffb68101",
-          "sha256": "4d17ee98964c2a388785759e52e379a54ebe203f73aa5872bcc19ae8ffb68101",
+          "revision": "7e0a0e9eff5e262f0f439efec67ce88a943c802593221fc854cbe695de81acdc",
+          "sha256": "7e0a0e9eff5e262f0f439efec67ce88a943c802593221fc854cbe695de81acdc",
           "command": "cargo test -p kyberia-observation-pipeline --locked --offline",
           "scope": "native_persistence_contract",
           "result": "PASS"
