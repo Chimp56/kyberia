@@ -46,3 +46,29 @@ classification. Host scheduling/startup contention remains an inference,
 not a traced cause. The earlier malformed-output failure remains unexplained;
 its new diagnostic assertion is retained. This approval does not establish
 universal freedom from host-load flakes or validate real-radio capture.
+
+## Drain timing correction
+
+The later exact descendant failure was `descendant collector elapsed:
+3.631564125s` at the former three-second assertion, while the result itself
+was the expected `ProcessIo`. Four concurrent package-level invocations
+reproduced the same scheduling pattern: all four kept the expected process
+classification, but the descendant elapsed values were 3.887, 4.810 and
+4.966 seconds, with one escaped-descendant value of 4.209 seconds. The
+focused lifecycle test passed when run concurrently by itself.
+
+The test now derives the drain-case elapsed budget from the five-second typed
+command deadline, eight sequential 250-ms reader windows (initial, forced,
+final and finish for both streams), and an explicit one-second scheduling
+margin. The direct one-second timeout and cancellation assertions, and both
+strict `ProcessIo` assertions, remain unchanged. The corrected four-way
+package stress run passed all 33 non-ignored tests in each invocation. The
+reliability correction changes test timing assertions only; it does not alter
+production supervision behavior.
+
+Root independently reviewed source `65bde705` against the integrated supervisor:
+eight bounded receives cover both streams; the derived eight-second ceiling
+remains below the same-group fixture's 30-second hold. Exact Timeout,
+Cancelled and ProcessIo assertions are unchanged. No production source is
+modified. Approval is limited to this evidenced timing-test correction; hosted
+macOS validation remains required.

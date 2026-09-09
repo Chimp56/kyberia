@@ -1525,6 +1525,24 @@ fn run_and_normalize_returns_opaque_source_clock_and_rejects_terminal_mismatch_b
 #[cfg(unix)]
 #[test]
 fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain() {
+    const DRAIN_COMMAND_TIMEOUT_SECONDS: u8 = 5;
+    const DRAIN_RECEIVE_WINDOW_MILLIS: u64 = 250;
+    const DRAIN_RECEIVE_WINDOW_COUNT: u64 = 8;
+    const DRAIN_SCHEDULING_MARGIN: Duration = Duration::from_secs(1);
+
+    // The process deadline is followed by at most eight sequential 250 ms
+    // reader receives: initial, forced, final and finish windows for stdout
+    // and stderr. Keep one explicit second for scheduler/fixture startup
+    // contention. This bound tests the supervisor's actual budgets rather
+    // than assuming a lightly loaded host.
+    let drain_elapsed_budget = || {
+        Duration::from_secs(u64::from(DRAIN_COMMAND_TIMEOUT_SECONDS))
+            .saturating_add(Duration::from_millis(
+                DRAIN_RECEIVE_WINDOW_MILLIS * DRAIN_RECEIVE_WINDOW_COUNT,
+            ))
+            .saturating_add(DRAIN_SCHEDULING_MARGIN)
+    };
+
     let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
@@ -1534,7 +1552,8 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
     // descendant fixtures exercise post-exit pipe draining, so give the
     // direct collector process enough wall-clock margin to start and exit
     // before classifying the inherited-pipe condition as ProcessIo.
-    let drain_command = || CollectorCommand::Probe(ProbeOptions::new(5).unwrap());
+    let drain_command =
+        || CollectorCommand::Probe(ProbeOptions::new(DRAIN_COMMAND_TIMEOUT_SECONDS).unwrap());
 
     let (_script, hanging) = synthetic_collector(VALID, SyntheticCollectorBehavior::Hang);
     let start = Instant::now();
@@ -1592,10 +1611,11 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
             ),
             "descendant collector result: {descendant_result:?}"
         );
+        let elapsed = start.elapsed();
         assert!(
-            start.elapsed() < Duration::from_secs(3),
-            "descendant collector elapsed: {:?}",
-            start.elapsed()
+            elapsed < drain_elapsed_budget(),
+            "descendant collector elapsed: {elapsed:?} (budget {:?})",
+            drain_elapsed_budget()
         );
 
         let (_script, escaped) =
@@ -1614,10 +1634,11 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
             matches!(&escaped_result, Err(NativeCaptureSessionError::ProcessIo)),
             "escaped descendant collector result: {escaped_result:?}"
         );
+        let elapsed = start.elapsed();
         assert!(
-            start.elapsed() < Duration::from_secs(3),
-            "escaped descendant collector elapsed: {:?}",
-            start.elapsed()
+            elapsed < drain_elapsed_budget(),
+            "escaped descendant collector elapsed: {elapsed:?} (budget {:?})",
+            drain_elapsed_budget()
         );
     }
 }
