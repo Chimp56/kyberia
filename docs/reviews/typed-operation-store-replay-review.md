@@ -1,7 +1,22 @@
 # Typed operation-store replay review
 
 Reviewer: `/root`, independent of the implementation author.
-Disposition: pending frozen candidate and runtime verification.
+Disposition: APPROVED for the bounded storage adapter at `3ebd11dd89096f65ece8030d4cf6823964bc7136`.
+
+The independent reviewer inspected the frozen source, tests and documentation
+and ran `cargo test -p kyberia-project-store --test operation_store --locked
+--offline` in the candidate worktree: 19 passed, zero failed. Both requested
+corrections below are present: new fixtures use retained `.trash/test-runs`
+directories and unresolved typed replay fails before resolution is appended.
+No unresolved BLOCKER or MAJOR findings remain for this adapter.
+
+This approval does not establish causal prior correctness. The conflict fixture
+records an unknown prior on a branch whose parent activates a calibration;
+that is admissible to this structural storage layer but must be rejected by
+the future causal aggregate validator. It is not a valid aggregate replay
+fixture. Aggregate materialization and causal validation remain open.
+
+## Review history
 
 The draft adds a narrow `Bundle::replay_operation_effects` boundary delegating
 to the existing persisted operation-set validation and typed replay. This keeps
