@@ -111,3 +111,22 @@ operation in a deterministic presentation. Verify equal-timestamp independent
 edits, forged causal priors, unknown restoration, evidence locks, and unresolved
 same-field conflicts against complete canonical project outputs. Storage
 publication remains downstream of this pure application boundary.
+
+## Aggregate validation constraints found during bridge review
+
+`Project::validate` also requires `logical_time >= revision`, revision equal
+to the applied-operation count, and dense unique applied-operation revisions.
+Two independent operations at Lamport time `N+1` after a baseline at revision
+and time `N` produce revision `N+2` with maximum logical time `N+1`. A new
+application entry point alone therefore cannot preserve the current aggregate
+validation unchanged. Define a versioned history/counter migration, retain V1
+fixtures and decoding, and test serialization round trips of concurrent output.
+Do not inflate Lamport time to the revision merely to satisfy the old invariant.
+
+Calibration activation and floor-evidence binding write different operation-log
+fields but share a domain lock: `activate` and `BindFloorEvidence` both invoke
+`unlocked`. Concurrent valid branches can therefore conflict across fields.
+Test both operation-ID orderings and require explicit aggregate conflict/error
+semantics rather than allowing deterministic sort order to decide admission.
+Also test operation IDs that collide with the baseline's applied-operation
+history, not only duplicates within the incoming set.
