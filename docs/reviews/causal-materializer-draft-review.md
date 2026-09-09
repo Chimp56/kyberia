@@ -34,3 +34,20 @@ Root separately identified historical conflict checks that can reject resolved
 descendants, and the need to define common-causal-subgraph resolution priors
 without assuming a unique maximal common ancestor. These remain acceptance
 cases in the implementation packet. No materializer code has been integrated.
+
+## Frozen candidate verification
+
+Candidate `5b56a9e` is now frozen. Root independently ran
+`cargo test -p kyberia-causal-materializer --locked --offline`: 17 passed,
+zero failed. The source inventory also passes with the existing root virtual
+environment: `/Users/vincent/code/kyberia/.tools/venv/bin/python
+tools/source_inventory.py check` reports 241 locked external packages. The
+author's Python environment issue is therefore not an external blocker.
+
+Final independent review remains pending. In particular, the frozen clone
+estimate charges `operation_count + 1` copies while reconstructing each causal
+ancestor closure can invoke many more domain clones. A linear chain of `n`
+operations replays `n(n-1)/2` ancestral effects, in addition to baseline and
+final-application copies. Distinguish a peak-memory bound from cumulative copy
+work; the current numeric estimate alone does not prove both. Existing passing
+tests do not discharge this resource-model concern.
