@@ -893,6 +893,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-causal-materializer"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "kyberia-materialization-identity",
+ "kyberia-operation-log",
+ "serde_json",
+]
+
+[[package]]
 name = "kyberia-cli"
 version = "0.1.0"
 dependencies = [

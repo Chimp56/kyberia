@@ -4,6 +4,7 @@
     "kyberia-domain": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-operation-log": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-materialization-identity": {"layer": "application", "external_dependencies": ["serde_json", "sha2"]},
+    "kyberia-causal-materializer": {"layer": "application", "external_dependencies": []},
     "kyberia-spatial-analysis": {"layer": "numerical", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-wifi-semantics": {"layer": "numerical", "external_dependencies": ["serde"]},
     "kyberia-observation-analysis": {"layer": "application", "external_dependencies": ["serde", "serde_json", "sha2"]},

@@ -8,6 +8,17 @@ pub use entities::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Project aggregate encoding versions are scoped to this contract.  The
+/// shared evidence schema tag intentionally remains V1-only for unrelated
+/// capture and capability envelopes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ProjectSchemaVersion {
+    #[serde(rename = "1")]
+    V1,
+    #[serde(rename = "2")]
+    V2,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ProjectError {
     InvalidValue(ValidationError),
@@ -72,7 +83,7 @@ where
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 struct ProjectData {
-    schema_version: SchemaVersion,
+    schema_version: ProjectSchemaVersion,
     id: ProjectId,
     name: Text,
     revision: u64,
@@ -101,7 +112,7 @@ pub struct Project(ProjectData);
 impl Project {
     pub fn new(id: ProjectId, name: Text) -> Self {
         Self(ProjectData {
-            schema_version: SchemaVersion::V1,
+            schema_version: ProjectSchemaVersion::V1,
             id,
             name,
             revision: 0,
@@ -119,6 +130,9 @@ impl Project {
     pub const fn id(&self) -> ProjectId {
         self.0.id
     }
+    pub const fn schema_version(&self) -> ProjectSchemaVersion {
+        self.0.schema_version
+    }
     pub fn name(&self) -> &Text {
         &self.0.name
     }
@@ -127,6 +141,9 @@ impl Project {
     }
     pub const fn logical_time(&self) -> u64 {
         self.0.logical_time
+    }
+    pub fn has_applied_operation(&self, id: OperationId) -> bool {
+        self.0.applied_operations.contains_key(&id)
     }
     pub fn site(&self, id: SiteId) -> Option<&Site> {
         self.0.sites.get(&id)
@@ -151,6 +168,37 @@ impl Project {
     }
     pub fn floors(&self) -> impl Iterator<Item = &Floor> {
         self.0.floors.values()
+    }
+
+    /// Apply one already-admitted operation effect to a DAG materialized
+    /// aggregate.  This is deliberately separate from [`Self::execute`]:
+    /// linear receipts require a strictly increasing logical time, while
+    /// independent DAG branches may carry the same Lamport value.  The
+    /// materialized aggregate uses schema V2 and keeps its dense local
+    /// revision independent from operation logical time.
+    pub fn apply_materialized(
+        &self,
+        operation_id: OperationId,
+        logical_time: u64,
+        command: ProjectCommand,
+    ) -> Result<Self, ProjectError> {
+        if logical_time == 0 {
+            return Err(ProjectError::StaleLogicalTime);
+        }
+        if self.0.applied_operations.contains_key(&operation_id) {
+            return Err(ProjectError::DuplicateOperation);
+        }
+        let revision_after = self.0.revision.checked_add(1).ok_or(ProjectError::Limit)?;
+        let mut next = self.clone();
+        next.0.schema_version = ProjectSchemaVersion::V2;
+        next.apply(&command)?;
+        next.0.revision = revision_after;
+        next.0.logical_time = next.0.logical_time.max(logical_time);
+        next.0
+            .applied_operations
+            .insert(operation_id, revision_after);
+        next.validate()?;
+        Ok(next)
     }
 
     fn check_calibration(&self, calibration: &MapCalibration) -> Result<(), ProjectError> {
@@ -215,8 +263,14 @@ impl Project {
         {
             return Err(ProjectError::Limit);
         }
-        if self.0.revision != self.0.applied_operations.len() as u64
-            || self.0.logical_time < self.0.revision
+        if self.0.revision != self.0.applied_operations.len() as u64 {
+            return Err(ProjectError::InvalidReceipt);
+        }
+        if self.0.revision > 0 && self.0.logical_time == 0 {
+            return Err(ProjectError::InvalidReceipt);
+        }
+        if self.0.schema_version == ProjectSchemaVersion::V1
+            && self.0.logical_time < self.0.revision
         {
             return Err(ProjectError::InvalidReceipt);
         }

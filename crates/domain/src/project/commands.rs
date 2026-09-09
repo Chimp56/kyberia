@@ -198,7 +198,7 @@ impl Project {
         ))
     }
 
-    fn apply(
+    pub(super) fn apply(
         &mut self,
         command: &ProjectCommand,
     ) -> Result<(ProjectEvent, Evidence<ProjectCommand>), ProjectError> {
