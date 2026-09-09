@@ -3101,7 +3101,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 75 | NO
 | `source:spacing:01ba4719c80b6fe911b0:911` | [L3742](../../plan.md#L3742) RF Atlas / 15. Security, privacy, and safety / 15.11 Responsible feature boundary — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:separator:f52d711103d50a437830:17` | [L3743](../../plan.md#L3743) RF Atlas / 15. Security, privacy, and safety / 15.11 Responsible feature boundary — --- | structure | COVERAGE_ONLY |  |
 | `source:spacing:01ba4719c80b6fe911b0:912` | [L3744](../../plan.md#L3744) RF Atlas / 15. Security, privacy, and safety / 15.11 Responsible feature boundary — Whitespace | structure | COVERAGE_ONLY |  |
-| `source:heading:f35c29e368848422f748:1` | [L3745](../../plan.md#L3745) RF Atlas / 16. Validation and test strategy — ## 16. Validation and test strategy | obligation_group | NOT_STARTED |  |
+| `source:heading:f35c29e368848422f748:1` | [L3745](../../plan.md#L3745) RF Atlas / 16. Validation and test strategy — ## 16. Validation and test strategy | obligation_group | IN_PROGRESS | [implementation](../../tools/rust_diagnostics.py), [implementation](../../tools/dev.py), [validation](../../tests/test_ci_python_diagnostics.py) |
 | `source:spacing:01ba4719c80b6fe911b0:913` | [L3746](../../plan.md#L3746) RF Atlas / 16. Validation and test strategy — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:heading:5e34f90afd28e57b559e:1` | [L3747](../../plan.md#L3747) RF Atlas / 16. Validation and test strategy / 16.1 Test pyramid — ### 16.1 Test pyramid | obligation_group | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:914` | [L3748](../../plan.md#L3748) RF Atlas / 16. Validation and test strategy / 16.1 Test pyramid — Whitespace | structure | COVERAGE_ONLY |  |

@@ -46,7 +46,12 @@ def _run_streamed(command, diagnostic_kind=None):
         # Child output is still retained verbatim in the Actions log, but the
         # guard prevents a compiler/test message from becoming a workflow
         # command or an untrusted annotation.
-        command_guard = "kyberia-rust-diagnostics-" + secrets.token_hex(16)
+        guard_prefix = (
+            "kyberia-python-diagnostics-"
+            if diagnostic_kind == "python-unittest"
+            else "kyberia-rust-diagnostics-"
+        )
+        command_guard = guard_prefix + secrets.token_hex(16)
         print("::stop-commands::" + command_guard, flush=True)
     process = None
     returncode = None
@@ -104,10 +109,10 @@ def run(*args, diagnostics=None):
         subprocess.run(command, cwd=ROOT, check=True)
 
 
-def python(*args):
+def python(*args, diagnostics=None):
     if not PYTHON.is_file():
         raise SystemExit("Run python3 tools/dev.py bootstrap to create the local tooling environment")
-    run(PYTHON, *args)
+    run(PYTHON, *args, diagnostics=diagnostics)
 
 
 def supply_chain(*args):
@@ -136,7 +141,7 @@ def command(name):
         run("cargo", "check", "--workspace", "--all-targets", "--locked", "--offline", diagnostics="cargo")
     elif name == "unit":
         run("cargo", "test", "-p", "kyberia-domain", "--locked", "--offline")
-        python("-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py")
+        python("-m", "unittest", "discover", "-v", "-s", "tests", "-p", "test_*.py", diagnostics="python-unittest")
     elif name == "integration":
         run("cargo", "test", "-p", "kyberia-project-store", "--locked", "--offline")
     elif name == "e2e":
@@ -146,7 +151,7 @@ def command(name):
         run("cargo", "test", "-p", "kyberia-cli", "--test", "stored_analysis", "--locked", "--offline")
     elif name == "test":
         run("cargo", "test", "--workspace", "--locked", "--offline", diagnostics="libtest")
-        python("-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py")
+        python("-m", "unittest", "discover", "-v", "-s", "tests", "-p", "test_*.py", diagnostics="python-unittest")
     elif name == "source-check":
         python("tools/source_inventory.py", "check")
     elif name == "evidence-check":

@@ -146880,14 +146880,37 @@
           "level": 2
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "QA/validation",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "implementation": [
+        {
+          "path": "tools/rust_diagnostics.py",
+          "description": "Bounded compiler, Rust-test and Python-test CI diagnostics; broader validation strategy remains open",
+          "revision": "f92b6060e91c3f9ac6d6f63637022cd73a2d053f91b0ae516d9fa767c68debeb",
+          "sha256": "f92b6060e91c3f9ac6d6f63637022cd73a2d053f91b0ae516d9fa767c68debeb"
+        },
+        {
+          "path": "tools/dev.py",
+          "description": "Discoverable validation commands with guarded subprocess diagnostics",
+          "revision": "2ff624d1a13b326ed6d27f29e5d506db64e9f7b31463ede6792a5a05b7bcd1d7",
+          "sha256": "2ff624d1a13b326ed6d27f29e5d506db64e9f7b31463ede6792a5a05b7bcd1d7"
+        }
+      ],
+      "validation": [
+        {
+          "path": "tests/test_ci_python_diagnostics.py",
+          "description": "Real-runner and adversarial tests for bounded identifiers, failure phases and guarded output; not complete runtime acceptance",
+          "revision": "8fdba3266f532a6f8f00e476a6a8d55139bbf44c3ce7b023077a09db4c3ed6f5",
+          "sha256": "8fdba3266f532a6f8f00e476a6a8d55139bbf44c3ce7b023077a09db4c3ed6f5",
+          "command": ".tools/venv/bin/python -m unittest tests.test_ci_python_diagnostics tests.test_ci_rust_diagnostics tests.test_dev_commands",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,

@@ -1,9 +1,9 @@
-"""Bounded, non-sensitive Rust diagnostics for repository CI annotations.
+"""Bounded, non-sensitive CI diagnostics for repository workflow annotations.
 
-The parser emits only grammar-validated compiler codes, repository-relative
-Rust source locations, and libtest identifiers.  It never copies compiler
-messages, captured test output, environment values, or command arguments into
-an annotation.
+The parsers emit only grammar-validated compiler codes, repository-relative
+Rust source locations, and test identifiers.  They never copy compiler
+messages, exception text, captured test output, environment values, or command
+arguments into an annotation.
 """
 
 from __future__ import annotations
@@ -24,9 +24,20 @@ MAX_TEST_NAME_BYTES = 256
 MAX_SOURCE_PATH_BYTES = 512
 MAX_SOURCE_LINE = 1_000_000
 MAX_SOURCE_COLUMN = 1_000_000
+MAX_PYTHON_TEST_ID_BYTES = 256
 
 _CODE = re.compile(r"^(?:E[0-9]{4}|[A-Za-z][A-Za-z0-9_]*(?:::[A-Za-z][A-Za-z0-9_]*)?)$")
 _TEST_NAME = re.compile(r"^[A-Za-z0-9_:.\-/]+$")
+_PYTHON_TEST_COMPONENT = r"[A-Za-z_][A-Za-z0-9_]*"
+_PYTHON_TEST_STATUS = re.compile(
+    r"^(?P<method>" + _PYTHON_TEST_COMPONENT + r") "
+    r"\((?P<parent>" + _PYTHON_TEST_COMPONENT + r"(?:\." + _PYTHON_TEST_COMPONENT + r")*)\) "
+    r"\.\.\. (?P<status>FAIL|ERROR)$"
+)
+_PYTHON_TEST_HEADER = re.compile(
+    r"^(?P<method>" + _PYTHON_TEST_COMPONENT + r") "
+    r"\((?P<parent>" + _PYTHON_TEST_COMPONENT + r"(?:\." + _PYTHON_TEST_COMPONENT + r")*)\)$"
+)
 _RUNNING = re.compile(r"^running [0-9]+ tests?$")
 _FAILED_TEST = re.compile(r"^test ([A-Za-z0-9_:.\-/]+) \.\.\. FAILED$")
 
@@ -83,6 +94,14 @@ def _safe_test_name(value: Any) -> Optional[str]:
     if not _TEST_NAME.fullmatch(value):
         return None
     if any(part in {"", ".", ".."} for part in value.split("/")):
+        return None
+    return value
+
+
+def _safe_python_test_id(value: Any) -> Optional[str]:
+    if not isinstance(value, str) or len(value.encode("utf-8", "ignore")) > MAX_PYTHON_TEST_ID_BYTES:
+        return None
+    if not re.fullmatch(_PYTHON_TEST_COMPONENT + r"(?:\." + _PYTHON_TEST_COMPONENT + r")*", value):
         return None
     return value
 
@@ -313,12 +332,113 @@ class LibtestFailureParser:
             _emit_annotation("Rust tests truncated", "Rust test identifiers omitted: " + str(self.omitted_count))
 
 
+class PythonUnittestFailureParser:
+    """Parse verbose unittest result lines without copying failure details.
+
+    Python's stable text runner has no authenticated machine-readable stream.
+    The parser therefore accepts only the narrow verbose status grammar before
+    the first failure-detail separator.  Tracebacks, exception messages,
+    subtest parameters, and all later text are permanently excluded.  It
+    accepts both runner forms where the parenthesized value is either the
+    class/module or the already-qualified test identifier.
+    """
+
+    def __init__(self) -> None:
+        self._lines = _BoundedLines()
+        self._failure_details = False
+        self._pending_header: Optional[tuple[str, str]] = None
+        self._failures: list[tuple[str, str]] = []
+        self._seen: set[str] = set()
+        self._omitted_count = 0
+
+    def feed(self, chunk: bytes) -> None:
+        for line in self._lines.feed(chunk):
+            self._parse_line(line)
+
+    def finish(self) -> None:
+        for line in self._lines.finish():
+            self._parse_line(line)
+
+    def _parse_line(self, line: bytes) -> None:
+        if self._failure_details:
+            return
+        try:
+            text = line.decode("utf-8")
+        except UnicodeDecodeError:
+            return
+        if re.fullmatch(r"={10,}", text):
+            # Failure headings and captured output follow this separator.
+            # They are deliberately not parsed because test code controls
+            # those bytes and can print arbitrary look-alike lines.
+            self._failure_details = True
+            self._pending_header = None
+            return
+        match = _PYTHON_TEST_STATUS.fullmatch(text)
+        if match:
+            self._pending_header = None
+            self._record(match.group("method"), match.group("parent"), match.group("status"))
+            return
+        header = _PYTHON_TEST_HEADER.fullmatch(text)
+        if header:
+            self._pending_header = (header.group("method"), header.group("parent"))
+            return
+        if self._pending_header is None:
+            return
+        # TextTestResult includes the first docstring line between the header
+        # and status.  Split only on the final bounded delimiter and never
+        # retain or emit the description itself.
+        if len(text.encode("utf-8", "ignore")) > MAX_DIAGNOSTIC_LINE_BYTES:
+            self._pending_header = None
+            return
+        prefix, separator, status = text.rpartition(" ... ")
+        pending = self._pending_header
+        self._pending_header = None
+        if separator and prefix and status in {"FAIL", "ERROR"}:
+            self._record(pending[0], pending[1], status)
+
+    def _record(self, method: str, parent: str, status: str) -> None:
+        if parent.rsplit(".", 1)[-1] == method:
+            identifier_text = parent
+        else:
+            identifier_text = parent + "." + method
+        identifier = _safe_python_test_id(identifier_text)
+        if identifier is None or identifier in self._seen:
+            return
+        if len(self._failures) >= MAX_ANNOTATIONS:
+            self._omitted_count += 1
+            return
+        self._seen.add(identifier)
+        self._failures.append((identifier, status))
+
+    @property
+    def failures(self) -> tuple[tuple[str, str], ...]:
+        return tuple(self._failures)
+
+    @property
+    def omitted_count(self) -> int:
+        return self._omitted_count + self._lines.oversized_lines
+
+    def emit(self) -> None:
+        for identifier, status in self._failures:
+            _emit_annotation(
+                "Python unittest " + status.lower(),
+                "Python unittest failed: " + identifier,
+            )
+        if self.omitted_count:
+            _emit_annotation(
+                "Python unittest diagnostics truncated",
+                "Python unittest identifiers omitted: " + str(self.omitted_count),
+            )
+
+
 def parser_for(kind: str, root: Path) -> Any:
     if kind == "cargo":
         return CargoDiagnosticParser(root)
     if kind == "libtest":
         return LibtestFailureParser()
-    raise ValueError("unknown Rust diagnostics parser")
+    if kind == "python-unittest":
+        return PythonUnittestFailureParser()
+    raise ValueError("unknown CI diagnostics parser")
 
 
 def github_actions_enabled() -> bool:

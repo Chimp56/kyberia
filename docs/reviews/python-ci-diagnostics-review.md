@@ -1,0 +1,7 @@
+# Python CI diagnostics independent review
+
+Sources: `4b7fc02f730a0aa8402b8ebafd9567cd6584c638` and `d6a00b8c06b5cbd209d6c8d1797ea2ba1c23ae60`. Author: Laplace. Independent reviewer: root. Bounded disposition: approved; no unresolved BLOCKER or MAJOR findings in the diagnostics change.
+
+The parser retains finite line and annotation budgets, restricts emitted identifiers to ASCII Python components, suppresses tracebacks/descriptions/subtest parameters, and preserves the random GitHub stop-command guard around raw child output. It handles both class-only and already-qualified parenthesized IDs. Real TextTestRunner fixtures cover ordinary failures/errors and docstrings. Subtest detail failures are deliberately omitted; the text stream is not an authenticated result protocol. This limitation is documented rather than presenting skipped diagnostic extraction as runtime validation.
+
+Independent tests passed 25/25 both in the author worktree and after integration. The first complete integrated Python run executed 225 tests, with one failure and 19 skips: unchanged `test_active_process.FakeProcessTests.test_version_probe_and_partial_output_failures` returned timeout instead of invalid_output. Log: `.tools/python-diagnostics-integrated.log`. The exact active-process test passed on rerun (1 test), followed by a passing complete Python rerun (225 tests, 19 skipped). Log: `.tools/python-diagnostics-integrated-retry.log`. The original failure remains evidence of fixture timing sensitivity; it is not attributed to the new parser without evidence.
