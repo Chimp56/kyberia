@@ -10,7 +10,11 @@ use kyberia_domain::{
     spatial::Point2,
     units::CoordinateMeters,
 };
-pub use polygon::{MAX_POLYGON_COORDINATES, MAX_POLYGON_HOLES, PolygonError, ValidatedPolygon};
+pub use polygon::{
+    BooleanError, BooleanOperation, MAX_BOOLEAN_WORK, MAX_MULTIPOLYGON_COORDINATES,
+    MAX_MULTIPOLYGON_POLYGONS, MAX_POLYGON_COORDINATES, MAX_POLYGON_HOLES, PolygonError,
+    ValidatedMultiPolygon, ValidatedPolygon,
+};
 
 /// Numerical input bound, not a geographic projection or a snapping tolerance.
 pub const MAX_ABSOLUTE_COORDINATE_METERS: f64 = 1_000_000_000.0;

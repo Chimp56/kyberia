@@ -23,6 +23,35 @@ not an external blocker or removal of the full geometry requirement.
 
 Tests exercise a valid hole with preserved scope/coordinates, unclosed rings,
 a bow-tie, an exterior hole, tangential contact, hole-count limits and a tiny
-1e-200 square. All four polygon tests and four segment tests pass. This is an
+1e-200 square. The focused polygon and segment suites pass. This is an
 input-validation increment; polygon operations, import/repair, provenance and
 complete runtime Gate E acceptance remain open. Independent review is required.
+
+## Boolean operations
+
+`ValidatedPolygon` and `ValidatedMultiPolygon` expose typed union,
+intersection and difference operations. Results retain the floor/frame scope,
+holes, disjoint components and explicit empty results. Output rings and
+components are canonically rotated, oriented and ordered before they are
+admitted back through the same validated boundary, so operand and vertex
+permutations have deterministic results. The public API never exposes `geo`
+types.
+
+The operation limits are 256 components, 16,384 total output/input ring
+coordinates and a pre-kernel work estimate of 4,194,304 coordinate-pair units.
+Component intersections are checked before admission; overlapping or touching
+components are rejected rather than dropped. When all components are
+provably disjoint, union/intersection/difference use exact component-set
+semantics and avoid the overlay kernel. This preserves valid narrow components
+that the kernel's integer conversion could otherwise alias away.
+
+For workloads requiring overlay, the adapter models the pinned kernel's
+float-to-integer grid and requires two grid steps between distinct normalized
+coordinate values. A narrower feature returns
+`UnsupportedCoordinateResolution` before kernel execution. The same guard
+rejects non-collinear consecutive edges whose cross-product area is below that
+bound, covering near-collinear slivers that have adequate axis gaps but can be
+lost by the kernel's integer overlay. Kernel outputs are bounded, finite,
+explicitly closed and revalidated; malformed, degenerate or out-of-range
+output returns `InvalidKernelResult`. These are conservative precision limits,
+not snapping or a claim of arbitrary-precision booleans.
