@@ -105205,8 +105205,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -105450,8 +105450,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -105678,8 +105678,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -105879,8 +105879,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106091,8 +106091,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106277,8 +106277,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106463,8 +106463,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106649,8 +106649,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -106835,8 +106835,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -107077,8 +107077,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -169099,8 +169099,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -169214,8 +169214,8 @@
         {
           "path": "docs/reviews/typed-operation-store-replay-review.md",
           "description": "Independent typed SQLite replay review; causal priors remain downstream",
-          "revision": "afe7630872aff09350bdac37f377740bf3f721b4be12ddc07f324c481fe33cbf",
-          "sha256": "afe7630872aff09350bdac37f377740bf3f721b4be12ddc07f324c481fe33cbf",
+          "revision": "7284c8ca3823f605eccf4b4d0431be0cfc50e892ae8c3e6175e7254304638cd7",
+          "sha256": "7284c8ca3823f605eccf4b4d0431be0cfc50e892ae8c3e6175e7254304638cd7",
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
@@ -236250,8 +236250,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -238505,8 +238505,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"
@@ -243518,8 +243518,8 @@
         {
           "path": "crates/project-store/tests/operation_store.rs",
           "description": "Persistence, replay, conflict, toggle, migration, corruption, preflight, and rollback tests",
-          "revision": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
-          "sha256": "6b00c9843a6f4cbabfb2ae5a815359ae2faf7d627faa0c4562182684790f4f37",
+          "revision": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
+          "sha256": "170159479e8d276e2e18588c56f13775f9f36ba76a880675f657798dccb6aee4",
           "command": "cargo test -p kyberia-project-store --locked --offline",
           "scope": "persistence_replay_recovery",
           "result": "PASS"

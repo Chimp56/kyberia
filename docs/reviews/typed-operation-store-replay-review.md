@@ -18,6 +18,13 @@ fixture. Aggregate materialization and causal validation remain open.
 
 ## Review history
 
+The false right-branch prior described above was corrected independently in
+`e42b7ef`, integrated as `5760559`. Reviewer
+`/root/operation_log_review_luna` approved the one-line change to
+`Evidence::Known(root_calibration)`, matching the parent Apply. Root ran all
+19 operation-store tests successfully before and after integration. This
+correction does not validate the fixture's separate resolution-prior semantics.
+
 The draft adds a narrow `Bundle::replay_operation_effects` boundary delegating
 to the existing persisted operation-set validation and typed replay. This keeps
 unknown calibration restoration explicit without treating replay effects as a
