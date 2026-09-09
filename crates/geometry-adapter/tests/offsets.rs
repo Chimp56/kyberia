@@ -281,6 +281,30 @@ fn disjoint_components_and_concave_inward_split_are_preserved() {
 }
 
 #[test]
+fn mixed_scale_partial_component_coverage_is_rejected() {
+    // A large component and a component several orders of magnitude smaller can
+    // survive normalization but still be partially lost by the offset kernel.
+    // The completeness guard must reject that result instead of accepting a
+    // merely intersecting fragment of the small component.
+    let input = ValidatedMultiPolygon::new(
+        floor(),
+        frame(),
+        vec![
+            rectangle(-1000.0, -1000.0, 0.0, 0.0),
+            rectangle(2e-6, 2e-6, 2.1e-6, 2.1e-6),
+        ],
+    )
+    .expect("the fixture components are valid and disjoint");
+
+    let result = input.offset(options(
+        OffsetDirection::Outward(Meters::new(1e-5).unwrap()),
+        0.25,
+    ));
+
+    assert_eq!(result, Err(OffsetError::UnsupportedCoordinateResolution));
+}
+
+#[test]
 fn offset_is_deterministic_for_operand_and_ring_order() {
     let forward = polygon(
         &[

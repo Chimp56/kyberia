@@ -21,6 +21,11 @@ pub const MAX_BOOLEAN_WORK: usize = 4_194_304;
 /// absolute bound prevents a large valid residual from masking a missing
 /// small residual through relative-error scaling.
 const BOOLEAN_AREA_ERROR_TOLERANCE: f64 = 1e-7;
+// i_overlay's independent component buffer and its unioned multi-polygon
+// buffer can differ by a few last-place operations. This envelope is applied
+// only after exact coverage fails and is deliberately far below the supported
+// coordinate-resolution checks; larger missing regions remain unsupported.
+const OFFSET_COVERAGE_ROUNDING_TOLERANCE: f64 = 1e-7;
 
 pub(crate) fn offset(
     input: &ValidatedMultiPolygon,
@@ -142,8 +147,10 @@ pub(crate) fn offset(
     }
     // A global multi-polygon buffer can alias a small component against a
     // distant large one. Buffer each component in the same normalized space
-    // and require every nonempty component result to be covered by the global
-    // result. This is a bounded completeness check under MAX_OFFSET_WORK.
+    // and require the complete expected component to be covered by the global
+    // result. An intersection check would accept a result that retained only a
+    // small fragment of a component. This is a bounded completeness check
+    // under MAX_OFFSET_WORK.
     for polygon in &input.polygons {
         if cancelled() {
             return Err(OffsetError::Cancelled);
@@ -155,10 +162,14 @@ pub(crate) fn offset(
         {
             return Err(OffsetError::UnsupportedCoordinateResolution);
         }
-        for expected_polygon in &expected.0 {
-            if !result.intersects(expected_polygon) {
-                return Err(OffsetError::UnsupportedCoordinateResolution);
-            }
+        if !multipolygon_covers(&result, &expected)
+            && !multipolygon_covers_with_tolerance_floor(
+                &result,
+                &expected,
+                OFFSET_COVERAGE_ROUNDING_TOLERANCE,
+            )
+        {
+            return Err(OffsetError::UnsupportedCoordinateResolution);
         }
     }
     let result = from_geo_multi_polygon(input.floor_id, input.frame_id, result, scale)
@@ -1084,15 +1095,30 @@ fn multipolygon_covers_with_tolerance(
     container: &MultiPolygon<f64>,
     target: &MultiPolygon<f64>,
 ) -> bool {
+    multipolygon_covers_with_tolerance_floor(container, target, 1e-8)
+}
+
+fn multipolygon_covers_with_tolerance_floor(
+    container: &MultiPolygon<f64>,
+    target: &MultiPolygon<f64>,
+    minimum_tolerance: f64,
+) -> bool {
     target.0.iter().all(|target| {
-        container
-            .0
-            .iter()
-            .any(|container| polygon_covers_with_tolerance(container, target))
+        container.0.iter().any(|container| {
+            polygon_covers_with_tolerance_floor(container, target, minimum_tolerance)
+        })
     })
 }
 
 fn polygon_covers_with_tolerance(container: &Polygon<f64>, target: &Polygon<f64>) -> bool {
+    polygon_covers_with_tolerance_floor(container, target, 1e-8)
+}
+
+fn polygon_covers_with_tolerance_floor(
+    container: &Polygon<f64>,
+    target: &Polygon<f64>,
+    minimum_tolerance: f64,
+) -> bool {
     let points = &container.exterior().0;
     if points.len() < 4 || points.first() != points.last() {
         return false;
@@ -1110,7 +1136,7 @@ fn polygon_covers_with_tolerance(container: &Polygon<f64>, target: &Polygon<f64>
     // Allow only ordinary f64 evaluation error. Kernel grid quantization that
     // exceeds this bound is rejected instead of being hidden by a scale-sized
     // geometric tolerance.
-    let tolerance = (extent * f64::EPSILON * 32.0).max(1e-8);
+    let tolerance = (extent * f64::EPSILON * 32.0).max(minimum_tolerance);
     target.exterior().0.iter().all(|point| {
         points.windows(2).all(|edge| {
             let edge_x = edge[1].x - edge[0].x;

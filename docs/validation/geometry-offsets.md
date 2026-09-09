@@ -18,7 +18,8 @@ types remain private to the adapter.
 - Disjoint components, translated coordinates near the supported bound, tiny
   coordinates, and reordered rings/components retain deterministic canonical
   results. A mixed-scale disjoint component is checked independently so a
-  kernel alias cannot silently drop it.
+  kernel alias cannot silently drop it; a merely intersecting fragment is
+  rejected as unsupported coordinate resolution.
 - Invalid angular options, excessive distance, excessive estimated work,
   unsupported local resolution, and cancellation return structured errors
   before a result is exposed.
@@ -48,8 +49,12 @@ kernel and are admitted through the same canonical polygon validation; no
 snapping, repair, reprojection, or implicit closure is performed.
 
 The adapter performs bounded output checks and buffers each input component as
-an independent completeness probe. Every outward component must contribute to
-the global result. An inward empty result is accepted only when the component
+an independent completeness probe. The global result must cover each complete
+expected component, so an intersecting fragment cannot be accepted as evidence
+that the component survived. Exact coverage is attempted first; the only
+fallback permits the explicitly bounded `1e-7` normalized-coordinate envelope
+needed for independent `i_overlay` rounding, while larger gaps remain
+unsupported. An inward empty result is accepted only when the component
 bounding boxes provide a conservative half-width certificate; uncertain
 empty or missing-component outcomes return `UnsupportedCoordinateResolution`.
 These checks reduce known mixed-scale aliasing risks but do not make the
