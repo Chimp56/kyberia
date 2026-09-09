@@ -64,3 +64,22 @@ input fixtures remain at the output path above. The raster finding is
 corrected for this bounded evidence. The synthetic benchmark's default-source
 mismatch still requires correction before integration; broader Gate B
 acceptance remains open.
+
+## Initial fetch selection race — MAJOR, open
+
+Root reproduced this against the current renderer candidate using a real
+Chromium route interception. Delay fixtures/canonical-scene-v1.json, wait for
+application initialization, select the synthetic source through the selector,
+then release the response. After 1500 ms the result is:
+
+```json
+{"before":"synthetic","after":{"source":"canonical","selected":"synthetic","status":"ready"}}
+```
+
+loadBundledScene starts its fetch before loadSceneBytes owns a generation and
+AbortController. A newer selection invalidates an existing validator but does
+not prevent the delayed initial fetch from starting a new canonical load.
+The source selector and actual rendered evidence can disagree. Integration
+requires generation/cancellation coverage across the whole initial fetch and
+a delayed-fetch source-selection regression. This is distinct from the
+corrected numeric raster sampling finding.
