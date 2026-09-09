@@ -56,7 +56,7 @@ product capability is validated.
 
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
-| Neutral planning interchange | Russell / `planning-interchange` | Original geometry/AP/radio/channel-constraint schema, defensive import/export, deterministic roundtrip and independent review |
+| Neutral planning interchange | Beauvoir reviewing / `planning-interchange` | Corrected version typing at `a0a18b3` passes ten focused tests; full independent defensive import/export and geometry contract review remains open |
 | Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Review of `4cd60dc` still accepts noncanonical escaped strings and float-encoded integer fields; Rust/WASM admission correction required |
 | Windows native request runtime | CI / integrated `2988bc6` | Independently approved disk-handle/reparse/sharing boundary; native disk/device/pipe and full CLI execution remain required |
 
@@ -111,6 +111,11 @@ Native CI has passed the complete workspace build on Windows, macOS and Linux
 for `d5050f3`. Complete macOS and Linux validation passed; Windows validation
 failed and its detailed cause remains under investigation. See the
 [CI checkpoint](docs/validation/ci-publication-checkpoint.md).
+
+Latest hosted run at `9952691` passes Linux but fails Windows workspace Clippy
+and macOS Rust regression tests. Public annotations identify the commands and
+exit 101, but not the underlying diagnostics. Both failures remain under
+investigation; local passing checks do not close these hosted gates.
 
 ## Blocked capabilities and technical debt
 

@@ -6,7 +6,7 @@ Reviewer: root, independent of author Laplace. Frozen source:
 ## MAJOR — canonical byte admission still diverges
 
 The original fixture loads successfully in both runtimes. Changing only the
-schema string representation from `"V1"` to `"\\u00561"`, or encoding the
+schema string representation from `"V1"` to `"\u00561"`, or encoding the
 integer grid width with a `.0` suffix, also returns `READY` from browser
 `loadCanonicalScene`. Actual Rust `SceneDocument::from_canonical_bytes` rejects
 the exact same byte files: `NonCanonicalBytes` and `MalformedBytes`, respectively.

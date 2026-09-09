@@ -62,3 +62,21 @@ and exit 101 are the useful diagnosis; the individual compiler diagnostic is
 not yet present in public annotations. The request-reader correction `c3dd163`
 has passed local CLI Clippy and Windows-target file-adapter Clippy, but remains
 unmerged pending independent review and cannot yet be claimed to fix this run.
+
+## Post-reader integration checkpoint
+
+For source `995269144ff71dc7090575aafd77ad75a89db30d`,
+[run 34327941292](https://github.com/Chimp56/kyberia/actions/runs/34327941292)
+is terminal: Linux passed; Windows and macOS failed. Public annotations queried
+on 2026-09-09 identify Windows check `102389474936` as failing
+`cargo clippy --workspace --all-targets --locked --offline -- -D warnings`
+with exit 101, and macOS check `102389474954` as failing
+`cargo test --workspace --locked --offline` with exit 101.
+
+The Windows reader integration therefore has not closed the hosted Windows
+validation gate. The macOS regression failure also remains unresolved despite
+the passing local complete check. These annotations do not contain the compiler
+diagnostic or failing test name; neither failure cause can be inferred from
+the exit code. Credentialless responses are retained locally in
+`.tools/windows-9952691-annotations.json` and
+`.tools/macos-9952691-annotations.json`.
