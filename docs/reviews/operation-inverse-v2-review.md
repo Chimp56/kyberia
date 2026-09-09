@@ -60,3 +60,22 @@ reproduced failure.
 
 The candidate remains frozen for independent review; the author is preparing
 the typed-resolution follow-up in a separate worktree.
+
+## Reproduced intent-conflict disappearance
+
+Root's standalone probe against frozen `2f00aa9` constructs two equal-valued
+apply roots, each activating calibration Y with prior X. Two concurrent undo
+operations target the separate roots; both list the two roots as parents.
+Their merged set reports one conflict. Adding a concurrent ordinary activation
+of X with the same parents makes the conflict count zero, without any explicit
+resolution operation. This reproduced with the added operation ID both between
+and after the undo IDs. The test does not establish an arrival-order defect;
+it establishes that an equal-value branch can erase a distinct-toggle intent
+conflict.
+
+Retained harness: `.trash/review-probes/v2-frontier-amgtu0nf`.
+Command: `cargo run --offline --quiet`. Output for each tested ID is
+`without value: 1`, then `conflicts 0` after adding the value branch.
+Treat this as MAJOR until the implementation establishes consistent value and
+intent semantics and tests that ordinary concurrent edits cannot implicitly
+resolve conflicts that require explicit resolution.
