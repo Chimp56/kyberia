@@ -28,3 +28,21 @@ production lifecycle defect with evidence. Do not accept either error
 interchangeably merely to make the tests pass, or infer a fix from a single
 successful run. Keep the timeout and bounded descendant-drain contracts tested
 separately, with retained artifacts and unchanged failure provenance.
+
+## Correction review
+
+Combined candidates `2f1fc3f` and `c8ceb28`: **APPROVED** for test diagnostics
+and fixture precondition separation. Root inspected the complete diffs and
+independently ran the corrected package suite: 33 unit tests and two external
+tests passed, with one real-collector test ignored. The author also reports
+five passing parallel package repetitions.
+
+Only the two descendant fixtures use a five-second typed command timeout;
+their strict `ProcessIo` expectation and three-second elapsed bound remain.
+Dedicated hang and cancellation cases retain their one-second commands.
+Production supervision checks its global deadline before child-exit polling,
+so the observed `Timeout` identifies that branch rather than post-exit drain
+classification. Host scheduling/startup contention remains an inference,
+not a traced cause. The earlier malformed-output failure remains unexplained;
+its new diagnostic assertion is retained. This approval does not establish
+universal freedom from host-load flakes or validate real-radio capture.
