@@ -68,6 +68,29 @@ payload accounting. A separate correction must account for those copies before
 allocation and receive independent review. Direct replay approval does not
 establish bounded conflict inspection.
 
+## Conflict-copy correction approved
+
+Root approves the scoped correction `a2ac3bc`. Event construction, effect-value
+conversion, canonical identity normalization and retained conflict effects are
+charged before copying. Undo/Redo charges use the referenced target's canonical
+size. Independent payload differentials cover Apply, Undo, Redo and Resolve.
+The combined consumer suite passes 94 tests with no failures or ignored tests;
+all-target scoped Clippy passes. Reviewed file SHA-256 values:
+
+- `crates/operation-log/src/lib.rs`:
+  `9c5d4e079a1b5315ef1f02cddd660e37449d5ed549018f30940e0de9139cba8c`
+- `crates/operation-log/tests/operation_log.rs`:
+  `f3a21c304c40936640edf62ce6fa7403ea2b96d96e1764a9c3bf08d9dcadadcf`
+
+The earlier conflict-copy finding is closed for this immutable correction.
+Resolution admission remains open: `validate_graph_with_budget` calls
+`validate_resolution`, which constructs arm effects, the selected resolution
+and canonical comparison values without the new charges. Its error mapping
+must also retain resource/cancellation categories once those calls become
+budget-aware. This correction is assigned before whole-consumer integration.
+The separate public `merge` cloning path remains an explicitly unbudgeted API;
+it is not evidence of transaction-wide budget enforcement.
+
 Root separately verified cancellation after replay has started: the regression
 asserts nonzero witness and project-copy usage before the cancelled result.
 Current direct/nested cancellation mappings preserve the cancellation category.
