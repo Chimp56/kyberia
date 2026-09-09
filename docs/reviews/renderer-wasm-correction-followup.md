@@ -83,3 +83,18 @@ The source selector and actual rendered evidence can disagree. Integration
 requires generation/cancellation coverage across the whole initial fetch and
 a delayed-fetch source-selection regression. This is distinct from the
 corrected numeric raster sampling finding.
+
+## Follow-up at 89e1470 — startup race remains open
+
+Root's independent browser command failed at the delayed-fetch regression's
+line 108, waiting for an explicit synthetic selection to remain ready. Log:
+/private/tmp/kyberia-renderer-root-final-89e1470.log. The server returned HTTP
+200. Inspection shows window.__rfatlas is exposed before boot finishes its
+asynchronous fixture digest; a selection made during that interval precedes
+loadBundledScene's new generation and can be overwritten. The new in-flight
+fetch guard does not cover this earlier startup interval.
+
+Requested correction covers both pre-fetch and in-flight selections, with
+deterministic synchronization of the route-held test. The author-reported
+benchmark pass does not resolve this independently failing lifecycle test.
+Renderer integration remains pending.
