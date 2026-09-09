@@ -39336,6 +39336,12 @@
           "description": "Reviewed native collector supervision and request privacy binding; authorized RF scan/product wiring remain open",
           "revision": "5328abb3010bbf4e22776470862e0a737da154039bac0252f1702a171d6757a9",
           "sha256": "5328abb3010bbf4e22776470862e0a737da154039bac0252f1702a171d6757a9"
+        },
+        {
+          "path": "apps/cli/src/stored_analysis.rs",
+          "description": "Reviewed bounded Unix stored-RSSI CLI with explicit metric choice, unknown evidence and publication outcome; desktop workflow remains open",
+          "revision": "f53ce3267efc3289cfabe1281ca695b9ed8d4d8c11719e8933a859f4b627f38b",
+          "sha256": "f53ce3267efc3289cfabe1281ca695b9ed8d4d8c11719e8933a859f4b627f38b"
         }
       ],
       "validation": [
@@ -39382,6 +39388,15 @@
           "sha256": "92de1cca17350969bca8c426df2663204de9c0e34c426392f46421f84fc2a3c3",
           "command": "cargo test -p kyberia-observation-pipeline tests::supervised_real_redacted_capability_probe_uses_the_rust_boundary --locked --offline -- --ignored --exact",
           "scope": "current_host_redacted_capability_probe",
+          "result": "PASS"
+        },
+        {
+          "path": "apps/cli/tests/stored_analysis.rs",
+          "description": "Real subprocess numerical, synthetic unknown, malformed request and SIGINT regressions",
+          "revision": "870830566fa540fbbdf4113ced4ca7654dd8838a0951c42cf10975f55a21f538",
+          "sha256": "870830566fa540fbbdf4113ced4ca7654dd8838a0951c42cf10975f55a21f538",
+          "command": "cargo test -p kyberia-cli --locked --offline",
+          "scope": "unix_cli_contract",
           "result": "PASS"
         }
       ],
@@ -39448,6 +39463,15 @@
           "revision": "f3f83455e368aa04e0bec3cddf6c795d02df4bd6575a4baa921a1a9243d637e7",
           "sha256": "f3f83455e368aa04e0bec3cddf6c795d02df4bd6575a4baa921a1a9243d637e7",
           "reviewer": "/root/operation_log_review_luna and /root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/stored-rssi-cli-review.md",
+          "description": "Independent final CLI review with publication and signal findings corrected",
+          "revision": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
+          "sha256": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
+          "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -172927,6 +172951,12 @@
           "description": "Reviewed revision-bound stored observation and survey composition into RSSI tiles; UI remains open",
           "revision": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7",
           "sha256": "1b8a2c9baccf18c7a45d9604c29cbc43487ba3f8fa23e7003cd1ca9dcaff7cb7"
+        },
+        {
+          "path": "apps/cli/src/stored_analysis.rs",
+          "description": "Reviewed bounded Unix stored-RSSI CLI with explicit metric choice, unknown evidence and publication outcome; desktop workflow remains open",
+          "revision": "f53ce3267efc3289cfabe1281ca695b9ed8d4d8c11719e8933a859f4b627f38b",
+          "sha256": "f53ce3267efc3289cfabe1281ca695b9ed8d4d8c11719e8933a859f4b627f38b"
         }
       ],
       "validation": [
@@ -172946,6 +172976,15 @@
           "sha256": "490983224fbae5c4277742dcdae5866b1cd930f7dc737f446e9eb27bffbcf558",
           "command": "cargo test -p kyberia-stored-analysis --locked --offline",
           "scope": "stored_composition_contract",
+          "result": "PASS"
+        },
+        {
+          "path": "apps/cli/tests/stored_analysis.rs",
+          "description": "Real subprocess numerical, synthetic unknown, malformed request and SIGINT regressions",
+          "revision": "870830566fa540fbbdf4113ced4ca7654dd8838a0951c42cf10975f55a21f538",
+          "sha256": "870830566fa540fbbdf4113ced4ca7654dd8838a0951c42cf10975f55a21f538",
+          "command": "cargo test -p kyberia-cli --locked --offline",
+          "scope": "unix_cli_contract",
           "result": "PASS"
         }
       ],
@@ -172974,6 +173013,15 @@
           "revision": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
           "sha256": "70925e80497f8ea4d61a77eb562deb83c94087b85d7ae2c8601a2bb23709590f",
           "reviewer": "/root/operation_log_luna and /root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/stored-rssi-cli-review.md",
+          "description": "Independent final CLI review with publication and signal findings corrected",
+          "revision": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
+          "sha256": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
+          "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -186111,6 +186159,18 @@
           "description": "Independent GEOS/Shapely comparison and explicit repair adapter proof",
           "revision": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c",
           "sha256": "ff3ea8757d6c0d766916173a78939f423a868d5ae91230f844ef62f3d5d9989c"
+        },
+        {
+          "path": "crates/geometry-adapter/src/lib.rs",
+          "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
+          "revision": "4a39bf501abaaaecba456648150eabfcc332c46e2139c930d4f06c31c9f5396d",
+          "sha256": "4a39bf501abaaaecba456648150eabfcc332c46e2139c930d4f06c31c9f5396d"
+        },
+        {
+          "path": "crates/geometry-adapter/src/polygon.rs",
+          "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
+          "revision": "e9b59e777518a754ef609640411815128d807986a6e894e04e116873f29d6f72",
+          "sha256": "e9b59e777518a754ef609640411815128d807986a6e894e04e116873f29d6f72"
         }
       ],
       "validation": [
@@ -186131,6 +186191,15 @@
           "command": "python3 -m unittest tests.test_geometry_research",
           "scope": "contract",
           "result": "PASS"
+        },
+        {
+          "path": "docs/validation/planar-geometry-candidate.md",
+          "description": "Combined integration regression and bounded geometry checks",
+          "revision": "5027725a73a552d84ba521503251fe43a3924f371aa935dc02bf5a91401f3005",
+          "sha256": "5027725a73a552d84ba521503251fe43a3924f371aa935dc02bf5a91401f3005",
+          "command": "cargo test --workspace --locked --offline --quiet",
+          "scope": "bounded_planar_adapter",
+          "result": "PASS"
         }
       ],
       "reviews": [
@@ -186140,6 +186209,15 @@
           "revision": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
           "sha256": "28eca921990b1bc5c21fc7575d1f2138ca4e26c878446bde89f761f2ee2782b2",
           "reviewer": "/root/geometry_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/planar-geometry-adapter-review.md",
+          "description": "Independent combined segment and polygon approval",
+          "revision": "eb9a33e2ead5d6107ae8625ec157f748c3e937bcd3ce1d15fc5ef5f5e8676e3f",
+          "sha256": "eb9a33e2ead5d6107ae8625ec157f748c3e937bcd3ce1d15fc5ef5f5e8676e3f",
+          "reviewer": "/root/operation_log_luna",
           "disposition": "APPROVED",
           "findings": []
         }

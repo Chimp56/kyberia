@@ -816,6 +816,22 @@
         "docs/architecture/planar-segment-adapter.md"
       ],
       "acceptance": "Adopted geo kernel behind canonical floor/frame/meter inputs; deterministic intersection and overlap results, explicit invalid scope/geometry failures, independent adversarial numerical review and portable build; polygon/import/material/provenance/runtime gates remain open."
+    },
+    {
+      "id": "iteration-4-polygon-booleans",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-planar-geometry"
+      ],
+      "owner": "geometry adapter Luna xhigh",
+      "requirements": [
+        "source:heading:2369a7236763a4cbea4f:1"
+      ],
+      "owned_paths": [
+        "crates/geometry-adapter",
+        "docs/architecture/planar-polygon-validation.md"
+      ],
+      "acceptance": "Canonical scoped union/intersection/difference preserve holes, disconnected and empty results with deterministic ordering and bounded numerical/resource failures; independent numerical review. Full imports, offsets and geometry gate remain open."
     }
   ]
 }
