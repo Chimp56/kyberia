@@ -70,6 +70,12 @@ An active draft or passing author test is not integration approval.
 
 ## Current validation
 
+At `b4c4c33`, `.tools/venv/bin/python tools/dev.py check` passes the complete
+integrated check: Rust regression, formatting/lint/typecheck, 215 Python tests
+run (19 skipped), source inventory, traceability and original fixture checks.
+Log: `.tools/post-cli-platform-complete-check.log`. This does not close
+pending hosted Windows or product/runtime gates.
+
 At identity-retention integration `5066c6d`, the full workspace regression
 passes **635 tests, zero failures, nine ignored**. Log:
 `.tools/mapping-integrated-workspace.log`.
