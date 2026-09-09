@@ -6,14 +6,15 @@ queried through its public jobs API on 2026-09-09.
 
 | Native runner | Bootstrap | Full foundation/CLI build | Complete validation |
 | --- | --- | --- | --- |
-| Windows | Passed | Passed | Running at checkpoint |
-| macOS | Passed | Passed | Running at checkpoint |
-| Linux | Passed | Passed | Running at checkpoint |
+| Windows | Passed | Passed | Failed; detailed cause not yet available |
+| macOS | Passed | Passed | Passed |
+| Linux | Passed | Passed | Passed |
 
 The successful Windows build is native CI compilation evidence for the complete
 workspace at this commit. It supersedes the earlier local MinGW limitation for
-the build requirement. It does not establish completion of the test step or
-runtime behavior of every Windows filesystem edge case.
+the build requirement. Windows complete validation failed with public annotation exit code 1, line
+195; that code alone does not identify the failed subcommand. Native macOS
+and Linux complete validation passed.
 
 The preceding [run for 4a55d35](https://github.com/Chimp56/kyberia/actions/runs/34321706533)
 passed Linux but failed the validation step on macOS and Windows. Public
@@ -24,5 +25,5 @@ proof that those CI failures are resolved.
 
 Retained public API responses are under `.tools/github-actions-*-jobs.json`;
 those local checkpoint files may be refreshed. The immutable run links and
-source commit identify the authoritative evidence. Final CI conclusions must
-be inspected and this checkpoint superseded once the live run finishes.
+source commit identify the authoritative evidence. The run is terminal: macOS and Linux passed; Windows failed. The Windows
+failure remains actionable once its diagnostic evidence is available.

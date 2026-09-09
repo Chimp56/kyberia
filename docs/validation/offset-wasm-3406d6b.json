@@ -1,0 +1,40 @@
+{
+  "source_commit": "3406d6b",
+  "native": [
+    100,
+    143.12144514912023,
+    64,
+    0,
+    100,
+    143.12144514912023,
+    64,
+    0
+  ],
+  "wasm": [
+    100,
+    143.12144514912023,
+    64,
+    0,
+    100,
+    143.12144514912023,
+    64,
+    0
+  ],
+  "analytic_tolerance_round_area": 0.1,
+  "parity_tolerance": 1e-08,
+  "status": "passed",
+  "scope": "Eight square-offset desktop/WASM execution cases only; not full geometry parity",
+  "harness_sha256": {
+    "src/lib.rs": "7f9e0ad7d1fee4f6cebb4fba625ec51f295e0d314a79d949965044c8f930885e",
+    "src/main.rs": "0a211e3d309524528f246ab6dfaa4e6d6e246056bcec3dd5044902144ef768aa",
+    "compare.mjs": "2877e3c8d2b1de950149864d42c8b412b4054c67328b06d1d35f9284e3fa624f",
+    "Cargo.lock": "63f703965371331fbd7cec22b65a6e7de43fe4cb99537104cc2981c8f317eae7"
+  },
+  "retained_harness": ".trash/offset-wasm-proof-3406d6b",
+  "commands": [
+    "cargo run --offline > native-results.json",
+    "cargo build --lib --release --target wasm32-unknown-unknown --locked --offline",
+    "node compare.mjs > comparison.json"
+  ],
+  "lock_validation": "All external harness name/version/checksum entries occur in main Cargo.lock at d5050f3"
+}

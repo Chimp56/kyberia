@@ -78,8 +78,8 @@ These checks do not replace browser, native hardware, cross-platform, Sionna or
 Kismet runtime gates.
 
 Native CI has passed the complete workspace build on Windows, macOS and Linux
-for `d5050f3`; its validation jobs are still running. Prior macOS/Windows
-validation failures remain under investigation. See the
+for `d5050f3`. Complete macOS and Linux validation passed; Windows validation
+failed and its detailed cause remains under investigation. See the
 [CI checkpoint](docs/validation/ci-publication-checkpoint.md).
 
 ## Blocked capabilities and technical debt
