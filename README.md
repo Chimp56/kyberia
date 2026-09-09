@@ -40,6 +40,10 @@ cargo run -p kyberia-cli -- verify /private/tmp/home.rfatlas
 
 `new` requires a path that does not already exist. Read the [bundle format and recovery guide](docs/architecture/project-bundle.md) before diagnosing damaged data. Keep original evidence when verification fails. No recursive cleanup is automatic; repository agent instructions require explicit user permission for recursive deletion.
 
+On Unix, `analyze-stored-rssi` computes numerical RSSI artifacts from committed
+survey evidence. See the [stored RSSI CLI guide](docs/development/stored-rssi-cli.md)
+for request fields, method selection, unknown cells and cancellation outcomes.
+
 ## Engineering references
 
 - [Architecture decisions](docs/architecture/ADR/README.md)
