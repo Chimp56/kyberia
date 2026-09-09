@@ -265,3 +265,39 @@ fn retained_spool_cancel_after_raw_publication_reopens_and_retries_exactly() {
     assert_eq!(reopened.list_observation_chunks().unwrap().len(), 1);
     assert!(reopened.verify().unwrap().failures.is_empty());
 }
+
+#[test]
+fn spool_manifest_rejects_equal_size_chunk_with_unrelated_identity() {
+    let batch = batch();
+    let directory = retained_tempdir();
+    let path = directory.path().join("spool-binding");
+    let mut bundle = project(&path);
+    let receipt = bundle
+        .persist_acquisition(
+            AcquisitionSpoolRequest::new(&batch, &text("spool-binding/v1"), 2, &NeverCancel)
+                .unwrap(),
+        )
+        .unwrap();
+    let mut data = batch.observations()[0].envelope().clone().into_data();
+    data.id = ObservationId::from_bytes([44; 16]).unwrap();
+    let unrelated = ObservationEnvelope::new(data).unwrap();
+    let wrong_chunk = bundle
+        .publish_observation_chunk(&[unrelated], "unrelated-spool/v1", 4)
+        .unwrap();
+    let manifest_hash = String::from(receipt.publication().manifest().hash());
+    assert!(matches!(
+        bundle.link_capture_chunk(&manifest_hash, wrong_chunk.hash(), wrong_chunk.row_count()),
+        Err(StoreError::Corrupt(_))
+    ));
+    drop(bundle);
+    let reopened = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    let publication = reopened
+        .capture_publication(&manifest_hash)
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        publication.chunk_hash,
+        Some(String::from(receipt.publication().chunk().unwrap().hash()))
+    );
+    assert!(publication.snapshot_id.is_none());
+}
