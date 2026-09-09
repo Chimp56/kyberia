@@ -122,6 +122,7 @@ fn current_schema_contains_every_complete_optional_table_group() {
         [
             "bundle_manifest",
             "capture_publications",
+            "capture_sessions",
             "materialization_baselines",
             "materialized_project_publications",
             "materialized_project_state",

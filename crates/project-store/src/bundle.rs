@@ -335,6 +335,7 @@ impl Bundle {
         transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNKS)?;
         transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNK_MEMBERS)?;
         transaction.execute_batch(sqlite_guard::CREATE_CAPTURE_PUBLICATIONS)?;
+        transaction.execute_batch(sqlite_guard::CREATE_CAPTURE_SESSIONS)?;
         transaction.execute_batch(sqlite_guard::CREATE_MATERIALIZATION_BASELINES)?;
         transaction.execute_batch(sqlite_guard::CREATE_MATERIALIZED_PROJECT_PUBLICATIONS)?;
         transaction.execute_batch(sqlite_guard::CREATE_MATERIALIZED_PROJECT_STATE)?;
@@ -405,6 +406,7 @@ impl Bundle {
                 || !sqlite_guard::has_operation_schema(&connection)?
                 || !sqlite_guard::has_observation_chunk_schema(&connection)?
                 || !sqlite_guard::has_capture_publication_schema(&connection)?
+                || !sqlite_guard::has_capture_session_schema(&connection)?
                 || !sqlite_guard::has_materialized_project_schema(&connection)?)
         {
             // V1 bundles predate one or more optional metadata table groups.
@@ -434,6 +436,9 @@ impl Bundle {
             }
             if !sqlite_guard::has_capture_publication_schema(&migration)? {
                 migration.execute_batch(sqlite_guard::CREATE_CAPTURE_PUBLICATIONS)?;
+            }
+            if !sqlite_guard::has_capture_session_schema(&migration)? {
+                migration.execute_batch(sqlite_guard::CREATE_CAPTURE_SESSIONS)?;
             }
             if !sqlite_guard::has_materialized_project_schema(&migration)? {
                 let tables = migration

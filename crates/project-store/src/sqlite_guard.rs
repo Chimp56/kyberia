@@ -17,6 +17,7 @@ pub(crate) const CREATE_OPERATIONS: &str = "CREATE TABLE project_operations (ope
 pub(crate) const CREATE_OBSERVATION_CHUNKS: &str = "CREATE TABLE observation_chunks (chunk_hash TEXT PRIMARY KEY CHECK(length(chunk_hash)=64), bytes INTEGER NOT NULL CHECK(bytes>0), media_type TEXT NOT NULL, schema_version INTEGER NOT NULL CHECK(schema_version>0), codec_version INTEGER NOT NULL CHECK(codec_version>0), row_count INTEGER NOT NULL CHECK(row_count>0), first_observation_id TEXT NOT NULL CHECK(length(first_observation_id)=32), last_observation_id TEXT NOT NULL CHECK(length(last_observation_id)=32), known_utc_count INTEGER NOT NULL CHECK(known_utc_count>=0 AND known_utc_count<=row_count), first_utc_ns INTEGER, last_utc_ns INTEGER, first_source_id TEXT NOT NULL CHECK(length(first_source_id)=32), last_source_id TEXT NOT NULL CHECK(length(last_source_id)=32), first_session_id TEXT NOT NULL CHECK(length(first_session_id)=32), last_session_id TEXT NOT NULL CHECK(length(last_session_id)=32), provenance_id TEXT NOT NULL, revision INTEGER NOT NULL CHECK(revision>0), CHECK((known_utc_count=0 AND first_utc_ns IS NULL AND last_utc_ns IS NULL) OR (known_utc_count>0 AND first_utc_ns IS NOT NULL AND last_utc_ns IS NOT NULL AND first_utc_ns<=last_utc_ns)))";
 pub(crate) const CREATE_OBSERVATION_CHUNK_MEMBERS: &str = "CREATE TABLE observation_chunk_members (chunk_hash TEXT NOT NULL CHECK(length(chunk_hash)=64), observation_id TEXT PRIMARY KEY CHECK(length(observation_id)=32), source_id TEXT NOT NULL CHECK(length(source_id)=32), session_id TEXT NOT NULL CHECK(length(session_id)=32), ordinal INTEGER NOT NULL CHECK(ordinal>=0), FOREIGN KEY(chunk_hash) REFERENCES observation_chunks(chunk_hash))";
 pub(crate) const CREATE_CAPTURE_PUBLICATIONS: &str = "CREATE TABLE capture_publications (manifest_hash TEXT PRIMARY KEY CHECK(length(manifest_hash)=64), project_id TEXT NOT NULL CHECK(length(project_id)=32), chunk_hash TEXT CHECK(chunk_hash IS NULL OR length(chunk_hash)=64), snapshot_id TEXT CHECK(snapshot_id IS NULL OR length(snapshot_id)=32), status TEXT NOT NULL CHECK(status IN ('manifest','chunk','complete','terminal')), observation_count INTEGER NOT NULL CHECK(observation_count>=0), raw_record_count INTEGER NOT NULL CHECK(raw_record_count>=0), revision INTEGER NOT NULL CHECK(revision>=0))";
+pub(crate) const CREATE_CAPTURE_SESSIONS: &str = "CREATE TABLE capture_sessions (session_id TEXT PRIMARY KEY CHECK(length(session_id)=32), schema_version INTEGER NOT NULL CHECK(schema_version=1), collector_id TEXT NOT NULL CHECK(length(collector_id)=32), clock_epoch_id TEXT NOT NULL CHECK(length(clock_epoch_id)=32), process_session_uuid TEXT NOT NULL CHECK(length(process_session_uuid)=36), source_clock_uuid TEXT NOT NULL CHECK(length(source_clock_uuid)=36), manifest_hash TEXT NOT NULL UNIQUE CHECK(length(manifest_hash)=64), record_hash TEXT NOT NULL CHECK(length(record_hash)=64), terminal_status TEXT NOT NULL CHECK(terminal_status IN ('ok','partial','permission_required','unsupported','unavailable','error','timeout','cancelled')), terminal_reason TEXT NOT NULL CHECK(length(terminal_reason)>0 AND length(terminal_reason)<=1024), partial INTEGER NOT NULL CHECK(partial IN (0,1)), observation_count INTEGER NOT NULL CHECK(observation_count>=0), exit_code INTEGER NOT NULL, registry_version TEXT NOT NULL CHECK(length(registry_version)>0 AND length(registry_version)<=1024), source_mapping_count INTEGER NOT NULL CHECK(source_mapping_count>=0), observation_mapping_count INTEGER NOT NULL CHECK(observation_mapping_count>=0), privacy_hash TEXT NOT NULL CHECK(length(privacy_hash)=64), published_utc_ms INTEGER NOT NULL CHECK(published_utc_ms>=0), revision INTEGER NOT NULL CHECK(revision>0), canonical_bytes BLOB NOT NULL CHECK(length(canonical_bytes)>0 AND length(canonical_bytes)<=1048576))";
 pub(crate) const CREATE_MATERIALIZATION_BASELINES: &str = "CREATE TABLE materialization_baselines (baseline_identity_hash TEXT PRIMARY KEY CHECK(length(baseline_identity_hash)=64), project_id TEXT NOT NULL CHECK(length(project_id)=32), artifact_hash TEXT NOT NULL CHECK(length(artifact_hash)=64), artifact_bytes INTEGER NOT NULL CHECK(artifact_bytes>0), protocol_version INTEGER NOT NULL CHECK(protocol_version=1), project_revision INTEGER NOT NULL CHECK(project_revision>=0), logical_time INTEGER NOT NULL CHECK(logical_time>=0), committed_utc_ms INTEGER NOT NULL CHECK(committed_utc_ms>=0))";
 pub(crate) const CREATE_MATERIALIZED_PROJECT_PUBLICATIONS: &str = "CREATE TABLE materialized_project_publications (publication_id TEXT PRIMARY KEY CHECK(length(publication_id)=64), project_id TEXT NOT NULL CHECK(length(project_id)=32), protocol_version INTEGER NOT NULL CHECK(protocol_version=1), result_schema_version INTEGER NOT NULL CHECK(result_schema_version IN (1,2)), baseline_identity_hash TEXT NOT NULL CHECK(length(baseline_identity_hash)=64), baseline_artifact_hash TEXT NOT NULL CHECK(length(baseline_artifact_hash)=64), baseline_artifact_bytes INTEGER NOT NULL CHECK(baseline_artifact_bytes>0), operation_set_identity_hash TEXT NOT NULL CHECK(length(operation_set_identity_hash)=64), operation_count INTEGER NOT NULL CHECK(operation_count>=0 AND operation_count<=8192), operation_project_revision INTEGER NOT NULL CHECK(operation_project_revision>=0 AND operation_project_revision<=8192), operation_max_causal_depth INTEGER NOT NULL CHECK(operation_max_causal_depth>=0), baseline_project_revision INTEGER NOT NULL CHECK(baseline_project_revision>=0), baseline_logical_time INTEGER NOT NULL CHECK(baseline_logical_time>=0), materialized_artifact_hash TEXT NOT NULL CHECK(length(materialized_artifact_hash)=64), materialized_artifact_bytes INTEGER NOT NULL CHECK(materialized_artifact_bytes>0), materialized_project_revision INTEGER NOT NULL CHECK(materialized_project_revision>=0), materialized_logical_time INTEGER NOT NULL CHECK(materialized_logical_time>=0), bundle_revision INTEGER NOT NULL CHECK(bundle_revision>0), committed_utc_ms INTEGER NOT NULL CHECK(committed_utc_ms>=0))";
 pub(crate) const CREATE_MATERIALIZED_PROJECT_STATE: &str = "CREATE TABLE materialized_project_state (singleton INTEGER PRIMARY KEY CHECK(singleton=1), project_id TEXT NOT NULL CHECK(length(project_id)=32), publication_id TEXT NOT NULL CHECK(length(publication_id)=64), operation_project_revision INTEGER NOT NULL CHECK(operation_project_revision>=0 AND operation_project_revision<=8192), bundle_revision INTEGER NOT NULL CHECK(bundle_revision>0))";
@@ -88,6 +89,7 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                             "observation_chunks",
                             "observation_chunk_members",
                             "capture_publications",
+                            "capture_sessions",
                             "materialization_baselines",
                             "materialized_project_publications",
                             "materialized_project_state",
@@ -103,6 +105,7 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
                         | "observation_chunks"
                         | "observation_chunk_members"
                         | "capture_publications"
+                        | "capture_sessions"
                         | "materialization_baselines"
                         | "materialized_project_publications"
                         | "materialized_project_state",
@@ -163,7 +166,7 @@ pub(crate) fn restrict(connection: &Connection, writable: bool) -> Result<()> {
 /// actually written; an older manifest-only bundle remains readable and is
 /// upgraded by the writable open path before snapshot operations are attempted.
 pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
-    // A canonical bundle has at most eleven user tables and their SQLite-owned
+    // A canonical bundle has at most twelve user tables and their SQLite-owned
     // autoindexes. Read a bounded inventory so malformed schema input cannot
     // allocate from an unbounded sqlite_schema result.
     let mut statement = connection
@@ -238,6 +241,12 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
         "capture_publications",
         Some(CREATE_CAPTURE_PUBLICATIONS),
     );
+    let expected_capture_sessions = (
+        "table",
+        "capture_sessions",
+        "capture_sessions",
+        Some(CREATE_CAPTURE_SESSIONS),
+    );
     let expected_materialized_publications = (
         "table",
         "materialized_project_publications",
@@ -306,6 +315,21 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
     if capture_valid && capture_present == 1 {
         known_objects += 1;
     }
+    let session_present = entries
+        .iter()
+        .filter(|entry| entry.1 == expected_capture_sessions.1)
+        .count();
+    let session_valid = session_present == 0
+        || (session_present == 1
+            && entries.iter().any(|entry| {
+                entry.0 == expected_capture_sessions.0
+                    && entry.1 == expected_capture_sessions.1
+                    && entry.2 == expected_capture_sessions.2
+                    && entry.3.as_deref() == expected_capture_sessions.3
+            }));
+    if session_valid && session_present == 1 {
+        known_objects += 1;
+    }
     let materialization_candidates = [
         expected_materialization_baselines,
         expected_materialized_publications,
@@ -338,6 +362,7 @@ pub(crate) fn validate_schema(connection: &Connection) -> Result<()> {
     if !manifest_valid
         || !groups_valid
         || !capture_valid
+        || !session_valid
         || !materialization_valid
         || entries.len() != known_objects
     {
@@ -400,6 +425,16 @@ pub(crate) fn has_observation_chunk_schema(connection: &Connection) -> Result<bo
 pub(crate) fn has_capture_publication_schema(connection: &Connection) -> Result<bool> {
     let mut statement = connection.prepare(
         "SELECT name FROM main.sqlite_schema WHERE type='table' AND name='capture_publications'",
+    )?;
+    Ok(statement
+        .query_row([], |row| row.get::<_, String>(0))
+        .optional()?
+        .is_some())
+}
+
+pub(crate) fn has_capture_session_schema(connection: &Connection) -> Result<bool> {
+    let mut statement = connection.prepare(
+        "SELECT name FROM main.sqlite_schema WHERE type='table' AND name='capture_sessions'",
     )?;
     Ok(statement
         .query_row([], |row| row.get::<_, String>(0))

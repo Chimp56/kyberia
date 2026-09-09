@@ -2,6 +2,7 @@
 //! human-readable manifest is a recoverable projection, never a second truth.
 mod bundle;
 mod capture_publication;
+mod capture_sessions;
 mod manifest;
 mod materialized_project;
 mod observation_chunks;
@@ -13,6 +14,9 @@ mod survey_snapshot;
 pub use bundle::{Bundle, OpenMode, Verification};
 pub use capture_publication::{
     CaptureManifestRegistration, CapturePublicationRecord, CapturePublicationStatus,
+};
+pub use capture_sessions::{
+    CaptureSessionReceipt, CaptureSessionRegistration, MAX_CAPTURE_SESSIONS_PER_PAGE,
 };
 pub use kyberia_operation_log::AppliedEffect;
 pub use manifest::{ArtifactEntry, ArtifactKind, BundleManifest, content_hash};
