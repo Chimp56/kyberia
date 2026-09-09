@@ -390,12 +390,20 @@ pub struct NativeCaptureSessionOutcome {
 pub struct NativeCaptureSession {
     process_session: String,
     clock_epoch: String,
+    mapping: MappingContext,
     terminal: TerminalStatus,
     exit_code: i32,
     normalized: NormalizedCapture,
 }
 
 impl NativeCaptureSession {
+    /// Exact application mapping admitted for this stream. Retained even when
+    /// the collector returned no observations; foreign process and source clock
+    /// identifiers are never substituted for canonical application identities.
+    pub const fn mapping(&self) -> &MappingContext {
+        &self.mapping
+    }
+
     pub fn process_session(&self) -> &str {
         &self.process_session
     }
@@ -520,6 +528,7 @@ where
     Ok(NativeCaptureSession {
         process_session: stream.process_session().to_owned(),
         clock_epoch: stream.clock_epoch().to_owned(),
+        mapping: context,
         terminal: stream.terminal_status(),
         exit_code,
         normalized,

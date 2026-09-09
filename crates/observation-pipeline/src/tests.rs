@@ -1467,23 +1467,62 @@ fn run_and_normalize_returns_opaque_source_clock_and_rejects_terminal_mismatch_b
     let (_script, collector) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
     let mapping_called = Cell::new(false);
+    let decoded = decode(VALID).unwrap();
+    let mut expected_mapping = mapping_context(&decoded, false);
+    expected_mapping.session_id = SessionId::from_bytes([51; 16]).unwrap();
+    expected_mapping.collector_id = CollectorId::from_bytes([52; 16]).unwrap();
+    expected_mapping.clock_epoch = ClockEpochId::from_bytes([53; 16]).unwrap();
+    for source in expected_mapping.sources.values_mut() {
+        source.source_id = SourceId::from_bytes([54; 16]).unwrap();
+    }
+    for observation in expected_mapping.observations.values_mut() {
+        observation.observation_id = ObservationId::from_bytes([55; 16]).unwrap();
+    }
     let session = run_and_normalize(
         &collector,
         CollectorCommand::Scan(ScanOptions::new(None, 1, 20, true).unwrap()),
         |stream| {
             mapping_called.set(true);
-            Ok(mapping_context(stream, false))
+            assert_eq!(stream.process_session(), decoded.process_session());
+            Ok(expected_mapping.clone())
         },
         &NeverCancel,
     )
     .unwrap();
-    let decoded = decode(VALID).unwrap();
     assert!(mapping_called.get());
     assert_eq!(session.process_session(), decoded.process_session());
     assert_eq!(session.clock_epoch(), decoded.clock_epoch());
     assert_eq!(session.terminal(), TerminalStatus::Ok);
     assert_eq!(session.exit_code(), 0);
     assert_eq!(session.normalized().observations.len(), 1);
+    assert_eq!(session.mapping().session_id, expected_mapping.session_id);
+    assert_eq!(
+        session.mapping().collector_id,
+        expected_mapping.collector_id
+    );
+    assert_eq!(session.mapping().clock_epoch, expected_mapping.clock_epoch);
+    assert_eq!(
+        session.mapping().expected_process_session,
+        decoded.process_session()
+    );
+    assert_eq!(
+        session.mapping().sources.len(),
+        expected_mapping.sources.len()
+    );
+    assert_eq!(
+        session.mapping().observations.len(),
+        expected_mapping.observations.len()
+    );
+
+    for (key, source) in &expected_mapping.sources {
+        assert_eq!(session.mapping().sources[key].source_id, source.source_id);
+    }
+    for (key, observation) in &expected_mapping.observations {
+        assert_eq!(
+            session.mapping().observations[key].observation_id,
+            observation.observation_id
+        );
+    }
 
     let (_script, terminal_mismatch) =
         synthetic_collector(VALID, SyntheticCollectorBehavior::Fixture { exit_code: 1 });
@@ -1523,6 +1562,47 @@ fn run_and_normalize_returns_opaque_source_clock_and_rejects_terminal_mismatch_b
         Err(NativeCaptureSessionError::CommandProvenanceMismatch)
     ));
     assert!(!command_mapping_called.get());
+}
+
+#[cfg(unix)]
+#[test]
+fn empty_native_session_preserves_application_identity_and_source_mapping() {
+    let bytes = include_bytes!("../../../collectors/macos/fixtures/empty.ndjson");
+    let (_script, collector) =
+        synthetic_collector(bytes, SyntheticCollectorBehavior::Fixture { exit_code: 0 });
+    let canonical_session = SessionId::from_bytes([37; 16]).unwrap();
+    let canonical_collector = CollectorId::from_bytes([38; 16]).unwrap();
+    let canonical_source = SourceId::from_bytes([39; 16]).unwrap();
+    let session = run_and_normalize(
+        &collector,
+        CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+        |stream| {
+            let mut context = mapping_context(stream, true);
+            context.session_id = canonical_session;
+            context.collector_id = canonical_collector;
+            for source in context.sources.values_mut() {
+                source.source_id = canonical_source;
+            }
+            Ok(context)
+        },
+        &NeverCancel,
+    )
+    .unwrap();
+    assert!(session.normalized().observations.is_empty());
+    assert!(session.mapping().observations.is_empty());
+    assert_eq!(session.mapping().session_id, canonical_session);
+    assert_eq!(session.mapping().collector_id, canonical_collector);
+    assert_eq!(session.mapping().clock_epoch, epoch());
+    assert_eq!(session.mapping().sources.len(), 1);
+    let (key, source) = session.mapping().sources.first_key_value().unwrap();
+    assert_eq!(key, &format!("{}:en0", session.process_session()));
+    assert_eq!(source.source_id, canonical_source);
+    assert_eq!(
+        session.mapping().privacy,
+        mapping_context(&decode(bytes).unwrap(), true).privacy
+    );
+    assert_eq!(session.terminal(), TerminalStatus::Ok);
+    assert_eq!(session.exit_code(), 0);
 }
 
 #[cfg(unix)]

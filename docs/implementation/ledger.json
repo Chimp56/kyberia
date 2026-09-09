@@ -39334,8 +39334,8 @@
         {
           "path": "crates/observation-pipeline/src/process.rs",
           "description": "Reviewed native collector supervision and request privacy binding; authorized RF scan/product wiring remain open",
-          "revision": "e9d20ba784569893eb5fd4dbb6c11a422ce8acc3d0495c5d733c196222b0140a",
-          "sha256": "e9d20ba784569893eb5fd4dbb6c11a422ce8acc3d0495c5d733c196222b0140a"
+          "revision": "9a802803f8bae5027feff0bdd492777dc4ef2fcb8298d03212cbc63af29bfd26",
+          "sha256": "9a802803f8bae5027feff0bdd492777dc4ef2fcb8298d03212cbc63af29bfd26"
         },
         {
           "path": "apps/cli/src/stored_analysis.rs",
@@ -39372,8 +39372,8 @@
         {
           "path": "crates/observation-pipeline/src/tests.rs",
           "description": "Recoverable native persistence, exact raw and observation closure, hostile snapshot readback",
-          "revision": "eae59f213fd444975641dc15a45c174f23ef15383942a3babe6841d112f262d7",
-          "sha256": "eae59f213fd444975641dc15a45c174f23ef15383942a3babe6841d112f262d7",
+          "revision": "1296a3a5e11d8ad3d60b18ae944c04db768d44c61ef8d5bde411b7c1478d8a68",
+          "sha256": "1296a3a5e11d8ad3d60b18ae944c04db768d44c61ef8d5bde411b7c1478d8a68",
           "command": "cargo test -p kyberia-observation-pipeline --locked --offline",
           "scope": "native_persistence_contract",
           "result": "PASS"
