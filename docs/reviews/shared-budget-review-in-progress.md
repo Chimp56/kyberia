@@ -52,17 +52,24 @@ consumer candidate; other findings and complete consumer integration remain open
 
 ## Replay follow-up
 
-The current candidate charges referenced Undo payloads before constructing the
-inverse effect. The new constrained-quota test derives its limit from observed
-usage, so removing the very charges under test can also lower that limit and
-leave the test passing. Independent evidence must use an expected accounting
-value or a controlled payload-size delta, covering both large prior payloads for
-Undo and large forward payloads for Redo. Targeted independent review is active.
+Independent review approved direct replay accounting at `bd2ba0e` plus
+`941440b`. The strengthened regression compares short and large forward and
+inverse payloads and expects three times the canonical-size delta for Apply,
+Undo and Redo. The retained independent probe at
+`/private/tmp/kyberia-replay-target-budget-probe-20260909` also rejects large
+Undo and Redo payloads at independently calculated pre-copy quotas and verifies
+the Resolve payload delta (1,019 bytes). The reviewer ran 39 operation tests,
+Clippy and formatting successfully. Root's immutable combined consumer run
+passed 92 tests with no failures or ignored tests.
+
+Whole-consumer approval remains withheld: conflict inspection calls
+`effect_event` and creates additional effect/frontier copies without equivalent
+payload accounting. A separate correction must account for those copies before
+allocation and receive independent review. Direct replay approval does not
+establish bounded conflict inspection.
 
 Root separately verified cancellation after replay has started: the regression
 asserts nonzero witness and project-copy usage before the cancelled result.
 Current direct/nested cancellation mappings preserve the cancellation category.
-Architecture and external source checks pass (241 packages); the most recent
-combined operation/identity/materializer run passed 85 tests before the latest
-referenced-payload correction. These scoped checks do not approve the complete
-consumer candidate.
+Architecture and external source checks pass (241 packages). These scoped
+checks do not approve the complete consumer candidate.
