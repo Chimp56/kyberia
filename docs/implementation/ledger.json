@@ -39340,8 +39340,14 @@
         {
           "path": "apps/cli/src/stored_analysis.rs",
           "description": "Verified stored RSSI analysis and canonical scene export with bounded requests, explicit unknowns, source binding, cooperative cancellation and non-overwriting publication",
-          "revision": "9c18a7e8398e876407a3e32a5d6e3a2833757b433edf28ce1f4976e5b4c8c0cf",
-          "sha256": "9c18a7e8398e876407a3e32a5d6e3a2833757b433edf28ce1f4976e5b4c8c0cf"
+          "revision": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198",
+          "sha256": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198"
+        },
+        {
+          "path": "crates/file-adapter/src/lib.rs",
+          "description": "Narrow reviewed Windows disk-handle admission before bounded request reads; no platform handles in core",
+          "sha256": "ce35a1d309a6c1ce7b70ccec64c4206ab5afdd6d5101a36fca4a0569847e8c89",
+          "revision": "ce35a1d309a6c1ce7b70ccec64c4206ab5afdd6d5101a36fca4a0569847e8c89"
         }
       ],
       "validation": [
@@ -39472,6 +39478,15 @@
           "revision": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
           "sha256": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/windows-request-reader-review.md",
+          "description": "Independent approval of disk handle, reparse and sharing correction; native Windows runtime gates remain open",
+          "sha256": "4db872f2b94772e69846a5b347659dc24bac3aa2670c625dad29d49eb84791a7",
+          "revision": "4db872f2b94772e69846a5b347659dc24bac3aa2670c625dad29d49eb84791a7",
+          "reviewer": "/root/offset_review_luna",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -173216,8 +173231,14 @@
         {
           "path": "apps/cli/src/stored_analysis.rs",
           "description": "Verified stored RSSI analysis and canonical scene export with bounded requests, explicit unknowns, source binding, cooperative cancellation and non-overwriting publication",
-          "revision": "9c18a7e8398e876407a3e32a5d6e3a2833757b433edf28ce1f4976e5b4c8c0cf",
-          "sha256": "9c18a7e8398e876407a3e32a5d6e3a2833757b433edf28ce1f4976e5b4c8c0cf"
+          "revision": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198",
+          "sha256": "44c5a05381850efc90fb90bb67f8169b6daa5ac10a4bbce825691259f04e7198"
+        },
+        {
+          "path": "crates/file-adapter/src/lib.rs",
+          "description": "Narrow reviewed Windows disk-handle admission before bounded request reads; no platform handles in core",
+          "sha256": "ce35a1d309a6c1ce7b70ccec64c4206ab5afdd6d5101a36fca4a0569847e8c89",
+          "revision": "ce35a1d309a6c1ce7b70ccec64c4206ab5afdd6d5101a36fca4a0569847e8c89"
         }
       ],
       "validation": [
@@ -173283,6 +173304,15 @@
           "revision": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
           "sha256": "be4f9eb5b52d85be529a485fe34fcd8591c7f69b8cfa21b23d7c6f03033adb5c",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/windows-request-reader-review.md",
+          "description": "Independent approval of disk handle, reparse and sharing correction; native Windows runtime gates remain open",
+          "sha256": "4db872f2b94772e69846a5b347659dc24bac3aa2670c625dad29d49eb84791a7",
+          "revision": "4db872f2b94772e69846a5b347659dc24bac3aa2670c625dad29d49eb84791a7",
+          "reviewer": "/root/offset_review_luna",
           "disposition": "APPROVED",
           "findings": []
         }

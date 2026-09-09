@@ -8,7 +8,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **4 — Integration audit remediation and architecture proofs**.
 - Integration branch: `main`.
-- Latest integrated feature source: `21b156e8`, corrected rounded polygon offsets (integration `7645079`, review documentation `c88b072`).
+- Latest integrated feature source: `c3dd163`, Windows disk-file request admission (integration `2988bc6`, review documentation `1efa558`); native runtime gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -57,8 +57,8 @@ product capability is validated.
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
 | Neutral planning interchange | Russell / `planning-interchange` | Original geometry/AP/radio/channel-constraint schema, defensive import/export, deterministic roundtrip and independent review |
-| Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Browser review found canonical admission, metric/replay, predecode limits, coordinate mapping and stale-raster MAJOR defects; correction and fresh review required |
-| Windows analysis request acquisition | Correction awaiting review / `windows-analysis-requests` | `c3dd163` adds disk-handle validation and read-only sharing after WR-001/002; 23 local CLI tests and Windows adapter cross-Clippy pass; native runtime remains open |
+| Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Review of `4cd60dc` still accepts noncanonical escaped strings and float-encoded integer fields; Rust/WASM admission correction required |
+| Windows native request runtime | CI / integrated `2988bc6` | Independently approved disk-handle/reparse/sharing boundary; native disk/device/pipe and full CLI execution remain required |
 
 
 The publication review is approved for the bounded increment in
@@ -66,6 +66,11 @@ The publication review is approved for the bounded increment in
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+Complete `.tools/venv/bin/python tools/dev.py check` passes after Windows integration:
+Rust tests, workspace lint/typecheck, 189 Python tests run (19 skipped), source
+inventory, traceability and original scientific fixtures. Log:
+`.tools/windows-integrated-complete-check.log`. Native Windows runtime remains open.
 
 Corrected polygon offsets also pass [ten native/WASM execution cases](docs/validation/offset-wasm-21b156e8.json),
 including rejection of mixed-scale partial loss at two origins; broader Gate E remains open.
@@ -87,7 +92,7 @@ ordered checks while exposing lint, typecheck, regression, source inventory and
 evidence failures separately. Independent review found no blocking findings;
 the command-discoverability follow-up is included in README.
 
-For integrated source `c88b072`, `cargo test --workspace --locked --offline` passes **630 tests,
+For integrated source `1efa558`, `cargo test --workspace --locked --offline` passes **632 tests,
 zero failures, nine ignored tests**, recorded in
 `.tools/publication-final-integration.log`. Existing local TCP fixtures ran
 with authorized listener access. This count excludes unintegrated worktrees.
