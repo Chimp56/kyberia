@@ -27,3 +27,18 @@ Retained public API responses are under `.tools/github-actions-*-jobs.json`;
 those local checkpoint files may be refreshed. The immutable run links and
 source commit identify the authoritative evidence. The run is terminal: macOS and Linux passed; Windows failed. The Windows
 failure remains actionable once its diagnostic evidence is available.
+
+## Validation-stage checkpoint
+
+For source `b489ef0f55569089965dfe4bf6fae5ada462744c`,
+[run 34324557956](https://github.com/Chimp56/kyberia/actions/runs/34324557956)
+exposes the individual validation stages. The public jobs response on 2026-09-09
+shows Windows bootstrap and full build passing, followed by failure in
+“Check formatting, lint and dependency boundaries”; subsequent checks were
+skipped. This narrows the failure to that group, but does not establish which
+subcommand failed. Linux passed every stage. macOS had passed build, lint and
+typecheck and was still running regressions at this checkpoint.
+
+The Windows stored-analysis request reader has a separately confirmed unsupported
+production path under review. Its local tests do not prove the hosted lint
+failure is fixed, and the two issues are not being conflated.

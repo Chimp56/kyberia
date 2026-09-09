@@ -52,8 +52,9 @@ product capability is validated.
 
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
-| Canonical project CLI | Laplace / `canonical-project-cli` | Verified project queries and explicit baseline initialization for new projects; real CLI recovery/legacy/corruption tests and independent review |
+| Canonical project CLI | Root correction / `canonical-project-cli` | `57f8129` review found mixed read snapshots; correction `0ab4bc7` passes 155 affected tests and needs independent review |
 | Canonical scene renderer input | Russell reviewing / `renderer-canonical-scenes` | Independent scientific/security review and actual browser evidence after dependency installation |
+| Windows analysis request acquisition | Independent review / `windows-analysis-requests` | Local CLI tests pass; Windows handle safety review and native execution remain open |
 | Rounded polygon offsets | Laplace correcting / `polygon-offsets` | Independent review found partial loss of mixed-scale components in `3406d6b`; coverage-completeness fix and fresh review required |
 
 The publication review is approved for the bounded increment in
