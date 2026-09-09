@@ -34,3 +34,29 @@ semantics where operation intent actually differs.
 The author is preparing an isolated correction. Causal prior validation,
 baseline-bound project materialization and storage replay integration remain
 separate open work under FND-011. No full undo/merge completion is claimed.
+
+## Follow-up candidate `2f00aa9`
+
+Root independently reran the focused suite: 29 operation tests and one
+architecture test passed. The correction carries typed conflict arms and removes
+the mutation conversion from conflict inspection. It also normalizes known
+calibration representations. These checks do not yet justify integration.
+
+MAJOR: `try_resolve_v2` still accepts `Mutation`, and `OperationPayload::Resolve`
+still carries a mutation-only selected value. An unknown/known calibration
+conflict can therefore be inspected, but the resolver cannot choose its unknown
+arm. The new test chooses a known calibration. Add a typed selected resolution
+value with explicit unknown restoration and tests choosing either arm; preserve
+the legacy V1 operation bytes. This is actionable implementation work.
+
+The frontier identity comparison also needs an adversarial review: two toggles
+with distinct targets compare unequal, yet each can compare equal to a plain
+value with the same effect. That relation is nontransitive. Establish whether
+representative collapse can hide an intent conflict when a third equal-value
+branch is present. Test operation-ID and arrival-order permutations; retain
+intent semantics independently from any safe value deduplication. This is a
+review concern pending a concrete behavioral reproduction, not a claimed
+reproduced failure.
+
+The candidate remains frozen for independent review; the author is preparing
+the typed-resolution follow-up in a separate worktree.
