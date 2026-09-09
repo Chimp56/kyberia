@@ -40,6 +40,12 @@ remain under review; neither this adapter nor the renderer gate is complete.
 The independent follow-up review is active. Shared materialization budgets are
 being implemented separately and have not been integrated or approved.
 
+Reviewed prerequisite: the dependency-free `kyberia-resource-budget` primitive
+is integrated with six passing tests and explicit local/shared failure atomicity.
+See [scoped approval](docs/reviews/resource-budget-primitive-review.md). Its
+operation-log, identity, materializer and storage consumers remain in progress;
+existing production paths do not yet consume this budget.
+
 Integrated validation at `a11ca22`: `cargo test --workspace --locked --offline`
 passes 524 tests with zero failures and nine ignored; workspace Clippy with
 `-D warnings` also passes. Logs are retained in

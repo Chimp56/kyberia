@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "packages": {
+    "kyberia-resource-budget": {"layer": "domain", "external_dependencies": []},
     "kyberia-domain": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-operation-log": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-materialization-identity": {"layer": "application", "external_dependencies": ["serde_json", "sha2"]},

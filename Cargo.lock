@@ -1032,6 +1032,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-resource-budget"
+version = "0.1.0"
+
+[[package]]
 name = "kyberia-spatial-analysis"
 version = "0.1.0"
 dependencies = [
