@@ -14,8 +14,11 @@ persistence. It never creates a survey, snapshot, pose, capture clock or
 transmitter identity. An empty native terminal persists its manifest only;
 its original capability and terminal evidence remains inspectable.
 
-Success means the batch is durable; a nonempty capture has store status
-`Chunk`, not survey `Complete`. Receipts contain no snapshot. Publication
+Success means the batch is durable, not that native capture succeeded. The
+outcome exposes the exact typed native completion, including reason and partial
+flag. A nonempty successful capture has store status `Chunk`; partial/error
+terminal captures may have status `Terminal` even when they include a chunk.
+Receipts contain no snapshot. Publication
 errors retain completed manifest/raw/chunk progress for retry. The existing
 store checks exact content identity and immutable link closure. Reopening and
 retrying a complete batch is idempotent. Payload-discard batches publish no
