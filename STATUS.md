@@ -31,14 +31,20 @@ The run required local TCP listener access for existing Kismet transport tests;
 the earlier sandbox bind failures are retained in the preceding log. A minimal
 observation-pipeline error mapping handles the new materialization error variant.
 
-Renderer scene draft: `.worktrees/canonical-render-scene` now preserves canonical
-samples and replays the spatial Model on serialized import, as well as direct
-Tile admission. Twenty-one tests pass, including forged interpolation, shifted
-grid and altered-sample regressions. Encoded-size admission is cancellable before
-projection copies. Total allocation/work accounting and import cancellation
-remain under review; neither this adapter nor the renderer gate is complete.
-The independent follow-up review is active. Shared materialization budgets are
-being implemented separately and have not been integrated or approved.
+Renderer scene draft: `.worktrees/canonical-render-scene` at `0376336` preserves
+canonical samples and replays the spatial Model on serialized import and direct
+Tile admission. Root independently ran 30 passing tests, including forged
+interpolation, altered samples, capacity limits and cancellation. The corrected
+allocation model accounts for live copies and nested vectors. Pre-decode
+allocation bounds and measured memory/cancellation latency remain under review;
+neither this adapter nor the renderer gate is complete. See the
+[resource review](docs/reviews/render-scene-resource-review.md).
+Shared materialization consumers remain unintegrated pending conflict-copy
+accounting review. Direct replay has scoped independent approval; its combined
+consumer suite passes 92 tests. Separate identity-writer regressions at
+`7ad38e8` and `06db93a` pass all 19 identity tests and fail when budget checks are
+experimentally moved after destination writes. Those tests await independent
+review and integration.
 
 Reviewed prerequisite: the dependency-free `kyberia-resource-budget` primitive
 is integrated with six passing tests and explicit local/shared failure atomicity.

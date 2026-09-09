@@ -31,5 +31,26 @@ canonical output and temporary spatial-analysis arrays. Validate representative
 large tiles and cancellation latency. Keep accounting proxies separate from RSS;
 no exact memory ceiling is implied by a passing shape test.
 
-The author has been asked for a corrective proposal. Full renderer selection,
-real map/browser integration and Gate B performance/accessibility remain open.
+## Corrected allocation model
+
+Root inspected follow-up `0376336fa15e42c31ae95e4dc47a7d92ba8c42d9` and
+independently ran the locked/offline rendering-scene suite: ten unit and twenty
+integration tests pass. The replacement uses measured type sizes and observed
+vector capacities, four sample/group collections, three cell collections,
+nested observation-ID vectors, aggregation scratch and explicit allocation
+padding. The padding is an accounting policy, not an allocator RSS guarantee.
+The previous 128-byte group constant is removed.
+
+The representative 512-sample/1,024-cell test establishes successful admission
+and cooperative cancellation after 32 polls. It does not measure process memory
+or wall-clock cancellation latency. Those measurements remain requested.
+
+Serialized import checks the 64 MiB encoded input limit before serde decoding,
+but checks decoded vector capacities afterward. Review of pre-decode allocation
+bounds therefore remains open; a post-decode rejection does not prove that a
+256 MiB working-set policy was enforced before allocation. The implementer is
+evaluating decoded expansion and bounded admission, alongside the measurement
+harness. Integration remains unapproved pending this evidence.
+
+Full renderer selection, real map/browser integration and Gate B
+performance/accessibility remain open.
