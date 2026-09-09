@@ -83,9 +83,10 @@ FND-006 and operation log/undo to FND-011.
 
 V2 implementation review must include a typed replay path: encoding an unknown
 calibration prior is insufficient if replay converts it back to V1 Mutation
-and rejects it as TypedPriorRequired. The pure operation API must expose usable
-unknown-state restoration effects while preserving legacy V1 compatibility;
-storage/materializer integration can then consume that versioned contract.
+and rejects it as TypedPriorRequired. The pure operation API and the
+project-store adapter now expose usable unknown-state restoration effects while
+preserving legacy V1 compatibility; the remaining materializer integration must
+consume that versioned contract against a validated causal baseline.
 
 ## Independent API audit and executable ordering
 

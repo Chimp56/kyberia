@@ -10,6 +10,12 @@ The focused tests demonstrate:
 
 - exact canonical wire/canonical-byte/hash round trips and deterministic
   ordered replay after reopen;
+- the outward typed replay API preserving an explicit unknown calibration undo
+  through SQLite append, reopen, and replay while the legacy mutation-only API
+  returns `TypedPriorRequired` explicitly;
+- a resolved V2 unknown-calibration conflict persisted and replayed after
+  reopen, proving the resolution value is not reduced to a sentinel or
+  silently discarded;
 - idempotent duplicate appends, including a retry with the stale revision held
   before an uncertain successful commit;
 - tamper rejection for changed digest, canonical bytes, malformed/future wire

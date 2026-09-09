@@ -10,8 +10,8 @@ use crate::bundle::{atomic_projection, load_manifest};
 use crate::{Bundle, Result, StoreError, sqlite_guard};
 use kyberia_domain::identity::{OperationId, ProjectId};
 use kyberia_operation_log::{
-    AppliedMutation, MAX_OPERATION_CANONICAL_BYTES, MAX_OPERATION_COUNT, MAX_OPERATION_WIRE_BYTES,
-    MergeError, Operation, OperationError, OperationSet, ProjectVersion,
+    AppliedEffect, AppliedMutation, MAX_OPERATION_CANONICAL_BYTES, MAX_OPERATION_COUNT,
+    MAX_OPERATION_WIRE_BYTES, MergeError, Operation, OperationError, OperationSet, ProjectVersion,
 };
 use rusqlite::{OptionalExtension, Row, Transaction, TransactionBehavior, params};
 
@@ -440,6 +440,16 @@ impl Bundle {
     pub fn replay_operations(&self) -> Result<Vec<AppliedMutation>> {
         self.operation_set()?
             .replay()
+            .map_err(|error| StoreError::Operation(error.to_string()))
+    }
+
+    /// Deterministic topological replay from the persisted immutable set,
+    /// retaining V2 typed effects such as an explicit unknown calibration
+    /// state. This is the outward storage boundary for callers that cannot
+    /// safely coerce every operation into the legacy mutation-only API.
+    pub fn replay_operation_effects(&self) -> Result<Vec<AppliedEffect>> {
+        self.operation_set()?
+            .replay_effects()
             .map_err(|error| StoreError::Operation(error.to_string()))
     }
 

@@ -1,13 +1,17 @@
-use kyberia_domain::identity::{
-    ActorDeviceId, ActorId, ContentHash, OperationId, ProjectId, SiteId, Text,
+use kyberia_domain::{
+    evidence::{Evidence, UnknownReason},
+    identity::{
+        ActorDeviceId, ActorId, CalibrationId, ContentHash, MapAssetId, OperationId, ProjectId,
+        SiteId, Text,
+    },
 };
 use kyberia_operation_log::{
-    CausalDepth, LogicalTimestamp, Mutation, Operation, OperationReference, OperationSet,
-    ProjectVersion,
+    CausalDepth, InversePrior, LogicalTimestamp, Mutation, Operation, OperationReference,
+    OperationSet, ProjectVersion, ResolutionValue,
 };
-use kyberia_project_store::{Bundle, OpenMode, OperationAppendOutcome, StoreError};
+use kyberia_project_store::{AppliedEffect, Bundle, OpenMode, OperationAppendOutcome, StoreError};
 use rusqlite::Connection;
-use std::fs;
+use std::{fs, path::PathBuf};
 
 fn project() -> ProjectId {
     ProjectId::from_bytes([1; 16]).unwrap()
@@ -122,6 +126,16 @@ fn bundle(path: &std::path::Path) -> Bundle {
     Bundle::create(path, project(), "Operation store".into(), 10).unwrap()
 }
 
+fn retained_test_dir(prefix: &str) -> PathBuf {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs");
+    fs::create_dir_all(&root).unwrap();
+    tempfile::Builder::new()
+        .prefix(prefix)
+        .tempdir_in(root)
+        .unwrap()
+        .keep()
+}
+
 #[test]
 fn append_retry_reopen_and_replay_preserve_canonical_operation() {
     let dir = tempfile::tempdir().unwrap().keep();
@@ -183,10 +197,165 @@ fn append_retry_reopen_and_replay_preserve_canonical_operation() {
         vec![root.operation_id(), child.operation_id()]
     );
     assert_eq!(reopened.replay_operations().unwrap().len(), 2);
+    assert!(
+        reopened
+            .replay_operation_effects()
+            .unwrap()
+            .iter()
+            .all(|effect| matches!(effect, AppliedEffect::Mutation(_)))
+    );
     assert_eq!(
         reopened.operation_store_state().unwrap().operation_count(),
         2
     );
+}
+
+#[test]
+fn typed_replay_persists_unknown_calibration_undo_and_reopens() {
+    let dir = retained_test_dir("typed-unknown-undo-");
+    let path = dir.join("project");
+    let mut bundle = bundle(&path);
+    let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+    let applied_calibration = CalibrationId::from_bytes([8; 16]).unwrap();
+    let root = Operation::try_apply_v2(
+        operation_id(2),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, applied_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+    let undo = Operation::try_undo_v2(
+        operation_id(3),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![root.operation_id()],
+        OperationReference::from(&root),
+    )
+    .unwrap();
+    bundle.append_operation(root).unwrap();
+    bundle.append_operation(undo).unwrap();
+
+    let effects = bundle.replay_operation_effects().unwrap();
+    assert!(matches!(
+        effects.last(),
+        Some(AppliedEffect::Calibration {
+            map_id: effect_map,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+            ..
+        }) if *effect_map == map_id
+    ));
+    assert!(matches!(
+        bundle.replay_operations(),
+        Err(StoreError::Operation(message)) if message.contains("TypedPriorRequired")
+    ));
+
+    drop(bundle);
+    let reopened = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    assert_eq!(reopened.replay_operation_effects().unwrap(), effects);
+}
+
+#[test]
+fn typed_replay_persists_and_reopens_resolved_unknown_calibration_conflict() {
+    let dir = retained_test_dir("typed-unknown-resolution-");
+    let path = dir.join("project");
+    let mut bundle = bundle(&path);
+    let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+    let root_calibration = CalibrationId::from_bytes([8; 16]).unwrap();
+    let right_calibration = CalibrationId::from_bytes([9; 16]).unwrap();
+    let root = Operation::try_apply_v2(
+        operation_id(2),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::activate_calibration(map_id, root_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+    let left = Operation::try_undo_v2(
+        operation_id(3),
+        project(),
+        actor(1),
+        device(1),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![root.operation_id()],
+        OperationReference::from(&root),
+    )
+    .unwrap();
+    let right = Operation::try_apply_v2(
+        operation_id(4),
+        project(),
+        actor(2),
+        device(2),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![root.operation_id()],
+        Mutation::activate_calibration(map_id, right_calibration),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+    let resolution = Operation::try_resolve_v2(
+        operation_id(5),
+        project(),
+        actor(3),
+        device(3),
+        LogicalTimestamp::new(3).unwrap(),
+        CausalDepth::new(2),
+        vec![left.operation_id(), right.operation_id()],
+        OperationReference::from(&left),
+        OperationReference::from(&right),
+        ResolutionValue::activate_calibration(
+            map_id,
+            Evidence::Unknown(UnknownReason::NotMeasured),
+        ),
+        InversePrior::MapCalibration {
+            map_id,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+        },
+    )
+    .unwrap();
+
+    bundle.append_operation(root).unwrap();
+    bundle.append_operation(left).unwrap();
+    bundle.append_operation(right).unwrap();
+    assert!(matches!(
+        bundle.replay_operation_effects(),
+        Err(StoreError::Operation(message)) if message.contains("Conflicts")
+    ));
+    bundle.append_operation(resolution).unwrap();
+
+    let effects = bundle.replay_operation_effects().unwrap();
+    assert!(matches!(
+        effects.last(),
+        Some(AppliedEffect::Calibration {
+            map_id: effect_map,
+            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+            ..
+        }) if *effect_map == map_id
+    ));
+    drop(bundle);
+    let reopened = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    assert_eq!(reopened.replay_operation_effects().unwrap(), effects);
 }
 
 #[test]

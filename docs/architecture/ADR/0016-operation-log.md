@@ -97,7 +97,10 @@ The outer persistence evidence is recorded in the
 whose focused tests cover exact duplicate retry, canonical/hash tamper
 detection, bounded scalar BLOB-length reads, sequential toggle admission,
 additive migration, read-only access, transactional rollback, projection-ahead
-recovery, and reopen/replay.
+recovery, reopen/replay, and the outward typed replay of V2 unknown calibration
+effects and resolved unknown conflicts. The legacy mutation-only replay API
+remains available for V1-compatible consumers and reports an explicit typed
+error for an unrepresentable unknown effect.
 
 ## Reversibility
 

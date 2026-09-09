@@ -13,6 +13,7 @@ pub use bundle::{Bundle, OpenMode, Verification};
 pub use capture_publication::{
     CaptureManifestRegistration, CapturePublicationRecord, CapturePublicationStatus,
 };
+pub use kyberia_operation_log::AppliedEffect;
 pub use manifest::{ArtifactEntry, ArtifactKind, BundleManifest, content_hash};
 pub use observation_chunks::{
     Cancellation, MAX_OBSERVATION_CHUNK_BYTES, MAX_OBSERVATION_CHUNK_ROWS,

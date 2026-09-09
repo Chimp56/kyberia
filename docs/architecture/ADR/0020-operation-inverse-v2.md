@@ -92,10 +92,11 @@ operations only. The causal aggregate baseline and full project materializer
 remain separate work; this contract does not claim that either recorded prior
 matches reconstructed project state.
 
-The existing outer `project-store::replay_operations` endpoint is also
-mutation-only and will return the same explicit error for a persisted V2
-unknown-prior undo until its adapter is migrated to `replay_effects`. This
-increment does not alter that outer crate.
+The existing outer `project-store::replay_operations` endpoint remains
+mutation-only and returns the same explicit error for a persisted V2
+unknown-prior undo. Its additive `replay_operation_effects` endpoint now
+consumes `replay_effects` and preserves that unknown state for typed callers;
+this still does not materialize the full aggregate.
 
 This increment intentionally does not implement aggregate baseline hashes,
 causal inverse validation against arbitrary concurrent branches, authorization,
