@@ -1,6 +1,6 @@
 # ADR-0028: Canonical acquisition-session provenance record
 
-Status: Proposed bounded increment; implementation frozen for independent review. Native collector runtime, identity-mapping and product workflow gates remain open.
+Status: Proposed bounded increment; review corrections applied and awaiting independent rereview. Native collector runtime, identity-mapping and product workflow gates remain open.
 
 Date: 2026-09-09
 
@@ -44,9 +44,14 @@ observation count above the capture bound. Canonical decoding rejects unknown
 fields, noncanonical JSON bytes and invalid mapping evidence. A separate
 `validate_against_manifest` step binds the record to the exact manifest hash,
 completion fields, privacy disposition, collector capability identity and
-observation envelopes. Extra source mappings are allowed because a capability
-listing can contain sources that produced no observations; observation mappings
-must exactly match the envelopes.
+observation envelopes. When an envelope provides a monotonic timestamp or clock
+model, its `ClockEpochId` must equal the record epoch. Every observed source
+mapping must match the envelope's sensor and adapter evidence, and every
+observation mapping must match its radio, BSS and grouping-artifact evidence.
+Known raw-source references must equal a complete manifest source-record
+reference (hash, media type and byte length). Extra source mappings are allowed
+because a capability listing can contain sources that produced no observations;
+observation mappings must exactly match the envelopes.
 
 The store accepts a `CaptureSessionRegistration` only after the caller has
 published the manifest and, when nonempty, the observation chunk through their
@@ -66,6 +71,12 @@ single-record reads and keyset listing have cancellation-aware variants. A
 cancellation before commit rolls back the row. A cancellation after commit can
 return a retryable cancellation while retaining the complete immutable row for
 the next exact retry.
+
+`Bundle::verify` inventories the capture-session table through the same
+authoritative read path, one row at a time, so a corrupt canonical session BLOB
+cannot be hidden by a healthy SQLite quick check or a valid table shape. V1
+rows use the fixed revision marker `1`; other positive revisions are rejected
+until a reviewed schema version defines them.
 
 The public API shape is:
 
@@ -138,10 +149,13 @@ measurements that the source did not provide.
 
 The implementation is split for review:
 
-- `b3b8124` adds the domain contract and ten domain unit tests.
-- `ed28ba2` adds the store table, migration, APIs and 32 project-store unit
-  tests, including corruption, retry, empty, cancellation, migration,
-  read-only and concurrent-writer cases.
+- `b3b8124` adds the domain contract; `32ce777` closes terminal and
+  manifest/envelope evidence after independent review findings.
+- `ed28ba2` adds the store table, migration and APIs; `27ca746` pins the V1
+  row revision and makes `Bundle::verify` inventory every session row. The
+  project-store suite has 33 passing tests covering corruption, retry, empty,
+  cancellation, migration, read-only, concurrent-writer and
+  verification-inventory cases. The domain suite has 11 passing tests.
 - The project-store schema guard has 14 passing tests after adding the new
   table to the current schema inventory.
 - `cargo test --workspace --exclude kyberia-kismet-adapter --locked --offline`
@@ -152,12 +166,11 @@ The implementation is split for review:
 
 The exact retained logs are under
 `.trash/test-runs/capture-session-record-20260909/` in the implementation
-worktree. The unrestricted workspace test was also run. Five Kismet live HTTP
-fixtures failed before exercising their assertions because this sandbox
-reported `Operation not permitted` while creating local sockets; this is an
-environment limitation, not evidence about the session record. Independent
-review of the frozen implementation is still pending, so this ADR does not
-claim acceptance or product feature completion.
+worktree. The Kismet live HTTP fixtures remain outside the reproducible
+workspace command because this sandbox cannot create their local sockets;
+that environment limitation is not evidence about the session record.
+Independent rereview of these corrections is still pending, so this ADR does
+not claim acceptance or product feature completion.
 
 ## Consequences
 
@@ -165,9 +178,12 @@ The record makes process identity, source-clock identity, canonical identity
 mapping, privacy and terminal outcomes durable together, including empty
 captures. A read can detect a changed BLOB, stale projection, missing manifest,
 wrong publication kind, missing chunk, reordered/duplicate observation or
-manifest/envelope mismatch before returning a record. Resource bounds are
-explicit: one record is at most 1 MiB, mapping vectors are bounded, a list page
-is at most 128 rows, and SQLite schema/read limits remain in force.
+manifest/envelope mismatch before returning a record. `Bundle::verify` reports
+the same failures for every stored session row, including rows not discovered
+through a caller's cursor. Resource bounds are explicit: one record is at most
+1 MiB, verification loads one row at a time, mapping vectors are bounded, a
+public list page is at most 128 rows, and SQLite schema/read limits remain in
+force.
 
 The store row is immutable and uses a fixed positive revision marker (`1`) for
 the V1 row. The stable list cursor is canonical `SessionId`; this revision is

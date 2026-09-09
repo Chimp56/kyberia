@@ -665,7 +665,7 @@ mod tests {
         time::CaptureTime,
     };
     use sha2::{Digest, Sha256};
-    use std::{collections::BTreeMap, fs, path::PathBuf};
+    use std::{cell::Cell, collections::BTreeMap, fs, path::PathBuf};
 
     fn retained_root() -> PathBuf {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs");
@@ -905,6 +905,40 @@ mod tests {
             bundle.list_capture_sessions_with_cancel(1, None, &cancelled),
             Err(StoreError::Cancelled)
         ));
+    }
+
+    #[test]
+    fn cancellation_after_commit_leaves_a_retryable_complete_session() {
+        let (_path, mut bundle) = new_bundle();
+        let manifest = new_manifest();
+        let record = make_record(&manifest, 77, "registry/v1");
+        publish_manifest(&mut bundle, manifest.clone());
+        let polls = Cell::new(0_usize);
+        let cancel_after_commit = || {
+            let poll = polls.get().saturating_add(1);
+            polls.set(poll);
+            // The registration path checks immediately before and after the
+            // only metadata commit. This targets the post-commit recovery
+            // branch while leaving all admission checks active.
+            poll == 8
+        };
+        let error = bundle
+            .register_capture_session_with_cancel(
+                CaptureSessionRegistration::new(record.clone(), manifest.clone(), &[], 1).unwrap(),
+                &cancel_after_commit,
+            )
+            .unwrap_err();
+        assert!(matches!(error, StoreError::Cancelled));
+        assert_eq!(
+            bundle.read_capture_session(record.session_id()).unwrap(),
+            Some(record.clone())
+        );
+        let retry = bundle
+            .register_capture_session(
+                CaptureSessionRegistration::new(record.clone(), manifest, &[], 1).unwrap(),
+            )
+            .unwrap();
+        assert_eq!(retry.session_id, record.session_id());
     }
 
     #[test]

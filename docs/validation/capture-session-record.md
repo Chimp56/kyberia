@@ -1,7 +1,7 @@
 # Canonical acquisition-session record validation
 
-Status: implementation frozen in `b3b8124` and `ed28ba2`; independent review
-is pending. This document describes a bounded domain/storage increment. It
+Status: corrections in `32ce777` and `27ca746` are awaiting independent
+rereview; this document describes a bounded domain/storage increment. It
 does not claim a real native scan, production identity registry, durable spool
 workflow, UI command, or Phase 0/Phase 1 completion.
 
@@ -18,6 +18,15 @@ observation maps. The constructors sort rows by their foreign keys, reject
 duplicate keys or canonical IDs, and reject known transmitter IDs without
 known identity evidence. Source rows may include capability-only receivers;
 observation rows must close exactly over the manifest's envelope IDs.
+
+The production composition entry point is
+`kyberia_observation_pipeline::NativeAcquisitionBatch::from_session`. It accepts
+only the opaque `NativeCaptureSession` and the explicit registry-version text;
+it takes the normalized capture and immutable mapping context from that same
+session, builds the batch and record, and validates the record against the
+batch's manifest and envelope order before exposing either view. The current
+bounded implementation clones the normalized capture and envelope references
+for composition; it is not a durable spool or a streaming memory claim.
 
 The session record is constructed only after the caller has the canonical
 manifest hash:
@@ -88,13 +97,20 @@ The domain contract rejects or preserves the following conditions:
 - canonical session, collector and clock IDs remain distinct from foreign UUIDs;
 - foreign process/source-clock UUIDs are retained exactly and lowercase;
 - terminal status and exit code use the closed native mapping (`0`, `2`, `77`,
-  `69`, `70`, `124`, `130`/`143`), and `Partial` requires `partial=true`;
+  `69`, `70`, `124`, `130`/`143`), and `partial=true` is accepted only with
+  `Partial` terminal status;
 - observation count is bounded and must match both manifest completion and the
   envelope list during closure validation;
 - source and observation mapping vectors are bounded and deterministic;
 - duplicate mapping keys/IDs and unsupported mapping fields fail closed;
 - a known transmitter radio/BSS requires known identity evidence;
 - a capability document's collector identity must equal the record collector;
+- known envelope monotonic and synchronization epochs must equal the record
+  `ClockEpochId`;
+- source sensor/adapter and observation radio/BSS/grouping evidence must equal
+  the corresponding mapping rows;
+- a known envelope raw-source reference must exactly belong to the manifest
+  source-record inventory, including hash, media type and byte length;
 - privacy payload retention must equal the manifest raw-source disposition;
 - empty captures may retain source mappings from capability evidence but cannot
   link an observation chunk;
@@ -105,6 +121,10 @@ The domain contract rejects or preserves the following conditions:
 The store rehashes the canonical BLOB and compares every indexed projection on
 each read. It checks the manifest artifact kind/media type/hash, publication
 row, chunk linkage, chunk observation IDs, and the full domain closure again.
+`Bundle::verify` walks every capture-session row through this read path and
+reports a failure for any unreadable or contradictory row. V1 rows have the
+fixed indexed revision marker `1`; an unsupported positive revision is corrupt
+until a reviewed schema defines it.
 The session row is immutable; the unique manifest hash prevents one manifest
 from being registered under two session IDs.
 
@@ -120,10 +140,10 @@ graph and no network access:
 
 ```text
 cargo test -p kyberia-domain --lib --locked --offline
-PASS — 10 tests
+PASS — 11 tests
 
 cargo test -p kyberia-project-store --lib --locked --offline
-PASS — 32 tests
+PASS — 33 tests
 
 cargo test -p kyberia-project-store --test schema_guard --locked --offline
 PASS — 14 tests
@@ -131,7 +151,10 @@ PASS — 14 tests
 cargo test --workspace --exclude kyberia-kismet-adapter --locked --offline
 PASS
 
-cargo clippy -p kyberia-domain -p kyberia-project-store --all-targets --locked --offline -- -D warnings
+cargo test -p kyberia-observation-pipeline --lib --locked --offline
+PASS — 42 passed, 1 ignored
+
+cargo clippy -p kyberia-domain -p kyberia-project-store -p kyberia-observation-pipeline --all-targets --locked --offline -- -D warnings
 PASS
 
 cargo fmt --all -- --check
@@ -149,18 +172,16 @@ PASS
 
 Retained command logs are in
 `.trash/test-runs/capture-session-record-20260909/` in the implementation
-worktree. The unrestricted `cargo test --workspace --locked --offline` run
-compiled the affected workspace but five Kismet live HTTP fixture tests failed
-at local socket setup with `Operation not permitted` in this sandbox. Those
-failures do not exercise the session record and are not converted into a
-pass. The Kismet exclusion result above is the reproducible workspace result
-for this environment.
+worktree. The Kismet live HTTP fixture tests are excluded from the reproducible
+workspace command because this sandbox cannot create their local sockets. This
+is an environment limitation, not evidence about the session record; no native
+collector runtime claim is made here.
 
 ## Review and remaining gates
 
-The domain and store commits are separate so the root composition layer can
+The domain and store corrections are separate so the root composition layer can
 consume the contract before wiring durable registration. Russell's independent
-review of the frozen implementation is still required before integration.
+rereview of the corrected implementation is still required before integration.
 Root must add glue tests that use the real opaque session object and the exact
 immutable mapping context for both an empty terminal capture and a nonempty
 capture. Those tests must prove the explicit registry version is recorded and
