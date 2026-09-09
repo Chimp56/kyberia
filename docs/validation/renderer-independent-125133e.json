@@ -1,0 +1,115 @@
+{
+  "schema": "kyberia-renderer-review-summary/1",
+  "candidate_commit": "125133e298bb43163b1601f92b1d6d08a8b3c05c",
+  "report_path": "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof.json",
+  "report_sha256": "d829b23b547eac83a3dcdddaa3bfc41d0804d175e9647f90c5d8937e6665f1b8",
+  "binding": {
+    "fixtureSha256": "88f681ece75f2a6bd73d7d33f54b494fa729fa62008568c5295ea10d8cdefb71",
+    "benchmarkSource": "synthetic",
+    "evidencePlane": "Synthetic",
+    "sourceSha256": "9469de2718b55305cc409c66c661302b6f18972e5dd0424c48f0b9c3f42124e9",
+    "sourceFiles": {
+      "fixture.js": "adb80b71088a2ebd856ce2e7b0249f8f1a53b5278e030e8644dd55811317c840",
+      "renderer.js": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+      "index.html": "b98fb92a1c924571ff415ed4c9a2a2b3483a74d2b0c34373a952b6ad42f91e0b",
+      "benchmark.mjs": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+      "fixture.test.mjs": "4ad87e90860f77af7d249532196acdc2c11ffacd91c63b8680dcbc75ccf746fe",
+      "package.json": "6f85a2d6b0f8209d4b996fcd7199bfd31a178573387fb1dfeb2e6c1e58fffb10",
+      "package-inventory.mjs": "3933c80453f822784f94ef3b17a14a3a21de13ad7efecb6c0a49636d2084469b"
+    },
+    "lockSha256": "7a1b6f9b90c7980e088707e877d968f95a5571de13336c9c5041e8bb1c82ea8c",
+    "browserSha256": "4533bafd0f7eac11e40c5dcafd144b0567e4ff983328a234664e6383d715aaf2",
+    "browser": {
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.7778.96 Safari/537.36",
+      "platform": "MacIntel",
+      "playwright": "1.60.0",
+      "chromium": "/Users/vincent/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "deviceScaleFactor": 1
+    },
+    "screenshots": {
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-custom-numeric.png": "043dc1e0205dd7fd3c24565ff055cd9e66e5ea925fef4ad2faceef0cb8041a59",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-custom-overlays.png": "f9823d0216a5c39027f4be5c99269f694dd6ede3db3b30c9126f5eff96788dd1",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-custom-all.png": "05fdc78d2f2a42ab4a0d247c9cf4e200a196115864fca63459d2b7b6de66617d",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-custom-3d.png": "62540e38ae84798e41266790a2871a7c20f721bd947970766465f1cc1dbbee89",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-openlayers-numeric.png": "58fe8b436fb2a6fc0446a4921f5e83e075b7548b0aee9eb1cb1412991851ad6d",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-openlayers-overlays.png": "4f334ce2aa89e5096beadb08c30767bcf05e2604cd798bd3549dd38a2d3d81cb",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-openlayers-all.png": "1b1d0e340dacb88054287ec1461a5b32d937e879db3ae9b04e10812f0080a5eb",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof-openlayers-3d.png": "8d77bd5143652fa44e709f9e722584cf098e61c136e9e154ee78472c6cdf25d5",
+      "/private/tmp/kyberia-renderer-root-benchmark-125133e/proof.png": "189bf4a238278c262d4151cf33d5d1523053b73fcae69c42dde973c4bba57158"
+    }
+  },
+  "page_errors": [],
+  "console_messages": [
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004e0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004e0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004e0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004e0e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    },
+    {
+      "type": "warning",
+      "text": "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently"
+    }
+  ],
+  "workloads": [
+    {
+      "candidate": "custom-webgl2",
+      "workload": "numeric",
+      "status": "ready"
+    },
+    {
+      "candidate": "custom-webgl2",
+      "workload": "overlays",
+      "status": "ready"
+    },
+    {
+      "candidate": "custom-webgl2",
+      "workload": "all",
+      "status": "ready"
+    },
+    {
+      "candidate": "custom-webgl2",
+      "workload": "3d",
+      "status": "ready"
+    },
+    {
+      "candidate": "openlayers-10.10.0",
+      "workload": "numeric",
+      "status": "ready"
+    },
+    {
+      "candidate": "openlayers-10.10.0",
+      "workload": "overlays",
+      "status": "ready"
+    },
+    {
+      "candidate": "openlayers-10.10.0",
+      "workload": "all",
+      "status": "ready"
+    },
+    {
+      "candidate": "openlayers-10.10.0",
+      "workload": "3d",
+      "status": "ready"
+    }
+  ],
+  "limitations": [
+    "Synthetic stress workloads, not full product acceptance",
+    "Earlier Vite-server startup timeout cause remains unresolved",
+    "Not a final renderer-selection ADR or cross-platform GPU gate"
+  ]
+}

@@ -123,3 +123,7 @@ evidence and the distinction between diagnosis and hosted confirmation are in
 ## Trusted-path fixture checkpoint
 
 Run [34341800968](https://github.com/Chimp56/kyberia/actions/runs/34341800968) at c02212d passed macOS and Ubuntu. Windows next failed the trusted-path regression; the earlier request-file writer correction no longer appears as the reported failing test. The reviewed test now uses a platform-absolute missing path; [review and validation](../reviews/windows-trusted-path-fixture-review.md). Windows confirmation remains open.
+
+## be03162 hosted checkpoint
+
+Run [34345799051](https://github.com/Chimp56/kyberia/actions/runs/34345799051) completed successfully on macOS and Ubuntu. Windows passed build, lint and typecheck but failed the combined Rust/Python regression step with exit 1. Public annotations for check 102446976373 expose only the generic command failure, not a test identifier. This does not prove every Rust test passed. Public responses are retained in `.tools/ci-jobs-be03162-checkpoint.json` and `.tools/windows-be03162-annotations.json`. A bounded Python diagnostic enhancement is being implemented in an isolated worktree; the Windows gate remains open.
