@@ -1035,6 +1035,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-rendering-scene"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "kyberia-spatial-analysis",
+ "kyberia-wifi-semantics",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "kyberia-resource-budget"
 version = "0.1.0"
 

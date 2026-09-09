@@ -31,14 +31,13 @@ The run required local TCP listener access for existing Kismet transport tests;
 the earlier sandbox bind failures are retained in the preceding log. A minimal
 observation-pipeline error mapping handles the new materialization error variant.
 
-Renderer scene draft: `.worktrees/canonical-render-scene` at `0376336` preserves
-canonical samples and replays the spatial Model on serialized import and direct
-Tile admission. Root independently ran 30 passing tests, including forged
-interpolation, altered samples, capacity limits and cancellation. The corrected
-allocation model accounts for live copies and nested vectors. Pre-decode
-allocation bounds and measured memory/cancellation latency remain under review;
-neither this adapter nor the renderer gate is complete. See the
-[resource review](docs/reviews/render-scene-resource-review.md).
+Renderer-neutral scene adapter through `39f6555` is independently approved and
+integrated. Full workspace regression passes 585 tests, zero failures and nine
+ignored tests; log: `.tools/rendering-scene-integration-regression.log`. It preserves canonical samples, numerically replays
+imports and direct tiles, bounds predecode shapes/text, rejects duplicate fields,
+and supports cancellation. Current-host memory/latency evidence is recorded in
+[the resource review](docs/reviews/render-scene-resource-review.md). This is an
+adapter increment; renderer selection, UI integration and Gate B remain open.
 Shared materialization consumer integration now includes independently reviewed
 operation admission, conflict/resolution copies, replay, identity serialization
 and materializer budgets through source commit `b5dec0c`. The immutable combined

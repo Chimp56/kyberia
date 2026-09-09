@@ -102413,6 +102413,12 @@
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
           "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
           "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+        },
+        {
+          "path": "crates/rendering-scene/src/lib.rs",
+          "description": "Bounded renderer-neutral canonical scene adapter; final renderer and product UI remain open",
+          "revision": "f77853c2a1d6097c18947e6cb8960437d2345f0bc1f6d94191283e1e100dd2d9",
+          "sha256": "f77853c2a1d6097c18947e6cb8960437d2345f0bc1f6d94191283e1e100dd2d9"
         }
       ],
       "validation": [
@@ -102442,6 +102448,15 @@
           "command": "RFATLAS_VIEWPORT=390x844 RFATLAS_DPR=2 PLAYWRIGHT_BROWSERS_PATH=.tools/ms-playwright <pinned-node> benchmark.mjs http://127.0.0.1:4173/index.html evidence/browser-proof-mobile-v17.json evidence/browser-proof-mobile-v17.png",
           "scope": "runtime_current_host",
           "result": "PASS"
+        },
+        {
+          "path": "crates/rendering-scene/tests/scene.rs",
+          "description": "Canonical replay, unknown-state preservation and hostile import regressions",
+          "revision": "3365845263508f9221b546f0298182944e012ddf775178090562d6d333b4b851",
+          "sha256": "3365845263508f9221b546f0298182944e012ddf775178090562d6d333b4b851",
+          "command": "cargo test -p kyberia-rendering-scene --locked --offline",
+          "scope": "renderer_scene_adapter",
+          "result": "PASS"
         }
       ],
       "reviews": [
@@ -102459,6 +102474,15 @@
               "resolution": "ACCEPTED_BOUNDED_EVIDENCE"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/render-scene-resource-review.md",
+          "description": "Independent bounded scene adapter approval; Gate B remains open",
+          "revision": "649b4e13ec757fe1a45a5a9e7b4532d83f11013b4a951e8e5e83c0fc65aef5dd",
+          "sha256": "649b4e13ec757fe1a45a5a9e7b4532d83f11013b4a951e8e5e83c0fc65aef5dd",
+          "reviewer": "/root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,

@@ -1,5 +1,11 @@
 # Render scene resource review
 
+Final bounded-adapter disposition: APPROVED at `39f6555` by independent reviewer
+Laplace. All 35 tests, Clippy, formatting, architecture and source checks pass.
+Lexical string admission, duplicate rejection, shape/depth limits and numerical
+replay were reviewed. No BLOCKER or MAJOR remains for this adapter increment.
+Earlier pending findings below are historical; full renderer Gate B remains open.
+
 Candidate: `1fdcc7f60431a91c299d787e0d0ac22251926980` in
 `.worktrees/canonical-render-scene`. Reviewer: root; resource/cancellation author:
 Rawls. Status: review in progress; integration not approved.
