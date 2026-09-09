@@ -16,6 +16,171 @@ use kyberia_resource_budget::{BudgetKind, CancellationHook, ResourceBudget, Reso
 use proptest::prelude::*;
 use sha2::Digest;
 
+#[test]
+fn ordering_budget_admits_edges_and_cancels_after_preflight() {
+    let count = 1024u64;
+    let operations = (1..=count).map(|index| {
+        Operation::try_apply(
+            op_id_u64(index),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(index).unwrap(),
+            CausalDepth::new(index - 1),
+            if index == 1 {
+                vec![]
+            } else {
+                vec![op_id_u64(index - 1)]
+            },
+            Mutation::set_project_name(text("same")),
+            Mutation::set_project_name(text("same")),
+        )
+        .unwrap()
+    });
+    let set = OperationSet::from_operations(operations).unwrap();
+    let expected = 512 * count as usize + 64 * (count as usize - 1);
+    let limits = |bytes| {
+        ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            bytes,
+        )
+    };
+    let mut insufficient = ResourceBudget::new(limits(expected - 1));
+    assert_eq!(
+        set.ordered_with_budget(&mut insufficient),
+        Err(OperationError::ResourceLimit("working_set_bytes"))
+    );
+    let mut exact = ResourceBudget::new(limits(expected));
+    let ordered = set.ordered_with_budget(&mut exact).unwrap();
+    assert_eq!(exact.usage().working_set_bytes(), expected);
+    assert_eq!(ordered.first().unwrap().operation_id(), op_id_u64(1));
+    assert_eq!(ordered.last().unwrap().operation_id(), op_id_u64(count));
+    let mut cancelled = ResourceBudget::with_cancellation(
+        limits(expected),
+        CancelAfter {
+            remaining_checks: count as usize + 11,
+        },
+    );
+    assert_eq!(
+        set.ordered_with_budget(&mut cancelled),
+        Err(OperationError::Cancelled)
+    );
+    assert_eq!(cancelled.usage().working_set_bytes(), expected);
+    let mut merge_budget = ResourceBudget::new(limits(64 * 1024 * 1024));
+    let merged = set
+        .merge_with_budget(&OperationSet::empty(project()), &mut merge_budget)
+        .unwrap();
+    assert!(merged.conflicts().is_empty());
+    assert_eq!(merged.merged(), &set);
+}
+
+#[test]
+fn merge_budget_preserves_duplicates_and_bounds_copies() {
+    let operation = apply(2, 1, 1, 0, vec![], "merged", "initial");
+    let bytes = operation.canonical_bytes().len();
+    let left = OperationSet::from_operations([operation.clone()]).unwrap();
+    let right = OperationSet::from_operations([operation]).unwrap();
+    let mut budget = ResourceBudget::new(ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        bytes,
+        usize::MAX,
+        usize::MAX,
+    ));
+    let merged = left.merge_with_budget(&right, &mut budget).unwrap();
+    assert_eq!(merged, left.merge(&right).unwrap());
+    assert_eq!(budget.usage().operation_bytes(), bytes);
+    // A second call cannot reset the caller's retained-operation quota.
+    assert!(matches!(
+        left.merge_with_budget(&right, &mut budget),
+        Err(MergeError::ResourceLimit("operation_bytes"))
+    ));
+    assert_eq!(budget.usage().operation_bytes(), bytes);
+    assert_eq!(left, right);
+}
+
+#[test]
+fn merge_budget_rejects_before_first_payload_copy() {
+    let operation = apply(2, 1, 1, 0, vec![], &"x".repeat(1024), "initial");
+    let bytes = operation.canonical_bytes().len();
+    let left = OperationSet::from_operations([operation]).unwrap();
+    let empty = OperationSet::empty(project());
+    let mut budget = ResourceBudget::new(ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        bytes - 1,
+        usize::MAX,
+        usize::MAX,
+    ));
+    assert!(matches!(
+        left.merge_with_budget(&empty, &mut budget),
+        Err(MergeError::ResourceLimit("operation_bytes"))
+    ));
+    assert_eq!(budget.usage().operation_bytes(), 0);
+    assert_eq!(budget.usage().working_set_bytes(), 0);
+}
+
+#[test]
+fn merge_budget_cancellation_keeps_inputs_and_never_returns_partial_output() {
+    let left =
+        OperationSet::from_operations([apply(2, 1, 1, 0, vec![], "left", "initial")]).unwrap();
+    let right =
+        OperationSet::from_operations([apply(3, 2, 1, 0, vec![], "right", "initial")]).unwrap();
+    let left_before = left.clone();
+    let right_before = right.clone();
+    // Entry, first-operation poll and both first-copy charges succeed.
+    // Cancellation becomes visible before copying the second operation.
+    let mut budget = ResourceBudget::with_cancellation(
+        ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        ),
+        CancelAfter {
+            remaining_checks: 4,
+        },
+    );
+    assert_eq!(
+        left.merge_with_budget(&right, &mut budget),
+        Err(MergeError::Cancelled)
+    );
+    assert!(budget.usage().operation_bytes() > 0);
+    assert_eq!(left, left_before);
+    assert_eq!(right, right_before);
+}
+
+#[test]
+fn merge_budget_conflicts_and_usage_are_operand_order_independent() {
+    let left =
+        OperationSet::from_operations([apply(2, 1, 1, 0, vec![], "left", "initial")]).unwrap();
+    let right =
+        OperationSet::from_operations([apply(3, 2, 1, 0, vec![], "right", "initial")]).unwrap();
+    let limits = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    );
+    let mut forward = ResourceBudget::new(limits);
+    let mut reverse = ResourceBudget::new(limits);
+    let first = left.merge_with_budget(&right, &mut forward).unwrap();
+    let second = right.merge_with_budget(&left, &mut reverse).unwrap();
+    assert_eq!(first, second);
+    assert_eq!(first.conflicts().len(), 1);
+    assert_eq!(forward.usage(), reverse.usage());
+}
+
 fn project() -> ProjectId {
     ProjectId::from_bytes([1; 16]).unwrap()
 }
@@ -1912,23 +2077,23 @@ fn caller_budget_accumulates_across_replay_calls() {
         usize::MAX,
         usize::MAX,
         usize::MAX,
-        384 + operation_bytes.saturating_mul(4),
+        1408 + operation_bytes.saturating_mul(4),
     ));
 
     set.replay_effects_with_budget(&mut budget).unwrap();
     assert_eq!(
         budget.usage().working_set_bytes(),
-        256 + operation_bytes.saturating_mul(4)
+        1280 + operation_bytes.saturating_mul(4)
     );
     assert_eq!(
         set.replay_effects_with_budget(&mut budget),
-        Err(MergeError::ResourceLimit(
+        Err(MergeError::Operation(OperationError::ResourceLimit(
             BudgetKind::WorkingSetBytes.label()
-        ))
+        )))
     );
     assert_eq!(
         budget.usage().working_set_bytes(),
-        384 + operation_bytes.saturating_mul(4)
+        1408 + operation_bytes.saturating_mul(4)
     );
 }
 

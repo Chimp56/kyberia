@@ -67,8 +67,10 @@ the final identity buffers.
 The [independent consumer review](../../reviews/shared-budget-review-in-progress.md)
 approves the series through `b5dec0c` with 96 passing combined tests. The two
 additional [writer regressions](../../reviews/identity-budget-writer-tests-review.md)
-have separate independent approval and mutation evidence. Public `merge` cloning
-is not covered by the budget-aware consumer contract.
+have separate independent approval and mutation evidence. The subsequent [independent merge review](../../reviews/budgeted-operation-merge-review.md)
+approves `a29967a`: public merge now charges retained copies before cloning,
+shares graph/conflict counters, and uses finite default byte limits. Topological
+ordering precharges node/edge allocation proxies and polls cancellation.
 
 Focused tests cover cumulative exhaustion across repeated replay and
 materialization calls, stable usage under input permutation, operation-byte

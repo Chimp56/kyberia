@@ -147,6 +147,13 @@ pub const MAX_CONFLICTS: usize = 8_192;
 pub const MAX_ANCESTRY_WORK: usize = 2_000_000;
 const MAX_MERGE_FRONTIER: usize = MAX_CONFLICTS;
 const ESTIMATED_STRUCTURAL_ENTRY_BYTES: usize = 128;
+// Per-node ordering policy: two map entries including tree-node overhead,
+// one sort-key heap slot and one result pointer, with capacity slack. Each
+// edge reserves a 16-byte child ID plus vector growth/allocator slack.
+const ORDERING_NODE_BYTES: usize = 512;
+const ORDERING_EDGE_BYTES: usize = 64;
+pub const DEFAULT_MERGE_OPERATION_BYTES: usize = 256 * 1024 * 1024;
+pub const DEFAULT_MERGE_WORKING_BYTES: usize = 512 * 1024 * 1024;
 
 const fn estimated_structural_bytes(entries: usize) -> usize {
     entries.saturating_mul(ESTIMATED_STRUCTURAL_ENTRY_BYTES)
@@ -1809,9 +1816,35 @@ impl OperationSet {
     /// time, actor, device, and operation ID. Causal parents always precede
     /// their descendants even when their logical timestamps tie.
     pub fn ordered(&self) -> Result<Vec<&Operation>, OperationError> {
+        let mut budget = default_operation_budget();
+        self.ordered_with_budget(&mut budget)
+    }
+
+    /// Topological ordering with cumulative allocation admission and
+    /// cooperative cancellation. Node accounting reserves both maps, the
+    /// ready heap, result pointers and collection overhead; edge accounting
+    /// reserves child vectors including capacity growth. These are proxies,
+    /// not an allocator-specific resident-memory bound.
+    pub fn ordered_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Vec<&Operation>, OperationError> {
+        budget.check_cancelled().map_err(operation_budget_error)?;
+        for operation in self.operations.values() {
+            let bytes = operation
+                .parents()
+                .len()
+                .checked_mul(ORDERING_EDGE_BYTES)
+                .and_then(|edges| edges.checked_add(ORDERING_NODE_BYTES))
+                .ok_or(OperationError::ResourceLimit("working_set_bytes"))?;
+            budget
+                .charge(BudgetKind::WorkingSetBytes, bytes)
+                .map_err(operation_budget_error)?;
+        }
         let mut indegree = BTreeMap::new();
         let mut children: BTreeMap<OperationId, Vec<OperationId>> = BTreeMap::new();
         for operation in self.operations.values() {
+            budget.check_cancelled().map_err(operation_budget_error)?;
             indegree.insert(operation.operation_id(), operation.parents().len());
             for parent in operation.parents() {
                 children
@@ -1820,14 +1853,16 @@ impl OperationSet {
                     .push(operation.operation_id());
             }
         }
-        let mut ready = BinaryHeap::new();
+        let mut ready = BinaryHeap::with_capacity(self.operations.len());
         for operation in self.operations.values() {
+            budget.check_cancelled().map_err(operation_budget_error)?;
             if indegree[&operation.operation_id()] == 0 {
                 ready.push(Reverse(operation.sort_key()));
             }
         }
         let mut result = Vec::with_capacity(self.operations.len());
         while let Some(Reverse((_, _, _, id))) = ready.pop() {
+            budget.check_cancelled().map_err(operation_budget_error)?;
             let operation = self
                 .operations
                 .get(&id)
@@ -1835,6 +1870,7 @@ impl OperationSet {
             result.push(operation);
             if let Some(descendants) = children.get(&id) {
                 for child in descendants {
+                    budget.check_cancelled().map_err(operation_budget_error)?;
                     let degree = indegree
                         .get_mut(child)
                         .ok_or(OperationError::MissingParent)?;
@@ -1860,11 +1896,48 @@ impl OperationSet {
     /// ordered set is available for inspection, but `into_applyable` refuses
     /// to treat conflicting values as resolved.
     pub fn merge(&self, other: &Self) -> Result<MergeOutcome, MergeError> {
+        let mut budget = ResourceBudget::new(ResourceLimits::new(
+            MAX_ANCESTRY_WORK,
+            usize::MAX,
+            usize::MAX,
+            DEFAULT_MERGE_OPERATION_BYTES,
+            usize::MAX,
+            DEFAULT_MERGE_WORKING_BYTES,
+        ));
+        self.merge_with_budget(other, &mut budget)
+    }
+
+    /// Merge using a caller-owned cumulative budget.
+    ///
+    /// The operation sets are admitted into a fresh map one operation at a
+    /// time. Each retained operation is charged for its canonical payload and
+    /// structural map entry before cloning it, so a failed quota check never
+    /// requires cloning the whole left set first. Equal duplicates are
+    /// checked for tampering and do not consume retained-operation bytes.
+    /// Graph validation and conflict inspection share the same budget and
+    /// ancestry scope, allowing a caller to bound the complete merge rather
+    /// than each phase independently.
+    pub fn merge_with_budget<H: CancellationHook>(
+        &self,
+        other: &Self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<MergeOutcome, MergeError> {
         if self.project_id != other.project_id {
             return Err(MergeError::WrongProject);
         }
-        let mut map = self.operations.clone();
+
+        budget.check_cancelled().map_err(merge_budget_error)?;
+        let mut map = BTreeMap::new();
+        for operation in self.operations.values() {
+            budget.check_cancelled().map_err(merge_budget_error)?;
+            if map.len() >= MAX_OPERATION_COUNT {
+                return Err(MergeError::ResourceLimit("operation_count"));
+            }
+            charge_operation_copy(operation, budget)?;
+            map.insert(operation.operation_id(), operation.clone());
+        }
         for operation in other.operations.values() {
+            budget.check_cancelled().map_err(merge_budget_error)?;
             if let Some(existing) = map.get(&operation.operation_id()) {
                 if existing.content_hash() != operation.content_hash() {
                     return Err(MergeError::TamperedDuplicate);
@@ -1874,14 +1947,18 @@ impl OperationSet {
             if map.len() >= MAX_OPERATION_COUNT {
                 return Err(MergeError::ResourceLimit("operation_count"));
             }
+            charge_operation_copy(operation, budget)?;
             map.insert(operation.operation_id(), operation.clone());
         }
         let merged = Self {
             project_id: self.project_id,
             operations: map,
         };
-        merged.validate_graph().map_err(MergeError::Operation)?;
-        let conflicts = merged.conflicts()?;
+        let mut local_usage = ResourceUsage::default();
+        merged
+            .validate_graph_with_budget(budget, &mut local_usage)
+            .map_err(MergeError::Operation)?;
+        let conflicts = merged.conflicts_with_budget(budget, &mut local_usage)?;
         Ok(MergeOutcome { merged, conflicts })
     }
 
@@ -1978,7 +2055,10 @@ impl OperationSet {
         let mut toggle_history: BTreeMap<(OperationReference, ToggleDirection), Vec<OperationId>> =
             BTreeMap::new();
         let mut result = Vec::with_capacity(self.operations.len());
-        for operation in self.ordered().map_err(MergeError::Operation)? {
+        for operation in self
+            .ordered_with_budget(budget)
+            .map_err(MergeError::Operation)?
+        {
             budget.check_cancelled().map_err(merge_budget_error)?;
             budget
                 .charge(
@@ -2167,12 +2247,6 @@ impl OperationSet {
         Ok(state)
     }
 
-    fn validate_graph(&self) -> Result<(), OperationError> {
-        let mut budget = default_operation_budget();
-        let mut local_usage = ResourceUsage::default();
-        self.validate_graph_with_budget(&mut budget, &mut local_usage)
-    }
-
     fn validate_graph_with_budget<H: CancellationHook>(
         &self,
         budget: &mut ResourceBudget<H>,
@@ -2267,7 +2341,7 @@ impl OperationSet {
                 estimated_structural_bytes(self.operations.len()),
             )
             .map_err(operation_budget_error)?;
-        self.ordered().map(|_| ())
+        self.ordered_with_budget(budget).map(|_| ())
     }
 
     fn validate_resolution<H: CancellationHook>(
@@ -2497,7 +2571,10 @@ impl OperationSet {
         type ConflictKey = (OperationId, OperationId);
         let mut frontier: BTreeMap<FieldKey, Vec<FrontierEntry>> = BTreeMap::new();
         let mut conflicts: BTreeMap<ConflictKey, MergeConflict> = BTreeMap::new();
-        for operation in self.ordered().map_err(MergeError::Operation)? {
+        for operation in self
+            .ordered_with_budget(budget)
+            .map_err(MergeError::Operation)?
+        {
             if let Some((left, right)) = operation.resolution_references() {
                 conflicts.remove(&(left.operation_id(), right.operation_id()));
             }
@@ -2817,6 +2894,29 @@ fn clone_effect_with_budget<H: CancellationHook>(
         .charge(BudgetKind::WorkingSetBytes, effect_bytes)
         .map_err(merge_budget_error)?;
     Ok(effect.clone())
+}
+
+fn charge_operation_copy<H: CancellationHook>(
+    operation: &Operation,
+    budget: &mut ResourceBudget<H>,
+) -> Result<(), MergeError> {
+    // OperationBytes accounts for the retained canonical Vec. The decoded
+    // payload is a separate owned copy, conservatively represented by its
+    // canonical length in WorkingSetBytes alongside the map entry.
+    let working_bytes = operation
+        .canonical_bytes()
+        .len()
+        .checked_add(ESTIMATED_STRUCTURAL_ENTRY_BYTES)
+        .ok_or(MergeError::ResourceLimit("working_set_bytes"))?;
+    budget
+        .charge(
+            BudgetKind::OperationBytes,
+            operation.canonical_bytes().len(),
+        )
+        .map_err(merge_budget_error)?;
+    budget
+        .charge(BudgetKind::WorkingSetBytes, working_bytes)
+        .map_err(merge_budget_error)
 }
 
 /// One mutation event emitted by deterministic replay. Consumers can apply

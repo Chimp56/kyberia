@@ -2,8 +2,9 @@
 
 `kyberia-operation-log` is the pure command-side contract for project history.
 It is an inward crate: it depends on the existing canonical IDs and bounded
-text types in `kyberia-domain`, plus serde and SHA-256 for wire and integrity
-contracts. It has no project-store, SQLite, packet, UI, wall-clock, or
+text types in `kyberia-domain`, the pure `kyberia-resource-budget` contract,
+plus serde and SHA-256 for wire and integrity contracts.
+It has no project-store, SQLite, packet, UI, wall-clock, or
 platform dependency.
 
 ## Truth and dependency direction
@@ -20,13 +21,13 @@ length.
 The dependency direction is:
 
 ```text
-application commands/queries
-            |
-            v
-  kyberia-operation-log  --->  kyberia-domain IDs and bounded value types
-            |
-            v
-project-store / collaboration / materializer adapters (future)
+application commands/queries / storage and materializer adapters
+                             |
+                             v
+                  kyberia-operation-log
+                       |           |
+                       v           v
+                kyberia-domain   kyberia-resource-budget
 ```
 
 The existing `kyberia-domain::project::OperationRecord` remains a legacy
@@ -191,6 +192,36 @@ same-target, same-direction toggles are one semantic toggle: the first emits
 the mutation and later duplicates are deterministic replay no-ops. Undo versus
 redo remains a conflict, and toggles of another toggle are rejected during DAG
 validation and replay.
+
+## Cumulative merge resources
+
+`merge_with_budget(other, &mut budget)` shares the caller's resource counters
+across set union, graph validation and conflict inspection. It charges every
+retained operation before cloning: canonical bytes use `OperationBytes`, while
+a canonical-size proxy for the decoded payload plus a structural entry uses
+`WorkingSetBytes`. Equal duplicates are checked without creating another
+retained operation. Cancellation is checked during both input traversals and
+the graph/conflict work. Inputs remain immutable if any stage fails; no partial
+`MergeOutcome` is returned.
+
+`ordered_with_budget` precharges 512 bytes per node for its two maps, heap,
+result pointers and capacity overhead, plus 64 bytes per edge for child vectors
+and growth overhead. It polls cancellation during admission, map construction,
+ready-queue construction, node processing and child traversal. Admission,
+replay and conflict inspection all use this budget-aware ordering path.
+
+`merge` uses the same path with finite defaults: 256 MiB of retained canonical
+operation bytes, 512 MiB of cumulative working-copy estimates and the existing
+two-million ancestry-work limit. These are safety admission policies, not
+performance promises. Other legacy convenience APIs retain their existing
+format/count/ancestry limits; callers requiring cumulative byte limits use the
+budget-aware APIs. Callers verifying
+several related merges must reuse a budget rather than calling this convenience
+wrapper repeatedly. Counters accumulate attempted work and are not rolled back
+when a later stage fails. They are deterministic allocation/work proxies, not a
+measurement of live heap or resident memory. Graph errors retain the existing
+`MergeError::Operation` wrapper, including nested cancellation/resource errors;
+copy and conflict-stage failures use direct merge error variants.
 
 ## Open integration decisions
 
