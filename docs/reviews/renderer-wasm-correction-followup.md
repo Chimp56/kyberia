@@ -102,3 +102,9 @@ Renderer integration remains pending.
 ## Independent runtime follow-up at 125133e
 
 Static independent review approved the bounded boot-generation correction, but the root's authorized Chromium run still failed. Command: `npm run test:browser-canonical -- http://127.0.0.1:4173/index.html /private/tmp/kyberia-renderer-root-125133e`. The process exited 1 with a 30-second timeout in `verifyDelayedBundledFetchCannotOverrideSynthetic`, browser-canonical-scenes.mjs line 126. Log retained at `/private/tmp/kyberia-renderer-root-125133e.log`. The author is investigating the discrepancy, including served-source identity. Renderer integration remains pending runtime acceptance.
+
+## Fresh-server independent acceptance at 125133e
+
+The root reran the same Chromium suite against the author's fresh Vite server on port 4177: `npm run test:browser-canonical -- http://127.0.0.1:4177/index.html /private/tmp/kyberia-renderer-root-125133e-4177`. It exited 0; both deterministic startup-selection cases, desktop/mobile canonical raster probes, malformed-input handling and OpenLayers probes passed, with `errors: []`. Log: `/private/tmp/kyberia-renderer-root-125133e-4177.log`.
+
+Comparing the served renderer modules on ports 4173 and 4177 found identical application statements; differences were Vite timestamp/dependency query parameters and sourcemaps. Both included the new boot-generation guard. Therefore the earlier timeout cannot be attributed to a stale application source without further evidence. The fresh-server result supports the bounded correction; the retained older-server failure remains an environment/reliability follow-up. An independent full workload benchmark is running separately; no final renderer-choice or whole-product UX gate is closed.
