@@ -51,3 +51,16 @@ operations replays `n(n-1)/2` ancestral effects, in addition to baseline and
 final-application copies. Distinguish a peak-memory bound from cumulative copy
 work; the current numeric estimate alone does not prove both. Existing passing
 tests do not discharge this resource-model concern.
+
+## Resource correction verification
+
+Correction `cef5716`, based on frozen `5b56a9e`, introduces separate
+serialized-state and cumulative serialized-copy estimates. Root independently
+ran `cargo test -p kyberia-causal-materializer --locked --offline` in
+`.worktrees/materializer-resource-correction`: 18 passed, zero failed. This
+includes an accepted small history and a 100-operation causal chain rejected
+with `ResourceLimit("causal_copy_bytes")`, with the baseline unchanged.
+
+These are work/allocation proxies, not measured resident-memory ceilings.
+Independent review of the accounting and underlying causal semantics remains
+pending; neither candidate is approved or integrated by this test result.
