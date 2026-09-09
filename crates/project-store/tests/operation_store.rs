@@ -310,7 +310,7 @@ fn typed_replay_persists_and_reopens_resolved_unknown_calibration_conflict() {
         Mutation::activate_calibration(map_id, right_calibration),
         InversePrior::MapCalibration {
             map_id,
-            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+            calibration: Evidence::Known(root_calibration),
         },
     )
     .unwrap();
