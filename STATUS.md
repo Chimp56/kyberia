@@ -56,7 +56,7 @@ product capability is validated.
 
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
-| Neutral planning interchange | Beauvoir reviewing / `planning-interchange` | Corrected version typing at `a0a18b3` passes ten focused tests; full independent defensive import/export and geometry contract review remains open |
+| Neutral planning interchange | Reviewed source `3604e40` | Original schema proof passes 13 focused tests and independent review; external planner bridge, maintainer RFC and runtime round trips remain open |
 | Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Independent review of `1af1cba` requires valid PointValue/Nearest handling, mandatory Rust admission and worker deadlines; [findings](docs/reviews/renderer-wasm-independent-review.md) |
 | Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; parser fixture timing correction `73111b0`; full regression and remaining timing diagnostics under validation |
 | Unassociated acquisition spool | Root correcting / `acquisition-spool` | Review requires durable session identity for empty captures; explicit terminal outcomes and early cancellation are implemented in the candidate, with fresh review pending |
@@ -69,6 +69,10 @@ The publication review is approved for the bounded increment in
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+The integrated neutral planning schema proof passes the complete Python suite:
+**215 tests run, zero failures, 19 skipped**. Log:
+`.tools/interchange-integrated-python.log`. Its [independent review](docs/reviews/planning-interchange-integration-review.md) approves only the bounded original schema proof.
 
 After normalization and parser-test integration at `73111b0`, the full Rust
 workspace suite passes **634 tests, zero failures, nine ignored**. Log:

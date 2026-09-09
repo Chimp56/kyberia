@@ -102,3 +102,13 @@ for a bounded validation subset, does not copy or execute Linux code, and does
 not add Linux as a runtime dependency. Any future source update requires
 rechecking the table and primary-segment rules, reviewing the GPL notice, and
 updating the fixtures before changing the Kyberia subset.
+
+The neutral planning interchange proof uses original Kyberia `openrfplan/1`
+source under the repository license and an independently authored CC0-1.0 seed
+fixture. No foreign planner source or database was transformed or redistributed.
+The [fixture provenance](../../research/interchange/README.md) records the seed
+source and deterministic canonicalization; canonical fixture SHA-256 is
+`c03c223e49f867e86446c1cbec08fcd50b427ca73c260cd649ec6556524ba580`.
+Updates require explicit schema/version review, source provenance, regenerated
+canonical fixture hashes and independent round-trip validation. Actual foreign
+planner interoperability and upstream submission remain separate gates.

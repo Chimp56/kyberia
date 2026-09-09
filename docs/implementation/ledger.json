@@ -169427,8 +169427,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d",
-          "sha256": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d"
+          "revision": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d",
+          "sha256": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -177436,15 +177436,42 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "research/interchange/interchange.py",
+          "description": "Original bounded neutral schema proof; no external planner bridge or upstream acceptance claim",
+          "revision": "ecd74ec1e06e99deb25362aa46d15f5c1f8a0a0f9b108d53365c40a447acec58",
+          "sha256": "ecd74ec1e06e99deb25362aa46d15f5c1f8a0a0f9b108d53365c40a447acec58"
+        }
+      ],
+      "validation": [
+        {
+          "path": "tests/test_planning_interchange.py",
+          "description": "Thirteen deterministic and adversarial original schema/CLI tests",
+          "revision": "6d2f7d483e778fcd0ad3f9d7e39bff522cd4a3bb42ce3337b5c1fab84c177741",
+          "sha256": "6d2f7d483e778fcd0ad3f9d7e39bff522cd4a3bb42ce3337b5c1fab84c177741",
+          "command": ".tools/venv/bin/python -m unittest discover -s tests -p test_planning_interchange.py -v",
+          "result": "PASS",
+          "scope": "neutral_schema_proof_only"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/planning-interchange-integration-review.md",
+          "description": "Independent corrected functional review with final documentation verification",
+          "revision": "bc4cfdc452e3231896e77ff3fc1b90cb7d74d97d23be8967131ce10d8e87ea81",
+          "sha256": "bc4cfdc452e3231896e77ff3fc1b90cb7d74d97d23be8967131ce10d8e87ea81",
+          "reviewer": "/root/offset_review_luna and /root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4a0acfe48763f2156701:1",
@@ -177627,8 +177654,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d",
-          "sha256": "fd5f6e0c3aecdf0957149d7b0eb614e7f7a30b9f2443dcccb203d10594f0811d"
+          "revision": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d",
+          "sha256": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -242830,15 +242857,42 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "reporting",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "implementation": [
+        {
+          "path": "research/interchange/interchange.py",
+          "description": "Original bounded neutral schema proof; no external planner bridge or upstream acceptance claim",
+          "revision": "ecd74ec1e06e99deb25362aa46d15f5c1f8a0a0f9b108d53365c40a447acec58",
+          "sha256": "ecd74ec1e06e99deb25362aa46d15f5c1f8a0a0f9b108d53365c40a447acec58"
+        }
+      ],
+      "validation": [
+        {
+          "path": "tests/test_planning_interchange.py",
+          "description": "Thirteen deterministic and adversarial original schema/CLI tests",
+          "revision": "6d2f7d483e778fcd0ad3f9d7e39bff522cd4a3bb42ce3337b5c1fab84c177741",
+          "sha256": "6d2f7d483e778fcd0ad3f9d7e39bff522cd4a3bb42ce3337b5c1fab84c177741",
+          "command": ".tools/venv/bin/python -m unittest discover -s tests -p test_planning_interchange.py -v",
+          "result": "PASS",
+          "scope": "neutral_schema_proof_only"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/planning-interchange-integration-review.md",
+          "description": "Independent corrected functional review with final documentation verification",
+          "revision": "bc4cfdc452e3231896e77ff3fc1b90cb7d74d97d23be8967131ce10d8e87ea81",
+          "sha256": "bc4cfdc452e3231896e77ff3fc1b90cb7d74d97d23be8967131ce10d8e87ea81",
+          "reviewer": "/root/offset_review_luna and /root",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",

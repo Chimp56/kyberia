@@ -28,6 +28,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0022](0022-causal-project-materialization.md) | Proposed bounded application contract; independent review and durable project publication remain open | Causal inverse validation and typed operation effects applied through canonical Project invariants |
 | [0023](0023-materialized-project-publication.md) | Accepted bounded adapter; product and cross-platform runtime gates open | Explicit baseline registration and transactional, replay-validated project publication |
 | [0024](0024-shared-materialization-budget.md) | Accepted bounded contract; storage transaction adoption reviewed | Caller-owned cumulative work and copy accounting across operation admission, replay, identities and materialization |
+| [0027](0027-planning-interchange.md) | Accepted bounded Phase 0 proof; upstream interoperability open | Independent versioned `openrfplan/1` canonical planning interchange with explicit units, unknowns, references, bounds, seeds, and provenance |
 
 | [0025](0025-windows-disk-handle.md) | Accepted bounded boundary; native runtime gates open | Narrow audited Windows disk-handle query before request reads |
 
