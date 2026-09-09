@@ -169064,8 +169064,8 @@
         {
           "path": "crates/materialization-identity/src/lib.rs",
           "description": "Canonical baseline and exact operation-set identities; causal application remains open",
-          "revision": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334",
-          "sha256": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334"
+          "revision": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
+          "sha256": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6"
         }
       ],
       "validation": [
@@ -169125,9 +169125,9 @@
         },
         {
           "path": "crates/materialization-identity/src/lib.rs",
-          "description": "Twelve independently run identity, tamper, ordering and bounds tests",
-          "revision": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334",
-          "sha256": "4fc09b225bca0967f91e08f67d18450da30af3b2c737b26f1703c02289e3e334",
+          "description": "Fifteen independently run identity, exact-limit, V2 payload, tamper and ordering tests",
+          "revision": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
+          "sha256": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
           "command": "cargo test -p kyberia-materialization-identity --locked --offline",
           "scope": "materialization_input_identity",
           "result": "PASS"
@@ -169216,6 +169216,15 @@
           "description": "Independent typed SQLite replay review; causal priors remain downstream",
           "revision": "afe7630872aff09350bdac37f377740bf3f721b4be12ddc07f324c481fe33cbf",
           "sha256": "afe7630872aff09350bdac37f377740bf3f721b4be12ddc07f324c481fe33cbf",
+          "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/materialization-identity-resource-review.md",
+          "description": "Independent resource classification and V2 identity correction review",
+          "revision": "ec1e5d7113d6bdfb92e7b3bb91ebe39b1a7d35f8334746e9c9020368be8f3b90",
+          "sha256": "ec1e5d7113d6bdfb92e7b3bb91ebe39b1a7d35f8334746e9c9020368be8f3b90",
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
