@@ -69,8 +69,11 @@ The same increment passes CLI all-target Clippy with `-D warnings`,
 `cargo fmt --all -- --check`, `python3 tools/architecture.py check`,
 `.tools/venv/bin/python tools/source_inventory.py check` (241 locked packages),
 and `.tools/venv/bin/python tools/ledger.py check` (5,392 source blocks,
-438 explicit ID occurrences and 446 headings). These checks do not replace
-browser, native hardware, cross-platform, Sionna or Kismet runtime gates.
+438 explicit ID occurrences and 446 headings). The subsequent complete `python3 tools/dev.py check` passes workspace lint and
+typecheck, the Rust suite, 187 Python tests (19 skipped), source/ledger checks
+and synthetic fixture verification; log: `.tools/post-scene-complete-check.log`.
+These checks do not replace browser, native hardware, cross-platform, Sionna or
+Kismet runtime gates.
 
 ## Blocked capabilities and technical debt
 
