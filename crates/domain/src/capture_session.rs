@@ -1065,6 +1065,18 @@ mod tests {
             byte_length: 46,
         });
         reject("raw source membership", data);
+
+        let original_reference = match &envelope.data().raw_source {
+            Evidence::Known(reference) => reference,
+            Evidence::Unknown(_) => panic!("fixture must retain a raw reference"),
+        };
+        let mut data = envelope.data().clone();
+        data.raw_source = Evidence::Known(ArtifactReference {
+            sha256: original_reference.sha256,
+            media_type: Text::new("application/octet-stream").unwrap(),
+            byte_length: original_reference.byte_length,
+        });
+        reject("raw source reference equality", data);
     }
 
     #[test]
