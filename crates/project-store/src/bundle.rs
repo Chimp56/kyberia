@@ -728,6 +728,11 @@ impl Bundle {
             }
         }
         transaction.commit()?;
+        if sqlite_guard::has_capture_session_schema(&self.connection)?
+            && let Err(error) = crate::capture_sessions::verify_capture_sessions(self)
+        {
+            failures.push(error.to_string());
+        }
         if sqlite_guard::has_survey_snapshot_schema(&self.connection)? {
             let transaction = rusqlite::Transaction::new_unchecked(
                 &self.connection,

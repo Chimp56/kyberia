@@ -21,6 +21,7 @@ use std::collections::BTreeMap;
 
 pub const MAX_CAPTURE_SESSIONS_PER_PAGE: u16 = 128;
 pub(crate) const CAPTURE_SESSION_SCHEMA_VERSION: u32 = 1;
+const CAPTURE_SESSION_ROW_REVISION: i64 = 1;
 
 /// A checked request to associate one domain session record with the exact
 /// canonical manifest and envelopes that produced it.
@@ -222,6 +223,9 @@ fn validate_projection(row: &StoredSessionRow) -> Result<CaptureSessionRecordV1>
         i64::try_from(record.mapping().observation_mappings().len())
             .map_err(|_| invalid_row("observation mapping count is too large"))?;
     checked_u64(row.revision, "revision")?;
+    if row.revision != CAPTURE_SESSION_ROW_REVISION {
+        return Err(invalid_row("unsupported revision"));
+    }
     if row.session_id != session_id
         || row.collector_id != collector_id
         || row.clock_epoch_id != clock_epoch_id
@@ -364,6 +368,22 @@ fn receipt(
     })
 }
 
+/// Verify every capture-session row through the same bounded, authoritative
+/// read path used by callers. This keeps Bundle::verify from reporting only a
+/// healthy SQLite/index shape while a canonical session BLOB is unreadable.
+pub(crate) fn verify_capture_sessions(bundle: &Bundle) -> Result<()> {
+    let mut after = None;
+    loop {
+        // Verify one row at a time so a maximal 1 MiB canonical BLOB cannot
+        // be multiplied by the public page size during integrity checking.
+        let page = bundle.list_capture_sessions(1, after)?;
+        let Some(last) = page.last() else {
+            return Ok(());
+        };
+        after = Some(last.session_id());
+    }
+}
+
 impl Bundle {
     /// Store one canonical session record after the capture manifest and its
     /// canonical observations have been published. The record/index write is
@@ -492,7 +512,7 @@ impl Bundle {
         // Session rows are immutable. The stable session-ID cursor, rather
         // than this projection-local marker, defines listing order; keeping a
         // positive marker preserves room for a reviewed future revision.
-        let revision = 1_i64;
+        let revision = CAPTURE_SESSION_ROW_REVISION;
         transaction.execute(
             "INSERT INTO capture_sessions (session_id,schema_version,collector_id,clock_epoch_id,process_session_uuid,source_clock_uuid,manifest_hash,record_hash,terminal_status,terminal_reason,partial,observation_count,exit_code,registry_version,source_mapping_count,observation_mapping_count,privacy_hash,published_utc_ms,revision,canonical_bytes) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)",
             params![
@@ -915,6 +935,13 @@ mod tests {
                 .to_string()
                 .contains("capture session index")
         );
+        let verification = reopened.verify().unwrap();
+        assert!(
+            verification
+                .failures
+                .iter()
+                .any(|failure| failure.contains("capture session index"))
+        );
 
         let (path, mut bundle) = new_bundle();
         let manifest = new_manifest();
@@ -945,6 +972,33 @@ mod tests {
                 .to_string()
                 .contains("indexed projection")
         );
+    }
+
+    #[test]
+    fn readback_rejects_an_unsupported_session_row_revision() {
+        let (path, mut bundle) = new_bundle();
+        let manifest = new_manifest();
+        let record = make_record(&manifest, 77, "registry/v1");
+        publish_manifest(&mut bundle, manifest.clone());
+        bundle
+            .register_capture_session(
+                CaptureSessionRegistration::new(record.clone(), manifest, &[], 1).unwrap(),
+            )
+            .unwrap();
+        drop(bundle);
+        let database = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+        database
+            .execute(
+                "UPDATE capture_sessions SET revision=99 WHERE session_id=?1",
+                [String::from(record.session_id())],
+            )
+            .unwrap();
+        drop(database);
+        let reopened = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+        let error = reopened
+            .read_capture_session(record.session_id())
+            .unwrap_err();
+        assert!(error.to_string().contains("unsupported revision"));
     }
 
     #[test]
