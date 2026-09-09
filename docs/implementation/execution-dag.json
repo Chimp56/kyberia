@@ -766,7 +766,7 @@
         "crates/domain/src/project",
         "docs/implementation/project-materialization-packet.md"
       ],
-      "acceptance": "Materialize exact operation effects into canonical project state with baseline and revision binding, causal inverse validation, preserved geometry invariants, explicit conflicts and independent review; transactional publication remains separate. Require concurrent aggregate serialization without equating Lamport time to revision, cross-field evidence/calibration conflict admission, aggregate work/memory bounds and version isolation from capture contracts."
+      "acceptance": "Materialize exact operation effects into canonical project state with baseline and revision binding, causal inverse validation, preserved geometry invariants, explicit conflicts and independent review; transactional publication remains separate. Require concurrent aggregate serialization without equating Lamport time to revision, cross-field evidence/calibration conflict admission, aggregate work/memory bounds and version isolation from capture contracts. Independently reviewed pure boundary integrated through 7427cb1; 26 focused tests pass. Serialized copy-work limits are proxies, not resident-memory ceilings."
     },
     {
       "id": "iteration-4-rssi-spatial-metrics",
@@ -879,6 +879,23 @@
         "crates/project-store/tests/operation_store.rs"
       ],
       "acceptance": "Real SQLite append/reopen typed replay preserves unknown undo/resolution; unresolved conflicts reject replay; legacy bytes remain readable. Does not materialize canonical aggregate state. Independently reviewed implementation integrated through 5eefe02; 19 focused tests pass."
+    },
+    {
+      "id": "iteration-4-materialized-project-publication",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-project-materialization",
+        "iteration-4-typed-operation-store-replay"
+      ],
+      "owner": "storage/data",
+      "requirements": [
+        "backlog:FND-011:1"
+      ],
+      "owned_paths": [
+        "crates/project-store",
+        "docs/implementation/project-materialization-packet.md"
+      ],
+      "acceptance": "Persist a canonical baseline and immutable materialization history; recompute exact baseline/operation bindings within the publication transaction, reject stale input, preserve exact-retry idempotence, and validate real-bundle recovery, corruption, read-only legacy and schema-group admission. Generic artifact insertion must not establish trusted current project state. Independent review and downstream packet acceptance required."
     }
   ]
 }
