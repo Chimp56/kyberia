@@ -1,0 +1,15 @@
+[package]
+name = "kyberia-materialization-identity"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Canonical identities for project baselines and operation sets"
+
+[dependencies]
+kyberia-domain = { version = "=0.1.0", path = "../domain" }
+kyberia-operation-log = { version = "=0.1.0", path = "../operation-log" }
+sha2 = "=0.10.9"
+serde_json = "=1.0.149"
+
+[lints]
+workspace = true

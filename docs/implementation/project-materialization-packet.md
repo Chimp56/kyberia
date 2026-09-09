@@ -4,6 +4,9 @@ Status: IN_PROGRESS (architecture investigation; bridge implementation remains o
 Canonical name-command prerequisite integrated in `4482b36`.
 Requirements: plan §§10.5–10.8, source-qualified `backlog:FND-011:1`,
 and ADR 0016's explicitly open application bridge.
+Canonical baseline and operation-set identity prerequisite is implemented in
+`kyberia-materialization-identity`; replay and aggregate application remain
+open under this packet.
 
 ## Existing boundaries and missing behavior
 

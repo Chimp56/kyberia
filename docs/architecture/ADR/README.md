@@ -24,6 +24,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0018](0018-native-observation-pipeline.md) | Accepted bounded composition increment; native runtime and co-transaction gates open | Connect native normalized observations to receipt association and durable observation chunks through a versioned composition port |
 | [0019](0019-kismet-live-status.md) | Accepted bounded adapter contract; Kismet runtime gate open | Authenticated read-only status/capability projection with bounded transport, deterministic receipts, and no observation/control leakage |
 | [0020](0020-operation-inverse-v2.md) | Accepted bounded contract; materializer integration open | Versioned inverse metadata preserves typed calibration priors and explicitly marks irreversible floor-evidence binding while retaining V1 bytes and hashes |
+| [0021](0021-materialization-input-identity.md) | Accepted bounded prerequisite; materializer integration open | Domain-separated canonical identities for validated project baselines and exact operation sets |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

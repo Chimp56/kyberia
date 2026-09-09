@@ -945,6 +945,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-materialization-identity"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "kyberia-operation-log",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "kyberia-observation-analysis"
 version = "0.1.0"
 dependencies = [
