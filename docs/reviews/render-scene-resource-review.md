@@ -1,0 +1,35 @@
+# Render scene resource review
+
+Candidate: `1fdcc7f60431a91c299d787e0d0ac22251926980` in
+`.worktrees/canonical-render-scene`. Reviewer: root; resource/cancellation author:
+Rawls. Status: review in progress; integration not approved.
+
+## Verified evidence
+
+Root independently executed `cargo test -p kyberia-rendering-scene --locked
+--offline`: eight unit and nineteen integration tests pass. Direct mutable-input
+ordering now projects canonical replay output. Import replays preserved samples;
+prior independent review accepted its numerical rejection tests.
+
+Cancellation checks now cover decoding, structural/grid loops, replay,
+projection, encoding and hashing. The candidate adds pre-clone shape admission
+for sample/group/cell/contribution counts and estimated work/memory.
+
+## Accounting evidence required
+
+The code claims its constants over-approximate vector storage at overlapping
+Model/Tile/SceneWire peaks, but does not derive the overlap factors. A retained
+host probe at `.worktrees/canonical-render-scene/.trash/render-size-probe-20260909`
+reports `Sample=136`, `Cell=96`, `LocationGroup=144` bytes. The group accounting
+constant is 128 bytes. This alone does not prove the total estimate is exceeded,
+since the formula includes encoded-byte and fixed terms, but it disproves any
+interpretation that the group term alone covers even one group value.
+
+Provide an explicit derivation for live copy counts, nested observation ID
+vectors (both group IDs and aggregate observation order), decoding capacity,
+canonical output and temporary spatial-analysis arrays. Validate representative
+large tiles and cancellation latency. Keep accounting proxies separate from RSS;
+no exact memory ceiling is implied by a passing shape test.
+
+The author has been asked for a corrective proposal. Full renderer selection,
+real map/browser integration and Gate B performance/accessibility remain open.

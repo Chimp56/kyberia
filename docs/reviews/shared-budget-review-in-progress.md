@@ -39,3 +39,13 @@ an immutable reviewed candidate before integration.
 The storage publication adapter must subsequently share one budget across its
 entire verification transaction and preserve resource/cancellation outcomes.
 No product capability or external runtime gate is completed by these checks.
+
+## Duplicate-admission follow-up
+
+Russell independently approved the corrected raw-input admission loop. The
+retained probe `/private/tmp/kyberia-duplicate-budget-probe-20260909` now rejects
+the 100,001st raw input with the count limit and admits 100,000 unique operations.
+Every input, including duplicates, is charged and cancellation-checked before
+deduplication. The reviewer ran 38 operation integration tests successfully, plus
+Clippy, formatting and whitespace checks. This closes item 2 for the inspected
+consumer candidate; other findings and complete consumer integration remain open.
