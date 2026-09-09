@@ -11,6 +11,19 @@ its focused dependency suites pass 247 tests with two ignored. Transactional
 canonical project publication is now in progress in an isolated worktree.
 These increments do not constitute a completed product capability or phase.
 
+Publication draft checkpoint: the isolated
+`.worktrees/materialized-project-publication` draft now includes explicit
+baseline registration, historical retry validation, corruption checks and legacy
+missing-state reads. Its full project-store suite passes 116 tests with zero
+failures and one ignored test (`.trash/storage-draft-regression-7.log` within that
+worktree); focused Clippy passes. Independent review requested changes; follow-up
+confirms result-to-replay comparison and inventory reuse, but aggregate Rust-side
+verification work remains a MAJOR finding. Baseline read access and registration
+recovery tests now pass. The shared-budget prerequisite is assigned in the isolated
+`.worktrees/shared-materialization-budget` worktree. ADR and final traceability
+updates remain open. These results do not replace the integrated
+workspace validation below and the draft is not yet approved for integration.
+
 Integrated validation at `a11ca22`: `cargo test --workspace --locked --offline`
 passes 524 tests with zero failures and nine ignored; workspace Clippy with
 `-D warnings` also passes. Logs are retained in
