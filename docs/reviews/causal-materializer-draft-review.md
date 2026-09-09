@@ -64,3 +64,27 @@ with `ResourceLimit("causal_copy_bytes")`, with the baseline unchanged.
 These are work/allocation proxies, not measured resident-memory ceilings.
 Independent review of the accounting and underlying causal semantics remains
 pending; neither candidate is approved or integrated by this test result.
+
+## Independent review of `cef5716`
+
+Disposition: **REQUEST_CHANGES** for the combined materializer. The independent
+reviewer accepted the resource correction's bounded serialized copy-work scope,
+but reported these outstanding MAJOR findings:
+
+- `reject_ambiguous_prior` compares raw effect variants. A known calibration
+  represented as `Calibration(Known(id))` and the same value represented as
+  `Mutation::ActivateCalibration(id)` replay equivalently in the operation log
+  but produce `AmbiguousCausalState` in the materializer. Normalize this
+  equivalence without collapsing typed unknown calibration states.
+- Direct acceptance regressions remain missing for cross-map calibration IDs,
+  incompatible frames, invalid evidence references, forged priors before a
+  later resolution, multiple common causal heads/criss-cross histories, and
+  permutation-stable resource errors. Assert the specific missing-site error
+  instead of accepting any failure.
+
+The reviewer independently passed 18 materializer tests on the correction,
+30 domain tests, operation-log and identity suites, formatting, Clippy,
+architecture and the 241-package source inventory. These checks do not override
+the reproduced semantic defect. Corrections are assigned in isolated branch
+`fix/materializer-causal-equivalence`; their author must receive an independent
+review before integration. Storage publication remains downstream and open.
