@@ -6,9 +6,16 @@ Current review checkpoint: bounded polygon booleans are independently reviewed
 and integrated through `21f1e16`; all 30 geometry tests pass. Full Gate E remains
 open. Capture diagnostics and separated drain-test deadlines are integrated
 through `93317f2`; 33 unit and two external tests pass, with one real-collector
-test ignored. Materializer corrections remain isolated pending final independent
-review, including the pre-resolution forged-prior regression. These increments
-do not constitute a completed product capability or phase.
+test ignored. The reviewed pure materializer is integrated through `7427cb1`;
+its focused dependency suites pass 247 tests with two ignored. Transactional
+canonical project publication is now in progress in an isolated worktree.
+These increments do not constitute a completed product capability or phase.
+
+Integrated validation at `a11ca22`: `cargo test --workspace --locked --offline`
+passes 524 tests with zero failures and nine ignored; workspace Clippy with
+`-D warnings` also passes. Logs are retained in
+`.tools/causal-materializer-full-regression.log` and
+`.tools/materializer-integration-clippy.log`. Ignored runtime gates remain open.
 
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **4 — Integration audit remediation, RF semantics, renderer/geometry proofs and supply-chain validation**.
