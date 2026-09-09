@@ -1459,6 +1459,11 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
     let command = || CollectorCommand::Probe(ProbeOptions::new(1).unwrap());
+    // Keep the direct timeout/cancellation contract at one second. The
+    // descendant fixtures exercise post-exit pipe draining, so give the
+    // direct collector process enough wall-clock margin to start and exit
+    // before classifying the inherited-pipe condition as ProcessIo.
+    let drain_command = || CollectorCommand::Probe(ProbeOptions::new(5).unwrap());
 
     let (_script, hanging) = synthetic_collector(VALID, SyntheticCollectorBehavior::Hang);
     let start = Instant::now();
@@ -1503,7 +1508,7 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
         let descendant_result = run_and_persist(
             &mut bundle,
             &descendant,
-            command(),
+            drain_command(),
             |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
             &survey,
             &request(124),
@@ -1528,7 +1533,7 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
         let escaped_result = run_and_persist(
             &mut bundle,
             &escaped,
-            command(),
+            drain_command(),
             |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
             &survey,
             &request(125),
