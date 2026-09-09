@@ -8,7 +8,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **4 — Integration audit remediation and architecture proofs**.
 - Integration branch: `main`.
-- Latest integrated feature source: `7be5e9a`, transactional canonical project publication.
+- Latest integrated feature sources: `57f8129` and `0ab4bc7`, canonical project CLI and single-snapshot queries (integration `95b2f77`, `d9dfd0c`).
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
   [publication review](docs/reviews/materialized-publication-correction-review.md).
@@ -28,6 +28,8 @@ product capability is validated.
   `7440ebd`; [independent review](docs/reviews/budgeted-operation-merge-review.md).
 - Explicit immutable canonical baselines, replay-validated transactional project
   publication, exact historical retries, and cumulative verification budgets.
+- Reviewed CLI baseline initialization and canonical current/baseline/legacy
+  queries from one SQLite snapshot; concurrent-writer, corruption and reopen tests.
 - Transactional SQLite metadata, immutable survey snapshots, canonical operation
   persistence/replay, normalized Parquet observation chunks, indexed queries,
   source-bound selection, corruption/recovery checks and non-overwriting exports.
@@ -52,7 +54,7 @@ product capability is validated.
 
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
-| Canonical project CLI | Root correction / `canonical-project-cli` | `57f8129` review found mixed read snapshots; correction `0ab4bc7` passes 155 affected tests and needs independent review |
+| Neutral planning interchange | Russell / `planning-interchange` | Original geometry/AP/radio/channel-constraint schema, defensive import/export, deterministic roundtrip and independent review |
 | Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Browser review found canonical admission, metric/replay, predecode limits, coordinate mapping and stale-raster MAJOR defects; correction and fresh review required |
 | Windows analysis request acquisition | Correction awaiting review / `windows-analysis-requests` | `c3dd163` adds disk-handle validation and read-only sharing after WR-001/002; 23 local CLI tests and Windows adapter cross-Clippy pass; native runtime remains open |
 | Rounded polygon offsets | Laplace correcting / `polygon-offsets` | Independent review found partial loss of mixed-scale components in `3406d6b`; coverage-completeness fix and fresh review required |
@@ -62,6 +64,10 @@ The publication review is approved for the bounded increment in
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+Canonical CLI workspace regression log: `.tools/canonical-cli-integration-network-tests.log`.
+The initial sandboxed run could not bind local Kismet HTTP fixtures; rerunning
+with loopback access passed. Workspace Clippy also passed.
 
 The Rust scene validator passed native/WASM execution for the canonical fixture
 and rejection of trailing whitespace and duplicate schema keys;
@@ -73,7 +79,7 @@ ordered checks while exposing lint, typecheck, regression, source inventory and
 evidence failures separately. Independent review found no blocking findings;
 the command-discoverability follow-up is included in README.
 
-For integrated source `7be5e9a`, `cargo test --workspace --locked --offline` passes **617 tests,
+For integrated canonical CLI source `d9dfd0c`, `cargo test --workspace --locked --offline` passes **622 tests,
 zero failures, nine ignored tests**, recorded in
 `.tools/publication-final-integration.log`. Existing local TCP fixtures ran
 with authorized listener access. This count excludes unintegrated worktrees.

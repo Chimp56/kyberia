@@ -967,6 +967,19 @@
         "research/renderer"
       ],
       "acceptance": "Both comparative renderer candidates consume the same canonical scene contract; honest unknowns, numeric inspection, keyboard/error/loading/cancel states and bounded hostile file handling pass browser tests. Research fixtures remain explicit; real stored export workflow documented. Does not resolve full Gate B without remaining runtime evidence."
+    },
+    {
+      "id": "iteration-4-canonical-project-cli",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "iteration-4-materialized-project-publication"
+      ],
+      "owner": "architecture/storage/CLI",
+      "acceptance": "New projects register an explicit canonical baseline; read-only queries distinguish legacy absence, baseline and current publication from one SQLite snapshot. Real CLI corruption/reopen tests and deterministic concurrent writer regression pass independent review of57f8129+0ab4bc7. Product editing/undo/conflict UX remains open.",
+      "requirements": [
+        "backlog:FND-004:1",
+        "backlog:FND-011:1"
+      ]
     }
   ]
 }

@@ -29,5 +29,13 @@ Validation of the correction:
 - `cargo fmt --all`: applied.
 - `tools/architecture.py`, `tools/source_inventory.py check`: PASS.
 
-The root-authored correction still requires an independent reviewer. This packet
-does not approve integration or claim full project-management UX acceptance.
+Independent reviewer `/root/offset_review_luna` (Beauvoir) approved the complete
+candidate `0ab4bc7` atop `57f8129` with no findings. The reviewer reran 155
+affected tests (one ignored), the focused concurrency regression, Clippy,
+format, architecture and source-inventory checks. Logs are retained in the
+candidate worktree under `.trash/test-runs/canonical-project-cli-review-0ab4bc7`.
+
+The MAJOR mixed-snapshot finding is resolved. SQLite does not freeze external
+artifact files; bounded reads and exact hashes independently validate those
+files and reject corruption. This approval does not claim full project-management
+UX acceptance or native Windows execution.

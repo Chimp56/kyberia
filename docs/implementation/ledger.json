@@ -168306,6 +168306,12 @@
           "description": "Typed point identity and versioned survey snapshot conversion contract",
           "revision": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5",
           "sha256": "7b91071a62406124ea1dc92a0a8489d12a0fa2caac3d215692600915875cc2c5"
+        },
+        {
+          "path": "apps/cli/src/canonical_project.rs",
+          "description": "Read-only canonical state queries from a single committed snapshot; explicit baseline, current and legacy absence states",
+          "revision": "321ffa10cebe2da158e391d22731a2211ed95cbc75382cea2d6e8447ca58a720",
+          "sha256": "321ffa10cebe2da158e391d22731a2211ed95cbc75382cea2d6e8447ca58a720"
         }
       ],
       "validation": [
@@ -168334,6 +168340,15 @@
           "sha256": "24ae05229b84846747173ffa267ca5f416f612df1ca5df8c5cdfe60a4656ebc2",
           "command": "cargo test --workspace --locked --offline",
           "scope": "workspace_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "apps/cli/tests/canonical_project.rs",
+          "description": "Real CLI create/reopen, canonical publication, corruption and overwrite rejection tests",
+          "revision": "40ca00d4b3b821e784647d21db9c0c94e6f634a482936a9da609c2b32d92ff15",
+          "sha256": "40ca00d4b3b821e784647d21db9c0c94e6f634a482936a9da609c2b32d92ff15",
+          "command": "cargo test -p kyberia-cli --test canonical_project --locked --offline",
+          "scope": "canonical_project_cli",
           "result": "PASS"
         }
       ],
@@ -168400,6 +168415,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/canonical-project-cli-review.md",
+          "description": "Independent approval of canonical CLI and single-transaction read correction",
+          "revision": "0f7b33339f17099862756e51a0b3732ba0339ea34b55929cc0be250eaa217b9c",
+          "sha256": "0f7b33339f17099862756e51a0b3732ba0339ea34b55929cc0be250eaa217b9c",
+          "reviewer": "/root/offset_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -169100,8 +169124,14 @@
         {
           "path": "crates/project-store/src/materialized_project.rs",
           "description": "Canonical baseline registration and immutable revision-bound project publication with historical retry, replay verification and cumulative resource admission",
-          "revision": "30905785d315fa4cb3b334a3f1ebccc097212d31021cd456077787a8d161ad24",
-          "sha256": "30905785d315fa4cb3b334a3f1ebccc097212d31021cd456077787a8d161ad24"
+          "revision": "ff617de66a0a5e861d8b43b965617d5cf0d2615db37b50abe111d35810927fc7",
+          "sha256": "ff617de66a0a5e861d8b43b965617d5cf0d2615db37b50abe111d35810927fc7"
+        },
+        {
+          "path": "apps/cli/src/canonical_project.rs",
+          "description": "Read-only canonical state queries from a single committed snapshot; explicit baseline, current and legacy absence states",
+          "revision": "321ffa10cebe2da158e391d22731a2211ed95cbc75382cea2d6e8447ca58a720",
+          "sha256": "321ffa10cebe2da158e391d22731a2211ed95cbc75382cea2d6e8447ca58a720"
         }
       ],
       "validation": [
@@ -169184,6 +169214,15 @@
           "sha256": "85170a9bc7daaf0abfd58cc910e4c208763e3f7a418cefb276a5e0dbdf693bdc",
           "command": "cargo test -p kyberia-project-store --test materialized_publication --locked --offline",
           "scope": "canonical_project_publication",
+          "result": "PASS"
+        },
+        {
+          "path": "apps/cli/tests/canonical_project.rs",
+          "description": "Real CLI create/reopen, canonical publication, corruption and overwrite rejection tests",
+          "revision": "40ca00d4b3b821e784647d21db9c0c94e6f634a482936a9da609c2b32d92ff15",
+          "sha256": "40ca00d4b3b821e784647d21db9c0c94e6f634a482936a9da609c2b32d92ff15",
+          "command": "cargo test -p kyberia-cli --test canonical_project --locked --offline",
+          "scope": "canonical_project_cli",
           "result": "PASS"
         }
       ],
@@ -169298,6 +169337,15 @@
           "revision": "b6908d374f3ffa52c015c6db79e01701f9121851f79bab53738f30936dcdc7c2",
           "sha256": "b6908d374f3ffa52c015c6db79e01701f9121851f79bab53738f30936dcdc7c2",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/canonical-project-cli-review.md",
+          "description": "Independent approval of canonical CLI and single-transaction read correction",
+          "revision": "0f7b33339f17099862756e51a0b3732ba0339ea34b55929cc0be250eaa217b9c",
+          "sha256": "0f7b33339f17099862756e51a0b3732ba0339ea34b55929cc0be250eaa217b9c",
+          "reviewer": "/root/offset_review_luna",
           "disposition": "APPROVED",
           "findings": []
         }
