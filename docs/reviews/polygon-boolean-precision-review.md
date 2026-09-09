@@ -47,3 +47,24 @@ The retained harness now has two binaries: use
 `cargo run --offline --quiet --bin polygon-precision-probe` for the original
 disjoint union, or `cargo run --offline --quiet --bin near_collinear` for this
 self-intersection reproduction. Both are deliberately failing review probes.
+
+## Frozen `2d3cf82`: partial intersection loss
+
+Root reran all 18 candidate tests successfully, then reproduced a MAJOR failure
+through the public `ValidatedMultiPolygon::intersection` API. Left contains
+triangle `(0,0), (10,0), (0,10)` plus square `[30,40] × [30,40]`. Right contains
+triangle `(5,5-1e-10), (20,1), (1,20)` plus the identical square. Rings are closed.
+The triangles have a small positive-area overlap: the first vertex of the
+second triangle is strictly inside the first and its other vertices lie outside.
+
+The expected result has two components. The adapter returns `Ok` with only the
+square. Its whole-result empty check does not detect a lost component when
+another component survives; subset containment alone does not prove intersection
+completeness. Difference validation similarly needs to establish exclusion and
+completeness, rather than only containment in the left operand.
+
+Retained public-API probe:
+`.trash/review-probes/partial-intersection-22gnw2r9`, command
+`cargo run --offline --quiet`; output `result Ok(1)` followed by the failing
+two-component assertion. The frozen candidate remains unintegrated pending
+correction and independent review.
