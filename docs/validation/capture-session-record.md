@@ -158,8 +158,10 @@ per-case bound under the full workspace run (`3.261677250 s`); see the retained
 timing gate and not evidence against the session record.
 
 cargo test -p kyberia-observation-pipeline --lib --locked --offline
-PASS — 42 passed, 1 ignored (the focused `native_acquisition::tests` subset
-also passes 7 tests; see the retained composition log)
+FOCUSED COMPOSITION PASS — 7 tests (see the retained composition log). The
+full 42-test invocation is timing-sensitive in this sandbox: one run passed
+and a later full-workspace-load run failed the pre-existing descendant-drain
+3 s assertion; see the retained `observation-pipeline-lib-final2.log`.
 
 cargo clippy -p kyberia-domain -p kyberia-project-store -p kyberia-observation-pipeline --all-targets --locked --offline -- -D warnings
 PASS
