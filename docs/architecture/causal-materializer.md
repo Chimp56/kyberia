@@ -26,6 +26,13 @@ conflict arm do not turn deterministic presentation order into a fabricated
 prior. Concurrent causal heads with incompatible prior values remain
 ambiguous until an explicit resolution.
 
+Calibration effects have two wire representations at this boundary: a typed
+known/unknown `ResolutionValue` and the legacy `ActivateCalibration` mutation.
+The causal comparison canonicalizes only the known calibration ID plus map ID
+across those representations. Explicit unknown evidence remains distinct, and
+the comparison is borrowed so large mutation payloads are not cloned merely to
+validate a prior.
+
 The domain also enforces aggregate constraints that are wider than an
 operation field key. In particular, concurrent floor-evidence binding and
 calibration activation for the same floor are rejected as an explicit
@@ -44,3 +51,11 @@ resident size of Rust `BTreeMap` allocations. It borrows all inputs and
 constructs each candidate project on a clone, so a failure cannot partially
 mutate the caller's baseline or operation set. Storage adapters remain
 responsible for publishing the returned project and identity transactionally.
+
+Baseline decoding and domain application are separate trust boundaries. A
+serialized baseline with a calibration whose source frame differs from its map
+image frame is rejected by `Project` validation; a DAG operation that selects a
+calibration from another map or binds evidence to a missing floor is rejected
+by materialization before a canonical project is returned. A missing entity
+referenced by an inverse prior is reported as a causal-prior mismatch because
+the prior cannot be established from the causal baseline.

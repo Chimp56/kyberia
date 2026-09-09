@@ -34,6 +34,52 @@ enum EffectValue {
     },
 }
 
+impl EffectValue {
+    /// Compare the semantic field value without cloning typed payloads.
+    ///
+    /// The typed replay boundary deliberately preserves a known calibration's
+    /// evidence class, while the legacy mutation boundary represents the same
+    /// known value as `ActivateCalibration`.  Those two encodings must not
+    /// manufacture an ambiguity during causal-prior validation. Explicit
+    /// unknown calibration remains typed because it has no mutation equivalent.
+    fn semantically_equal(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Mutation(left), Self::Mutation(right)) => left == right,
+            (
+                Self::Calibration {
+                    map_id: left_map,
+                    calibration: Evidence::Known(left_calibration),
+                },
+                Self::Mutation(Mutation::ActivateCalibration {
+                    map_id: right_map,
+                    calibration_id: right_calibration,
+                }),
+            )
+            | (
+                Self::Mutation(Mutation::ActivateCalibration {
+                    map_id: left_map,
+                    calibration_id: left_calibration,
+                }),
+                Self::Calibration {
+                    map_id: right_map,
+                    calibration: Evidence::Known(right_calibration),
+                },
+            ) => left_map == right_map && left_calibration == right_calibration,
+            (
+                Self::Calibration {
+                    map_id: left_map,
+                    calibration: left_calibration,
+                },
+                Self::Calibration {
+                    map_id: right_map,
+                    calibration: right_calibration,
+                },
+            ) => left_map == right_map && left_calibration == right_calibration,
+            _ => false,
+        }
+    }
+}
+
 /// A conservative bound for one pure materialization.  The operation-log
 /// format admits larger sets for storage/merge, but retaining per-operation
 /// causal project witnesses is intentionally bounded until a persistent
@@ -470,7 +516,7 @@ fn reject_ambiguous_prior(
     }
     for (index, left) in maximal.iter().enumerate() {
         for right in maximal.iter().skip(index + 1) {
-            if left.value != right.value {
+            if !left.value.semantically_equal(&right.value) {
                 return Err(MaterializationError::AmbiguousCausalState {
                     operation_id: operation.operation_id(),
                     field,
@@ -1209,9 +1255,10 @@ mod tests {
         state
     }
 
-    fn calibration() -> TwoPointCalibration {
+    fn calibration_for_source(source_frame: u8) -> TwoPointCalibration {
         TwoPointCalibration::new(CalibrationControls {
-            source_frame: kyberia_domain::identity::FrameId::from_bytes([3; 16]).unwrap(),
+            source_frame: kyberia_domain::identity::FrameId::from_bytes([source_frame; 16])
+                .unwrap(),
             target_frame: kyberia_domain::identity::FrameId::from_bytes([2; 16]).unwrap(),
             image_first: PixelPoint {
                 x: Pixels::new(10.).unwrap(),
@@ -1232,6 +1279,84 @@ mod tests {
             control_point_uncertainty: Evidence::Unknown(UnknownReason::NotMeasured),
         })
         .unwrap()
+    }
+
+    fn calibration() -> TwoPointCalibration {
+        calibration_for_source(3)
+    }
+
+    fn two_map_project() -> Project {
+        let baseline = full_project();
+        let map = baseline
+            .map(MapAssetId::from_bytes([1; 16]).unwrap())
+            .unwrap()
+            .data()
+            .clone();
+        let mut second_map = map;
+        second_map.id = MapAssetId::from_bytes([2; 16]).unwrap();
+        second_map.image_frame = frame(4, FrameKind::ImagePixels);
+        second_map.source.sha256 = kyberia_domain::identity::ContentHash::from_sha256([2; 32]);
+        baseline
+            .execute(CommandRequest {
+                schema_version: kyberia_domain::evidence::SchemaVersion::V1,
+                operation_id: id(5),
+                project_id: baseline.id(),
+                actor_id: actor(1),
+                device_id: device(1),
+                logical_time: NonZeroU64::new(5).unwrap(),
+                expected_revision: baseline.revision(),
+                wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+                command: ProjectCommand::ImportMap(
+                    kyberia_domain::project::MapAsset::new(second_map).unwrap(),
+                ),
+            })
+            .unwrap()
+            .project
+    }
+
+    fn baseline_with_two_calibrations() -> Project {
+        let mut state = full_project();
+        for (operation_id, calibration_id) in [(5_u8, [10_u8; 16]), (6_u8, [11_u8; 16])] {
+            state = state
+                .execute(CommandRequest {
+                    schema_version: kyberia_domain::evidence::SchemaVersion::V1,
+                    operation_id: id(operation_id),
+                    project_id: state.id(),
+                    actor_id: actor(1),
+                    device_id: device(1),
+                    logical_time: NonZeroU64::new(state.logical_time() + 1).unwrap(),
+                    expected_revision: state.revision(),
+                    wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+                    command: ProjectCommand::CalibrateMap(
+                        kyberia_domain::project::MapCalibration {
+                            id: CalibrationId::from_bytes(calibration_id).unwrap(),
+                            map_id: MapAssetId::from_bytes([1; 16]).unwrap(),
+                            transform: calibration(),
+                            provenance: Text::new("fixture").unwrap(),
+                            method_version: Text::new("two-point/v1").unwrap(),
+                        },
+                    ),
+                })
+                .unwrap()
+                .project;
+        }
+        state
+            .execute(CommandRequest {
+                schema_version: kyberia_domain::evidence::SchemaVersion::V1,
+                operation_id: id(7),
+                project_id: state.id(),
+                actor_id: actor(1),
+                device_id: device(1),
+                logical_time: NonZeroU64::new(state.logical_time() + 1).unwrap(),
+                expected_revision: state.revision(),
+                wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+                command: ProjectCommand::ActivateCalibration {
+                    map_id: MapAssetId::from_bytes([1; 16]).unwrap(),
+                    calibration: Evidence::Known(CalibrationId::from_bytes([10; 16]).unwrap()),
+                },
+            })
+            .unwrap()
+            .project
     }
 
     fn set_project_name(
@@ -1256,6 +1381,72 @@ mod tests {
             },
         )
         .unwrap()
+    }
+
+    fn set_site_name(
+        operation_id: OperationId,
+        logical_time: u64,
+        actor_id: u8,
+        parents: Vec<OperationId>,
+        site_id: SiteId,
+        name: &str,
+        prior: &str,
+    ) -> Operation {
+        Operation::try_apply_v2(
+            operation_id,
+            project().id(),
+            actor(actor_id),
+            device(actor_id),
+            kyberia_operation_log::LogicalTimestamp::new(logical_time).unwrap(),
+            kyberia_operation_log::CausalDepth::new(if parents.is_empty() { 0 } else { 1 }),
+            parents,
+            Mutation::set_site_name(site_id, Text::new(name).unwrap()),
+            InversePrior::SiteName {
+                site_id,
+                name: Text::new(prior).unwrap(),
+            },
+        )
+        .unwrap()
+    }
+
+    fn criss_cross_operations(prior: &str) -> Vec<Operation> {
+        let baseline = with_site(project());
+        let project_head = set_project_name(id(10), 2, 10, vec![], "Project", "Home");
+        let site_id = SiteId::from_bytes([2; 16]).unwrap();
+        let site_head = set_site_name(id(20), 2, 20, vec![], site_id, "Branch", "Site");
+        let left = set_project_name(
+            id(30),
+            3,
+            30,
+            vec![project_head.operation_id(), site_head.operation_id()],
+            "Left",
+            "Project",
+        );
+        let right = set_project_name(
+            id(40),
+            3,
+            40,
+            vec![project_head.operation_id(), site_head.operation_id()],
+            "Right",
+            "Project",
+        );
+        let resolution = Operation::try_resolve_v2(
+            id(50),
+            baseline.id(),
+            actor(50),
+            device(50),
+            kyberia_operation_log::LogicalTimestamp::new(4).unwrap(),
+            kyberia_operation_log::CausalDepth::new(2),
+            vec![left.operation_id(), right.operation_id()],
+            OperationReference::from(&left),
+            OperationReference::from(&right),
+            Mutation::set_project_name(Text::new("Left").unwrap()),
+            InversePrior::ProjectName {
+                name: Text::new(prior).unwrap(),
+            },
+        )
+        .unwrap();
+        vec![project_head, site_head, left, right, resolution]
     }
 
     fn numbered_operation_id(number: usize) -> OperationId {
@@ -1592,7 +1783,253 @@ mod tests {
         )
         .unwrap();
         let set = OperationSet::from_operations([operation]).unwrap();
-        assert!(materialize(&baseline, &set).is_err());
+        assert_eq!(
+            materialize(&baseline, &set),
+            Err(MaterializationError::CausalPriorMismatch {
+                operation_id: id(10),
+                field: FieldKey::SiteName(missing_site),
+            })
+        );
+    }
+
+    #[test]
+    fn known_typed_and_mutation_calibration_frontier_values_are_equivalent() {
+        let baseline = baseline_with_two_calibrations();
+        let project_id = baseline.id();
+        let map_id = MapAssetId::from_bytes([1; 16]).unwrap();
+        let known_calibration =
+            |value: u8| Evidence::Known(CalibrationId::from_bytes([value; 16]).unwrap());
+        let target = Operation::try_apply_v2(
+            id(10),
+            project_id,
+            actor(10),
+            device(10),
+            kyberia_operation_log::LogicalTimestamp::new(8).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::activate_calibration(map_id, CalibrationId::from_bytes([11; 16]).unwrap()),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: known_calibration(10),
+            },
+        )
+        .unwrap();
+        let same_value = Operation::try_apply_v2(
+            id(20),
+            project_id,
+            actor(20),
+            device(20),
+            kyberia_operation_log::LogicalTimestamp::new(8).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::activate_calibration(map_id, CalibrationId::from_bytes([10; 16]).unwrap()),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: known_calibration(10),
+            },
+        )
+        .unwrap();
+        let undo = Operation::try_undo_v2(
+            id(30),
+            project_id,
+            actor(30),
+            device(30),
+            kyberia_operation_log::LogicalTimestamp::new(9).unwrap(),
+            kyberia_operation_log::CausalDepth::new(1),
+            vec![target.operation_id()],
+            OperationReference::from(&target),
+        )
+        .unwrap();
+        let joined = Operation::try_apply_v2(
+            id(40),
+            project_id,
+            actor(40),
+            device(40),
+            kyberia_operation_log::LogicalTimestamp::new(10).unwrap(),
+            kyberia_operation_log::CausalDepth::new(2),
+            vec![same_value.operation_id(), undo.operation_id()],
+            Mutation::activate_calibration(map_id, CalibrationId::from_bytes([10; 16]).unwrap()),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: known_calibration(10),
+            },
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([joined, undo, target, same_value]).unwrap();
+        assert!(set.replay_effects().is_ok());
+        let result = materialize(&baseline, &set).unwrap();
+        assert_eq!(
+            result.project().active_calibration(map_id),
+            Some(known_calibration(10))
+        );
+    }
+
+    #[test]
+    fn cross_map_calibration_reference_is_rejected_by_materialized_domain() {
+        let mut baseline = two_map_project();
+        let map_one = MapAssetId::from_bytes([1; 16]).unwrap();
+        let map_two = MapAssetId::from_bytes([2; 16]).unwrap();
+        let calibration_id = CalibrationId::from_bytes([10; 16]).unwrap();
+        baseline = baseline
+            .execute(CommandRequest {
+                schema_version: kyberia_domain::evidence::SchemaVersion::V1,
+                operation_id: id(6),
+                project_id: baseline.id(),
+                actor_id: actor(1),
+                device_id: device(1),
+                logical_time: NonZeroU64::new(baseline.logical_time() + 1).unwrap(),
+                expected_revision: baseline.revision(),
+                wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+                command: ProjectCommand::CalibrateMap(kyberia_domain::project::MapCalibration {
+                    id: calibration_id,
+                    map_id: map_one,
+                    transform: calibration(),
+                    provenance: Text::new("fixture").unwrap(),
+                    method_version: Text::new("two-point/v1").unwrap(),
+                }),
+            })
+            .unwrap()
+            .project;
+        let operation = Operation::try_apply_v2(
+            id(10),
+            baseline.id(),
+            actor(10),
+            device(10),
+            kyberia_operation_log::LogicalTimestamp::new(baseline.logical_time() + 1).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::activate_calibration(map_two, calibration_id),
+            InversePrior::MapCalibration {
+                map_id: map_two,
+                calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+            },
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([operation]).unwrap();
+        assert_eq!(
+            materialize(&baseline, &set),
+            Err(MaterializationError::Domain(ProjectError::InvalidReference))
+        );
+    }
+
+    #[test]
+    fn incompatible_calibration_frame_is_rejected_before_materialized_baseline() {
+        let baseline = full_project();
+        let calibration = kyberia_domain::project::MapCalibration {
+            id: CalibrationId::from_bytes([10; 16]).unwrap(),
+            map_id: MapAssetId::from_bytes([1; 16]).unwrap(),
+            transform: calibration_for_source(4),
+            provenance: Text::new("fixture").unwrap(),
+            method_version: Text::new("two-point/v1").unwrap(),
+        };
+        let error = baseline
+            .execute(CommandRequest {
+                schema_version: kyberia_domain::evidence::SchemaVersion::V1,
+                operation_id: id(5),
+                project_id: baseline.id(),
+                actor_id: actor(1),
+                device_id: device(1),
+                logical_time: NonZeroU64::new(5).unwrap(),
+                expected_revision: baseline.revision(),
+                wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+                command: ProjectCommand::CalibrateMap(calibration),
+            })
+            .unwrap_err();
+        assert_eq!(error, ProjectError::InvalidReference);
+    }
+
+    #[test]
+    fn serialized_baseline_with_incompatible_calibration_frame_is_rejected() {
+        fn replace_source_frame(value: &mut serde_json::Value) -> bool {
+            match value {
+                serde_json::Value::Object(object) => {
+                    if let Some(source_frame) = object.get_mut("source_frame") {
+                        *source_frame = serde_json::Value::String(String::from(
+                            kyberia_domain::identity::FrameId::from_bytes([4; 16]).unwrap(),
+                        ));
+                        return true;
+                    }
+                    object.values_mut().any(replace_source_frame)
+                }
+                serde_json::Value::Array(values) => values.iter_mut().any(replace_source_frame),
+                _ => false,
+            }
+        }
+
+        // Project deserialization is the materializer's baseline trust
+        // boundary. The operation log can only select a calibration ID; it
+        // cannot repair a calibration whose source frame no longer matches
+        // its map asset.
+        let baseline = baseline_with_two_calibrations();
+        let mut wire = serde_json::to_value(&baseline).unwrap();
+        assert!(replace_source_frame(&mut wire));
+        assert!(serde_json::from_value::<Project>(wire).is_err());
+    }
+
+    #[test]
+    fn invalid_floor_evidence_entity_is_rejected_without_public_output() {
+        let baseline = full_project();
+        let missing_floor = FloorId::from_bytes([77; 16]).unwrap();
+        let reference = kyberia_operation_log::ImmutableReference::new(
+            kyberia_domain::identity::ContentHash::from_sha256([9; 32]),
+            Text::new("application/octet-stream").unwrap(),
+            10,
+        )
+        .unwrap();
+        let operation = Operation::try_apply_v2_non_reversible(
+            id(10),
+            baseline.id(),
+            actor(10),
+            device(10),
+            kyberia_operation_log::LogicalTimestamp::new(5).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::bind_floor_evidence(missing_floor, reference),
+            kyberia_operation_log::NonReversibleReason::FloorEvidenceBinding,
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([operation]).unwrap();
+        assert_eq!(
+            materialize(&baseline, &set),
+            Err(MaterializationError::Domain(ProjectError::MissingEntity))
+        );
+    }
+
+    #[test]
+    fn criss_cross_resolution_uses_all_common_heads_deterministically() {
+        let baseline = with_site(project());
+        let operations = criss_cross_operations("Project");
+        let set = OperationSet::from_operations(operations.clone()).unwrap();
+        let mut reversed = operations;
+        reversed.reverse();
+        let reversed_set = OperationSet::from_operations(reversed).unwrap();
+        let first = materialize(&baseline, &set).unwrap();
+        let second = materialize(&baseline, &reversed_set).unwrap();
+        assert_eq!(first.project(), second.project());
+        assert_eq!(first.identity(), second.identity());
+        assert_eq!(first.project().name().as_str(), "Left");
+        assert_eq!(
+            first
+                .project()
+                .site(SiteId::from_bytes([2; 16]).unwrap())
+                .unwrap()
+                .name
+                .as_str(),
+            "Branch"
+        );
+    }
+
+    #[test]
+    fn criss_cross_resolution_rejects_a_forged_common_causal_prior() {
+        let baseline = with_site(project());
+        let set = OperationSet::from_operations(criss_cross_operations("Forged")).unwrap();
+        assert_eq!(
+            materialize(&baseline, &set),
+            Err(MaterializationError::CausalPriorMismatch {
+                operation_id: id(50),
+                field: FieldKey::ProjectName,
+            })
+        );
     }
 
     #[test]
@@ -1732,17 +2169,19 @@ mod tests {
 
         let large_baseline = baseline_with_sites(100);
         let original_large_baseline = large_baseline.clone();
-        let large = OperationSet::from_operations(chained_large_name_operations(
-            large_baseline.id(),
-            large_baseline.logical_time(),
-            100,
-        ))
-        .unwrap();
+        let operations =
+            chained_large_name_operations(large_baseline.id(), large_baseline.logical_time(), 100);
+        let large = OperationSet::from_operations(operations.clone()).unwrap();
+        let mut reversed_operations = operations;
+        reversed_operations.reverse();
+        let reversed_large = OperationSet::from_operations(reversed_operations).unwrap();
         let error = materialize(&large_baseline, &large).unwrap_err();
+        let reversed_error = materialize(&large_baseline, &reversed_large).unwrap_err();
         assert!(matches!(
             error,
             MaterializationError::ResourceLimit("causal_copy_bytes")
         ));
+        assert_eq!(error, reversed_error);
         assert_eq!(large_baseline, original_large_baseline);
     }
 

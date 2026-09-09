@@ -59,7 +59,10 @@ The validation record covers project/site renames, equal-Lamport independent
 branches, causal forged-prior rejection, common-ancestor resolution, typed
 unknown-calibration undo, explicit aggregate lock conflicts, baseline identity
 binding, V1 byte preservation, V2 round-trip validation and immutable failure
-behavior, and a real causal-chain cumulative copy-work rejection. Focused
+behavior, known-calibration equivalence across typed and legacy effect
+representations, exact missing-entity/frame/reference rejection, criss-cross
+common-head permutation determinism, and a real causal-chain cumulative
+copy-work rejection whose error is permutation-stable. Focused
 commands are `cargo test -p kyberia-causal-materializer --locked --offline`
 and `cargo test -p kyberia-domain --locked --offline`.
 

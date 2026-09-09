@@ -25,6 +25,16 @@ Focused evidence includes:
   rejected by the cumulative copy-work boundary, with the baseline unchanged;
   the chain carries large site names so operation-induced data growth is part
   of the estimate.
+- typed known-calibration and legacy activation effects with the same causal
+  value are accepted without a false ambiguity, while explicit unknown values
+  remain distinct;
+- exact rejection of a missing-site causal prior, cross-map calibration
+  activation, missing-floor evidence binding, and a serialized baseline with
+  an incompatible calibration source frame;
+- criss-cross resolution that depends on both common heads is deterministic
+  under input permutation and rejects a forged common prior;
+- the repeated-clone resource failure is deterministic under operation-input
+  permutation and leaves the borrowed baseline unchanged.
 
 Commands:
 
