@@ -28,3 +28,22 @@ correcting only this one input is insufficient.
 
 The author has received the reproduction. Final independent review remains
 required after the correction is frozen.
+
+## Second reproduction: near-collinear self intersection
+
+The triangle `(0,0), (1,1), (2,2.000000000001), (0,0)` passes the kernel's
+polygon validation and has positive area `5.000444502911705e-13`. Intersecting
+it with itself returns zero components and zero area. Root reproduced this
+with `geo` 0.33.1; the nonempty-result assertion failed.
+
+The draft's new guard compares distinct input x/y values against a grid step.
+Those gaps are approximately 1 in this example, so that guard does not detect
+the tiny altitude. Precision admission must address edge/feature geometry and
+generated intersection slivers, not just coordinate-axis separation. A special
+case for identical operands cannot establish correctness of near-identical
+overlaps.
+
+The retained harness now has two binaries: use
+`cargo run --offline --quiet --bin polygon-precision-probe` for the original
+disjoint union, or `cargo run --offline --quiet --bin near_collinear` for this
+self-intersection reproduction. Both are deliberately failing review probes.
