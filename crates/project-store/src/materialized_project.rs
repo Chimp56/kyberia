@@ -231,6 +231,15 @@ impl LoadedMaterializedProject {
     }
 }
 
+/// Canonical project evidence read from one committed SQLite snapshot.
+/// Metadata and publication revisions cannot come from different commits.
+#[derive(Clone, Debug)]
+pub struct CanonicalProjectSnapshot {
+    pub manifest: BundleManifest,
+    pub baseline: Option<Project>,
+    pub current: Option<LoadedMaterializedProject>,
+}
+
 #[derive(Clone, Debug)]
 struct PublicationInput {
     publication_id: String,
@@ -1355,6 +1364,52 @@ fn ensure_publication_schema(bundle: &Bundle) -> Result<()> {
     Ok(())
 }
 
+fn read_current_project(
+    bundle: &Bundle,
+    transaction: &Transaction<'_>,
+    manifest: &BundleManifest,
+) -> Result<Option<LoadedMaterializedProject>> {
+    if !sqlite_guard::has_materialized_project_schema(transaction)? {
+        return Ok(None);
+    }
+    let Some(state) = state_query(transaction)? else {
+        return Ok(None);
+    };
+    let row = publication_query(transaction, &state.publication_id)?.ok_or_else(|| {
+        StoreError::Materialization(PublicationError::Corrupt(
+            "materialization state points to missing publication".into(),
+        ))
+    })?;
+    let baseline_row =
+        baseline_query(transaction, &row.baseline_identity_hash)?.ok_or_else(|| {
+            StoreError::Materialization(PublicationError::Corrupt(
+                "current publication points to missing baseline registration".into(),
+            ))
+        })?;
+    validate_state(manifest, &state, &row)?;
+    let project = validate_artifacts(None, transaction, bundle, manifest, &row, &baseline_row)?;
+    let receipt = public_receipt(&row)?;
+    Ok(Some(LoadedMaterializedProject { project, receipt }))
+}
+
+fn read_canonical_snapshot(
+    bundle: &Bundle,
+    transaction: &Transaction<'_>,
+) -> Result<CanonicalProjectSnapshot> {
+    let manifest = load_manifest(transaction)?;
+    let baseline = if sqlite_guard::has_materialized_project_schema(transaction)? {
+        read_baseline_project(bundle, transaction, &manifest)?
+    } else {
+        None
+    };
+    let current = read_current_project(bundle, transaction, &manifest)?;
+    Ok(CanonicalProjectSnapshot {
+        manifest,
+        baseline,
+        current,
+    })
+}
+
 impl Bundle {
     /// Persist the canonical starting project before publishing derived state.
     /// Registration is immutable for this project; exact retries are idempotent.
@@ -1790,30 +1845,21 @@ impl Bundle {
         let transaction =
             Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
         let manifest = load_manifest(&transaction)?;
-        if !sqlite_guard::has_materialized_project_schema(&transaction)? {
-            transaction.commit()?;
-            return Ok(None);
-        }
-        let Some(state) = state_query(&transaction)? else {
-            transaction.commit()?;
-            return Ok(None);
-        };
-        let row = publication_query(&transaction, &state.publication_id)?.ok_or_else(|| {
-            StoreError::Materialization(PublicationError::Corrupt(
-                "materialization state points to missing publication".into(),
-            ))
-        })?;
-        let baseline_row =
-            baseline_query(&transaction, &row.baseline_identity_hash)?.ok_or_else(|| {
-                StoreError::Materialization(PublicationError::Corrupt(
-                    "current publication points to missing baseline registration".into(),
-                ))
-            })?;
-        validate_state(&manifest, &state, &row)?;
-        let project = validate_artifacts(None, &transaction, self, &manifest, &row, &baseline_row)?;
-        let receipt = public_receipt(&row)?;
+        let current = read_current_project(self, &transaction, &manifest)?;
         transaction.commit()?;
-        Ok(Some(LoadedMaterializedProject { project, receipt }))
+        Ok(current)
+    }
+
+    /// Read manifest, immutable baseline and current publication atomically.
+    /// Separate getter calls are independent snapshots and must not be combined
+    /// into a report that claims a single committed state.
+    pub fn canonical_project_snapshot(&self) -> Result<CanonicalProjectSnapshot> {
+        self.start_operation()?;
+        let transaction =
+            Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
+        let snapshot = read_canonical_snapshot(self, &transaction)?;
+        transaction.commit()?;
+        Ok(snapshot)
     }
 
     pub(crate) fn verify_materialized_project_publication(&self) -> Result<()> {
@@ -2111,6 +2157,80 @@ fn read_verified_baseline<H: CancellationHook>(
 mod publication_recovery_tests {
     use super::*;
     use kyberia_domain::identity::Text;
+
+    #[test]
+    fn canonical_snapshot_retains_one_commit_while_another_handle_attempts_publication() {
+        let test_root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs");
+        std::fs::create_dir_all(&test_root).unwrap();
+        let retained = tempfile::tempdir_in(test_root).unwrap().keep();
+        let root = retained.join("project");
+        let baseline = Project::new(
+            ProjectId::from_bytes([47; 16]).unwrap(),
+            Text::new("Concurrent query").unwrap(),
+        );
+        let mut writer =
+            Bundle::create(&root, baseline.id(), "Concurrent query".into(), 1).unwrap();
+        writer
+            .register_materialization_baseline(&baseline, 2)
+            .unwrap();
+        let reader = Bundle::open(&root, OpenMode::ReadOnly).unwrap();
+        writer
+            .connection
+            .busy_timeout(std::time::Duration::ZERO)
+            .unwrap();
+        let operations = OperationSet::empty(baseline.id());
+        let result = kyberia_causal_materializer::materialize(&baseline, &operations).unwrap();
+        let transaction =
+            Transaction::new_unchecked(&reader.connection, TransactionBehavior::Deferred).unwrap();
+        let pinned_manifest = load_manifest(&transaction).unwrap();
+        assert_eq!(pinned_manifest.revision, 1);
+        // DELETE journaling must prevent a writer from committing between
+        // metadata acquisition and the remaining canonical snapshot reads.
+        let error = writer
+            .publish_materialized_project(
+                &baseline,
+                &operations,
+                &result,
+                ProjectVersion::new(0),
+                3,
+            )
+            .unwrap_err();
+        assert!(
+            matches!(error, StoreError::Sql(rusqlite::Error::SqliteFailure(code, _))
+            if code.code == rusqlite::ErrorCode::DatabaseBusy)
+        );
+        let snapshot = read_canonical_snapshot(&reader, &transaction).unwrap();
+        assert_eq!(snapshot.manifest, pinned_manifest);
+        assert_eq!(snapshot.baseline, Some(baseline.clone()));
+        assert!(snapshot.current.is_none());
+        transaction.commit().unwrap();
+        writer
+            .publish_materialized_project(
+                &baseline,
+                &operations,
+                &result,
+                ProjectVersion::new(0),
+                3,
+            )
+            .unwrap();
+        let committed = reader.canonical_project_snapshot().unwrap();
+        assert_eq!(committed.manifest.revision, 2);
+        assert_eq!(committed.baseline, Some(baseline));
+        assert_eq!(
+            committed
+                .current
+                .as_ref()
+                .unwrap()
+                .receipt()
+                .bundle_revision(),
+            committed.manifest.revision
+        );
+        assert_eq!(
+            committed.current.as_ref().unwrap().project(),
+            result.project()
+        );
+    }
 
     #[test]
     fn baseline_registration_projection_fault_preserves_unregistered_state() {

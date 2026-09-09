@@ -34,7 +34,9 @@ operation-log revision and `publication.operation_max_causal_depth` is DAG
 metadata. These values are intentionally reported separately from the domain
 project's `revision` and `logical_time`.
 
-The query opens the bundle read-only. It validates the manifest, immutable
+The query opens the bundle read-only and uses one SQLite read transaction for
+the manifest, baseline and current publication. Concurrent writers cannot cause
+a report to combine revisions from different commits. It validates the manifest, immutable
 baseline bytes, current pointer, publication row, artifact hashes, and domain
 project before emitting a canonical state. Corrupt canonical artifacts produce
 an error and no state is emitted. Legacy bundles remain inspectable with

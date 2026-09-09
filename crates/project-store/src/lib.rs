@@ -17,7 +17,7 @@ pub use capture_publication::{
 pub use kyberia_operation_log::AppliedEffect;
 pub use manifest::{ArtifactEntry, ArtifactKind, BundleManifest, content_hash};
 pub use materialized_project::{
-    LoadedMaterializedProject, MaterializationPublicationOutcome,
+    CanonicalProjectSnapshot, LoadedMaterializedProject, MaterializationPublicationOutcome,
     MaterializationPublicationReceipt, PublicationError,
 };
 pub use observation_chunks::{

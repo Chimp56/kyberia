@@ -8,7 +8,8 @@
 
 use kyberia_domain::{identity::ProjectId, project::Project};
 use kyberia_project_store::{
-    Bundle, LoadedMaterializedProject, MaterializationPublicationReceipt, OpenMode, StoreError,
+    Bundle, CanonicalProjectSnapshot, LoadedMaterializedProject, MaterializationPublicationReceipt,
+    OpenMode, StoreError,
 };
 use serde::Serialize;
 use std::{fmt, path::Path};
@@ -155,9 +156,11 @@ fn validate_baseline_binding(
 /// rows, current pointers, and baseline identity before returning projects.
 pub fn query(path: &Path) -> Result<CanonicalProjectReport, CanonicalProjectError> {
     let bundle = Bundle::open(path, OpenMode::ReadOnly)?;
-    let manifest = bundle.manifest()?;
-    let baseline = bundle.materialization_baseline()?;
-    let current = bundle.materialized_project()?;
+    let CanonicalProjectSnapshot {
+        manifest,
+        baseline,
+        current,
+    } = bundle.canonical_project_snapshot()?;
 
     if let Some(project) = baseline.as_ref() {
         validate_baseline_binding(project, manifest.project_id, &manifest.name)?;
