@@ -35,6 +35,10 @@ pub struct ProcessCancellation {
 }
 
 impl ProcessCancellation {
+    pub const fn capability() -> &'static str {
+        if cfg!(unix) { "sigint" } else { "unavailable" }
+    }
+
     #[cfg(unix)]
     pub fn install() -> Result<Self, Box<dyn std::error::Error>> {
         let token = CancellationToken::default();

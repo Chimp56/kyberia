@@ -24,6 +24,10 @@ uuid = { version = "=1.21.0", features = ["v4"] }
 libc = "=0.2.189"
 signal-hook = "=0.4.4"
 
+[target.'cfg(windows)'.dependencies]
+kyberia-file-adapter = { version = "=0.1.0", path = "../../crates/file-adapter" }
+windows-sys = { version = "=0.61.2", features = ["Win32_Storage_FileSystem"] }
+
 [dev-dependencies]
 kyberia-causal-materializer = { version = "=0.1.0", path = "../../crates/causal-materializer" }
 kyberia-operation-log = { version = "=0.1.0", path = "../../crates/operation-log" }

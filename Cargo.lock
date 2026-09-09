@@ -909,6 +909,7 @@ version = "0.1.0"
 dependencies = [
  "kyberia-causal-materializer",
  "kyberia-domain",
+ "kyberia-file-adapter",
  "kyberia-observation-analysis",
  "kyberia-operation-log",
  "kyberia-project-store",
@@ -922,6 +923,7 @@ dependencies = [
  "sha2",
  "signal-hook",
  "uuid",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -932,6 +934,13 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+]
+
+[[package]]
+name = "kyberia-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

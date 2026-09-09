@@ -62,9 +62,16 @@ The report is printed only after successful publication.
 The request reader opens a no-follow, nonblocking Unix file handle, checks that
 the handle is a regular file and within the byte budget, then reads from that
 handle. This rejects FIFOs, devices, and symlink substitution without waiting
-for a producer. The command returns an explicit unsupported-platform error on
-non-Unix hosts until an equivalent no-follow, nonblocking regular-file adapter
-is provided; it does not risk opening an unbounded named pipe there.
+for a producer. Windows checks regular-file/reparse metadata before opening, uses
+`FILE_FLAG_OPEN_REPARSE_POINT` and `SECURITY_IDENTIFICATION`, then validates
+the opened handle with `GetFileType == FILE_TYPE_DISK` and rejects every
+reparse-point attribute before reading. Windows shares read access only, so
+ordinary concurrent write/delete opens are denied while the handle is held.
+This is not a transaction against privileged drivers or a hard disk-I/O deadline.
+The small outward [file adapter](ADR/0025-windows-disk-handle.md) owns the
+audited system call; domain and numerical crates retain their unsafe-code ban.
+Both adapters enforce the 1 MiB request cap and JSON nesting limit. Other
+platforms return an explicit unsupported error.
 
 On Unix, a syntactically valid four-argument `analyze-stored-rssi` or
 `export-stored-rssi-scene` invocation installs the maintained `signal-hook` 0.4.4 flag adapter before dispatch. Its
@@ -83,20 +90,31 @@ final hard-link is the publication commit point. If SIGINT wins immediately
 after that link, the CLI retains the complete artifact, prints a report with
 `publication_status: "published_after_cancellation"` and
 `cancelled_after_commit: true`, and exits nonzero rather than pretending that
-the durable artifact was rolled back. Non-Unix hosts have no signal capability
-in this command and report unsupported request acquisition before work begins.
+the durable artifact was rolled back. Windows retains the operating system default interrupt disposition; this
+increment does not install a cooperative console-control handler. The lifecycle
+event reports cancellation as `unavailable` there, never `sigint`.
 
 The directory synchronization after the hard link is a durability check after
 the publication commit point. If that check fails, the CLI returns a structured
 `publication_durability` error with `committed: true`; both the final artifact
 and retained pending bytes remain available for inspection and recovery. It
 never reports that publication did not happen after the final link succeeded.
+The output includes `directory_sync_supported`: true on Unix, false on Windows.
+File contents are flushed before linking on both hosts; this increment does not
+claim a Windows directory-entry durability barrier.
 
 Only syntactically valid four-argument `analyze-stored-rssi` and
-`export-stored-rssi-scene` invocations get the process SIGINT adapter. Other commands retain the operating system's
+`export-stored-rssi-scene` invocations get the process SIGINT adapter. On Windows neither command installs a SIGINT adapter. Other commands retain the operating system's
 default signal disposition and do not install an analysis cancellation handler.
 
 The command does not persist an analysis result back into the project bundle,
 choose a survey, invent a pose, reinterpret receipt timing, or perform a live
 capture. Durable derived-artifact indexing, interactive cancellation, and
 operator-facing privacy review remain follow-up integration work.
+
+Windows acceptance must execute the existing stored-analysis/scene CLI workflows
+on a native Windows host. The explicit ignored test
+`windows_request_acquisition_rejects_a_final_reparse_point` additionally requires
+symbolic-link creation privilege; run it with `cargo test -p kyberia-cli
+windows_request_acquisition_rejects_a_final_reparse_point -- --ignored` on such a
+host. A cross-target compile only validates API types, not these runtime gates.

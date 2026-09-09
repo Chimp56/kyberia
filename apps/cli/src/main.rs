@@ -71,7 +71,7 @@ fn run(
                 "{}",
                 serde_json::json!({
                     "event": "analysis_started",
-                    "cancellation": "sigint",
+                    "cancellation": cancellation::ProcessCancellation::capability(),
                 })
             );
             let analyze = if args[0] == "export-stored-rssi-scene" {

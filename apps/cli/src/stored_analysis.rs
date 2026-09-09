@@ -189,23 +189,53 @@ fn canonical_metric(
 }
 
 fn read_request(path: &Path) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    #[cfg(not(unix))]
+    #[cfg(not(any(unix, windows)))]
     {
         let _ = path;
-        return Err(
-            "stored RSSI request acquisition is unsupported on this platform; use a Unix regular-file adapter"
-                .into(),
-        );
+        return Err("stored RSSI request acquisition is unsupported on this platform".into());
     }
-    #[cfg(unix)]
+    #[cfg(any(unix, windows))]
     {
         let mut options = OpenOptions::new();
         options.read(true);
+        #[cfg(unix)]
         options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
+            use windows_sys::Win32::Storage::FileSystem::{
+                FILE_ATTRIBUTE_REPARSE_POINT, FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_READ,
+                SECURITY_IDENTIFICATION,
+            };
+            // Reject non-file sources before acquisition as well as validating
+            // the opened handle below. OPEN_REPARSE_POINT prevents a final-path
+            // symlink replacement from redirecting the subsequent read.
+            let metadata = fs::symlink_metadata(path)?;
+            if !metadata.is_file() || metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0
+            {
+                return Err("stored RSSI request must be a non-reparse regular file".into());
+            }
+            options
+                .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+                .share_mode(FILE_SHARE_READ)
+                .security_qos_flags(SECURITY_IDENTIFICATION);
+        }
         let mut file = options.open(path)?;
+        #[cfg(windows)]
+        kyberia_file_adapter::require_disk_file(&file)?;
         let metadata = file.metadata()?;
-        if !metadata.is_file() {
+        if !metadata.is_file() || metadata.file_type().is_symlink() {
             return Err("stored RSSI request must be a regular file".into());
+        }
+        #[cfg(windows)]
+        {
+            use std::os::windows::fs::MetadataExt;
+            if metadata.file_attributes()
+                & windows_sys::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT
+                != 0
+            {
+                return Err("stored RSSI request must not be a reparse point".into());
+            }
         }
         if metadata.len() > MAX_REQUEST_BYTES as u64 {
             return Err("stored RSSI request exceeds 1 MiB limit".into());
@@ -280,6 +310,7 @@ struct AnalysisReport {
     schema: &'static str,
     publication_status: &'static str,
     cancelled_after_commit: bool,
+    directory_sync_supported: bool,
     project_id: ProjectId,
     project_revision: ExactU64,
     artifact: ArtifactReference,
@@ -469,6 +500,7 @@ fn analyze_output(
         schema: OUTPUT_SCHEMA,
         publication_status: "published",
         cancelled_after_commit: false,
+        directory_sync_supported: cfg!(unix),
         project_id: result.document().project_id,
         project_revision: result.document().project_revision,
         artifact: result.artifact().clone(),
@@ -549,6 +581,51 @@ mod tests {
                 Err(error) => panic!("cannot retain test directory {candidate:?}: {error}"),
             }
         }
+    }
+
+    #[test]
+    #[cfg(any(unix, windows))]
+    fn request_acquisition_reads_regular_bytes_and_rejects_invalid_sources() {
+        let root = retained_test_directory();
+        let request = root.join("request.json");
+        fs::write(&request, b"{\"field\": [1, 2]}").unwrap();
+        assert_eq!(read_request(&request).unwrap(), b"{\"field\": [1, 2]}");
+        assert!(read_request(&root).is_err());
+        assert!(read_request(&root.join("missing.json")).is_err());
+        let oversized = root.join("oversized.json");
+        let file = File::create(&oversized).unwrap();
+        file.set_len(MAX_REQUEST_BYTES as u64 + 1).unwrap();
+        assert!(
+            read_request(&oversized)
+                .unwrap_err()
+                .to_string()
+                .contains("1 MiB")
+        );
+        fs::write(&request, b"{\"unfinished\": [1").unwrap();
+        assert!(read_request(&request).is_err());
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn request_acquisition_rejects_a_final_symlink() {
+        let root = retained_test_directory();
+        let request = root.join("request.json");
+        let link = root.join("link.json");
+        fs::write(&request, b"{}").unwrap();
+        std::os::unix::fs::symlink(&request, &link).unwrap();
+        assert!(read_request(&link).is_err());
+    }
+
+    #[test]
+    #[cfg(windows)]
+    #[ignore = "requires Windows symbolic-link creation privilege; run explicitly on a capable host"]
+    fn windows_request_acquisition_rejects_a_final_reparse_point() {
+        let root = retained_test_directory();
+        let request = root.join("request.json");
+        let link = root.join("link.json");
+        fs::write(&request, b"{}").unwrap();
+        std::os::windows::fs::symlink_file(&request, &link).unwrap();
+        assert!(read_request(&link).is_err());
     }
 
     #[test]
