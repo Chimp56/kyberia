@@ -59,6 +59,7 @@ product capability is validated.
 | Neutral planning interchange | Beauvoir reviewing / `planning-interchange` | Corrected version typing at `a0a18b3` passes ten focused tests; full independent defensive import/export and geometry contract review remains open |
 | Canonical scene renderer input | Beauvoir reviewing / `renderer-canonical-scenes` | Rust/WASM correction `1af1cba` passes root browser reproduction; architecture/security review and broader Gate B acceptance remain open |
 | Native capture session boundary | Laplace / `capture-session-normalization` | Extract shared validated normalization without fabricated survey association; adversarial process tests and independent review |
+| Unassociated acquisition spool | Laplace reviewing root candidate / `acquisition-spool` | Frozen `3aaa3c9`; five focused tests and pipeline regression pass; independent correctness/privacy/recovery review required |
 | Hosted Rust diagnostics | Russell / `ci-rust-diagnostics` | Bounded public compiler locations and test identifiers without arbitrary output disclosure; independent review |
 | Windows native request runtime | CI / integrated `2988bc6` | Independently approved disk-handle/reparse/sharing boundary; native disk/device/pipe and full CLI execution remain required |
 
