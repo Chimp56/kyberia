@@ -13,7 +13,7 @@ fields, and rejects any non-canonical or trailing bytes. Its SHA-256 digest is
 computed over a separate identity domain plus the complete envelope.
 
 Project canonicalization is bounded at the identity boundary. A serialization
-that reaches the project-byte ceiling returns the structured
+that exceeds the project-byte ceiling returns the structured
 `ResourceLimit("project_baseline_bytes")` error; it is not relabeled as a
 canonicality failure. The boundary test exercises exact-limit success and
 one-byte-over-limit rejection without allocating a large project.

@@ -30,7 +30,7 @@ content-addressed records:
   hashes plus baseline metadata. It does not replay or apply effects.
 
 Each identity is bounded to 64 MiB. Project serialization reports a structured
-`ResourceLimit("project_baseline_bytes")` when the bounded writer reaches its
+`ResourceLimit("project_baseline_bytes")` when the bounded writer exceeds its
 ceiling. SHA-256 is computed over an explicit identity domain and the complete
 envelope. Existing domain and operation bytes remain unchanged, including V2
 typed unknown evidence and resolution values.
