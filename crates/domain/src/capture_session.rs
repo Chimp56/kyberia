@@ -462,6 +462,11 @@ impl CaptureSessionRecordV1 {
             return Err(ValidationError::ResourceLimit("session observations"));
         }
         validate_terminal_exit(terminal, partial, exit_code)?;
+        if terminal == CaptureTerminalStatus::Partial && observation_count == 0 {
+            return Err(ValidationError::Inconsistent(
+                "partial terminal requires observations",
+            ));
+        }
         mapping.validate_shape()?;
         Ok(Self {
             schema_version,
@@ -991,6 +996,23 @@ mod tests {
             0,
         );
         assert!(partial_ok.is_err());
+
+        let partial_empty = CaptureSessionRecordV1::new(
+            id(1),
+            collector,
+            ClockEpochId::from_bytes([3; 16]).unwrap(),
+            NativeUuid::new("00000000-0000-4000-8000-000000000001").unwrap(),
+            NativeUuid::new("00000000-0000-4000-8000-000000000002").unwrap(),
+            ContentHash::from_sha256(Sha256::digest(manifest.canonical_bytes().unwrap()).into()),
+            MappingEvidenceV1::new(Text::new("registry/v1").unwrap(), vec![], vec![]).unwrap(),
+            privacy(),
+            CaptureTerminalStatus::Partial,
+            Text::new("partial").unwrap(),
+            true,
+            0,
+            2,
+        );
+        assert!(partial_empty.is_err());
     }
 
     #[test]

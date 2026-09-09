@@ -7,11 +7,12 @@
 //! mapping context or record to combine accidentally.
 
 use crate::{BatchError, ReceivedObservationBatch, process::NativeCaptureSession};
+use kyberia_capture_adapter::macos::TerminalStatus;
 use kyberia_domain::{
     ValidationError,
     capture_session::{
-        CaptureSessionRecordV1, MappingEvidenceV1, NativeUuid, ObservationMappingEvidenceV1,
-        SourceMappingEvidenceV1,
+        CaptureSessionRecordV1, MAX_CAPTURE_SESSION_BYTES, MappingEvidenceV1, NativeUuid,
+        ObservationMappingEvidenceV1, SourceMappingEvidenceV1,
     },
     identity::{ContentHash, Text},
     observation::ObservationEnvelope,
@@ -27,6 +28,7 @@ pub enum NativeAcquisitionBatchError {
     SessionMappingMismatch,
     CompletionMismatch,
     ManifestCanonicalBytes,
+    RecordCanonicalBytes,
 }
 
 impl fmt::Display for NativeAcquisitionBatchError {
@@ -42,6 +44,9 @@ impl fmt::Display for NativeAcquisitionBatchError {
             }
             Self::ManifestCanonicalBytes => {
                 formatter.write_str("native acquisition manifest cannot be canonicalized")
+            }
+            Self::RecordCanonicalBytes => {
+                formatter.write_str("native acquisition record exceeds its canonical byte bound")
             }
         }
     }
@@ -86,17 +91,12 @@ impl NativeAcquisitionBatch {
         let completion = &session.normalized().completion;
         if completion.status != session.terminal()
             || usize::from(completion.observation_count) != session.normalized().observations.len()
+            || completion.partial != (completion.status == TerminalStatus::Partial)
+            || (completion.status == TerminalStatus::Partial
+                && session.normalized().observations.is_empty())
         {
             return Err(NativeAcquisitionBatchError::CompletionMismatch);
         }
-
-        let batch =
-            ReceivedObservationBatch::from_normalized_capture(session.normalized().clone())?;
-        let envelopes: Vec<ObservationEnvelope> = batch
-            .observations()
-            .iter()
-            .map(|received| received.envelope().clone())
-            .collect();
         let source_mappings = context
             .sources
             .iter()
@@ -124,6 +124,39 @@ impl NativeAcquisitionBatch {
             .collect::<Result<Vec<_>, ValidationError>>()?;
         let mapping =
             MappingEvidenceV1::new(registry_version, source_mappings, observation_mappings)?;
+        // A manifest hash is always a fixed-width ContentHash in the record's
+        // canonical JSON. Probe with a zero hash before cloning the normalized
+        // capture so a maximal mapping cannot create an oversized batch only
+        // to reject it after composition.
+        let preflight = CaptureSessionRecordV1::new(
+            context.session_id,
+            context.collector_id,
+            context.clock_epoch,
+            NativeUuid::new(session.process_session().to_owned())?,
+            NativeUuid::new(session.clock_epoch().to_owned())?,
+            ContentHash::from_sha256([0; 32]),
+            mapping.clone(),
+            context.privacy.clone(),
+            completion.status.into(),
+            completion.reason.clone(),
+            completion.partial,
+            completion.observation_count,
+            session.exit_code(),
+        )?;
+        if preflight
+            .canonical_bytes()
+            .map_or(true, |bytes| bytes.len() > MAX_CAPTURE_SESSION_BYTES)
+        {
+            return Err(NativeAcquisitionBatchError::RecordCanonicalBytes);
+        }
+
+        let batch =
+            ReceivedObservationBatch::from_normalized_capture(session.normalized().clone())?;
+        let envelopes: Vec<ObservationEnvelope> = batch
+            .observations()
+            .iter()
+            .map(|received| received.envelope().clone())
+            .collect();
         let manifest_bytes = batch
             .manifest()
             .canonical_bytes()
@@ -144,6 +177,12 @@ impl NativeAcquisitionBatch {
             completion.observation_count,
             session.exit_code(),
         )?;
+        if record
+            .canonical_bytes()
+            .map_or(true, |bytes| bytes.len() > MAX_CAPTURE_SESSION_BYTES)
+        {
+            return Err(NativeAcquisitionBatchError::RecordCanonicalBytes);
+        }
         record.validate_against_manifest(batch.manifest(), &envelopes)?;
         Ok(Self { batch, record })
     }
@@ -399,6 +438,44 @@ mod tests {
             crate::RawSourceDisposition::NotRetained
         );
         assert_eq!(composed.record().observation_count(), 0);
+    }
+
+    #[test]
+    fn oversized_session_record_is_rejected_before_capture_clone() {
+        let (_directory, collector) = collector(EMPTY);
+        let session = run_and_normalize(
+            &collector,
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            |stream| {
+                let mut context = context(stream, true, false);
+                let remaining = kyberia_domain::capture_session::MAX_SESSION_SOURCE_MAPPINGS
+                    .saturating_sub(context.sources.len());
+                for index in 0..remaining {
+                    let mut id = [0; 16];
+                    id[..4].copy_from_slice(&u32::try_from(index).unwrap().to_le_bytes());
+                    id[4] = 1;
+                    context.sources.insert(
+                        format!("extra-{index:04}-{}", "x".repeat(220)),
+                        SourceMapping {
+                            source_id: SourceId::from_bytes(id).unwrap(),
+                            sensor_id: unknown(),
+                            adapter_id: unknown(),
+                        },
+                    );
+                }
+                Ok(context)
+            },
+            &NeverCancel,
+        )
+        .unwrap();
+        let result = NativeAcquisitionBatch::from_session(
+            &session,
+            Text::new("registry/native-test-v1").unwrap(),
+        );
+        assert!(matches!(
+            result,
+            Err(NativeAcquisitionBatchError::RecordCanonicalBytes)
+        ));
     }
 
     #[test]

@@ -53,6 +53,16 @@ impl CaptureCompletion {
         if usize::from(observation_count) > MAX_CAPTURE_OBSERVATIONS {
             return Err(ValidationError::ResourceLimit("capture observations"));
         }
+        if partial != (status == CaptureTerminalStatus::Partial) {
+            return Err(ValidationError::Inconsistent(
+                "capture completion partial terminal flag",
+            ));
+        }
+        if status == CaptureTerminalStatus::Partial && observation_count == 0 {
+            return Err(ValidationError::Inconsistent(
+                "partial terminal requires observations",
+            ));
+        }
         Ok(Self {
             status,
             reason,
@@ -363,5 +373,28 @@ mod tests {
         assert!(
             CaptureManifest::from_canonical_bytes(&serde_json::to_vec(&mismatch).unwrap()).is_err()
         );
+    }
+
+    #[test]
+    fn completion_rejects_partial_flag_and_empty_partial_terminal() {
+        let reason = Text::new("partial").unwrap();
+        assert!(
+            CaptureCompletion::new(
+                CaptureTerminalStatus::PermissionRequired,
+                reason.clone(),
+                true,
+                0,
+            )
+            .is_err()
+        );
+        assert!(
+            CaptureCompletion::new(CaptureTerminalStatus::Partial, reason.clone(), false, 1,)
+                .is_err()
+        );
+        assert!(
+            CaptureCompletion::new(CaptureTerminalStatus::Partial, reason.clone(), true, 0,)
+                .is_err()
+        );
+        assert!(CaptureCompletion::new(CaptureTerminalStatus::Partial, reason, true, 1,).is_ok());
     }
 }
