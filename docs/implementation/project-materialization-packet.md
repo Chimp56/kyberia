@@ -130,3 +130,17 @@ Test both operation-ID orderings and require explicit aggregate conflict/error
 semantics rather than allowing deterministic sort order to decide admission.
 Also test operation IDs that collide with the baseline's applied-operation
 history, not only duplicates within the incoming set.
+
+Conflict checks must use the active causal frontier. In particular, create two
+concurrent differing edits, explicitly resolve them, then edit the resolved
+value and undo/redo the new edit. Historical disagreement must not make the
+resolved descendant permanently ambiguous. Conversely, a resolution elsewhere
+in the final set cannot retroactively validate a forged prior on an earlier
+branch. Exercise both cases against actual aggregate outputs.
+
+Resource admission must account for the complete request's causal traversals
+and retained project state. A per-operation traversal counter and a count of
+full-project snapshots do not establish a practical total work or memory bound.
+Test resource rejection before retaining excessive baseline copies, with input
+state unchanged. Resolution-prior semantics and multi-head common ancestry
+need an explicit durable decision and fixtures, not an incidental sorted winner.
