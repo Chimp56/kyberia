@@ -32,6 +32,8 @@ pub enum ArtifactKind {
     NumericalLayer,
     Annotation,
     SurveySnapshot,
+    MaterializationBaseline,
+    MaterializedProject,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

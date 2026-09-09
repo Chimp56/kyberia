@@ -7,15 +7,19 @@
 //! deliberately separate from each operation's causal depth.
 
 use crate::bundle::{atomic_projection, load_manifest};
-use crate::{Bundle, Result, StoreError, sqlite_guard};
+use crate::{Bundle, PublicationError, Result, StoreError, sqlite_guard};
 use kyberia_domain::identity::{OperationId, ProjectId};
 use kyberia_operation_log::{
     AppliedEffect, AppliedMutation, MAX_OPERATION_CANONICAL_BYTES, MAX_OPERATION_COUNT,
     MAX_OPERATION_WIRE_BYTES, MergeError, Operation, OperationError, OperationSet, ProjectVersion,
 };
+use kyberia_resource_budget::{BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError};
 use rusqlite::{OptionalExtension, Row, Transaction, TransactionBehavior, params};
 
 const OPERATION_ROW_LIMIT: i64 = MAX_OPERATION_COUNT as i64 + 1;
+const OPERATION_ID_TEXT_BYTES: usize = 32;
+const PROJECT_ID_TEXT_BYTES: usize = 32;
+const CONTENT_HASH_TEXT_BYTES: usize = 64;
 
 /// The local operation revision and count persisted by the operation adapter.
 /// `project_revision` is incremented once for each accepted unique operation;
@@ -107,6 +111,7 @@ impl RawOperationRow {
     }
 
     fn operation(self, project_id: ProjectId) -> Result<StoredOperation> {
+        self.validate_text_lengths()?;
         if self.canonical_bytes.len() > MAX_OPERATION_CANONICAL_BYTES {
             return Err(StoreError::Corrupt(
                 "operation canonical bytes exceed read budget".into(),
@@ -142,6 +147,21 @@ impl RawOperationRow {
             operation,
             project_revision,
         })
+    }
+
+    fn validate_text_lengths(&self) -> Result<()> {
+        validate_text_length(
+            self.operation_id.len(),
+            OPERATION_ID_TEXT_BYTES,
+            "operation_id",
+        )?;
+        validate_text_length(self.project_id.len(), PROJECT_ID_TEXT_BYTES, "project_id")?;
+        validate_text_length(
+            self.content_hash.len(),
+            CONTENT_HASH_TEXT_BYTES,
+            "content_hash",
+        )?;
+        Ok(())
     }
 }
 
@@ -183,6 +203,24 @@ fn checked_blob_length(length: Option<i64>, maximum: usize, name: &str) -> Resul
     Ok(length)
 }
 
+fn checked_text_length(length: Option<i64>, maximum: usize, name: &str) -> Result<usize> {
+    let length = length
+        .ok_or_else(|| StoreError::Corrupt(format!("operation {name} has no SQLite length")))?;
+    let length = usize::try_from(length)
+        .map_err(|_| StoreError::Corrupt(format!("operation {name} has invalid length")))?;
+    validate_text_length(length, maximum, name)?;
+    Ok(length)
+}
+
+fn validate_text_length(length: usize, maximum: usize, name: &str) -> Result<()> {
+    if length > maximum {
+        return Err(StoreError::Corrupt(format!(
+            "operation {name} exceeds its SQLite text limit"
+        )));
+    }
+    Ok(())
+}
+
 fn operation_error(error: OperationError) -> StoreError {
     StoreError::Operation(error.to_string())
 }
@@ -195,6 +233,22 @@ fn validate_replay_admission(set: &OperationSet) -> std::result::Result<(), Merg
     set.validate_replay_semantics()
 }
 
+fn validate_replay_admission_with_budget<H: CancellationHook>(
+    set: &OperationSet,
+    budget: &mut ResourceBudget<H>,
+) -> std::result::Result<(), MergeError> {
+    set.validate_replay_semantics_with_budget(budget)
+}
+
+fn budget_error(error: ResourceBudgetError) -> StoreError {
+    match error {
+        ResourceBudgetError::Cancelled => StoreError::Cancelled,
+        ResourceBudgetError::LimitExceeded(limit) => {
+            StoreError::Materialization(PublicationError::ResourceLimit(limit.kind().label()))
+        }
+    }
+}
+
 fn ensure_schema(bundle: &Bundle) -> Result<()> {
     if !sqlite_guard::has_operation_schema(&bundle.connection)? {
         return Err(StoreError::UnsupportedVersion(1));
@@ -203,6 +257,16 @@ fn ensure_schema(bundle: &Bundle) -> Result<()> {
 }
 
 fn read_state(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<OperationStoreState> {
+    let mut preflight = transaction.prepare(
+        "SELECT singleton,length(CAST(project_id AS BLOB)) FROM operation_log_state LIMIT 2",
+    )?;
+    let mut preflight_rows = preflight.query([])?;
+    while let Some(row) = preflight_rows.next()? {
+        let _: i64 = row.get(0)?;
+        checked_text_length(row.get(1)?, PROJECT_ID_TEXT_BYTES, "project_id")?;
+    }
+    drop(preflight_rows);
+    drop(preflight);
     let mut statement = transaction
         .prepare("SELECT singleton,project_id,project_revision FROM operation_log_state LIMIT 2")?;
     let mut rows = statement.query([])?;
@@ -212,7 +276,13 @@ fn read_state(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<Op
         ));
     };
     let singleton: i64 = row.get(0)?;
-    let stored_project = parse_id::<ProjectId>(row.get(1)?, "project_id")?;
+    let stored_project_raw: String = row.get(1)?;
+    validate_text_length(
+        stored_project_raw.len(),
+        PROJECT_ID_TEXT_BYTES,
+        "project_id",
+    )?;
+    let stored_project = parse_id::<ProjectId>(stored_project_raw, "project_id")?;
     let raw_revision: i64 = row.get(2)?;
     if singleton != 1 || rows.next()?.is_some() {
         return Err(StoreError::Corrupt(
@@ -239,16 +309,89 @@ fn read_state(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<Op
 }
 
 fn read_rows(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<Vec<StoredOperation>> {
-    // Check SQLite's BLOB lengths in a scalar-only query before selecting the
-    // BLOB values. A hostile row therefore fails its resource budget without
-    // materializing a multi-megabyte value in Rust.
+    read_rows_with_charge(transaction, project_id, |_| Ok(()))
+}
+
+fn read_rows_with_budget<H: CancellationHook>(
+    transaction: &Transaction<'_>,
+    project_id: ProjectId,
+    budget: &mut ResourceBudget<H>,
+) -> Result<Vec<StoredOperation>> {
+    read_rows_with_charge(transaction, project_id, |amount| {
+        budget
+            .charge(BudgetKind::WorkingSetBytes, amount)
+            .map_err(budget_error)
+    })
+}
+
+fn read_rows_with_charge<F>(
+    transaction: &Transaction<'_>,
+    project_id: ProjectId,
+    mut charge: F,
+) -> Result<Vec<StoredOperation>>
+where
+    F: FnMut(usize) -> Result<()>,
+{
+    // Count rows and inspect all variable-length fields through scalar-only
+    // queries before selecting any owned SQLite text or BLOB values. A hostile
+    // row therefore fails its resource budget without materializing a large
+    // value in Rust.
+    let mut count_statement =
+        transaction.prepare("SELECT project_revision FROM project_operations LIMIT ?1")?;
+    let mut count_rows = count_statement.query([OPERATION_ROW_LIMIT])?;
+    let mut row_count = 0usize;
+    while let Some(row) = count_rows.next()? {
+        // A zero charge still polls a caller-owned cancellation hook.
+        charge(0)?;
+        let _: i64 = row.get(0)?;
+        row_count = row_count
+            .checked_add(1)
+            .ok_or_else(|| StoreError::Corrupt("operation row count overflow".into()))?;
+    }
+    drop(count_rows);
+    drop(count_statement);
+    if row_count > MAX_OPERATION_COUNT {
+        return Err(StoreError::Corrupt(
+            "operation inventory exceeds resource limit".into(),
+        ));
+    }
+    let mut text_statement = transaction.prepare(
+        "SELECT length(CAST(operation_id AS BLOB)),length(CAST(project_id AS BLOB)),length(CAST(content_hash AS BLOB)) FROM project_operations ORDER BY project_revision,operation_id LIMIT ?1",
+    )?;
+    let mut text_rows = text_statement.query([OPERATION_ROW_LIMIT])?;
+    let mut text_row_count = 0usize;
+    while let Some(row) = text_rows.next()? {
+        charge(0)?;
+        let operation_id =
+            checked_text_length(row.get(0)?, OPERATION_ID_TEXT_BYTES, "operation_id")?;
+        let project_id = checked_text_length(row.get(1)?, PROJECT_ID_TEXT_BYTES, "project_id")?;
+        let content_hash =
+            checked_text_length(row.get(2)?, CONTENT_HASH_TEXT_BYTES, "content_hash")?;
+        let text_bytes = operation_id
+            .checked_add(project_id)
+            .and_then(|bytes| bytes.checked_add(content_hash))
+            .and_then(|bytes| bytes.checked_add(128))
+            .ok_or_else(|| StoreError::Corrupt("operation metadata accounting overflow".into()))?;
+        charge(text_bytes)?;
+        text_row_count = text_row_count
+            .checked_add(1)
+            .ok_or_else(|| StoreError::Corrupt("operation metadata row count overflow".into()))?;
+    }
+    drop(text_rows);
+    drop(text_statement);
+    if text_row_count != row_count {
+        return Err(StoreError::Corrupt(
+            "operation row count changed during text preflight".into(),
+        ));
+    }
     let mut statement = transaction.prepare(
         "SELECT operation_id,length(canonical_bytes),length(wire_bytes) FROM project_operations ORDER BY project_revision,operation_id LIMIT ?1",
     )?;
     let mut rows = statement.query([OPERATION_ROW_LIMIT])?;
-    let mut metadata = Vec::new();
-    let mut result = Vec::new();
+    let mut metadata = Vec::with_capacity(row_count);
+    let mut result = Vec::with_capacity(row_count);
     while let Some(row) = rows.next()? {
+        charge(0)?;
         let row = RawOperationMetadata::from_row(row)?;
         row.validate_blob_lengths()?;
         metadata.push(row);
@@ -261,12 +404,30 @@ fn read_rows(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<Vec
         ));
     }
     for row in metadata {
-        let operation_id = row.operation_id.clone();
+        let canonical_length = row.canonical_length.ok_or_else(|| {
+            StoreError::Corrupt("operation canonical bytes have no SQLite length".into())
+        })? as usize;
+        let wire_length = row.wire_length.ok_or_else(|| {
+            StoreError::Corrupt("operation wire bytes have no SQLite length".into())
+        })? as usize;
+        // SQLite first owns the two BLOBs; Operation::from_bytes then owns a
+        // decoded payload and performs a canonical re-encode. Charge those
+        // known proportional copies before loading or decoding the row.
+        let blob_bytes = canonical_length
+            .checked_mul(2)
+            .and_then(|bytes| bytes.checked_add(wire_length.checked_mul(3)?))
+            .and_then(|bytes| bytes.checked_add(256))
+            .ok_or_else(|| StoreError::Corrupt("operation read accounting overflow".into()))?;
+        // The scalar length query above is deliberately followed by this
+        // admission charge before SQLite materializes either BLOB.
+        charge(blob_bytes)?;
+        let operation_id = row.operation_id;
         let loaded = transaction.query_row(
             "SELECT operation_id,project_id,project_revision,logical_time,causal_depth,content_hash,canonical_bytes,wire_bytes FROM project_operations WHERE operation_id=?1",
             [operation_id],
             RawOperationRow::from_row,
         )?;
+        charge(0)?;
         if loaded.canonical_bytes.len()
             != row.canonical_length.ok_or_else(|| {
                 StoreError::Corrupt("operation canonical bytes have no SQLite length".into())
@@ -317,6 +478,203 @@ fn validate_inventory(
     }
     state.operation_count = operations.len();
     Ok((state, operations))
+}
+
+fn validate_inventory_with_budget<H: CancellationHook>(
+    transaction: &Transaction<'_>,
+    project_id: ProjectId,
+    budget: &mut ResourceBudget<H>,
+) -> Result<(OperationStoreState, Vec<Operation>)> {
+    budget
+        .charge(BudgetKind::WorkingSetBytes, 256)
+        .map_err(budget_error)?;
+    let mut state = read_state(transaction, project_id)?;
+    let rows = read_rows_with_budget(transaction, project_id, budget)?;
+    if rows.len() != state.project_revision.value() as usize {
+        return Err(StoreError::Corrupt(
+            "operation row count does not match operation project revision".into(),
+        ));
+    }
+    for (index, row) in rows.iter().enumerate() {
+        if row.project_revision != (index + 1) as u64 {
+            return Err(StoreError::Corrupt(
+                "operation project revisions are not contiguous".into(),
+            ));
+        }
+    }
+    let operations = rows
+        .into_iter()
+        .map(|row| row.operation)
+        .collect::<Vec<_>>();
+    if !operations.is_empty() {
+        // Charge the retained clone inputs before the iterator can clone them.
+        // The constructor charges its own canonical set representation as well;
+        // that intentional overestimate covers both storage inventory and set
+        // ownership in the same cumulative transaction budget.
+        for operation in &operations {
+            let bytes = operation
+                .canonical_bytes()
+                .len()
+                .checked_add(operation.wire_bytes_len().map_err(operation_error)?)
+                .and_then(|bytes| bytes.checked_add(128))
+                .ok_or_else(|| StoreError::Corrupt("operation copy accounting overflow".into()))?;
+            budget
+                .charge(BudgetKind::WorkingSetBytes, bytes)
+                .map_err(budget_error)?;
+        }
+        let set = OperationSet::from_operations_with_budget(operations.iter().cloned(), budget)
+            .map_err(|error| match error {
+                OperationError::Cancelled => StoreError::Cancelled,
+                OperationError::ResourceLimit(reason) => {
+                    StoreError::Materialization(PublicationError::ResourceLimit(reason))
+                }
+                other => StoreError::Corrupt(format!("stored operation graph is invalid: {other}")),
+            })?;
+        validate_replay_admission_with_budget(&set, budget).map_err(|error| match error {
+            MergeError::Cancelled => StoreError::Cancelled,
+            MergeError::ResourceLimit(reason) => {
+                StoreError::Materialization(PublicationError::ResourceLimit(reason))
+            }
+            other => StoreError::Corrupt(format!("stored operation replay is invalid: {other}")),
+        })?;
+    }
+    state.operation_count = operations.len();
+    Ok((state, operations))
+}
+
+pub(crate) fn validated_operation_set(
+    transaction: &Transaction<'_>,
+    project_id: ProjectId,
+) -> Result<(OperationStoreState, OperationSet)> {
+    let (state, set) = validated_operation_set_at_revision(
+        transaction,
+        project_id,
+        ProjectVersion::new(state_revision(transaction, project_id)?),
+    )?;
+    Ok((state, set))
+}
+
+/// Reconstruct the immutable operation prefix represented by a materialization
+/// publication. The linear operation revision is the only storage ordering;
+/// causal depth remains an operation field and is never used as a revision.
+pub(crate) fn validated_operation_set_at_revision(
+    transaction: &Transaction<'_>,
+    project_id: ProjectId,
+    revision: ProjectVersion,
+) -> Result<(OperationStoreState, OperationSet)> {
+    ValidatedOperationInventory::load(transaction, project_id)?.prefix(revision)
+}
+
+pub(crate) fn validated_operation_set_at_revision_with_budget<H: CancellationHook>(
+    transaction: &Transaction<'_>,
+    project_id: ProjectId,
+    revision: ProjectVersion,
+    budget: &mut ResourceBudget<H>,
+) -> Result<(OperationStoreState, OperationSet)> {
+    ValidatedOperationInventory::load_with_budget(transaction, project_id, budget)?
+        .prefix_with_budget(revision, budget)
+}
+
+/// Transaction-scoped decoded evidence, reusable across historical publications.
+pub(crate) struct ValidatedOperationInventory {
+    state: OperationStoreState,
+    operations: Vec<Operation>,
+}
+
+impl ValidatedOperationInventory {
+    pub(crate) fn load(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<Self> {
+        let (state, operations) = validate_inventory(transaction, project_id)?;
+        Ok(Self { state, operations })
+    }
+
+    pub(crate) fn load_with_budget<H: CancellationHook>(
+        transaction: &Transaction<'_>,
+        project_id: ProjectId,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Self> {
+        let (state, operations) = validate_inventory_with_budget(transaction, project_id, budget)?;
+        Ok(Self { state, operations })
+    }
+
+    pub(crate) fn prefix(
+        &self,
+        revision: ProjectVersion,
+    ) -> Result<(OperationStoreState, OperationSet)> {
+        if revision.value() > self.state.project_revision.value() {
+            return Err(StoreError::Corrupt(
+                "requested operation history revision is ahead of operation log".into(),
+            ));
+        }
+        let operations = self.operations[..revision.value() as usize].to_vec();
+        let set = if operations.is_empty() {
+            OperationSet::empty(self.state.project_id)
+        } else {
+            OperationSet::from_operations(operations).map_err(operation_error)?
+        };
+        Ok((
+            OperationStoreState {
+                project_id: self.state.project_id,
+                project_revision: revision,
+                operation_count: revision.value() as usize,
+            },
+            set,
+        ))
+    }
+
+    pub(crate) fn prefix_with_budget<H: CancellationHook>(
+        &self,
+        revision: ProjectVersion,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<(OperationStoreState, OperationSet)> {
+        if revision.value() > self.state.project_revision.value() {
+            return Err(StoreError::Corrupt(
+                "requested operation history revision is ahead of operation log".into(),
+            ));
+        }
+        let source = &self.operations[..revision.value() as usize];
+        let mut copy_bytes = 0usize;
+        for operation in source {
+            let wire_bytes = operation.wire_bytes_len().map_err(operation_error)?;
+            copy_bytes = copy_bytes
+                .checked_add(operation.canonical_bytes().len())
+                .and_then(|bytes| bytes.checked_add(wire_bytes))
+                .and_then(|bytes| bytes.checked_add(128))
+                .ok_or_else(|| {
+                    StoreError::Corrupt("operation prefix accounting overflow".into())
+                })?;
+        }
+        budget
+            .charge(BudgetKind::WorkingSetBytes, copy_bytes)
+            .map_err(budget_error)?;
+        let operations = source.to_vec();
+        let set = if operations.is_empty() {
+            OperationSet::empty(self.state.project_id)
+        } else {
+            OperationSet::from_operations_with_budget(operations, budget).map_err(|error| {
+                match error {
+                    OperationError::Cancelled => StoreError::Cancelled,
+                    OperationError::ResourceLimit(reason) => {
+                        StoreError::Materialization(PublicationError::ResourceLimit(reason))
+                    }
+                    other => operation_error(other),
+                }
+            })?
+        };
+        Ok((
+            OperationStoreState {
+                project_id: self.state.project_id,
+                project_revision: revision,
+                operation_count: revision.value() as usize,
+            },
+            set,
+        ))
+    }
+}
+
+fn state_revision(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<u64> {
+    Ok(read_state(transaction, project_id)?
+        .project_revision
+        .value())
 }
 
 fn next_bundle_revision(current: u64) -> Result<(u64, i64)> {
@@ -378,20 +736,35 @@ fn row_for_id(
     let id = String::from(id);
     let metadata = transaction
         .query_row(
-            "SELECT operation_id,length(canonical_bytes),length(wire_bytes) FROM project_operations WHERE operation_id=?1",
+            "SELECT length(CAST(operation_id AS BLOB)),length(CAST(project_id AS BLOB)),length(CAST(content_hash AS BLOB)),length(canonical_bytes),length(wire_bytes) FROM project_operations WHERE operation_id=?1",
             [&id],
-            RawOperationMetadata::from_row,
+            |row| {
+                Ok((
+                    row.get::<_, Option<i64>>(0)?,
+                    row.get::<_, Option<i64>>(1)?,
+                    row.get::<_, Option<i64>>(2)?,
+                    row.get::<_, Option<i64>>(3)?,
+                    row.get::<_, Option<i64>>(4)?,
+                ))
+            },
         )
         .optional()?;
-    let Some(metadata) = metadata else {
+    let Some((
+        operation_id_length,
+        project_id_length,
+        content_hash_length,
+        canonical_length,
+        wire_length,
+    )) = metadata
+    else {
         return Ok(None);
     };
-    let canonical_length = checked_blob_length(
-        metadata.canonical_length,
-        MAX_OPERATION_CANONICAL_BYTES,
-        "canonical",
-    )?;
-    let wire_length = checked_blob_length(metadata.wire_length, MAX_OPERATION_WIRE_BYTES, "wire")?;
+    checked_text_length(operation_id_length, OPERATION_ID_TEXT_BYTES, "operation_id")?;
+    checked_text_length(project_id_length, PROJECT_ID_TEXT_BYTES, "project_id")?;
+    checked_text_length(content_hash_length, CONTENT_HASH_TEXT_BYTES, "content_hash")?;
+    let canonical_length =
+        checked_blob_length(canonical_length, MAX_OPERATION_CANONICAL_BYTES, "canonical")?;
+    let wire_length = checked_blob_length(wire_length, MAX_OPERATION_WIRE_BYTES, "wire")?;
     let row = transaction.query_row(
         "SELECT operation_id,project_id,project_revision,logical_time,causal_depth,content_hash,canonical_bytes,wire_bytes FROM project_operations WHERE operation_id=?1",
         [&id],
@@ -402,6 +775,7 @@ fn row_for_id(
             "operation BLOB length changed during read".into(),
         ));
     }
+    row.validate_text_lengths()?;
     row.operation(project_id).map(Some)
 }
 
@@ -690,5 +1064,72 @@ mod tests {
             repaired.operation_store_state().unwrap().operation_count(),
             0
         );
+    }
+
+    #[test]
+    fn operation_scalar_preflight_rejects_oversized_text_before_blob_load() {
+        let connection = rusqlite::Connection::open_in_memory().unwrap();
+        connection
+            .execute_batch(
+                "CREATE TABLE project_operations (operation_id TEXT, project_id TEXT, project_revision INTEGER, logical_time INTEGER, causal_depth INTEGER, content_hash TEXT, canonical_bytes BLOB, wire_bytes BLOB)",
+            )
+            .unwrap();
+        let project_id = ProjectId::from_bytes([1; 16]).unwrap();
+        let oversized_operation_id = "x".repeat(OPERATION_ID_TEXT_BYTES + 1_024);
+        connection
+            .execute(
+                "INSERT INTO project_operations VALUES (?1,?2,1,1,0,?3,?4,?5)",
+                rusqlite::params![
+                    oversized_operation_id,
+                    String::from(project_id),
+                    "a".repeat(CONTENT_HASH_TEXT_BYTES),
+                    vec![1_u8],
+                    vec![1_u8],
+                ],
+            )
+            .unwrap();
+        let transaction = rusqlite::Transaction::new_unchecked(
+            &connection,
+            rusqlite::TransactionBehavior::Deferred,
+        )
+        .unwrap();
+        let error = match read_rows(&transaction, project_id) {
+            Ok(_) => panic!("oversized operation text was accepted"),
+            Err(error) => error,
+        };
+        assert!(matches!(
+            error,
+            StoreError::Corrupt(message) if message.contains("operation_id exceeds its SQLite text limit")
+        ));
+    }
+
+    #[test]
+    fn operation_state_scalar_preflight_rejects_oversized_project_before_decode() {
+        let connection = rusqlite::Connection::open_in_memory().unwrap();
+        connection
+            .execute_batch(
+                "CREATE TABLE operation_log_state (singleton INTEGER, project_id TEXT, project_revision INTEGER)",
+            )
+            .unwrap();
+        let project_id = ProjectId::from_bytes([1; 16]).unwrap();
+        connection
+            .execute(
+                "INSERT INTO operation_log_state VALUES (1,?1,0)",
+                ["x".repeat(PROJECT_ID_TEXT_BYTES + 1_024)],
+            )
+            .unwrap();
+        let transaction = rusqlite::Transaction::new_unchecked(
+            &connection,
+            rusqlite::TransactionBehavior::Deferred,
+        )
+        .unwrap();
+        let error = match read_state(&transaction, project_id) {
+            Ok(_) => panic!("oversized operation state text was accepted"),
+            Err(error) => error,
+        };
+        assert!(matches!(
+            error,
+            StoreError::Corrupt(message) if message.contains("operation project_id exceeds its SQLite text limit")
+        ));
     }
 }

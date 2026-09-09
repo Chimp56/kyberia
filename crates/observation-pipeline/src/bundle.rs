@@ -14,6 +14,10 @@ fn map_store_error(error: StoreError) -> PortError {
         StoreError::Cancelled => PortErrorKind::Cancelled,
         StoreError::Invalid(_) => PortErrorKind::Invalid,
         StoreError::Corrupt(_) => PortErrorKind::Corrupt,
+        StoreError::Materialization(kyberia_project_store::PublicationError::Corrupt(_)) => {
+            PortErrorKind::Corrupt
+        }
+        StoreError::Materialization(_) => PortErrorKind::Invalid,
         StoreError::UnsupportedVersion(_) | StoreError::UnsupportedChunkVersion(_) => {
             PortErrorKind::Unsupported
         }

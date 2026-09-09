@@ -1,6 +1,6 @@
 # ADR-0024: Shared cumulative materialization resource budget
 
-- Status: Accepted bounded prerequisite; independently reviewed; storage transaction integration remains open
+- Status: Accepted bounded contract; independently reviewed with storage transaction adoption
 - Date: 2026-09-09
 - Related: plan §§10.5–10.8, FND-011, ADR-0022, `materialization-verification-budget-packet.md`
 
@@ -37,9 +37,9 @@ The operation log exposes budget-aware operation-set construction, replay,
 replay-semantic validation and conflict traversal. The causal materializer
 exposes `materialize_with_budget`; its existing `materialize` function creates
 the compatibility budget. The materializer's defaults allow the separate
-validation/replay passes while preserving their individual maxima. Storage
-must later create one budget for a publication verification transaction and
-charge decoded artifacts and prefix copies before retaining them. The identity
+validation/replay passes while preserving their individual maxima. The storage adapter creates one budget for a publication verification
+transaction and charges decoded artifacts and prefix copies before retaining
+them. The identity
 crate exposes budget-aware baseline serialization and allocation-free operation
 wire-length preflight so an exhausted shared budget rejects before constructing
 the final identity buffers.
@@ -101,8 +101,9 @@ new evidence and an ADR update.
 
 ## Validation plan
 
-Storage integration must pass one budget through inventory validation, baseline
-and prefix decoding, materializer replay and publication-result verification.
+Storage integration passes one budget through inventory validation, baseline
+and prefix decoding, materializer replay and publication-result verification;
+see the [independent correction review](../../reviews/materialized-publication-correction-review.md).
 It must test repeated historical publications, deterministic permutation,
 budget exhaustion before allocation, cancellation before and during reads,
 and transaction rollback after a resource error. Runtime memory monitoring

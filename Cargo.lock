@@ -1024,15 +1024,20 @@ dependencies = [
  "arrow-array",
  "arrow-schema",
  "bytes",
+ "kyberia-causal-materializer",
  "kyberia-domain",
+ "kyberia-materialization-identity",
  "kyberia-operation-log",
+ "kyberia-resource-budget",
  "kyberia-survey",
+ "libc",
  "parquet",
  "rusqlite",
  "serde",
  "serde_json",
  "sha2",
  "tempfile",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

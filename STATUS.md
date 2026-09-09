@@ -8,10 +8,10 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **4 — Integration audit remediation and architecture proofs**.
 - Integration branch: `main`.
-- Latest integrated feature commit: `4a55d35`, verified stored-RSSI scene export.
-- Latest independently reviewed runtime candidate: `398b0d2`; its three minor
-  follow-ups are corrected in `794941f` without runtime changes. See the
-  [scene CLI review](docs/reviews/stored-rssi-scene-cli-review.md).
+- Latest integrated feature source: `7be5e9a`, transactional canonical project publication.
+- Latest independently reviewed publication correction: `b77e553`, followed by
+  separately approved read-admission tests in `7be5e9a`. See the
+  [publication review](docs/reviews/materialized-publication-correction-review.md).
 - Product acceptance: **not complete**. There is no complete usable mapper UI;
   Phase 0 exit criteria and Phases 1–8 remain open.
 
@@ -26,6 +26,8 @@ product capability is validated.
   canonical baseline/set identity, causal project materialization, and shared
   cumulative admission/replay/merge/ordering budgets. Merge integration is
   `7440ebd`; [independent review](docs/reviews/budgeted-operation-merge-review.md).
+- Explicit immutable canonical baselines, replay-validated transactional project
+  publication, exact historical retries, and cumulative verification budgets.
 - Transactional SQLite metadata, immutable survey snapshots, canonical operation
   persistence/replay, normalized Parquet observation chunks, indexed queries,
   source-bound selection, corruption/recovery checks and non-overwriting exports.
@@ -50,26 +52,26 @@ product capability is validated.
 
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
-| Canonical project publication | Russell / `materialized-project-publication` | Hostile SQLite text and same-handle artifact preallocation fixes; independent correction review; integration regression |
-| Canonical scene renderer input | Laplace / `renderer-canonical-scenes` | Real scene input, numeric/unknown inspection, loading/error/cancel/keyboard behavior; browser evidence and independent review |
-| Rounded polygon offsets | Rawls / `polygon-offsets` | Original numerical, precision, topology and resource tests; independent review |
+| Canonical project CLI | Laplace / `canonical-project-cli` | Verified project queries and explicit baseline initialization for new projects; real CLI recovery/legacy/corruption tests and independent review |
+| Canonical scene renderer input | Russell reviewing / `renderer-canonical-scenes` | Independent scientific/security review and actual browser evidence after dependency installation |
+| Rounded polygon offsets | Fresh independent reviewer / `polygon-offsets` | Adversarial review of `3406d6b`; numerical precision, topology and resource behavior |
 
-The publication review still requests changes in
+The publication review is approved for the bounded increment in
 [its review packet](docs/reviews/materialized-publication-integration-review.md).
 An active draft or passing author test is not integration approval.
 
 ## Current validation
 
-At `4a55d35`, `cargo test --workspace --locked --offline` passes **591 tests,
+For integrated source `7be5e9a`, `cargo test --workspace --locked --offline` passes **617 tests,
 zero failures, nine ignored tests**, recorded in
-`.tools/scene-cli-integration-regression.log`. Existing local TCP fixtures ran
+`.tools/publication-final-integration.log`. Existing local TCP fixtures ran
 with authorized listener access. This count excludes unintegrated worktrees.
 
-The same increment passes CLI all-target Clippy with `-D warnings`,
+The publication candidate passes project-store all-target Clippy with `-D warnings`,
 `cargo fmt --all -- --check`, `python3 tools/architecture.py check`,
 `.tools/venv/bin/python tools/source_inventory.py check` (241 locked packages),
 and `.tools/venv/bin/python tools/ledger.py check` (5,392 source blocks,
-438 explicit ID occurrences and 446 headings). The subsequent complete `python3 tools/dev.py check` passes workspace lint and
+438 explicit ID occurrences and 446 headings). The prior complete `python3 tools/dev.py check` at the scene-CLI checkpoint passes workspace lint and
 typecheck, the Rust suite, 187 Python tests (19 skipped), source/ledger checks
 and synthetic fixture verification; log: `.tools/post-scene-complete-check.log`.
 These checks do not replace browser, native hardware, cross-platform, Sionna or
@@ -84,7 +86,7 @@ runnable implementation and fixture work.
 
 Remaining work includes product capture/point-survey wiring and acquisition
 spooling; final renderer choice, Tauri/WebView and broader host/driver tests;
-transaction-wide publication integration; geometry imports/offsets/3D/CRS/CAD;
+full Windows publication validation; geometry imports/offsets/3D/CRS/CAD;
 complete metric families, regulatory/PHY/airtime/capacity semantics; live Kismet
 and PCAPNG normalization parity; full Sionna runtime/calibration gates; storage
 live-load/failure/fuzz/portability gates; authorization/coordinator/conflict UX;

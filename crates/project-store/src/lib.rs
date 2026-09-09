@@ -3,6 +3,7 @@
 mod bundle;
 mod capture_publication;
 mod manifest;
+mod materialized_project;
 mod observation_chunks;
 mod operation_log;
 mod parquet_codec;
@@ -15,6 +16,10 @@ pub use capture_publication::{
 };
 pub use kyberia_operation_log::AppliedEffect;
 pub use manifest::{ArtifactEntry, ArtifactKind, BundleManifest, content_hash};
+pub use materialized_project::{
+    LoadedMaterializedProject, MaterializationPublicationOutcome,
+    MaterializationPublicationReceipt, PublicationError,
+};
 pub use observation_chunks::{
     Cancellation, MAX_OBSERVATION_CHUNK_BYTES, MAX_OBSERVATION_CHUNK_ROWS,
     MAX_OBSERVATION_QUERY_BYTES, MAX_OBSERVATION_QUERY_CHUNKS, MAX_OBSERVATION_QUERY_DECODED_ROWS,
@@ -39,6 +44,7 @@ pub enum StoreError {
     Corrupt(String),
     Operation(String),
     ChunkCodec(String),
+    Materialization(PublicationError),
     UnsupportedVersion(u32),
     UnsupportedChunkVersion(u32),
 }
@@ -55,6 +61,7 @@ impl std::fmt::Display for StoreError {
             Self::Corrupt(e) => write!(f, "project integrity failure: {e}"),
             Self::Operation(e) => write!(f, "invalid project operation: {e}"),
             Self::ChunkCodec(e) => write!(f, "observation chunk codec: {e}"),
+            Self::Materialization(e) => write!(f, "materialized project publication: {e}"),
             Self::UnsupportedVersion(v) => write!(
                 f,
                 "unsupported project schema {v}; open read-only for metadata inspection"
@@ -80,6 +87,11 @@ impl From<rusqlite::Error> for StoreError {
 impl From<serde_json::Error> for StoreError {
     fn from(value: serde_json::Error) -> Self {
         Self::Json(value)
+    }
+}
+impl From<PublicationError> for StoreError {
+    fn from(value: PublicationError) -> Self {
+        Self::Materialization(value)
     }
 }
 pub type Result<T> = std::result::Result<T, StoreError>;

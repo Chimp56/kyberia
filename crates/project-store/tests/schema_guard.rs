@@ -122,6 +122,9 @@ fn current_schema_contains_every_complete_optional_table_group() {
         [
             "bundle_manifest",
             "capture_publications",
+            "materialization_baselines",
+            "materialized_project_publications",
+            "materialized_project_state",
             "observation_chunk_members",
             "observation_chunks",
             "operation_log_state",
@@ -152,6 +155,33 @@ fn current_schema_contains_every_complete_optional_table_group() {
             .failures
             .is_empty()
     );
+}
+
+#[test]
+fn incomplete_materialization_table_groups_are_rejected() {
+    let tables = [
+        "materialization_baselines",
+        "materialized_project_publications",
+        "materialized_project_state",
+    ];
+    // Every nonempty proper subset is invalid, including an otherwise empty bundle.
+    for removed in 1_u8..7 {
+        let (root, bundle) = fixture();
+        drop(bundle);
+        let db = Connection::open(root.join("project.sqlite")).unwrap();
+        for (index, table) in tables.iter().enumerate() {
+            if removed & (1 << index) != 0 {
+                db.execute_batch(&format!("DROP TABLE {table}")).unwrap();
+            }
+        }
+        drop(db);
+        for mode in [OpenMode::ReadOnly, OpenMode::ReadWrite] {
+            assert!(
+                Bundle::open(&root, mode).is_err(),
+                "accepted incomplete materialization schema with removal mask {removed}"
+            );
+        }
+    }
 }
 
 #[test]

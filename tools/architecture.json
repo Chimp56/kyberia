@@ -14,7 +14,7 @@
     "kyberia-survey": {"layer": "application", "external_dependencies": ["serde"]},
     "kyberia-kismet-adapter": {"layer": "adapter", "external_dependencies": ["libc", "reqwest", "rusqlite", "serde", "serde_json", "sha2", "tempfile", "url", "windows-sys"]},
     "kyberia-packet-import": {"layer": "adapter", "external_dependencies": ["pcap-parser", "sha2"]},
-    "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["arrow-array", "arrow-schema", "bytes", "parquet", "rusqlite", "serde", "serde_json", "sha2", "tempfile"]},
+    "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["arrow-array", "arrow-schema", "bytes", "libc", "parquet", "rusqlite", "serde", "serde_json", "sha2", "tempfile", "windows-sys"]},
     "kyberia-capture-adapter": {"layer": "adapter", "external_dependencies": ["base64", "time", "serde", "serde_json", "sha2"]},
     "kyberia-cli": {"layer": "composition", "external_dependencies": ["libc", "serde", "serde_json", "sha2", "signal-hook", "uuid"]},
     "kyberia-observation-pipeline": {"layer": "composition", "external_dependencies": ["rustix", "serde", "serde_json", "sha2"]},

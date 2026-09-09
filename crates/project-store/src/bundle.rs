@@ -6,7 +6,7 @@ use kyberia_domain::identity::{ProjectId, SnapshotId};
 use rusqlite::{Connection, OpenFlags, TransactionBehavior};
 use serde::Serialize;
 use std::collections::BTreeMap;
-use std::fs::{self, File};
+use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
@@ -46,15 +46,131 @@ pub(crate) fn regular(path: &Path, directory: bool) -> Result<()> {
     Ok(())
 }
 
+fn open_nonsymlink_read(path: &Path) -> Result<File> {
+    #[cfg(unix)]
+    let file = {
+        use std::os::unix::fs::OpenOptionsExt;
+
+        let mut options = OpenOptions::new();
+        options
+            .read(true)
+            .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+        options.open(path).map_err(|error| {
+            if error.raw_os_error() == Some(libc::ELOOP) {
+                StoreError::Invalid("regular file required; symlink is forbidden".into())
+            } else {
+                StoreError::Io(error)
+            }
+        })?
+    };
+    #[cfg(windows)]
+    let file = {
+        use std::os::windows::fs::OpenOptionsExt;
+        use windows_sys::Win32::Storage::FileSystem::{
+            FILE_FLAG_OPEN_REPARSE_POINT, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE,
+            SECURITY_IDENTIFICATION,
+        };
+
+        let mut options = OpenOptions::new();
+        options
+            .read(true)
+            .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT)
+            .share_mode(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE)
+            .security_qos_flags(SECURITY_IDENTIFICATION);
+        options.open(path)?
+    };
+    #[cfg(not(any(unix, windows)))]
+    return Err(StoreError::Invalid(
+        "safe nonsymlink artifact reads are unsupported on this platform".into(),
+    ));
+
+    let metadata = file.metadata()?;
+    if !metadata.is_file() || metadata.file_type().is_symlink() {
+        return Err(StoreError::Invalid(format!(
+            "expected nonsymlink file: {}",
+            path.display()
+        )));
+    }
+    Ok(file)
+}
+
+fn read_file_after_size(mut file: File, expected_bytes: u64) -> Result<(Vec<u8>, bool)> {
+    let expected_bytes = usize::try_from(expected_bytes)
+        .map_err(|_| StoreError::Invalid("file size is not representable".into()))?;
+    let mut result = vec![0_u8; expected_bytes];
+    let mut offset = 0;
+    while offset < expected_bytes {
+        let read = file.read(&mut result[offset..])?;
+        if read == 0 {
+            result.truncate(offset);
+            break;
+        }
+        offset += read;
+    }
+    let mut extra = [0_u8; 1];
+    let has_extra = file.read(&mut extra)? != 0;
+    Ok((result, has_extra))
+}
+
+#[cfg(test)]
+mod read_admission_tests {
+    use super::*;
+
+    fn retained_file() -> PathBuf {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs");
+        fs::create_dir_all(&root).unwrap();
+        tempfile::Builder::new()
+            .prefix("artifact-read-admission-")
+            .tempdir_in(root)
+            .unwrap()
+            .keep()
+            .join("artifact")
+    }
+
+    #[test]
+    fn growth_after_metadata_uses_only_admitted_buffer_and_stack_guard() {
+        for original in [0, 1, 1024] {
+            let path = retained_file();
+            fs::write(&path, vec![7; original]).unwrap();
+            let file = open_nonsymlink_read(&path).unwrap();
+            let admitted = file.metadata().unwrap().len();
+            let mut writer = OpenOptions::new().append(true).open(&path).unwrap();
+            writer.write_all(&[9; 4096]).unwrap();
+            writer.sync_all().unwrap();
+            let (bytes, has_extra) = read_file_after_size(file, admitted).unwrap();
+            assert!(has_extra);
+            assert_eq!(bytes, vec![7; original]);
+            assert_eq!(bytes.capacity(), original);
+        }
+    }
+
+    #[test]
+    fn shrink_after_metadata_returns_short_bytes_for_integrity_rejection() {
+        let path = retained_file();
+        fs::write(&path, vec![7; 1024]).unwrap();
+        let file = open_nonsymlink_read(&path).unwrap();
+        let admitted = file.metadata().unwrap().len();
+        OpenOptions::new()
+            .write(true)
+            .open(&path)
+            .unwrap()
+            .set_len(3)
+            .unwrap();
+        let (bytes, has_extra) = read_file_after_size(file, admitted).unwrap();
+        assert!(!has_extra);
+        assert_eq!(bytes, [7; 3]);
+        assert_ne!(bytes.len() as u64, admitted);
+    }
+}
+
 pub(crate) fn bounded_read(path: &Path, limit: u64) -> Result<Vec<u8>> {
-    regular(path, false)?;
-    let file = File::open(path)?;
-    if file.metadata()?.len() > limit {
+    let file = open_nonsymlink_read(path)?;
+    let actual_bytes = file.metadata()?.len();
+    if actual_bytes > limit {
         return Err(StoreError::Invalid("file exceeds read budget".into()));
     }
-    let mut result = Vec::new();
-    file.take(limit + 1).read_to_end(&mut result)?;
-    if result.len() as u64 > limit {
+    let (result, has_extra) = read_file_after_size(file, actual_bytes)?;
+    if has_extra {
         return Err(StoreError::Invalid("file exceeds read budget".into()));
     }
     Ok(result)
@@ -219,6 +335,9 @@ impl Bundle {
         transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNKS)?;
         transaction.execute_batch(sqlite_guard::CREATE_OBSERVATION_CHUNK_MEMBERS)?;
         transaction.execute_batch(sqlite_guard::CREATE_CAPTURE_PUBLICATIONS)?;
+        transaction.execute_batch(sqlite_guard::CREATE_MATERIALIZATION_BASELINES)?;
+        transaction.execute_batch(sqlite_guard::CREATE_MATERIALIZED_PROJECT_PUBLICATIONS)?;
+        transaction.execute_batch(sqlite_guard::CREATE_MATERIALIZED_PROJECT_STATE)?;
         transaction.execute_batch("PRAGMA user_version=1")?;
         transaction.execute(
             "INSERT INTO bundle_manifest VALUES (1, ?1, ?2)",
@@ -285,7 +404,8 @@ impl Bundle {
             && (!sqlite_guard::has_survey_snapshot_schema(&connection)?
                 || !sqlite_guard::has_operation_schema(&connection)?
                 || !sqlite_guard::has_observation_chunk_schema(&connection)?
-                || !sqlite_guard::has_capture_publication_schema(&connection)?)
+                || !sqlite_guard::has_capture_publication_schema(&connection)?
+                || !sqlite_guard::has_materialized_project_schema(&connection)?)
         {
             // V1 bundles predate one or more optional metadata table groups.
             // This additive migration is performed before the authorizer is
@@ -314,6 +434,31 @@ impl Bundle {
             }
             if !sqlite_guard::has_capture_publication_schema(&migration)? {
                 migration.execute_batch(sqlite_guard::CREATE_CAPTURE_PUBLICATIONS)?;
+            }
+            if !sqlite_guard::has_materialized_project_schema(&migration)? {
+                let tables = migration
+                    .prepare("SELECT name FROM main.sqlite_schema WHERE type='table' AND name IN ('materialization_baselines','materialized_project_publications','materialized_project_state')")?
+                    .query_map([], |row| row.get::<_, String>(0))?
+                    .collect::<std::result::Result<Vec<_>, _>>()?;
+                if !tables
+                    .iter()
+                    .any(|name| name == "materialization_baselines")
+                {
+                    migration.execute_batch(sqlite_guard::CREATE_MATERIALIZATION_BASELINES)?;
+                }
+                if !tables
+                    .iter()
+                    .any(|name| name == "materialized_project_publications")
+                {
+                    migration
+                        .execute_batch(sqlite_guard::CREATE_MATERIALIZED_PROJECT_PUBLICATIONS)?;
+                }
+                if !tables
+                    .iter()
+                    .any(|name| name == "materialized_project_state")
+                {
+                    migration.execute_batch(sqlite_guard::CREATE_MATERIALIZED_PROJECT_STATE)?;
+                }
             }
             migration.commit()?;
         }
@@ -400,6 +545,14 @@ impl Bundle {
         if matches!(entry.kind, ArtifactKind::NormalizedObservations) {
             return Err(StoreError::Invalid(
                 "normalized observations require publish_observation_chunk".into(),
+            ));
+        }
+        if matches!(
+            entry.kind,
+            ArtifactKind::MaterializationBaseline | ArtifactKind::MaterializedProject
+        ) {
+            return Err(StoreError::Invalid(
+                "canonical evidence requires its validated publication API".into(),
             ));
         }
         self.start_operation()?;
@@ -509,8 +662,19 @@ impl Bundle {
         entry: &ArtifactEntry,
     ) -> Result<Vec<u8>> {
         regular(&self.root.join("artifacts"), true)?;
-        let bytes = bounded_read(&self.root.join("artifacts").join(hash), MAX_ARTIFACT_BYTES)?;
-        if bytes.len() as u64 != entry.bytes || content_hash(&bytes) != hash {
+        let path = self.root.join("artifacts").join(hash);
+        let file = open_nonsymlink_read(&path)?;
+        let actual_bytes = file.metadata()?.len();
+        if actual_bytes > MAX_ARTIFACT_BYTES {
+            return Err(StoreError::Invalid("file exceeds read budget".into()));
+        }
+        if actual_bytes != entry.bytes {
+            return Err(StoreError::Corrupt(format!(
+                "artifact checksum/length mismatch: {hash}"
+            )));
+        }
+        let (bytes, has_extra) = read_file_after_size(file, entry.bytes)?;
+        if has_extra || bytes.len() as u64 != entry.bytes || content_hash(&bytes) != hash {
             return Err(StoreError::Corrupt(format!(
                 "artifact checksum/length mismatch: {hash}"
             )));
@@ -594,6 +758,11 @@ impl Bundle {
             failures.push(error.to_string());
         }
         if let Err(error) = self.verify_observation_chunks() {
+            failures.push(error.to_string());
+        }
+        if sqlite_guard::has_materialized_project_schema(&self.connection)?
+            && let Err(error) = self.verify_materialized_project_publication()
+        {
             failures.push(error.to_string());
         }
         Ok(Verification {

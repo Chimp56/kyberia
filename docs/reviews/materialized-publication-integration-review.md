@@ -1,10 +1,16 @@
 # Materialized publication integration review
 
-Status: REQUEST_CHANGES following independent review by Russell. Candidate storage commit:
-`3ac3e10`; consumer corrections and writer tests included through `b825eb6` in
-`.worktrees/materialized-project-publication`. Original publication author:
-root; cumulative-budget implementer: Laplace. Root has reviewed the budget
-changes, but is not the sole reviewer of the full publication feature.
+Status: **APPROVED for the bounded increment** through integration candidate
+`7be5e9a`. Original publication author: root; cumulative-budget implementer:
+Laplace; full independent reviewer and preflight-correction author: Russell.
+Root independently reviewed Russell's correction, and Russell independently
+approved root's subsequent read-admission tests. See the
+[correction review](materialized-publication-correction-review.md).
+
+The earlier REQUEST_CHANGES findings and candidate results below are retained
+as history. Both MAJOR findings are corrected; the generic bundle-wide artifact
+budget limitation remains scoped debt. Product workflows and full Windows
+runtime validation remain open.
 
 ## Executed candidate validation
 
