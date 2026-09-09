@@ -22,6 +22,182 @@ pub const MAX_BOOLEAN_WORK: usize = 4_194_304;
 /// small residual through relative-error scaling.
 const BOOLEAN_AREA_ERROR_TOLERANCE: f64 = 1e-7;
 
+pub(crate) fn offset(
+    input: &ValidatedMultiPolygon,
+    options: crate::OffsetOptions,
+    cancelled: &mut impl FnMut() -> bool,
+) -> Result<ValidatedMultiPolygon, crate::OffsetError> {
+    use crate::OffsetError;
+    use geo::{
+        Buffer,
+        algorithm::buffer::{BufferStyle, LineJoin},
+    };
+    if cancelled() {
+        return Err(OffsetError::Cancelled);
+    }
+    let distance = options.signed_distance();
+    let count = input.polygons.iter().try_fold(0usize, |count, polygon| {
+        if cancelled() {
+            return Err(OffsetError::Cancelled);
+        }
+        polygon_rings(polygon).try_fold(count, |count, ring| {
+            count
+                .checked_add(ring.len())
+                .ok_or(OffsetError::ResourceLimit)
+        })
+    })?;
+    // geo/i_overlay clamps round joins to [0.01*pi, 0.25*pi]. Account for
+    // that effective angle so the work estimate never undercounts a request
+    // such as pi/2, which the kernel narrows to pi/4.
+    let effective_arc_angle = options
+        .max_arc_angle()
+        .get()
+        .clamp(0.01 * std::f64::consts::PI, 0.25 * std::f64::consts::PI);
+    let arc_vertices = (std::f64::consts::TAU / effective_arc_angle).ceil() as usize + 2;
+    let expanded = count
+        .checked_mul(arc_vertices)
+        .ok_or(OffsetError::ResourceLimit)?;
+    if expanded
+        .checked_mul(expanded)
+        .is_none_or(|work| work > crate::MAX_OFFSET_WORK)
+    {
+        return Err(OffsetError::ResourceLimit);
+    }
+    if distance == 0.0 || input.is_empty() {
+        if cancelled() {
+            return Err(OffsetError::Cancelled);
+        }
+        return Ok(input.clone());
+    }
+    let maximum = input
+        .polygons
+        .iter()
+        .flat_map(polygon_rings)
+        .flatten()
+        .flat_map(|p| [p.x.get().abs(), p.y.get().abs()])
+        .fold(distance.abs(), f64::max);
+    let scale = normalization_scale(maximum);
+    // The kernel subtracts the input bounding-box midpoint before its
+    // float-to-integer conversion. Use that local extent for the resolution
+    // test; using absolute world coordinates would reject a valid small offset
+    // on a translated floor. Two integer-grid steps plus a second safety
+    // factor leave room for the rounded join's 1.1 radius reserve.
+    let local_span = input.polygons.iter().flat_map(polygon_rings).try_fold(
+        (
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+        ),
+        |bounds, ring| {
+            ring.iter()
+                .try_fold(bounds, |(min_x, max_x, min_y, max_y), point| {
+                    let x = point.x.get() / scale;
+                    let y = point.y.get() / scale;
+                    if !x.is_finite() || !y.is_finite() {
+                        return Err(OffsetError::UnsupportedCoordinateResolution);
+                    }
+                    Ok((min_x.min(x), max_x.max(x), min_y.min(y), max_y.max(y)))
+                })
+        },
+    )?;
+    let span = (local_span.1 - local_span.0).max(local_span.3 - local_span.2);
+    let expanded_half_span = (span + 2.2 * distance.abs() / scale) / 2.0;
+    if !expanded_half_span.is_finite() || expanded_half_span <= 0.0 {
+        return Err(OffsetError::UnsupportedCoordinateResolution);
+    }
+    let exponent = expanded_half_span.log2().floor();
+    if !exponent.is_finite()
+        || exponent < f64::from(i32::MIN + 29)
+        || exponent > f64::from(i32::MAX - 29)
+    {
+        return Err(OffsetError::UnsupportedCoordinateResolution);
+    }
+    let kernel_grid = 2.0_f64.powi(exponent as i32 - 29);
+    if !kernel_grid.is_finite() || distance.abs() / scale < 4.0 * kernel_grid {
+        return Err(OffsetError::UnsupportedCoordinateResolution);
+    }
+    let shape = geo_multi_polygon(input, scale);
+    if cancelled() {
+        return Err(OffsetError::Cancelled);
+    }
+    let style = BufferStyle::new(distance / scale)
+        .line_join(LineJoin::Round(options.max_arc_angle().get()));
+    let result = shape.buffer_with_style(style.clone());
+    if cancelled() {
+        return Err(OffsetError::Cancelled);
+    }
+    bounded_output_coordinates(&result).map_err(OffsetError::KernelResult)?;
+    if matches!(options.direction(), crate::OffsetDirection::Outward(_)) {
+        if result.0.is_empty() || !multipolygon_covers(&result, &shape) {
+            return Err(OffsetError::UnsupportedCoordinateResolution);
+        }
+    } else {
+        if result.0.is_empty() && !inward_empty_is_provable(input, distance) {
+            return Err(OffsetError::UnsupportedCoordinateResolution);
+        }
+        if !result.0.is_empty() && !multipolygon_covers(&shape, &result) {
+            return Err(OffsetError::KernelResult(BooleanError::InvalidKernelResult));
+        }
+    }
+    // A global multi-polygon buffer can alias a small component against a
+    // distant large one. Buffer each component in the same normalized space
+    // and require every nonempty component result to be covered by the global
+    // result. This is a bounded completeness check under MAX_OFFSET_WORK.
+    for polygon in &input.polygons {
+        if cancelled() {
+            return Err(OffsetError::Cancelled);
+        }
+        let expected = geo_polygon(polygon, scale).buffer_with_style(style.clone());
+        bounded_output_coordinates(&expected).map_err(OffsetError::KernelResult)?;
+        if matches!(options.direction(), crate::OffsetDirection::Outward(_))
+            && expected.0.is_empty()
+        {
+            return Err(OffsetError::UnsupportedCoordinateResolution);
+        }
+        for expected_polygon in &expected.0 {
+            if !result.intersects(expected_polygon) {
+                return Err(OffsetError::UnsupportedCoordinateResolution);
+            }
+        }
+    }
+    let result = from_geo_multi_polygon(input.floor_id, input.frame_id, result, scale)
+        .map_err(OffsetError::KernelResult)?;
+    if cancelled() {
+        return Err(OffsetError::Cancelled);
+    }
+    Ok(result)
+}
+
+/// An empty inward result is accepted only when the distance is at least the
+/// half-width of every input bounding box. That is a conservative certificate
+/// that no disk of the requested radius can fit inside any component. Smaller
+/// empty results are rejected because a float-to-integer buffer could have
+/// erased a narrow surviving feature.
+fn inward_empty_is_provable(input: &ValidatedMultiPolygon, distance: f64) -> bool {
+    input.polygons.iter().all(|polygon| {
+        let bounds = polygon.exterior.iter().fold(
+            (
+                f64::INFINITY,
+                f64::NEG_INFINITY,
+                f64::INFINITY,
+                f64::NEG_INFINITY,
+            ),
+            |(min_x, max_x, min_y, max_y), point| {
+                (
+                    min_x.min(point.x.get()),
+                    max_x.max(point.x.get()),
+                    min_y.min(point.y.get()),
+                    max_y.max(point.y.get()),
+                )
+            },
+        );
+        let width = bounds.1 - bounds.0;
+        let height = bounds.3 - bounds.2;
+        width.is_finite() && height.is_finite() && distance.abs() >= width.min(height) / 2.0
+    })
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PolygonError {
     ResourceLimit,

@@ -1,5 +1,6 @@
 //! Portable planar geometry adapter. Library types never cross this boundary.
 //! Coordinates are meters in one explicitly identified floor-local frame.
+mod offset;
 mod polygon;
 use geo::{
     Coord, Line,
@@ -10,6 +11,7 @@ use kyberia_domain::{
     spatial::Point2,
     units::CoordinateMeters,
 };
+pub use offset::{MAX_OFFSET_WORK, OffsetDirection, OffsetError, OffsetOptions};
 pub use polygon::{
     BooleanError, BooleanOperation, MAX_BOOLEAN_WORK, MAX_MULTIPOLYGON_COORDINATES,
     MAX_MULTIPOLYGON_POLYGONS, MAX_POLYGON_COORDINATES, MAX_POLYGON_HOLES, PolygonError,
