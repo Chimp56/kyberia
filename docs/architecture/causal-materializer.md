@@ -35,8 +35,12 @@ closed `NonReversibleReason`; V1 binding is reported unsupported because its
 legacy inverse cannot prove reversibility.
 
 Materialization retains bounded invocation-wide causal witness work and rejects
-oversized sets before replay. It also bounds the aggregate baseline-cloning
-budget. It borrows all inputs and constructs each
-candidate project on a clone, so a failure cannot partially mutate the caller's
-baseline or operation set. Storage adapters remain responsible for publishing
-the returned project and identity transactionally.
+oversized sets before replay. It also enforces two separate copy safeguards:
+the estimated serialized size of each candidate state includes operation-induced
+data growth, and a cumulative serialized-byte copy-work proxy charges every
+baseline and domain clone, including repeated ancestor reconstruction. These
+byte values are allocation/work accounting proxies, not a claim about the
+resident size of Rust `BTreeMap` allocations. It borrows all inputs and
+constructs each candidate project on a clone, so a failure cannot partially
+mutate the caller's baseline or operation set. Storage adapters remain
+responsible for publishing the returned project and identity transactionally.

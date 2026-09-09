@@ -21,6 +21,10 @@ Focused evidence includes:
 - nested toggle replay, including redo effects receiving the redo operation's
   own identity;
 - oversized operation-set rejection before conflict replay.
+- a small accepted materialization and an actual 100-operation causal chain
+  rejected by the cumulative copy-work boundary, with the baseline unchanged;
+  the chain carries large site names so operation-induced data growth is part
+  of the estimate.
 
 Commands:
 

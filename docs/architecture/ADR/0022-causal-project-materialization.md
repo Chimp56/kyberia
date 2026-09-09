@@ -59,16 +59,20 @@ The validation record covers project/site renames, equal-Lamport independent
 branches, causal forged-prior rejection, common-ancestor resolution, typed
 unknown-calibration undo, explicit aggregate lock conflicts, baseline identity
 binding, V1 byte preservation, V2 round-trip validation and immutable failure
-behavior. Focused commands are `cargo test -p kyberia-causal-materializer
---locked --offline` and `cargo test -p kyberia-domain --locked --offline`.
+behavior, and a real causal-chain cumulative copy-work rejection. Focused
+commands are `cargo test -p kyberia-causal-materializer --locked --offline`
+and `cargo test -p kyberia-domain --locked --offline`.
 
 ## Consequences and reversibility
 
-The bridge is deterministic, bounded and independently testable. It caps both
-the invocation-wide causal witness work and aggregate baseline-cloning budget;
-larger operation sets require a future persistent causal-state index. Existing V1
-receipts and project fixtures remain readable. V2 project artifacts require a
-V2-aware reader; reverting an application binary after publishing them
-requires retaining that reader or a reviewed migration. Transactional storage
-publication, authorization, signatures and a persistent causal-state index
-remain later work.
+The bridge is deterministic, bounded and independently testable. It caps the
+invocation-wide causal witness work, estimated per-state serialized growth, and
+cumulative serialized-byte copy-work proxy, including repeated ancestor
+reconstruction. Those byte values account for allocation/work decisions; they
+are not a resident-memory ceiling for Rust collection internals. Larger
+operation sets or richer causal histories require a future persistent
+causal-state index. Existing V1 receipts and project fixtures remain readable.
+V2 project artifacts require a V2-aware reader; reverting an application
+binary after publishing them requires retaining that reader or a reviewed
+migration. Transactional storage publication, authorization, signatures and a
+persistent causal-state index remain later work.
