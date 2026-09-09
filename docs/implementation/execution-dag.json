@@ -753,7 +753,8 @@
       "depends_on": [
         "contracts",
         "storage-proof",
-        "iteration-4-materialization-identity"
+        "iteration-4-materialization-identity",
+        "iteration-4-typed-operation-contracts"
       ],
       "owner": "architecture/domain",
       "requirements": [
@@ -845,6 +846,38 @@
         "backlog:FND-011:1"
       ],
       "acceptance": "Versioned domain-separated canonical baseline and exact operation-set identity with bounded encoding, project/revision/logical-time binding, permutation and mutation tests; not causal validation or project materialization."
+    },
+    {
+      "id": "iteration-4-typed-operation-contracts",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "architecture/domain",
+      "requirements": [
+        "backlog:FND-011:1"
+      ],
+      "owned_paths": [
+        "crates/operation-log"
+      ],
+      "acceptance": "Reviewed V2 prior, irreversible binding, typed replay/conflict/resolution with V1 byte compatibility; no implicit removal of distinct toggle conflicts. Integrated through 8b340eb; causal materialization remains separate."
+    },
+    {
+      "id": "iteration-4-typed-operation-store-replay",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-typed-operation-contracts",
+        "storage-proof"
+      ],
+      "owner": "storage/domain integration",
+      "requirements": [
+        "backlog:FND-011:1"
+      ],
+      "owned_paths": [
+        "crates/project-store/src/operation_log.rs",
+        "crates/project-store/tests/operation_store.rs"
+      ],
+      "acceptance": "Real SQLite append/reopen typed replay preserves unknown undo/resolution; unresolved conflicts reject replay; legacy bytes remain readable. Does not materialize canonical aggregate state."
     }
   ]
 }
