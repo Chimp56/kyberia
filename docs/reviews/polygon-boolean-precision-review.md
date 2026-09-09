@@ -138,3 +138,22 @@ physical units to the tolerance. The valid remaining requirement is a justified
 precision contract and tests bounding geometric error; the erroneous magnitude
 claim is not accepted as a finding. Remove draft coordinate debug output and
 run formatting before freezing the next candidate.
+
+## Frozen correction approval
+
+Independent review approves `28ab92e` (including prerequisites `2d3cf82` and
+`d29cf40`) for bounded Phase 0 boolean operations. No BLOCKER or MAJOR remains
+within the explicitly provisional finite-tolerance contract. Root and reviewer
+each ran all 30 geometry tests successfully; the reviewer also passed workspace
+tests, workspace Clippy, formatting, architecture and source-inventory checks.
+
+Retained adversarial probes cover translated/narrow intersections, small holes,
+near-total-cover residual rejection, mixed-scale disjoint union and single/multi
+strip differences. Small boundary excursions remain bounded by the documented
+normalized tolerance; this is not an exact-topology guarantee. General concave
+or holed overlapping overlays, offsets, import/repair, CRS/3D, WASM runtime
+parity and full Gate E remain open.
+
+Integration follow-ups: correct research-ledger wording now that `geo` is a
+pinned runtime dependency; describe the verification as a bounded numerical
+certificate and its work cap as an estimate, not an invocation-wide CPU bound.
