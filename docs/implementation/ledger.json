@@ -39334,8 +39334,8 @@
         {
           "path": "crates/observation-pipeline/src/process.rs",
           "description": "Reviewed native collector supervision and request privacy binding; authorized RF scan/product wiring remain open",
-          "revision": "27caf468bad45abffd3876a102d13af5566ac9a03f615114c3c1776d33ffdc71",
-          "sha256": "27caf468bad45abffd3876a102d13af5566ac9a03f615114c3c1776d33ffdc71"
+          "revision": "e9d20ba784569893eb5fd4dbb6c11a422ce8acc3d0495c5d733c196222b0140a",
+          "sha256": "e9d20ba784569893eb5fd4dbb6c11a422ce8acc3d0495c5d733c196222b0140a"
         },
         {
           "path": "apps/cli/src/stored_analysis.rs",

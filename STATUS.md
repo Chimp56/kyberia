@@ -60,7 +60,7 @@ product capability is validated.
 | Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Independent review of `1af1cba` requires valid PointValue/Nearest handling, mandatory Rust admission and worker deadlines; [findings](docs/reviews/renderer-wasm-independent-review.md) |
 | Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; parser fixture timing correction `73111b0`; full regression and remaining timing diagnostics under validation |
 | Unassociated acquisition spool | Root correcting / `acquisition-spool` | Review requires durable session identity for empty captures; explicit terminal outcomes and early cancellation are implemented in the candidate, with fresh review pending |
-| Hosted Rust diagnostics | Integrated `2452791` + `c9b4bee` | Independent correction review approved; integrated Python and Actions-mode typecheck pass; hosted rerun required |
+| Hosted Rust diagnostics | Integrated `2452791` + `c9b4bee` | Hosted annotations now identify Windows unused argv and macOS descendant timing failure; reviewed Windows correction integrated as `00ca425`, timing correction in independent work |
 | Windows native request runtime | CI / integrated `2988bc6` | Independently approved disk-handle/reparse/sharing boundary; native disk/device/pipe and full CLI execution remain required |
 
 
