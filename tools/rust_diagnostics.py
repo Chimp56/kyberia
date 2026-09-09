@@ -245,6 +245,7 @@ class LibtestFailureParser:
         self._lines = _BoundedLines()
         self._harness_running = False
         self._failure_details = False
+        self._stopped_after_failure = False
         self._failures: list[str] = []
         self._seen: set[str] = set()
         self._omitted_count = 0
@@ -258,6 +259,8 @@ class LibtestFailureParser:
             self._parse_line(line)
 
     def _parse_line(self, line: bytes) -> None:
+        if self._stopped_after_failure:
+            return
         try:
             text = line.decode("utf-8")
         except UnicodeDecodeError:
@@ -273,7 +276,13 @@ class LibtestFailureParser:
             self._failure_details = False
             return
         if text == "failures:":
+            # Stable libtest has no authenticated machine-readable boundary
+            # around captured output.  Permanently stop at the first failure
+            # section so output containing a forged `running` or `test result`
+            # line cannot create later public annotations.
+            self._stopped_after_failure = True
             self._failure_details = True
+            self._harness_running = False
             return
         if self._failure_details:
             return

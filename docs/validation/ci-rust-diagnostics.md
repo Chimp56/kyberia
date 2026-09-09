@@ -21,12 +21,12 @@ The pinned stable toolchain exposes libtest's `--format json` spelling but
 rejects it at runtime because that format still requires nightly
 `-Z unstable-options`. Test validation therefore parses only the stable
 harness status lines (`running`, `test ... ... FAILED`, and `test result:`).
-It accepts bounded, grammar-validated test identifiers and stops parsing at
-the `failures:` section, where captured test output is untrusted. This gives
-failed test names without claiming authenticated provenance for arbitrary
-test output. A future toolchain migration may replace this parser with a
-stable machine-readable harness format after the version and output contract
-are tested.
+It accepts bounded, grammar-validated test identifiers and permanently stops
+at the first `failures:` section, where captured test output is untrusted.
+This gives the failed names from the first trustworthy status phase without
+claiming authenticated provenance for arbitrary test output. A future
+toolchain migration may replace this parser with a stable machine-readable
+harness format after the version and output contract are tested.
 
 If a developer command fails outside one of those structured streams, the
 fallback annotation contains only the numeric exit status. The original
@@ -40,13 +40,14 @@ Validation evidence for this increment:
 PYTHONPYCACHEPREFIX=.trash/test-runs/ci-diagnostics/pycache \
   .tools/venv/bin/python -m unittest \
   tests.test_ci_rust_diagnostics tests.test_dev_commands
-14 tests passed
+15 tests passed
 ```
 
 The parser tests cover split input chunks, malformed and oversized lines,
 annotation truncation, path traversal and Windows path normalization, hostile
 compiler codes, captured-output annotation injection, raw stream retention,
-exit-status preservation, and the unchanged local execution path. Full
+exit-status preservation, child cleanup on stream errors, and the unchanged
+local execution path. Full
 hosted Windows validation remains dependent on the runner's native MinGW
 SQLite toolchain; that environment requirement is separate from this
 diagnostic formatter.

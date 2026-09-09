@@ -111,6 +111,7 @@ class RustDiagnosticParserTests(unittest.TestCase):
             b"test safe::ok ... ok\n"
             b"failures:\n"
             b"---- safe::bad stdout ----\n"
+            b"running 1 test\n"
             b"test spoof ... FAILED\n"
             b"::error title=spoof::private\n"
             b"test result: FAILED. 1 passed; 1 failed\n"
@@ -119,14 +120,14 @@ class RustDiagnosticParserTests(unittest.TestCase):
             b"test result: FAILED. 0 passed; 1 failed\n"
         )
         parser.finish()
-        self.assertEqual(parser.failures, ("safe::bad", "second"))
+        self.assertEqual(parser.failures, ("safe::bad",))
         self.assertLessEqual(len(parser._seen), PARSER.MAX_ANNOTATIONS)
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
             parser.emit()
         rendered = output.getvalue()
         self.assertIn("Rust test failed: safe::bad", rendered)
-        self.assertIn("Rust test failed: second", rendered)
+        self.assertNotIn("Rust test failed: second", rendered)
         self.assertNotIn("spoof", rendered)
         self.assertNotIn("private", rendered)
 
@@ -140,7 +141,34 @@ class FakeProcess:
         return self.returncode
 
 
+class RaisingProcess:
+    def __init__(self):
+        self.stdout = self
+        self.killed = False
+        self.waited = 0
+
+    def read(self, _size):
+        raise OSError("synthetic stream failure")
+
+    def kill(self):
+        self.killed = True
+
+    def wait(self):
+        self.waited += 1
+        return 1
+
+
 class DeveloperStreamingTests(unittest.TestCase):
+    def test_actions_reaps_child_when_stream_handling_raises(self):
+        process = RaisingProcess()
+        output = io.StringIO()
+        with patch.object(DEV.subprocess, "Popen", return_value=process), patch.object(DEV, "github_actions_enabled", return_value=True), contextlib.redirect_stdout(output):
+            with self.assertRaises(OSError):
+                DEV.run("cargo", "check", diagnostics="cargo")
+        self.assertTrue(process.killed)
+        self.assertEqual(process.waited, 1)
+        self.assertIn("::kyberia-rust-diagnostics-", output.getvalue())
+
     def test_actions_guards_unstructured_child_output_too(self):
         process = FakeProcess([b"::error title=child::SECRET\n"])
         output = io.StringIO()

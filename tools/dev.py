@@ -68,6 +68,17 @@ def _run_streamed(command, diagnostic_kind=None):
                 parser.feed(chunk)
             last_byte = chunk[-1]
         returncode = process.wait()
+    except BaseException:
+        if process is not None:
+            try:
+                process.kill()
+            except BaseException:
+                pass
+            try:
+                process.wait()
+            except BaseException:
+                pass
+        raise
     finally:
         if parser is not None:
             parser.finish()
