@@ -18,3 +18,8 @@ No unresolved findings in this primitive scope. Consumer charging sites,
 preallocation, duplicate admission, replay cancellation, storage transaction
 accounting and calibrated limits remain open in the shared-budget review.
 This prerequisite does not complete FND-011 or any product capability.
+
+After integration at `8e68192`, the full locked/offline Rust workspace regression
+passes 530 tests with zero failures and nine ignored runtime/benchmark tests.
+Evidence: `.tools/resource-budget-primitive-regression.log`. This does not change
+the scoped approval or imply that downstream consumers have been integrated.

@@ -46,6 +46,12 @@ See [scoped approval](docs/reviews/resource-budget-primitive-review.md). Its
 operation-log, identity, materializer and storage consumers remain in progress;
 existing production paths do not yet consume this budget.
 
+Latest integrated validation at `8e68192`: `cargo test --workspace --locked
+--offline` passes 530 tests, zero failures and nine ignored tests. The retained
+log is `.tools/resource-budget-primitive-regression.log`. The primitive's Clippy,
+formatting, architecture and source-inventory checks also pass. Consumer drafts
+and their open review findings are excluded from this integrated result.
+
 Integrated validation at `a11ca22`: `cargo test --workspace --locked --offline`
 passes 524 tests with zero failures and nine ignored; workspace Clippy with
 `-D warnings` also passes. Logs are retained in
