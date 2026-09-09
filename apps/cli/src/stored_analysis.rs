@@ -597,6 +597,9 @@ mod tests {
         let oversized = root.join("oversized.json");
         let file = File::create(&oversized).unwrap();
         file.set_len(MAX_REQUEST_BYTES as u64 + 1).unwrap();
+        // Close the fixture writer before exercising read-only admission.
+        // Windows deliberately rejects concurrent writer handles.
+        drop(file);
         assert!(
             read_request(&oversized)
                 .unwrap_err()

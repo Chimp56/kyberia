@@ -39340,8 +39340,8 @@
         {
           "path": "apps/cli/src/stored_analysis.rs",
           "description": "Verified stored RSSI analysis and canonical scene export with bounded requests, explicit unknowns, source binding, cooperative cancellation and non-overwriting publication",
-          "revision": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae",
-          "sha256": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae"
+          "revision": "2b499c9f3303478cee43471e065970177a3bdbf1079e477d438d3b9a63c13a5c",
+          "sha256": "2b499c9f3303478cee43471e065970177a3bdbf1079e477d438d3b9a63c13a5c"
         },
         {
           "path": "crates/file-adapter/src/lib.rs",
@@ -173231,8 +173231,8 @@
         {
           "path": "apps/cli/src/stored_analysis.rs",
           "description": "Verified stored RSSI analysis and canonical scene export with bounded requests, explicit unknowns, source binding, cooperative cancellation and non-overwriting publication",
-          "revision": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae",
-          "sha256": "c7dda043c748b9710904572408b8bf340386d0a8e2445997b5240897c72195ae"
+          "revision": "2b499c9f3303478cee43471e065970177a3bdbf1079e477d438d3b9a63c13a5c",
+          "sha256": "2b499c9f3303478cee43471e065970177a3bdbf1079e477d438d3b9a63c13a5c"
         },
         {
           "path": "crates/file-adapter/src/lib.rs",

@@ -108,3 +108,14 @@ was still running on all three platforms at this checkpoint. No Windows
 success or complete runtime-gate claim is inferred from macOS/Linux results.
 Public API responses are retained in .tools/ci-jobs-1711f13-final.json and
 .tools/ci-jobs-50f43e4.json; no credentials were read to obtain them.
+
+## CLI import correction hosted checkpoint
+
+Run [34335879521](https://github.com/Chimp56/kyberia/actions/runs/34335879521),
+source b4c4c33, completed successfully on macOS and Ubuntu. Windows passed
+formatting/lint/dependency-boundary and typecheck stages, then failed the Rust
+request-acquisition test. Public annotation 102415026590 names
+stored_analysis::tests::request_acquisition_reads_regular_bytes_and_rejects_invalid_sources.
+The test-only fixture writer close is independently approved; detailed
+evidence and the distinction between diagnosis and hosted confirmation are in
+[the review packet](../reviews/windows-request-fixture-handle-review.md).
