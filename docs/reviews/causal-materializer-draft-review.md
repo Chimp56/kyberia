@@ -88,3 +88,27 @@ architecture and the 241-package source inventory. These checks do not override
 the reproduced semantic defect. Corrections are assigned in isolated branch
 `fix/materializer-causal-equivalence`; their author must receive an independent
 review before integration. Storage publication remains downstream and open.
+
+## Corrected pure-boundary approval
+
+Disposition: **APPROVED** for the pure materialization boundary through
+`41b3c72`, including `5b56a9e`, `cef5716` and `a6b0b49`. Root independently
+reviewed the calibration comparison and added acceptance tests, and ran all
+26 materializer tests successfully. The known-calibration comparison now
+borrows values, compares map and calibration IDs symmetrically across both
+representations, and preserves explicit unknown distinctions.
+
+The additional regression admits a structurally valid resolved operation set
+whose earlier branch has a forged prior. Materialization rejects that earlier
+operation even when the resolution selects the other branch; input reversal
+preserves the exact error and the baseline remains unchanged. Cross-map and
+missing-floor tests exercise aggregate application; incompatible serialized
+frames are rejected at the validated Project decode boundary. Criss-cross
+common-head and copy-budget permutation cases also pass.
+
+The earlier independent review accepted the resource correction and verified
+the corrected redo identity, resolved-frontier behavior and scoped project
+versioning. The outstanding MAJOR findings recorded above are addressed for
+this scope. This approval does not close FND-011: transactional publication,
+authorization, transport, broader command coverage and product conflict/undo
+workflows remain open. The serialized-byte budget is not a heap-memory ceiling.
