@@ -8,6 +8,7 @@ description = "Canonical identities for project baselines and operation sets"
 [dependencies]
 kyberia-domain = { version = "=0.1.0", path = "../domain" }
 kyberia-operation-log = { version = "=0.1.0", path = "../operation-log" }
+kyberia-resource-budget = { version = "=0.1.0", path = "../resource-budget" }
 sha2 = "=0.10.9"
 serde_json = "=1.0.149"
 

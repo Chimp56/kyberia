@@ -1,9 +1,26 @@
 # Shared materialization budget review in progress
 
-Status: REQUEST_CHANGES; no integration approval. Candidate is the actively
-edited `.worktrees/shared-materialization-budget` based on `4adb446`.
-The observations below describe inspected snapshots, not an immutable final diff.
-Implementer: Laplace. Independent reviewer: root.
+Status: APPROVED for the consumer series through `b5dec0c`, with the separately
+approved identity-writer tests `7ad38e8` and `06db93a`. Implementers: Laplace and
+Russell; independent consumer reviewer: root. Rawls independently reviewed the
+root-authored writer tests. Historical findings below retain their original
+scope; the final disposition supersedes their pending status.
+
+## Final consumer disposition
+
+Root reviewed immutable `b5dec0c`: resolution admission now charges both effect
+conversions, selected values and canonical comparison copies, preserving target
+payload sizes for Undo/Redo arms. Cancellation is polled per graph operation;
+resource and cancellation outcomes retain their categories. All 96 combined
+consumer tests and scoped all-target Clippy pass. No BLOCKER or MAJOR remains
+for these consumer APIs. Integration additionally includes the two independently
+approved writer regression tests.
+
+Counters remain deterministic work/owned-byte proxies, not measured RSS.
+Public `merge` cloning and transaction-wide storage verification are separate
+open work. This approval does not close FND-011, a product phase, or a runtime
+integration gate. Final workspace regression must pass before committing the
+integration.
 
 ## Required review evidence
 

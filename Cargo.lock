@@ -899,6 +899,7 @@ dependencies = [
  "kyberia-domain",
  "kyberia-materialization-identity",
  "kyberia-operation-log",
+ "kyberia-resource-budget",
  "serde_json",
 ]
 
@@ -960,6 +961,7 @@ version = "0.1.0"
 dependencies = [
  "kyberia-domain",
  "kyberia-operation-log",
+ "kyberia-resource-budget",
  "serde_json",
  "sha2",
 ]
@@ -998,6 +1000,7 @@ name = "kyberia-operation-log"
 version = "0.1.0"
 dependencies = [
  "kyberia-domain",
+ "kyberia-resource-budget",
  "proptest",
  "serde",
  "serde_json",

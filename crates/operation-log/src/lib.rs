@@ -18,12 +18,17 @@ use kyberia_domain::{
         ProjectId, SiteId, Text,
     },
 };
+use kyberia_resource_budget::{
+    BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError, ResourceLimits,
+    ResourceUsage,
+};
 use serde::{Deserialize, Deserializer, Serialize, de};
 use sha2::{Digest, Sha256};
 use std::{
     cmp::Reverse,
     collections::{BTreeMap, BTreeSet, BinaryHeap},
     fmt,
+    io::{self, Write},
 };
 
 /// `ActorDeviceId` is the canonical domain device identity. This alias keeps
@@ -141,6 +146,64 @@ pub const MAX_REFERENCED_ARTIFACT_BYTES: u64 = 64 * 1024 * 1024;
 pub const MAX_CONFLICTS: usize = 8_192;
 pub const MAX_ANCESTRY_WORK: usize = 2_000_000;
 const MAX_MERGE_FRONTIER: usize = MAX_CONFLICTS;
+const ESTIMATED_STRUCTURAL_ENTRY_BYTES: usize = 128;
+
+const fn estimated_structural_bytes(entries: usize) -> usize {
+    entries.saturating_mul(ESTIMATED_STRUCTURAL_ENTRY_BYTES)
+}
+
+fn default_operation_budget() -> ResourceBudget {
+    default_operation_budget_with_ancestry(MAX_ANCESTRY_WORK)
+}
+
+fn default_operation_budget_with_ancestry(ancestry_work: usize) -> ResourceBudget {
+    ResourceBudget::new(ResourceLimits::new(
+        ancestry_work,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    ))
+}
+
+fn operation_budget_error(error: ResourceBudgetError) -> OperationError {
+    match error {
+        ResourceBudgetError::Cancelled => OperationError::Cancelled,
+        ResourceBudgetError::LimitExceeded(limit) => {
+            let label = match limit.kind() {
+                BudgetKind::OperationAncestryWork => "ancestry_work",
+                kind => kind.label(),
+            };
+            OperationError::ResourceLimit(label)
+        }
+    }
+}
+
+fn merge_budget_error(error: ResourceBudgetError) -> MergeError {
+    match error {
+        ResourceBudgetError::Cancelled => MergeError::Cancelled,
+        ResourceBudgetError::LimitExceeded(limit) => {
+            let label = match limit.kind() {
+                BudgetKind::OperationAncestryWork => "ancestry_work",
+                kind => kind.label(),
+            };
+            MergeError::ResourceLimit(label)
+        }
+    }
+}
+
+fn resolution_effect_error(error: MergeError) -> OperationError {
+    match error {
+        MergeError::Operation(operation_error) => operation_error,
+        MergeError::InvalidToggle => OperationError::InvalidResolution,
+        MergeError::ResourceLimit(label) => OperationError::ResourceLimit(label),
+        MergeError::Cancelled => OperationError::Cancelled,
+        MergeError::WrongProject | MergeError::TamperedDuplicate | MergeError::Conflicts(_) => {
+            OperationError::InvalidResolution
+        }
+    }
+}
 
 /// A content-addressed reference to an immutable artifact or observation
 /// chunk. The bytes themselves are intentionally not representable here.
@@ -584,6 +647,45 @@ struct OperationWire {
     content_hash: ContentHash,
 }
 
+#[derive(Serialize)]
+struct OperationWireRef<'a> {
+    schema_version: OperationSchemaVersion,
+    operation_id: OperationId,
+    project_id: ProjectId,
+    actor_id: ActorId,
+    device_id: DeviceId,
+    logical_time: LogicalTimestamp,
+    causal_depth: CausalDepth,
+    parents: &'a [OperationId],
+    payload: &'a OperationPayload,
+    inverse: &'a InverseMetadata,
+    content_hash: ContentHash,
+}
+
+struct CountingWriter {
+    length: usize,
+    limit_exceeded: bool,
+}
+
+impl Write for CountingWriter {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        let next = self
+            .length
+            .checked_add(bytes.len())
+            .ok_or_else(|| io::Error::other("operation wire length overflow"))?;
+        if next > MAX_OPERATION_WIRE_BYTES {
+            self.limit_exceeded = true;
+            return Err(io::Error::other("operation wire length limit"));
+        }
+        self.length = next;
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 struct UnsignedOperationWire {
     schema_version: OperationSchemaVersion,
@@ -990,12 +1092,55 @@ impl Operation {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, OperationError> {
-        let bytes = serde_json::to_vec(&OperationWire::from(self.clone()))
-            .map_err(|_| OperationError::CanonicalEncoding)?;
+        let wire = OperationWireRef {
+            schema_version: self.schema_version,
+            operation_id: self.operation_id,
+            project_id: self.project_id,
+            actor_id: self.actor_id,
+            device_id: self.device_id,
+            logical_time: self.logical_time,
+            causal_depth: self.causal_depth,
+            parents: &self.parents,
+            payload: &self.payload,
+            inverse: &self.inverse,
+            content_hash: self.content_hash,
+        };
+        let bytes = serde_json::to_vec(&wire).map_err(|_| OperationError::CanonicalEncoding)?;
         if bytes.len() > MAX_OPERATION_WIRE_BYTES {
             return Err(OperationError::ResourceLimit("operation_wire_bytes"));
         }
         Ok(bytes)
+    }
+
+    /// Return the exact canonical wire length without allocating the wire
+    /// buffer. This is used to precharge an outer resource budget before
+    /// identity encoding retains each operation's bytes.
+    pub fn wire_bytes_len(&self) -> Result<usize, OperationError> {
+        let mut writer = CountingWriter {
+            length: 0,
+            limit_exceeded: false,
+        };
+        let wire = OperationWireRef {
+            schema_version: self.schema_version,
+            operation_id: self.operation_id,
+            project_id: self.project_id,
+            actor_id: self.actor_id,
+            device_id: self.device_id,
+            logical_time: self.logical_time,
+            causal_depth: self.causal_depth,
+            parents: &self.parents,
+            payload: &self.payload,
+            inverse: &self.inverse,
+            content_hash: self.content_hash,
+        };
+        if serde_json::to_writer(&mut writer, &wire).is_err() {
+            return Err(if writer.limit_exceeded {
+                OperationError::ResourceLimit("operation_wire_bytes")
+            } else {
+                OperationError::CanonicalEncoding
+            });
+        }
+        Ok(writer.length)
     }
 
     /// Bytes are canonical JSON generated from the typed unsigned operation.
@@ -1582,9 +1727,39 @@ impl OperationSet {
     where
         I: IntoIterator<Item = Operation>,
     {
+        let mut budget = default_operation_budget();
+        Self::from_operations_with_budget(operations, &mut budget)
+    }
+
+    /// Construct and validate a set while charging graph work and owned
+    /// operation payload bytes to a caller-owned cumulative budget.
+    pub fn from_operations_with_budget<I, H>(
+        operations: I,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Self, OperationError>
+    where
+        I: IntoIterator<Item = Operation>,
+        H: CancellationHook,
+    {
+        budget.check_cancelled().map_err(operation_budget_error)?;
+        let mut local_usage = ResourceUsage::default();
         let mut project_id = None;
         let mut map: BTreeMap<OperationId, Operation> = BTreeMap::new();
+        let mut input_count = 0usize;
         for operation in operations {
+            budget.check_cancelled().map_err(operation_budget_error)?;
+            input_count = input_count
+                .checked_add(1)
+                .ok_or(OperationError::ResourceLimit("operation_count"))?;
+            if input_count > MAX_OPERATION_COUNT {
+                return Err(OperationError::ResourceLimit("operation_count"));
+            }
+            budget
+                .charge(
+                    BudgetKind::WorkingSetBytes,
+                    ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                )
+                .map_err(operation_budget_error)?;
             if let Some(expected) = project_id {
                 if operation.project_id() != expected {
                     return Err(OperationError::WrongProject);
@@ -1601,6 +1776,12 @@ impl OperationSet {
             if map.len() >= MAX_OPERATION_COUNT {
                 return Err(OperationError::ResourceLimit("operation_count"));
             }
+            budget
+                .charge(
+                    BudgetKind::OperationBytes,
+                    operation.canonical_bytes().len(),
+                )
+                .map_err(operation_budget_error)?;
             map.insert(operation.operation_id(), operation);
         }
         let project_id = project_id.ok_or(OperationError::EmptyOperationSet)?;
@@ -1608,7 +1789,7 @@ impl OperationSet {
             project_id,
             operations: map,
         };
-        result.validate_graph()?;
+        result.validate_graph_with_budget(budget, &mut local_usage)?;
         Ok(result)
     }
 
@@ -1718,11 +1899,25 @@ impl OperationSet {
     /// calibration prior is returned as `AppliedEffect::Calibration` instead
     /// of being coerced into a fake identifier or omitted from the replay.
     pub fn replay_effects(&self) -> Result<Vec<AppliedEffect>, MergeError> {
-        let conflicts = self.conflicts()?;
+        let mut budget = default_operation_budget();
+        self.replay_effects_with_budget(&mut budget)
+    }
+
+    /// Replay with a caller-owned cumulative budget. The budget may be shared
+    /// by validation, conflict inspection, and several historical replays.
+    pub fn replay_effects_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Vec<AppliedEffect>, MergeError> {
+        budget.check_cancelled().map_err(merge_budget_error)?;
+        let mut local_usage = ResourceUsage::default();
+        let conflicts = self.conflicts_with_budget(budget, &mut local_usage)?;
         if !conflicts.is_empty() {
             return Err(MergeError::Conflicts(conflicts));
         }
-        Ok(self.replay_effects_without_conflict_check()?.0)
+        Ok(self
+            .replay_effects_without_conflict_check_with_budget(budget, &mut local_usage)?
+            .0)
     }
 
     /// Validate replayable toggle state without requiring semantic field
@@ -1732,13 +1927,34 @@ impl OperationSet {
     /// that need mutations must use [`Self::replay`], which still refuses to
     /// apply a conflicting set.
     pub fn validate_replay_semantics(&self) -> Result<(), MergeError> {
-        self.replay_effects_without_conflict_check().map(|_| ())
+        let mut budget = default_operation_budget();
+        self.validate_replay_semantics_with_budget(&mut budget)
+    }
+
+    /// Validate replay semantics using a cumulative caller-owned budget.
+    pub fn validate_replay_semantics_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<(), MergeError> {
+        let mut local_usage = ResourceUsage::default();
+        self.replay_effects_without_conflict_check_with_budget(budget, &mut local_usage)
+            .map(|_| ())
     }
 
     fn replay_without_conflict_check(
         &self,
     ) -> Result<(Vec<AppliedMutation>, BTreeMap<OperationId, bool>), MergeError> {
-        let (effects, active) = self.replay_effects_without_conflict_check()?;
+        let mut budget = default_operation_budget();
+        self.replay_without_conflict_check_with_budget(&mut budget)
+    }
+
+    fn replay_without_conflict_check_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<(Vec<AppliedMutation>, BTreeMap<OperationId, bool>), MergeError> {
+        let mut local_usage = ResourceUsage::default();
+        let (effects, active) =
+            self.replay_effects_without_conflict_check_with_budget(budget, &mut local_usage)?;
         let mutations = effects
             .into_iter()
             .map(AppliedEffect::into_mutation)
@@ -1746,15 +1962,30 @@ impl OperationSet {
         Ok((mutations, active))
     }
 
-    fn replay_effects_without_conflict_check(
+    fn replay_effects_without_conflict_check_with_budget<H: CancellationHook>(
         &self,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
     ) -> Result<(Vec<AppliedEffect>, BTreeMap<OperationId, bool>), MergeError> {
+        budget.check_cancelled().map_err(merge_budget_error)?;
+        budget
+            .charge(
+                BudgetKind::WorkingSetBytes,
+                estimated_structural_bytes(self.operations.len()),
+            )
+            .map_err(merge_budget_error)?;
         let mut active = BTreeMap::new();
         let mut toggle_history: BTreeMap<(OperationReference, ToggleDirection), Vec<OperationId>> =
             BTreeMap::new();
-        let mut ancestry_work = MAX_ANCESTRY_WORK;
         let mut result = Vec::with_capacity(self.operations.len());
         for operation in self.ordered().map_err(MergeError::Operation)? {
+            budget.check_cancelled().map_err(merge_budget_error)?;
+            budget
+                .charge(
+                    BudgetKind::WorkingSetBytes,
+                    operation.canonical_bytes().len(),
+                )
+                .map_err(merge_budget_error)?;
             match operation.payload() {
                 OperationPayload::Apply { mutation } => {
                     active.insert(operation.operation_id(), true);
@@ -1766,6 +1997,13 @@ impl OperationSet {
                 OperationPayload::Undo { target } => {
                     if active.get(&target.operation_id()) != Some(&true) {
                         let intent = (*target, ToggleDirection::Undo);
+                        let prior_toggles_len = toggle_history.get(&intent).map_or(0, Vec::len);
+                        budget
+                            .charge(
+                                BudgetKind::WorkingSetBytes,
+                                estimated_structural_bytes(prior_toggles_len),
+                            )
+                            .map_err(merge_budget_error)?;
                         let prior_toggles =
                             toggle_history.get(&intent).cloned().unwrap_or_default();
                         if !prior_toggles.is_empty() {
@@ -1775,9 +2013,10 @@ impl OperationSet {
                                     .ancestor_with_budget(
                                         prior,
                                         operation.operation_id(),
-                                        &mut ancestry_work,
+                                        budget,
+                                        local_usage,
                                     )
-                                    .map_err(MergeError::Operation)?
+                                    .map_err(merge_budget_error)?
                                 {
                                     sequential = true;
                                     break;
@@ -1786,6 +2025,12 @@ impl OperationSet {
                             if sequential {
                                 return Err(MergeError::InvalidToggle);
                             }
+                            budget
+                                .charge(
+                                    BudgetKind::WorkingSetBytes,
+                                    ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                                )
+                                .map_err(merge_budget_error)?;
                             toggle_history
                                 .entry(intent)
                                 .or_default()
@@ -1798,11 +2043,26 @@ impl OperationSet {
                         .operations
                         .get(&target.operation_id())
                         .ok_or(MergeError::Operation(OperationError::MissingTarget))?;
+                    // `as_applied_effect` clones the target's inverse payload;
+                    // charge that referenced payload before constructing the
+                    // effect, in addition to the current toggle's wire size.
+                    budget
+                        .charge(
+                            BudgetKind::WorkingSetBytes,
+                            target_operation.canonical_bytes().len(),
+                        )
+                        .map_err(merge_budget_error)?;
                     let effect = target_operation
                         .inverse()
                         .as_applied_effect(operation.operation_id())
                         .map_err(MergeError::Operation)?;
                     active.insert(target.operation_id(), false);
+                    budget
+                        .charge(
+                            BudgetKind::WorkingSetBytes,
+                            ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                        )
+                        .map_err(merge_budget_error)?;
                     toggle_history
                         .entry((*target, ToggleDirection::Undo))
                         .or_default()
@@ -1812,6 +2072,13 @@ impl OperationSet {
                 OperationPayload::Redo { target } => {
                     if active.get(&target.operation_id()) != Some(&false) {
                         let intent = (*target, ToggleDirection::Redo);
+                        let prior_toggles_len = toggle_history.get(&intent).map_or(0, Vec::len);
+                        budget
+                            .charge(
+                                BudgetKind::WorkingSetBytes,
+                                estimated_structural_bytes(prior_toggles_len),
+                            )
+                            .map_err(merge_budget_error)?;
                         let prior_toggles =
                             toggle_history.get(&intent).cloned().unwrap_or_default();
                         if !prior_toggles.is_empty() {
@@ -1821,9 +2088,10 @@ impl OperationSet {
                                     .ancestor_with_budget(
                                         prior,
                                         operation.operation_id(),
-                                        &mut ancestry_work,
+                                        budget,
+                                        local_usage,
                                     )
-                                    .map_err(MergeError::Operation)?
+                                    .map_err(merge_budget_error)?
                                 {
                                     sequential = true;
                                     break;
@@ -1832,6 +2100,12 @@ impl OperationSet {
                             if sequential {
                                 return Err(MergeError::InvalidToggle);
                             }
+                            budget
+                                .charge(
+                                    BudgetKind::WorkingSetBytes,
+                                    ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                                )
+                                .map_err(merge_budget_error)?;
                             toggle_history
                                 .entry(intent)
                                 .or_default()
@@ -1847,7 +2121,21 @@ impl OperationSet {
                     let OperationPayload::Apply { mutation } = target_operation.payload() else {
                         return Err(MergeError::InvalidToggle);
                     };
+                    // Redo clones the referenced apply mutation, whose size
+                    // is independent of the redo operation's own wire size.
+                    budget
+                        .charge(
+                            BudgetKind::WorkingSetBytes,
+                            target_operation.canonical_bytes().len(),
+                        )
+                        .map_err(merge_budget_error)?;
                     active.insert(target.operation_id(), true);
+                    budget
+                        .charge(
+                            BudgetKind::WorkingSetBytes,
+                            ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                        )
+                        .map_err(merge_budget_error)?;
                     toggle_history
                         .entry((*target, ToggleDirection::Redo))
                         .or_default()
@@ -1880,8 +2168,19 @@ impl OperationSet {
     }
 
     fn validate_graph(&self) -> Result<(), OperationError> {
-        let mut ancestry_work = MAX_ANCESTRY_WORK;
+        let mut budget = default_operation_budget();
+        let mut local_usage = ResourceUsage::default();
+        self.validate_graph_with_budget(&mut budget, &mut local_usage)
+    }
+
+    fn validate_graph_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
+    ) -> Result<(), OperationError> {
+        budget.check_cancelled().map_err(operation_budget_error)?;
         for operation in self.operations.values() {
+            budget.check_cancelled().map_err(operation_budget_error)?;
             let mut max_parent_depth = None;
             for parent_id in operation.parents() {
                 if *parent_id == operation.operation_id() {
@@ -1902,8 +2201,12 @@ impl OperationSet {
             }
             for (index, left) in operation.parents().iter().enumerate() {
                 for right in operation.parents().iter().skip(index + 1) {
-                    if self.ancestor_with_budget(*left, *right, &mut ancestry_work)?
-                        || self.ancestor_with_budget(*right, *left, &mut ancestry_work)?
+                    if self
+                        .ancestor_with_budget(*left, *right, budget, local_usage)
+                        .map_err(operation_budget_error)?
+                        || self
+                            .ancestor_with_budget(*right, *left, budget, local_usage)
+                            .map_err(operation_budget_error)?
                     {
                         return Err(OperationError::InvalidCausality);
                     }
@@ -1936,11 +2239,14 @@ impl OperationSet {
                     return Err(OperationError::VersionMismatch);
                 }
                 if !matches!(target_operation.payload(), OperationPayload::Apply { .. })
-                    || !self.ancestor_with_budget(
-                        target.operation_id(),
-                        operation.operation_id(),
-                        &mut ancestry_work,
-                    )?
+                    || !self
+                        .ancestor_with_budget(
+                            target.operation_id(),
+                            operation.operation_id(),
+                            budget,
+                            local_usage,
+                        )
+                        .map_err(operation_budget_error)?
                 {
                     return Err(OperationError::InvalidCausality);
                 }
@@ -1952,18 +2258,25 @@ impl OperationSet {
                 }
             }
             if let Some((left, right)) = operation.resolution_references() {
-                self.validate_resolution(operation, left, right, &mut ancestry_work)?;
+                self.validate_resolution(operation, left, right, budget, local_usage)?;
             }
         }
+        budget
+            .charge(
+                BudgetKind::WorkingSetBytes,
+                estimated_structural_bytes(self.operations.len()),
+            )
+            .map_err(operation_budget_error)?;
         self.ordered().map(|_| ())
     }
 
-    fn validate_resolution(
+    fn validate_resolution<H: CancellationHook>(
         &self,
         operation: &Operation,
         left: OperationReference,
         right: OperationReference,
-        ancestry_work: &mut usize,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
     ) -> Result<(), OperationError> {
         if left.operation_id() == right.operation_id() {
             return Err(OperationError::InvalidResolution);
@@ -1992,50 +2305,70 @@ impl OperationSet {
         {
             return Err(OperationError::HashMismatch);
         }
-        if !self.ancestor_with_budget(
-            left.operation_id(),
-            operation.operation_id(),
-            ancestry_work,
-        )? || !self.ancestor_with_budget(
-            right.operation_id(),
-            operation.operation_id(),
-            ancestry_work,
-        )? || self.ancestor_with_budget(
-            left.operation_id(),
-            right.operation_id(),
-            ancestry_work,
-        )? || self.ancestor_with_budget(
-            right.operation_id(),
-            left.operation_id(),
-            ancestry_work,
-        )? {
+        if !self
+            .ancestor_with_budget(
+                left.operation_id(),
+                operation.operation_id(),
+                budget,
+                local_usage,
+            )
+            .map_err(operation_budget_error)?
+            || !self
+                .ancestor_with_budget(
+                    right.operation_id(),
+                    operation.operation_id(),
+                    budget,
+                    local_usage,
+                )
+                .map_err(operation_budget_error)?
+            || self
+                .ancestor_with_budget(
+                    left.operation_id(),
+                    right.operation_id(),
+                    budget,
+                    local_usage,
+                )
+                .map_err(operation_budget_error)?
+            || self
+                .ancestor_with_budget(
+                    right.operation_id(),
+                    left.operation_id(),
+                    budget,
+                    local_usage,
+                )
+                .map_err(operation_budget_error)?
+        {
             return Err(OperationError::InvalidResolution);
         }
         // Validate the semantic values, rather than converting a typed V2
         // effect back into the mutation-only V1 representation. In
         // particular, an unknown calibration prior is a valid conflict arm
         // and must remain inspectable and resolvable.
-        let left_effect = self.effect(left_operation).map_err(|error| match error {
-            MergeError::Operation(operation_error) => operation_error,
-            MergeError::InvalidToggle => OperationError::InvalidResolution,
-            MergeError::WrongProject
-            | MergeError::TamperedDuplicate
-            | MergeError::Conflicts(_)
-            | MergeError::ResourceLimit(_) => OperationError::InvalidResolution,
-        })?;
-        let right_effect = self.effect(right_operation).map_err(|error| match error {
-            MergeError::Operation(operation_error) => operation_error,
-            MergeError::InvalidToggle => OperationError::InvalidResolution,
-            MergeError::WrongProject
-            | MergeError::TamperedDuplicate
-            | MergeError::Conflicts(_)
-            | MergeError::ResourceLimit(_) => OperationError::InvalidResolution,
-        })?;
+        let (left_effect, left_effect_bytes) = self
+            .effect_with_budget(left_operation, budget)
+            .map_err(resolution_effect_error)?;
+        let (right_effect, right_effect_bytes) = self
+            .effect_with_budget(right_operation, budget)
+            .map_err(resolution_effect_error)?;
         let resolution_value = match operation.payload() {
             OperationPayload::Resolve { mutation, .. } => {
+                budget
+                    .charge(
+                        BudgetKind::WorkingSetBytes,
+                        operation.canonical_bytes().len(),
+                    )
+                    .map_err(operation_budget_error)?;
                 ResolutionValue::Mutation(mutation.clone())
             }
-            OperationPayload::ResolveV2 { value, .. } => value.clone(),
+            OperationPayload::ResolveV2 { value, .. } => {
+                budget
+                    .charge(
+                        BudgetKind::WorkingSetBytes,
+                        operation.canonical_bytes().len(),
+                    )
+                    .map_err(operation_budget_error)?;
+                value.clone()
+            }
             OperationPayload::Apply { .. }
             | OperationPayload::Undo { .. }
             | OperationPayload::Redo { .. } => return Err(OperationError::InvalidResolution),
@@ -2065,33 +2398,54 @@ impl OperationSet {
         };
         if left_effect.field_key() != right_effect.field_key()
             || left_effect.field_key() != resolution_value.field_key()
-            || (left_effect.canonical_identity() == right_effect.canonical_identity()
-                && !distinct_toggle_intents)
         {
+            return Err(OperationError::InvalidResolution);
+        }
+        budget
+            .charge(BudgetKind::WorkingSetBytes, left_effect_bytes)
+            .map_err(operation_budget_error)?;
+        let left_identity = left_effect.canonical_identity();
+        budget
+            .charge(BudgetKind::WorkingSetBytes, right_effect_bytes)
+            .map_err(operation_budget_error)?;
+        let right_identity = right_effect.canonical_identity();
+        if left_identity == right_identity && !distinct_toggle_intents {
             return Err(OperationError::InvalidResolution);
         }
         Ok(())
     }
 
-    fn ancestor_with_budget(
+    fn ancestor_with_budget<H: CancellationHook>(
         &self,
         ancestor: OperationId,
         descendant: OperationId,
-        work: &mut usize,
-    ) -> Result<bool, OperationError> {
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
+    ) -> Result<bool, ResourceBudgetError> {
         if ancestor == descendant {
             return Ok(false);
         }
+        budget.charge(
+            BudgetKind::WorkingSetBytes,
+            ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+        )?;
         let mut pending = vec![descendant];
         let mut visited = BTreeSet::new();
         while let Some(current) = pending.pop() {
-            if !visited.insert(current) {
+            if visited.contains(&current) {
                 continue;
             }
-            if *work == 0 {
-                return Err(OperationError::ResourceLimit("ancestry_work"));
-            }
-            *work -= 1;
+            budget.charge_with_limit(
+                BudgetKind::OperationAncestryWork,
+                1,
+                local_usage,
+                MAX_ANCESTRY_WORK,
+            )?;
+            budget.charge(
+                BudgetKind::WorkingSetBytes,
+                ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+            )?;
+            visited.insert(current);
             let Some(operation) = self.operations.get(&current) else {
                 continue;
             };
@@ -2099,6 +2453,10 @@ impl OperationSet {
                 if *parent == ancestor {
                     return Ok(true);
                 }
+                budget.charge(
+                    BudgetKind::WorkingSetBytes,
+                    ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                )?;
                 pending.push(*parent);
             }
         }
@@ -2106,6 +2464,23 @@ impl OperationSet {
     }
 
     fn conflicts(&self) -> Result<Vec<MergeConflict>, MergeError> {
+        let mut budget = default_operation_budget();
+        let mut local_usage = ResourceUsage::default();
+        self.conflicts_with_budget(&mut budget, &mut local_usage)
+    }
+
+    fn conflicts_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
+    ) -> Result<Vec<MergeConflict>, MergeError> {
+        budget.check_cancelled().map_err(merge_budget_error)?;
+        budget
+            .charge(
+                BudgetKind::WorkingSetBytes,
+                estimated_structural_bytes(self.operations.len()),
+            )
+            .map_err(merge_budget_error)?;
         #[derive(Clone)]
         struct FrontierEntry {
             operation_id: OperationId,
@@ -2113,18 +2488,30 @@ impl OperationSet {
             identity: FrontierIdentity,
             intent: ConflictIntent,
             event: AppliedEffect,
+            /// Conservative canonical-byte proxy for one clone of `event`.
+            /// Undo/redo events own a target payload, so this is the target's
+            /// operation size rather than the toggle operation's size.
+            event_bytes: usize,
         }
 
         type ConflictKey = (OperationId, OperationId);
         let mut frontier: BTreeMap<FieldKey, Vec<FrontierEntry>> = BTreeMap::new();
         let mut conflicts: BTreeMap<ConflictKey, MergeConflict> = BTreeMap::new();
-        let mut ancestry_work = MAX_ANCESTRY_WORK;
         for operation in self.ordered().map_err(MergeError::Operation)? {
             if let Some((left, right)) = operation.resolution_references() {
                 conflicts.remove(&(left.operation_id(), right.operation_id()));
             }
-            let event = self.effect_event(operation)?;
+            let (event, event_bytes) = self.effect_event_with_budget(operation, budget)?;
+            // Both conversions below own payload-bearing values. Charge each
+            // copy before invoking the conversion so a rejected budget cannot
+            // leave an allocation behind.
+            budget
+                .charge(BudgetKind::WorkingSetBytes, event_bytes)
+                .map_err(merge_budget_error)?;
             let effect = event.as_effect_value();
+            budget
+                .charge(BudgetKind::WorkingSetBytes, event_bytes)
+                .map_err(merge_budget_error)?;
             let (identity, intent) = frontier_identity(operation, &effect);
             let key = effect.field_key();
             let previous = frontier.remove(&key).unwrap_or_default();
@@ -2136,15 +2523,17 @@ impl OperationSet {
                         .ancestor_with_budget(
                             entry.operation_id,
                             operation.operation_id(),
-                            &mut ancestry_work,
+                            budget,
+                            local_usage,
                         )
-                        .map_err(MergeError::Operation)?
+                        .map_err(merge_budget_error)?
                 {
                     self.remove_superseded_conflicts(
                         &mut conflicts,
                         entry.operation_id,
                         operation.operation_id(),
-                        &mut ancestry_work,
+                        budget,
+                        local_usage,
                     )?;
                     continue;
                 }
@@ -2159,7 +2548,8 @@ impl OperationSet {
                         &mut conflicts,
                         entry.operation_id,
                         operation.operation_id(),
-                        &mut ancestry_work,
+                        budget,
+                        local_usage,
                     )?;
                     continue;
                 }
@@ -2174,8 +2564,8 @@ impl OperationSet {
                                 OperationReference::from(operation),
                                 entry.intent,
                                 intent,
-                                entry.event.clone(),
-                                event.clone(),
+                                clone_effect_with_budget(&entry.event, entry.event_bytes, budget)?,
+                                clone_effect_with_budget(&event, event_bytes, budget)?,
                             )
                         } else {
                             (
@@ -2183,8 +2573,8 @@ impl OperationSet {
                                 entry.reference,
                                 intent,
                                 entry.intent,
-                                event.clone(),
-                                entry.event.clone(),
+                                clone_effect_with_budget(&event, event_bytes, budget)?,
+                                clone_effect_with_budget(&entry.event, entry.event_bytes, budget)?,
                             )
                         };
                     let conflict_key = (left.operation_id(), right.operation_id());
@@ -2218,15 +2608,17 @@ impl OperationSet {
                     .ancestor_with_budget(
                         entry.operation_id,
                         operation.operation_id(),
-                        &mut ancestry_work,
+                        budget,
+                        local_usage,
                     )
-                    .map_err(MergeError::Operation)?
+                    .map_err(merge_budget_error)?
                 {
                     self.remove_superseded_conflicts(
                         &mut conflicts,
                         entry.operation_id,
                         operation.operation_id(),
-                        &mut ancestry_work,
+                        budget,
+                        local_usage,
                     )?;
                     continue;
                 }
@@ -2237,8 +2629,8 @@ impl OperationSet {
                             OperationReference::from(operation),
                             entry.intent,
                             intent,
-                            entry.event.clone(),
-                            event.clone(),
+                            clone_effect_with_budget(&entry.event, entry.event_bytes, budget)?,
+                            clone_effect_with_budget(&event, event_bytes, budget)?,
                         )
                     } else {
                         (
@@ -2246,8 +2638,8 @@ impl OperationSet {
                             entry.reference,
                             intent,
                             entry.intent,
-                            event.clone(),
-                            entry.event.clone(),
+                            clone_effect_with_budget(&event, event_bytes, budget)?,
+                            clone_effect_with_budget(&entry.event, entry.event_bytes, budget)?,
                         )
                     };
                 let conflict_key = (left.operation_id(), right.operation_id());
@@ -2274,6 +2666,7 @@ impl OperationSet {
                 identity,
                 intent,
                 event,
+                event_bytes,
             });
             if next.len() > MAX_MERGE_FRONTIER {
                 return Err(MergeError::ResourceLimit("merge_frontier"));
@@ -2288,14 +2681,17 @@ impl OperationSet {
         conflicts: &mut BTreeMap<(OperationId, OperationId), MergeConflict>,
         superseded: OperationId,
         current: OperationId,
-        work: &mut usize,
+        budget: &mut ResourceBudget<impl CancellationHook>,
+        local_usage: &mut ResourceUsage,
     ) -> Result<(), MergeError> {
         let mut keys = Vec::new();
         for key in conflicts.keys().copied() {
-            if *work == 0 {
-                return Err(MergeError::ResourceLimit("merge_work"));
-            }
-            *work -= 1;
+            budget
+                .charge(
+                    BudgetKind::WorkingSetBytes,
+                    ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                )
+                .map_err(merge_budget_error)?;
             if key.0 == superseded || key.1 == superseded {
                 keys.push(key);
             }
@@ -2307,8 +2703,8 @@ impl OperationSet {
             // that unresolved audit conflict. A later Resolve can clear only
             // its exact canonical pair.
             if self
-                .ancestor_with_budget(other, current, work)
-                .map_err(MergeError::Operation)?
+                .ancestor_with_budget(other, current, budget, local_usage)
+                .map_err(merge_budget_error)?
             {
                 continue;
             }
@@ -2317,25 +2713,62 @@ impl OperationSet {
         Ok(())
     }
 
-    fn effect(&self, operation: &Operation) -> Result<EffectValue, MergeError> {
-        Ok(self.effect_event(operation)?.as_effect_value())
+    fn effect_with_budget<H: CancellationHook>(
+        &self,
+        operation: &Operation,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<(EffectValue, usize), MergeError> {
+        let (event, event_bytes) = self.effect_event_with_budget(operation, budget)?;
+        budget
+            .charge(BudgetKind::WorkingSetBytes, event_bytes)
+            .map_err(merge_budget_error)?;
+        Ok((event.as_effect_value(), event_bytes))
     }
 
-    fn effect_event(&self, operation: &Operation) -> Result<AppliedEffect, MergeError> {
+    fn effect_event_with_budget<H: CancellationHook>(
+        &self,
+        operation: &Operation,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<(AppliedEffect, usize), MergeError> {
+        self.effect_event_with_charge(operation, |source| {
+            budget
+                .charge(BudgetKind::WorkingSetBytes, source.canonical_bytes().len())
+                .map_err(merge_budget_error)
+        })
+    }
+
+    fn effect_event_with_charge<F>(
+        &self,
+        operation: &Operation,
+        mut charge: F,
+    ) -> Result<(AppliedEffect, usize), MergeError>
+    where
+        F: FnMut(&Operation) -> Result<(), MergeError>,
+    {
         match operation.payload() {
-            OperationPayload::Apply { mutation } => Ok(AppliedEffect::Mutation(AppliedMutation {
-                operation_id: operation.operation_id(),
-                mutation: mutation.clone(),
-            })),
+            OperationPayload::Apply { mutation } => {
+                charge(operation)?;
+                Ok((
+                    AppliedEffect::Mutation(AppliedMutation {
+                        operation_id: operation.operation_id(),
+                        mutation: mutation.clone(),
+                    }),
+                    operation.canonical_bytes().len(),
+                ))
+            }
             OperationPayload::Undo { target } => {
                 let target_operation = self
                     .operations
                     .get(&target.operation_id())
                     .ok_or(MergeError::Operation(OperationError::MissingTarget))?;
-                target_operation
-                    .inverse()
-                    .as_applied_effect(operation.operation_id())
-                    .map_err(MergeError::Operation)
+                charge(target_operation)?;
+                Ok((
+                    target_operation
+                        .inverse()
+                        .as_applied_effect(operation.operation_id())
+                        .map_err(MergeError::Operation)?,
+                    target_operation.canonical_bytes().len(),
+                ))
             }
             OperationPayload::Redo { target } => {
                 let target_operation = self
@@ -2345,22 +2778,45 @@ impl OperationSet {
                 let OperationPayload::Apply { mutation } = target_operation.payload() else {
                     return Err(MergeError::InvalidToggle);
                 };
-                Ok(AppliedEffect::Mutation(AppliedMutation {
-                    operation_id: operation.operation_id(),
-                    mutation: mutation.clone(),
-                }))
+                charge(target_operation)?;
+                Ok((
+                    AppliedEffect::Mutation(AppliedMutation {
+                        operation_id: operation.operation_id(),
+                        mutation: mutation.clone(),
+                    }),
+                    target_operation.canonical_bytes().len(),
+                ))
             }
             OperationPayload::Resolve { mutation, .. } => {
-                Ok(AppliedEffect::Mutation(AppliedMutation {
-                    operation_id: operation.operation_id(),
-                    mutation: mutation.clone(),
-                }))
+                charge(operation)?;
+                Ok((
+                    AppliedEffect::Mutation(AppliedMutation {
+                        operation_id: operation.operation_id(),
+                        mutation: mutation.clone(),
+                    }),
+                    operation.canonical_bytes().len(),
+                ))
             }
             OperationPayload::ResolveV2 { value, .. } => {
-                Ok(value.applied_effect(operation.operation_id()))
+                charge(operation)?;
+                Ok((
+                    value.applied_effect(operation.operation_id()),
+                    operation.canonical_bytes().len(),
+                ))
             }
         }
     }
+}
+
+fn clone_effect_with_budget<H: CancellationHook>(
+    effect: &AppliedEffect,
+    effect_bytes: usize,
+    budget: &mut ResourceBudget<H>,
+) -> Result<AppliedEffect, MergeError> {
+    budget
+        .charge(BudgetKind::WorkingSetBytes, effect_bytes)
+        .map_err(merge_budget_error)?;
+    Ok(effect.clone())
 }
 
 /// One mutation event emitted by deterministic replay. Consumers can apply
@@ -2615,6 +3071,7 @@ pub enum MergeError {
     Conflicts(Vec<MergeConflict>),
     InvalidToggle,
     ResourceLimit(&'static str),
+    Cancelled,
 }
 
 impl fmt::Display for MergeError {
@@ -2649,6 +3106,7 @@ pub enum OperationError {
     TamperedDuplicate,
     InvalidResolution,
     ResourceLimit(&'static str),
+    Cancelled,
 }
 
 impl fmt::Display for OperationError {

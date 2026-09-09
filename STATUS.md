@@ -39,18 +39,22 @@ allocation model accounts for live copies and nested vectors. Pre-decode
 allocation bounds and measured memory/cancellation latency remain under review;
 neither this adapter nor the renderer gate is complete. See the
 [resource review](docs/reviews/render-scene-resource-review.md).
-Shared materialization consumers remain unintegrated pending conflict-copy
-accounting review. Direct replay has scoped independent approval; its combined
-consumer suite passes 92 tests. Separate identity-writer regressions at
-`7ad38e8` and `06db93a` pass all 19 identity tests and fail when budget checks are
-experimentally moved after destination writes. Those tests await independent
-review and integration.
+Shared materialization consumer integration now includes independently reviewed
+operation admission, conflict/resolution copies, replay, identity serialization
+and materializer budgets through source commit `b5dec0c`. The immutable combined
+consumer suite passes 96 tests. Independently approved writer regressions
+`7ad38e8` and `06db93a` are included too; both fail when budget checks are moved
+after destination writes. Integrated workspace validation passes 550 tests,
+zero failures and nine ignored tests; the retained log is
+`.tools/budget-consumer-integration-regression.log`. Scoped all-target Clippy,
+formatting, architecture and source inventory checks pass.
 
 Reviewed prerequisite: the dependency-free `kyberia-resource-budget` primitive
 is integrated with six passing tests and explicit local/shared failure atomicity.
 See [scoped approval](docs/reviews/resource-budget-primitive-review.md). Its
-operation-log, identity, materializer and storage consumers remain in progress;
-existing production paths do not yet consume this budget.
+operation-log, identity and materializer consumers are now integrated and tested.
+Transaction-wide
+storage consumption remains under review in its isolated draft.
 
 Latest integrated validation at `8e68192`: `cargo test --workspace --locked
 --offline` passes 530 tests, zero failures and nine ignored tests. The retained

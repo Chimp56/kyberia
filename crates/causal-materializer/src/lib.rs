@@ -15,7 +15,12 @@ use kyberia_materialization_identity::{
 };
 use kyberia_operation_log::{
     AppliedEffect, FieldKey, InverseMetadata, InversePrior, MergeError, Mutation, Operation,
-    OperationPayload, OperationReference, OperationSchemaVersion, OperationSet, ResolutionValue,
+    OperationError, OperationPayload, OperationReference, OperationSchemaVersion, OperationSet,
+    ResolutionValue,
+};
+use kyberia_resource_budget::{
+    BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError, ResourceLimits,
+    ResourceUsage,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -98,6 +103,11 @@ const MAX_CAUSAL_COPY_BYTES: usize = 256 * 1024 * 1024;
 /// Baseline identity validation bounds the serialized baseline; operation
 /// payload growth is charged here too.
 const MAX_ESTIMATED_PROJECT_BYTES: usize = 64 * 1024 * 1024;
+const ESTIMATED_STRUCTURAL_ENTRY_BYTES: usize = 128;
+
+const fn estimated_structural_bytes(entries: usize) -> usize {
+    entries.saturating_mul(ESTIMATED_STRUCTURAL_ENTRY_BYTES)
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MaterializationError {
@@ -129,6 +139,7 @@ pub enum MaterializationError {
         reason: &'static str,
     },
     ResourceLimit(&'static str),
+    Cancelled,
 }
 
 impl std::fmt::Display for MaterializationError {
@@ -190,6 +201,22 @@ pub fn materialize(
     baseline: &Project,
     operations: &OperationSet,
 ) -> Result<MaterializedProject, MaterializationError> {
+    let mut budget = default_materialization_budget();
+    materialize_with_budget(baseline, operations, &mut budget)
+}
+
+/// Materialize using a caller-owned cumulative budget. The same budget can be
+/// carried across replay, conflict, witness, and historical-publication work;
+/// each invocation still enforces the materializer's per-job maxima.
+pub fn materialize_with_budget<H: CancellationHook>(
+    baseline: &Project,
+    operations: &OperationSet,
+    budget: &mut ResourceBudget<H>,
+) -> Result<MaterializedProject, MaterializationError> {
+    budget
+        .check_cancelled()
+        .map_err(materialization_budget_error)?;
+    let mut local_usage = ResourceUsage::default();
     if baseline.id() != operations.project_id() {
         return Err(MaterializationError::WrongProject);
     }
@@ -216,18 +243,39 @@ pub fn materialize(
         }
     }
 
-    let baseline_identity = BaselineIdentity::from_project(baseline)?;
-    let operation_identity = OperationSetIdentity::from_operation_set(operations)?;
+    let baseline_identity = BaselineIdentity::from_project_with_budget(baseline, budget)
+        .map_err(materialization_identity_error)?;
+    let operation_identity =
+        OperationSetIdentity::from_operation_set_with_budget(operations, budget)
+            .map_err(materialization_identity_error)?;
     let identity = MaterializationIdentity::bind(&baseline_identity, &operation_identity)?;
     let mut copy_budget = CopyBudget::new(baseline_identity.project_bytes().len())?;
 
     // This checks unresolved semantic conflicts and sequentially repeated
     // toggles before any domain application.  The typed path retains unknown
     // calibration effects.
-    operations.validate_replay_semantics()?;
-    let effects = operations.replay_effects()?;
-    reject_cross_field_aggregate_conflicts(baseline, operations, &effects)?;
+    operations
+        .validate_replay_semantics_with_budget(budget)
+        .map_err(materialization_merge_error)?;
+    let effects = operations
+        .replay_effects_with_budget(budget)
+        .map_err(materialization_merge_error)?;
+    reject_cross_field_aggregate_conflicts(
+        baseline,
+        operations,
+        &effects,
+        budget,
+        &mut local_usage,
+    )?;
 
+    budget
+        .charge_with_limit(
+            BudgetKind::WorkingSetBytes,
+            estimated_structural_bytes(operation_count),
+            &mut local_usage,
+            MAX_ESTIMATED_PROJECT_BYTES,
+        )
+        .map_err(materialization_budget_error)?;
     let ordered = operations.ordered().map_err(MergeError::Operation)?;
     let resolution_refs: BTreeSet<_> = ordered
         .iter()
@@ -235,20 +283,28 @@ pub fn materialize(
         .flat_map(|(left, right)| [left.operation_id(), right.operation_id()])
         .collect();
     let mut witness_ids = BTreeSet::new();
-    let mut witness_work = 0usize;
     for operation in &ordered {
         let causal = causal_before(
             baseline,
             operations,
             &ordered,
             operation,
-            &mut witness_work,
             &mut copy_budget,
+            budget,
+            &mut local_usage,
         )?;
         if resolution_refs.contains(&operation.operation_id()) {
             if witness_ids.len() >= MAX_MATERIALIZATION_OPERATIONS / 2 {
                 return Err(MaterializationError::ResourceLimit("causal_witness_ids"));
             }
+            budget
+                .charge_with_limit(
+                    BudgetKind::WorkingSetBytes,
+                    ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                    &mut local_usage,
+                    MAX_ESTIMATED_PROJECT_BYTES,
+                )
+                .map_err(materialization_budget_error)?;
             witness_ids.insert(operation.operation_id());
         }
         validate_operation_prior(
@@ -258,23 +314,35 @@ pub fn materialize(
             &witness_ids,
             operations,
             &ordered,
-            &mut witness_work,
             &mut copy_budget,
+            budget,
+            &mut local_usage,
         )?;
     }
 
-    let mut project = copy_budget.clone_baseline(baseline)?;
+    let mut project = copy_budget.clone_baseline(baseline, budget, &mut local_usage)?;
     let mut estimated_project_bytes = copy_budget.baseline_project_bytes;
     for effect in &effects {
-        charge(&mut witness_work, 1, "materialization_work")?;
+        budget
+            .charge_with_limit(
+                BudgetKind::CausalWitnessWork,
+                1,
+                &mut local_usage,
+                MAX_CAUSAL_WITNESS_WORK,
+            )
+            .map_err(materialization_budget_error)?;
         let operation = operations.operation(effect.operation_id()).ok_or(
             MaterializationError::UnsupportedOperation {
                 operation_id: effect.operation_id(),
                 reason: "effect operation is absent from operation set",
             },
         )?;
-        let next_estimated_project_bytes =
-            copy_budget.before_apply(estimated_project_bytes, operation)?;
+        let next_estimated_project_bytes = copy_budget.before_apply(
+            estimated_project_bytes,
+            operation,
+            budget,
+            &mut local_usage,
+        )?;
         project = apply_effect(&project, operation, effect)?;
         estimated_project_bytes = next_estimated_project_bytes;
     }
@@ -284,8 +352,53 @@ pub fn materialize(
     Ok(MaterializedProject { project, identity })
 }
 
+fn default_materialization_budget() -> ResourceBudget {
+    ResourceBudget::new(ResourceLimits::new(
+        kyberia_operation_log::MAX_ANCESTRY_WORK.saturating_mul(3),
+        MAX_CAUSAL_WITNESS_WORK,
+        MAX_AGGREGATE_CONFLICT_CHECKS,
+        usize::MAX,
+        MAX_CAUSAL_COPY_BYTES,
+        MAX_ESTIMATED_PROJECT_BYTES,
+    ))
+}
+
+fn materialization_budget_error(error: ResourceBudgetError) -> MaterializationError {
+    match error {
+        ResourceBudgetError::Cancelled => MaterializationError::Cancelled,
+        ResourceBudgetError::LimitExceeded(limit) => {
+            let label = match limit.kind() {
+                BudgetKind::ProjectCopyBytes => "causal_copy_bytes",
+                BudgetKind::CausalWitnessWork => "causal_witness_work",
+                BudgetKind::AggregateConflictChecks => "aggregate_conflict_work",
+                kind => kind.label(),
+            };
+            MaterializationError::ResourceLimit(label)
+        }
+    }
+}
+
+fn materialization_identity_error(error: IdentityError) -> MaterializationError {
+    match error {
+        IdentityError::Cancelled => MaterializationError::Cancelled,
+        IdentityError::Operation(OperationError::Cancelled) => MaterializationError::Cancelled,
+        IdentityError::ResourceLimit("working_set_bytes") => {
+            MaterializationError::ResourceLimit("working_set_bytes")
+        }
+        other => MaterializationError::Identity(other),
+    }
+}
+
+fn materialization_merge_error(error: MergeError) -> MaterializationError {
+    match error {
+        MergeError::Cancelled => MaterializationError::Cancelled,
+        MergeError::Operation(OperationError::Cancelled) => MaterializationError::Cancelled,
+        MergeError::ResourceLimit(label) => MaterializationError::ResourceLimit(label),
+        other => MaterializationError::Merge(other),
+    }
+}
+
 struct CopyBudget {
-    copied_bytes: usize,
     baseline_project_bytes: usize,
 }
 
@@ -295,20 +408,26 @@ impl CopyBudget {
             return Err(MaterializationError::ResourceLimit("causal_project_bytes"));
         }
         Ok(Self {
-            copied_bytes: 0,
             baseline_project_bytes,
         })
     }
 
-    fn clone_baseline(&mut self, baseline: &Project) -> Result<Project, MaterializationError> {
-        self.charge_clone(self.baseline_project_bytes)?;
+    fn clone_baseline<H: CancellationHook>(
+        &self,
+        baseline: &Project,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
+    ) -> Result<Project, MaterializationError> {
+        self.charge_clone(self.baseline_project_bytes, budget, local_usage)?;
         Ok(baseline.clone())
     }
 
-    fn before_apply(
-        &mut self,
+    fn before_apply<H: CancellationHook>(
+        &self,
         estimated_project_bytes: usize,
         operation: &Operation,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
     ) -> Result<usize, MaterializationError> {
         let next = estimated_project_bytes
             .checked_add(operation.canonical_bytes().len())
@@ -316,82 +435,101 @@ impl CopyBudget {
         if next > MAX_ESTIMATED_PROJECT_BYTES {
             return Err(MaterializationError::ResourceLimit("causal_project_bytes"));
         }
-        self.charge_clone(estimated_project_bytes)?;
+        self.charge_clone(estimated_project_bytes, budget, local_usage)?;
         Ok(next)
     }
 
-    fn charge_clone(&mut self, estimated_project_bytes: usize) -> Result<(), MaterializationError> {
-        self.copied_bytes = self
-            .copied_bytes
-            .checked_add(estimated_project_bytes)
-            .ok_or(MaterializationError::ResourceLimit("causal_copy_bytes"))?;
-        if self.copied_bytes > MAX_CAUSAL_COPY_BYTES {
-            return Err(MaterializationError::ResourceLimit("causal_copy_bytes"));
-        }
-        Ok(())
+    fn charge_clone<H: CancellationHook>(
+        &self,
+        estimated_project_bytes: usize,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
+    ) -> Result<(), MaterializationError> {
+        budget
+            .charge_with_limit(
+                BudgetKind::ProjectCopyBytes,
+                estimated_project_bytes,
+                local_usage,
+                MAX_CAUSAL_COPY_BYTES,
+            )
+            .map_err(materialization_budget_error)
     }
 }
 
-fn charge(
-    work: &mut usize,
-    amount: usize,
-    label: &'static str,
-) -> Result<(), MaterializationError> {
-    *work = work
-        .checked_add(amount)
-        .ok_or(MaterializationError::ResourceLimit(label))?;
-    if *work > MAX_CAUSAL_WITNESS_WORK {
-        return Err(MaterializationError::ResourceLimit(label));
-    }
-    Ok(())
-}
-
-fn causal_before(
+fn causal_before<H: CancellationHook>(
     baseline: &Project,
     operations: &OperationSet,
     ordered: &[&Operation],
     operation: &Operation,
-    work: &mut usize,
     copy_budget: &mut CopyBudget,
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<CausalReplay, MaterializationError> {
     if operation.parents().is_empty() {
         return Ok(CausalReplay::new(
-            copy_budget.clone_baseline(baseline)?,
+            copy_budget.clone_baseline(baseline, budget, local_usage)?,
             copy_budget.baseline_project_bytes,
         ));
     }
 
-    let ancestors = ancestor_ids(operations, operation, work)?;
+    let ancestors = ancestor_ids(operations, operation, budget, local_usage)?;
     let mut replay = CausalReplay::new(
-        copy_budget.clone_baseline(baseline)?,
+        copy_budget.clone_baseline(baseline, budget, local_usage)?,
         copy_budget.baseline_project_bytes,
     );
     for candidate in ordered {
-        charge(work, 1, "causal_witness_work")?;
+        budget
+            .charge_with_limit(
+                BudgetKind::CausalWitnessWork,
+                1,
+                local_usage,
+                MAX_CAUSAL_WITNESS_WORK,
+            )
+            .map_err(materialization_budget_error)?;
         if ancestors.contains(&candidate.operation_id()) {
-            replay.apply(candidate, operations, copy_budget)?;
+            replay.apply(candidate, operations, copy_budget, budget, local_usage)?;
         }
     }
     Ok(replay)
 }
 
-fn ancestor_ids(
+fn ancestor_ids<H: CancellationHook>(
     operations: &OperationSet,
     operation: &Operation,
-    work: &mut usize,
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<BTreeSet<OperationId>, MaterializationError> {
     let mut result = BTreeSet::new();
+    budget
+        .charge_with_limit(
+            BudgetKind::WorkingSetBytes,
+            estimated_structural_bytes(operation.parents().len()),
+            local_usage,
+            MAX_ESTIMATED_PROJECT_BYTES,
+        )
+        .map_err(materialization_budget_error)?;
     let mut stack = operation.parents().to_vec();
     while let Some(id) = stack.pop() {
-        if !result.insert(id) {
+        if result.contains(&id) {
             continue;
         }
-        *work = work
-            .checked_add(1)
-            .ok_or(MaterializationError::ResourceLimit("causal_ancestor_work"))?;
-        if *work > MAX_CAUSAL_WITNESS_WORK {
-            return Err(MaterializationError::ResourceLimit("causal_ancestor_work"));
-        }
+        budget
+            .charge_with_limit(
+                BudgetKind::CausalWitnessWork,
+                1,
+                local_usage,
+                MAX_CAUSAL_WITNESS_WORK,
+            )
+            .map_err(materialization_budget_error)?;
+        budget
+            .charge_with_limit(
+                BudgetKind::WorkingSetBytes,
+                ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                local_usage,
+                MAX_ESTIMATED_PROJECT_BYTES,
+            )
+            .map_err(materialization_budget_error)?;
+        result.insert(id);
         let parent =
             operations
                 .operation(id)
@@ -399,16 +537,25 @@ fn ancestor_ids(
                     operation_id: id,
                     reason: "causal parent is absent",
                 })?;
+        budget
+            .charge_with_limit(
+                BudgetKind::WorkingSetBytes,
+                estimated_structural_bytes(parent.parents().len()),
+                local_usage,
+                MAX_ESTIMATED_PROJECT_BYTES,
+            )
+            .map_err(materialization_budget_error)?;
         stack.extend(parent.parents());
     }
     Ok(result)
 }
 
-fn is_ancestor(
+fn is_ancestor<H: CancellationHook>(
     operations: &OperationSet,
     ancestor: OperationId,
     descendant: OperationId,
-    checks: &mut usize,
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<bool, MaterializationError> {
     if ancestor == descendant {
         return Ok(false);
@@ -416,15 +563,26 @@ fn is_ancestor(
     let mut visited = BTreeSet::new();
     let mut stack = vec![descendant];
     while let Some(id) = stack.pop() {
-        if !visited.insert(id) {
+        if visited.contains(&id) {
             continue;
         }
-        *checks = checks
-            .checked_add(1)
-            .ok_or(MaterializationError::ResourceLimit("causal_relation_work"))?;
-        if *checks > MAX_CAUSAL_WITNESS_WORK {
-            return Err(MaterializationError::ResourceLimit("causal_relation_work"));
-        }
+        budget
+            .charge_with_limit(
+                BudgetKind::CausalWitnessWork,
+                1,
+                local_usage,
+                MAX_CAUSAL_WITNESS_WORK,
+            )
+            .map_err(materialization_budget_error)?;
+        budget
+            .charge_with_limit(
+                BudgetKind::WorkingSetBytes,
+                ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                local_usage,
+                MAX_ESTIMATED_PROJECT_BYTES,
+            )
+            .map_err(materialization_budget_error)?;
+        visited.insert(id);
         let operation =
             operations
                 .operation(id)
@@ -436,6 +594,14 @@ fn is_ancestor(
             if *parent == ancestor {
                 return Ok(true);
             }
+            budget
+                .charge_with_limit(
+                    BudgetKind::WorkingSetBytes,
+                    ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                    local_usage,
+                    MAX_ESTIMATED_PROJECT_BYTES,
+                )
+                .map_err(materialization_budget_error)?;
             stack.push(*parent);
         }
     }
@@ -443,16 +609,17 @@ fn is_ancestor(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn common_causal_state(
+fn common_causal_state<H: CancellationHook>(
     operations: &OperationSet,
     ordered: &[&Operation],
     witness_ids: &BTreeSet<OperationId>,
     left: OperationReference,
     right: OperationReference,
     operation_id: OperationId,
-    work: &mut usize,
     baseline: &Project,
     copy_budget: &mut CopyBudget,
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<CausalReplay, MaterializationError> {
     if !witness_ids.contains(&left.operation_id()) || !witness_ids.contains(&right.operation_id()) {
         return Err(MaterializationError::UnsupportedOperation {
@@ -472,39 +639,69 @@ fn common_causal_state(
             reason: "resolution right operation is absent",
         },
     )?;
-    let left_ancestors = ancestor_ids(operations, left_operation, work)?;
-    let right_ancestors = ancestor_ids(operations, right_operation, work)?;
+    let left_ancestors = ancestor_ids(operations, left_operation, budget, local_usage)?;
+    let right_ancestors = ancestor_ids(operations, right_operation, budget, local_usage)?;
+    budget
+        .charge_with_limit(
+            BudgetKind::WorkingSetBytes,
+            estimated_structural_bytes(left_ancestors.len().saturating_add(right_ancestors.len())),
+            local_usage,
+            MAX_ESTIMATED_PROJECT_BYTES,
+        )
+        .map_err(materialization_budget_error)?;
     let common: BTreeSet<_> = left_ancestors
         .intersection(&right_ancestors)
         .copied()
         .collect();
     let mut replay = CausalReplay::new(
-        copy_budget.clone_baseline(baseline)?,
+        copy_budget.clone_baseline(baseline, budget, local_usage)?,
         copy_budget.baseline_project_bytes,
     );
     for candidate in ordered {
-        charge(work, 1, "causal_witness_work")?;
+        budget
+            .charge_with_limit(
+                BudgetKind::CausalWitnessWork,
+                1,
+                local_usage,
+                MAX_CAUSAL_WITNESS_WORK,
+            )
+            .map_err(materialization_budget_error)?;
         if common.contains(&candidate.operation_id()) {
-            replay.apply(candidate, operations, copy_budget)?;
+            replay.apply(candidate, operations, copy_budget, budget, local_usage)?;
         }
     }
     Ok(replay)
 }
 
-fn reject_ambiguous_prior(
+fn reject_ambiguous_prior<H: CancellationHook>(
     operation: &Operation,
     events: &[CausalEvent],
     field: FieldKey,
     operations: &OperationSet,
-    work: &mut usize,
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<(), MaterializationError> {
+    budget
+        .charge_with_limit(
+            BudgetKind::WorkingSetBytes,
+            estimated_structural_bytes(events.len()),
+            local_usage,
+            MAX_ESTIMATED_PROJECT_BYTES,
+        )
+        .map_err(materialization_budget_error)?;
     let relevant: Vec<_> = events.iter().filter(|event| event.field == field).collect();
     let mut maximal = Vec::new();
     for (index, candidate) in relevant.iter().enumerate() {
         let mut superseded = false;
         for (other_index, other) in relevant.iter().enumerate() {
             if index != other_index
-                && is_ancestor(operations, candidate.operation_id, other.operation_id, work)?
+                && is_ancestor(
+                    operations,
+                    candidate.operation_id,
+                    other.operation_id,
+                    budget,
+                    local_usage,
+                )?
             {
                 superseded = true;
                 break;
@@ -550,19 +747,31 @@ impl CausalReplay {
         }
     }
 
-    fn apply(
+    fn apply<H: CancellationHook>(
         &mut self,
         operation: &Operation,
         operations: &OperationSet,
         copy_budget: &mut CopyBudget,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
     ) -> Result<(), MaterializationError> {
         match operation.payload() {
             OperationPayload::Apply { mutation } => {
+                budget
+                    .charge_with_limit(
+                        BudgetKind::WorkingSetBytes,
+                        ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                        local_usage,
+                        MAX_ESTIMATED_PROJECT_BYTES,
+                    )
+                    .map_err(materialization_budget_error)?;
                 self.active.insert(operation.operation_id(), true);
                 self.apply_effect(
                     operation,
                     direct_mutation_effect(operation, mutation),
                     copy_budget,
+                    budget,
+                    local_usage,
                 )
             }
             OperationPayload::Undo { target } => {
@@ -575,11 +784,27 @@ impl CausalReplay {
                         reason: "toggle target is absent",
                     },
                 )?;
+                budget
+                    .charge(
+                        BudgetKind::WorkingSetBytes,
+                        target_operation.canonical_bytes().len(),
+                    )
+                    .map_err(materialization_budget_error)?;
+                budget
+                    .charge_with_limit(
+                        BudgetKind::WorkingSetBytes,
+                        ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                        local_usage,
+                        MAX_ESTIMATED_PROJECT_BYTES,
+                    )
+                    .map_err(materialization_budget_error)?;
                 self.active.insert(target.operation_id(), false);
                 self.apply_effect(
                     operation,
                     inverse_effect(target_operation, operation.operation_id())?,
                     copy_budget,
+                    budget,
+                    local_usage,
                 )
             }
             OperationPayload::Redo { target } => {
@@ -598,39 +823,73 @@ impl CausalReplay {
                         reason: "redo target is not an apply",
                     });
                 };
+                budget
+                    .charge(
+                        BudgetKind::WorkingSetBytes,
+                        target_operation.canonical_bytes().len(),
+                    )
+                    .map_err(materialization_budget_error)?;
+                budget
+                    .charge_with_limit(
+                        BudgetKind::WorkingSetBytes,
+                        ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                        local_usage,
+                        MAX_ESTIMATED_PROJECT_BYTES,
+                    )
+                    .map_err(materialization_budget_error)?;
                 self.active.insert(target.operation_id(), true);
                 self.apply_effect(
                     operation,
                     direct_mutation_effect_by_id(operation.operation_id(), mutation),
                     copy_budget,
+                    budget,
+                    local_usage,
                 )
             }
             OperationPayload::Resolve { mutation, .. } => self.apply_effect(
                 operation,
                 direct_mutation_effect(operation, mutation),
                 copy_budget,
+                budget,
+                local_usage,
             ),
             OperationPayload::ResolveV2 { value, .. } => self.apply_effect(
                 operation,
                 resolution_effect(operation.operation_id(), value),
                 copy_budget,
+                budget,
+                local_usage,
             ),
         }
     }
 
-    fn apply_effect(
+    fn apply_effect<H: CancellationHook>(
         &mut self,
         operation: &Operation,
         effect: Effect,
         copy_budget: &mut CopyBudget,
+        budget: &mut ResourceBudget<H>,
+        local_usage: &mut ResourceUsage,
     ) -> Result<(), MaterializationError> {
+        budget
+            .charge_with_limit(
+                BudgetKind::WorkingSetBytes,
+                ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                local_usage,
+                MAX_ESTIMATED_PROJECT_BYTES,
+            )
+            .map_err(materialization_budget_error)?;
         let event = CausalEvent {
             operation_id: effect.operation_id,
             field: effect_field(&effect),
             value: effect.value.clone(),
         };
-        let next_estimated_project_bytes =
-            copy_budget.before_apply(self.estimated_project_bytes, operation)?;
+        let next_estimated_project_bytes = copy_budget.before_apply(
+            self.estimated_project_bytes,
+            operation,
+            budget,
+            local_usage,
+        )?;
         self.project = apply_local_effect(&self.project, operation, &effect)?;
         self.estimated_project_bytes = next_estimated_project_bytes;
         self.events.push(event);
@@ -805,15 +1064,16 @@ fn apply_local_effect(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn validate_operation_prior(
+fn validate_operation_prior<H: CancellationHook>(
     operation: &Operation,
     baseline: &Project,
     causal: &CausalReplay,
     witness_ids: &BTreeSet<OperationId>,
     operations: &OperationSet,
     ordered: &[&Operation],
-    work: &mut usize,
     copy_budget: &mut CopyBudget,
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<(), MaterializationError> {
     match operation.payload() {
         OperationPayload::Apply { mutation } => match operation.inverse() {
@@ -829,7 +1089,8 @@ fn validate_operation_prior(
                     &causal.events,
                     prior.field_key(),
                     operations,
-                    work,
+                    budget,
+                    local_usage,
                 )?;
                 validate_legacy_prior(operation.operation_id(), &causal.project, prior)
             }
@@ -839,7 +1100,8 @@ fn validate_operation_prior(
                     &causal.events,
                     prior.field_key(),
                     operations,
-                    work,
+                    budget,
+                    local_usage,
                 )?;
                 validate_typed_prior(operation.operation_id(), &causal.project, prior)
             }
@@ -887,9 +1149,10 @@ fn validate_operation_prior(
                 None,
                 operations,
                 ordered,
-                work,
                 baseline,
                 copy_budget,
+                budget,
+                local_usage,
             )
         }
         OperationPayload::ResolveV2 { left, right, value } => {
@@ -912,9 +1175,10 @@ fn validate_operation_prior(
                 Some(prior),
                 operations,
                 ordered,
-                work,
                 baseline,
                 copy_budget,
+                budget,
+                local_usage,
             )
         }
         OperationPayload::Undo { .. } | OperationPayload::Redo { .. } => Ok(()),
@@ -922,7 +1186,7 @@ fn validate_operation_prior(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn validate_resolution_prior(
+fn validate_resolution_prior<H: CancellationHook>(
     operation: &Operation,
     left: OperationReference,
     right: OperationReference,
@@ -932,9 +1196,10 @@ fn validate_resolution_prior(
     typed_prior: Option<&InversePrior>,
     operations: &OperationSet,
     ordered: &[&Operation],
-    work: &mut usize,
     baseline: &Project,
     copy_budget: &mut CopyBudget,
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<(), MaterializationError> {
     let common = common_causal_state(
         operations,
@@ -943,11 +1208,19 @@ fn validate_resolution_prior(
         left,
         right,
         operation.operation_id(),
-        work,
         baseline,
         copy_budget,
+        budget,
+        local_usage,
     )?;
-    reject_ambiguous_prior(operation, &common.events, field.clone(), operations, work)?;
+    reject_ambiguous_prior(
+        operation,
+        &common.events,
+        field.clone(),
+        operations,
+        budget,
+        local_usage,
+    )?;
     if let Some(prior) = legacy_prior {
         validate_legacy_prior(operation.operation_id(), &common.project, prior)?;
     }
@@ -1049,11 +1322,24 @@ fn field_value(project: &Project, field: &FieldKey) -> Option<CausalValue> {
     }
 }
 
-fn reject_cross_field_aggregate_conflicts(
+fn reject_cross_field_aggregate_conflicts<H: CancellationHook>(
     baseline: &Project,
     operations: &OperationSet,
     effects: &[AppliedEffect],
+    budget: &mut ResourceBudget<H>,
+    local_usage: &mut ResourceUsage,
 ) -> Result<(), MaterializationError> {
+    // Reserve the two per-effect indexes before their maps and value vectors
+    // are created. The exact allocator footprint is implementation-specific,
+    // so this is the same deterministic structural proxy used by replay.
+    budget
+        .charge_with_limit(
+            BudgetKind::WorkingSetBytes,
+            estimated_structural_bytes(effects.len().saturating_mul(2)),
+            local_usage,
+            MAX_ESTIMATED_PROJECT_BYTES,
+        )
+        .map_err(materialization_budget_error)?;
     let mut locks: BTreeMap<FloorId, Vec<OperationId>> = BTreeMap::new();
     let mut calibrations: BTreeMap<FloorId, Vec<OperationId>> = BTreeMap::new();
     for effect in effects {
@@ -1079,34 +1365,33 @@ fn reject_cross_field_aggregate_conflicts(
                 .push(effect.operation_id());
         }
     }
-    let mut checks = 0usize;
     for (floor_id, lock_ids) in locks {
         for evidence_operation in lock_ids {
             for calibration_operation in calibrations.get(&floor_id).into_iter().flatten() {
                 if evidence_operation == *calibration_operation {
                     continue;
                 }
-                checks = checks
-                    .checked_add(1)
-                    .ok_or(MaterializationError::ResourceLimit(
-                        "aggregate_conflict_work",
-                    ))?;
-                if checks > MAX_AGGREGATE_CONFLICT_CHECKS {
-                    return Err(MaterializationError::ResourceLimit(
-                        "aggregate_conflict_work",
-                    ));
-                }
+                budget
+                    .charge_with_limit(
+                        BudgetKind::AggregateConflictChecks,
+                        1,
+                        local_usage,
+                        MAX_AGGREGATE_CONFLICT_CHECKS,
+                    )
+                    .map_err(materialization_budget_error)?;
                 let evidence_ancestor = is_ancestor(
                     operations,
                     evidence_operation,
                     *calibration_operation,
-                    &mut checks,
+                    budget,
+                    local_usage,
                 )?;
                 let calibration_ancestor = is_ancestor(
                     operations,
                     *calibration_operation,
                     evidence_operation,
-                    &mut checks,
+                    budget,
+                    local_usage,
                 )?;
                 if !evidence_ancestor && !calibration_ancestor {
                     return Err(MaterializationError::AggregateConflict {
@@ -1134,7 +1419,9 @@ mod tests {
         },
         units::{CoordinateMeters, Meters, Pixels, Radians},
     };
+    use kyberia_resource_budget::{CancellationHook, ResourceBudget, ResourceLimits};
     use std::num::NonZeroU64;
+    use std::{cell::Cell, rc::Rc};
 
     fn id(value: u8) -> OperationId {
         OperationId::from_bytes([value; 16]).unwrap()
@@ -1146,6 +1433,34 @@ mod tests {
 
     fn device(value: u8) -> kyberia_operation_log::DeviceId {
         ActorDeviceId::from_bytes([value; 16]).unwrap()
+    }
+
+    #[derive(Debug)]
+    struct CancelAfter {
+        remaining_checks: usize,
+    }
+
+    impl CancellationHook for CancelAfter {
+        fn is_cancelled(&mut self) -> bool {
+            if self.remaining_checks == 0 {
+                true
+            } else {
+                self.remaining_checks -= 1;
+                false
+            }
+        }
+    }
+
+    #[derive(Debug)]
+    struct CountingHook {
+        checks: Rc<Cell<usize>>,
+    }
+
+    impl CancellationHook for CountingHook {
+        fn is_cancelled(&mut self) -> bool {
+            self.checks.set(self.checks.get().saturating_add(1));
+            false
+        }
     }
 
     fn project() -> Project {
@@ -2441,5 +2756,96 @@ mod tests {
             materialize(&baseline, &set),
             Err(MaterializationError::AggregateConflict { .. })
         ));
+    }
+
+    #[test]
+    fn caller_budget_accumulates_project_copy_work_across_materializations() {
+        let baseline = project();
+        let operation = set_project_name(id(10), 1, 10, vec![], "Office", "Home");
+        let set = OperationSet::from_operations([operation]).unwrap();
+        let baseline_bytes = BaselineIdentity::from_project(&baseline)
+            .unwrap()
+            .project_bytes()
+            .len();
+        let mut budget = ResourceBudget::new(ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            baseline_bytes.saturating_mul(3),
+            usize::MAX,
+        ));
+
+        materialize_with_budget(&baseline, &set, &mut budget).unwrap();
+        assert_eq!(
+            materialize_with_budget(&baseline, &set, &mut budget),
+            Err(MaterializationError::ResourceLimit("causal_copy_bytes"))
+        );
+        assert_eq!(
+            budget.usage().project_copy_bytes(),
+            baseline_bytes.saturating_mul(3)
+        );
+    }
+
+    #[test]
+    fn shared_budget_cancellation_is_returned_without_a_partial_project() {
+        let baseline = project();
+        let operation = set_project_name(id(10), 1, 10, vec![], "Office", "Home");
+        let set = OperationSet::from_operations([operation]).unwrap();
+        let mut budget = ResourceBudget::with_cancellation(
+            ResourceLimits::new(
+                usize::MAX,
+                usize::MAX,
+                usize::MAX,
+                usize::MAX,
+                usize::MAX,
+                usize::MAX,
+            ),
+            CancelAfter {
+                remaining_checks: 2,
+            },
+        );
+        assert_eq!(
+            materialize_with_budget(&baseline, &set, &mut budget),
+            Err(MaterializationError::Cancelled)
+        );
+    }
+
+    #[test]
+    fn shared_budget_cancellation_propagates_after_replay_has_started() {
+        let baseline = project();
+        let operation = set_project_name(id(10), 1, 10, vec![], "Office", "Home");
+        let set = OperationSet::from_operations([operation]).unwrap();
+        let limits = ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        );
+        let checks = Rc::new(Cell::new(0));
+        let mut counting_budget = ResourceBudget::with_cancellation(
+            limits,
+            CountingHook {
+                checks: Rc::clone(&checks),
+            },
+        );
+        materialize_with_budget(&baseline, &set, &mut counting_budget).unwrap();
+        let total_checks = checks.get();
+        assert!(total_checks > 1);
+
+        let mut cancelling_budget = ResourceBudget::with_cancellation(
+            limits,
+            CancelAfter {
+                remaining_checks: total_checks - 1,
+            },
+        );
+        assert_eq!(
+            materialize_with_budget(&baseline, &set, &mut cancelling_budget),
+            Err(MaterializationError::Cancelled)
+        );
+        assert!(cancelling_budget.usage().causal_witness_work() > 0);
+        assert!(cancelling_budget.usage().project_copy_bytes() > 0);
     }
 }

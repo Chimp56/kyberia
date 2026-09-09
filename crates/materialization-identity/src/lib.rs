@@ -13,6 +13,7 @@ use kyberia_domain::{
 use kyberia_operation_log::{
     MAX_OPERATION_COUNT, MAX_OPERATION_WIRE_BYTES, Operation, OperationError, OperationSet,
 };
+use kyberia_resource_budget::{BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError};
 use sha2::{Digest, Sha256};
 use std::{fmt, io, io::Write, mem};
 
@@ -39,6 +40,7 @@ pub enum IdentityError {
     HashMismatch,
     WrongProject,
     ResourceLimit(&'static str),
+    Cancelled,
 }
 
 impl fmt::Display for IdentityError {
@@ -82,6 +84,23 @@ impl BaselineIdentity {
             project.revision(),
             project.logical_time(),
             project_bytes,
+        )
+    }
+
+    /// Build an identity while charging canonical project serialization and
+    /// the second baseline buffer to a caller-owned cumulative budget before
+    /// each corresponding buffer grows.
+    pub fn from_project_with_budget<H: CancellationHook>(
+        project: &Project,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Self, IdentityError> {
+        let project_bytes = canonical_project_bytes_with_budget(project, budget)?;
+        Self::from_parts_with_budget(
+            project.id(),
+            project.revision(),
+            project.logical_time(),
+            project_bytes,
+            budget,
         )
     }
 
@@ -145,6 +164,25 @@ impl BaselineIdentity {
             canonical,
             content_hash,
         })
+    }
+
+    fn from_parts_with_budget<H: CancellationHook>(
+        project_id: ProjectId,
+        revision: u64,
+        logical_time: u64,
+        project_bytes: Vec<u8>,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Self, IdentityError> {
+        let total = BASELINE_HEADER_BYTES
+            .checked_add(project_bytes.len())
+            .ok_or(IdentityError::ResourceLimit("baseline_identity_bytes"))?;
+        if total > MAX_IDENTITY_BYTES {
+            return Err(IdentityError::ResourceLimit("baseline_identity_bytes"));
+        }
+        budget
+            .charge(BudgetKind::WorkingSetBytes, total)
+            .map_err(identity_budget_error)?;
+        Self::from_parts(project_id, revision, logical_time, project_bytes)
     }
 
     pub const fn project_id(&self) -> ProjectId {
@@ -213,6 +251,56 @@ impl OperationSetIdentity {
             canonical,
             content_hash,
         })
+    }
+
+    /// Build an operation-set identity after an allocation-free exact size
+    /// preflight. The shared budget is charged for both retained operation
+    /// wire buffers and the final canonical identity before either is built.
+    pub fn from_operation_set_with_budget<H: CancellationHook>(
+        set: &OperationSet,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Self, IdentityError> {
+        budget.check_cancelled().map_err(identity_budget_error)?;
+        budget
+            .charge(BudgetKind::WorkingSetBytes, OPERATION_SET_HEADER_BYTES)
+            .map_err(identity_budget_error)?;
+        let mut operation_wire_bytes = 0usize;
+        let mut operation_count = 0usize;
+        for operation in set.operations() {
+            operation_count = operation_count
+                .checked_add(1)
+                .ok_or(IdentityError::ResourceLimit("operation_set_operations"))?;
+            if operation_count > MAX_OPERATION_COUNT {
+                return Err(IdentityError::ResourceLimit("operation_set_operations"));
+            }
+            budget.check_cancelled().map_err(identity_budget_error)?;
+            budget
+                .charge(BudgetKind::WorkingSetBytes, OPERATION_ENTRY_HEADER_BYTES)
+                .map_err(identity_budget_error)?;
+            let wire_bytes = operation.wire_bytes_len()?;
+            operation_wire_bytes = operation_wire_bytes
+                .checked_add(wire_bytes)
+                .ok_or(IdentityError::ResourceLimit("operation_set_identity_bytes"))?;
+            budget
+                .charge(BudgetKind::WorkingSetBytes, wire_bytes)
+                .map_err(identity_budget_error)?;
+        }
+        let canonical_bytes = OPERATION_SET_HEADER_BYTES
+            .checked_add(
+                operation_count
+                    .checked_mul(OPERATION_ENTRY_HEADER_BYTES)
+                    .ok_or(IdentityError::ResourceLimit("operation_set_identity_bytes"))?,
+            )
+            .and_then(|size| size.checked_add(operation_wire_bytes))
+            .ok_or(IdentityError::ResourceLimit("operation_set_identity_bytes"))?;
+        if canonical_bytes > MAX_IDENTITY_BYTES {
+            return Err(IdentityError::ResourceLimit("operation_set_identity_bytes"));
+        }
+        budget
+            .charge(BudgetKind::WorkingSetBytes, operation_wire_bytes)
+            .map_err(identity_budget_error)?;
+        budget.check_cancelled().map_err(identity_budget_error)?;
+        Self::from_operation_set(set)
     }
 
     /// Decode and verify an identity, including every referenced operation and
@@ -371,6 +459,24 @@ fn canonical_project_bytes(project: &Project) -> Result<Vec<u8>, IdentityError> 
     canonical_project_bytes_with_limit(project, MAX_PROJECT_BYTES)
 }
 
+fn canonical_project_bytes_with_budget<H: CancellationHook>(
+    project: &Project,
+    budget: &mut ResourceBudget<H>,
+) -> Result<Vec<u8>, IdentityError> {
+    let mut writer = BudgetedWriter::new(MAX_PROJECT_BYTES, budget);
+    if serde_json::to_writer(&mut writer, project).is_err() {
+        if let Some(error) = writer.budget_error {
+            return Err(identity_budget_error(error));
+        }
+        return Err(if writer.writer.limit_exceeded() {
+            IdentityError::ResourceLimit("project_baseline_bytes")
+        } else {
+            IdentityError::NonCanonicalEncoding
+        });
+    }
+    Ok(writer.writer.into_inner())
+}
+
 fn canonical_project_bytes_with_limit(
     project: &Project,
     limit: usize,
@@ -442,6 +548,45 @@ struct BoundedWriter {
     bytes: Vec<u8>,
     limit: usize,
     limit_exceeded: bool,
+}
+
+struct BudgetedWriter<'a, H: CancellationHook> {
+    writer: BoundedWriter,
+    budget: &'a mut ResourceBudget<H>,
+    budget_error: Option<ResourceBudgetError>,
+}
+
+impl<'a, H: CancellationHook> BudgetedWriter<'a, H> {
+    fn new(limit: usize, budget: &'a mut ResourceBudget<H>) -> Self {
+        Self {
+            writer: BoundedWriter::new(limit),
+            budget,
+            budget_error: None,
+        }
+    }
+}
+
+impl<H: CancellationHook> Write for BudgetedWriter<'_, H> {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        if let Err(error) = self.budget.charge(BudgetKind::WorkingSetBytes, bytes.len()) {
+            self.budget_error = Some(error);
+            return Err(io::Error::other("shared identity budget exhausted"));
+        }
+        self.writer.write(bytes)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.writer.flush()
+    }
+}
+
+fn identity_budget_error(error: ResourceBudgetError) -> IdentityError {
+    match error {
+        ResourceBudgetError::Cancelled => IdentityError::Cancelled,
+        ResourceBudgetError::LimitExceeded(limit) => {
+            IdentityError::ResourceLimit(limit.kind().label())
+        }
+    }
 }
 
 impl BoundedWriter {
@@ -558,6 +703,7 @@ mod tests {
         CausalDepth, InversePrior, LogicalTimestamp, Mutation, OperationPayload,
         OperationReference, OperationSchemaVersion, ResolutionValue,
     };
+    use kyberia_resource_budget::{ResourceBudget, ResourceLimits};
 
     fn project_id(value: u8) -> ProjectId {
         ProjectId::from_bytes([value; 16]).unwrap()
@@ -703,6 +849,134 @@ mod tests {
             canonical_project_bytes_with_limit(&project, canonical.len() - 1),
             Err(IdentityError::ResourceLimit("project_baseline_bytes"))
         );
+    }
+
+    #[test]
+    fn budgeted_writer_rejects_before_growing_the_destination() {
+        let limits = ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            3,
+        );
+        let mut budget = ResourceBudget::new(limits);
+        let mut writer = BudgetedWriter::new(MAX_PROJECT_BYTES, &mut budget);
+        writer.write_all(b"abc").unwrap();
+        let capacity = writer.writer.bytes.capacity();
+        let oversized = [b'x'; 4096];
+        assert!(writer.write_all(&oversized).is_err());
+        assert_eq!(writer.writer.bytes, b"abc");
+        assert_eq!(writer.writer.bytes.capacity(), capacity);
+        assert_eq!(writer.budget.usage().working_set_bytes(), 3);
+        assert!(matches!(
+            writer.budget_error,
+            Some(ResourceBudgetError::LimitExceeded(_))
+        ));
+    }
+
+    #[test]
+    fn budgeted_writer_cancellation_preserves_admitted_bytes() {
+        struct CancelAfterFirstWrite(bool);
+        impl CancellationHook for CancelAfterFirstWrite {
+            fn is_cancelled(&mut self) -> bool {
+                let cancelled = self.0;
+                self.0 = true;
+                cancelled
+            }
+        }
+        let limits = ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        );
+        let mut budget = ResourceBudget::with_cancellation(limits, CancelAfterFirstWrite(false));
+        let mut writer = BudgetedWriter::new(MAX_PROJECT_BYTES, &mut budget);
+        writer.write_all(b"abc").unwrap();
+        let capacity = writer.writer.bytes.capacity();
+        assert!(writer.write_all(&[b'x'; 4096]).is_err());
+        assert_eq!(writer.writer.bytes, b"abc");
+        assert_eq!(writer.writer.bytes.capacity(), capacity);
+        assert_eq!(writer.budget.usage().working_set_bytes(), 3);
+        assert_eq!(writer.budget_error, Some(ResourceBudgetError::Cancelled));
+    }
+
+    #[test]
+    fn budgeted_identity_preflight_rejects_before_owned_buffers() {
+        let baseline = project("one");
+        let baseline_project_bytes = serde_json::to_vec(&baseline).unwrap();
+        let baseline_preflight_limit = baseline_project_bytes.len() + BASELINE_HEADER_BYTES - 1;
+        let limits = ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            baseline_preflight_limit,
+        );
+        let mut baseline_budget = ResourceBudget::new(limits);
+        assert_eq!(
+            BaselineIdentity::from_project_with_budget(&baseline, &mut baseline_budget),
+            Err(IdentityError::ResourceLimit("working_set_bytes"))
+        );
+        assert!(baseline_budget.usage().working_set_bytes() >= baseline_project_bytes.len());
+
+        let set = OperationSet::from_operations([operation(1, "first")]).unwrap();
+        let wire_bytes = set
+            .operation(operation_id(1))
+            .unwrap()
+            .wire_bytes_len()
+            .unwrap();
+        let operation_preflight_limit = OPERATION_SET_HEADER_BYTES
+            + OPERATION_ENTRY_HEADER_BYTES
+            + wire_bytes.saturating_mul(2)
+            - 1;
+        let operation_limits = ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            operation_preflight_limit,
+        );
+        let mut operation_budget = ResourceBudget::new(operation_limits);
+        assert_eq!(
+            OperationSetIdentity::from_operation_set_with_budget(&set, &mut operation_budget),
+            Err(IdentityError::ResourceLimit("working_set_bytes"))
+        );
+        assert!(operation_budget.usage().working_set_bytes() > 0);
+    }
+
+    #[test]
+    fn budgeted_identity_bytes_match_legacy_identity_bytes() {
+        let limits = ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        );
+        let baseline = project("one");
+        let expected_baseline = BaselineIdentity::from_project(&baseline).unwrap();
+        let mut baseline_budget = ResourceBudget::new(limits);
+        let actual_baseline =
+            BaselineIdentity::from_project_with_budget(&baseline, &mut baseline_budget).unwrap();
+        assert_eq!(actual_baseline, expected_baseline);
+        assert!(baseline_budget.usage().working_set_bytes() > 0);
+
+        let set = OperationSet::from_operations([operation(1, "first")]).unwrap();
+        let expected_operations = OperationSetIdentity::from_operation_set(&set).unwrap();
+        let mut operation_budget = ResourceBudget::new(limits);
+        let actual_operations =
+            OperationSetIdentity::from_operation_set_with_budget(&set, &mut operation_budget)
+                .unwrap();
+        assert_eq!(actual_operations, expected_operations);
+        assert!(operation_budget.usage().working_set_bytes() > 0);
     }
 
     #[test]

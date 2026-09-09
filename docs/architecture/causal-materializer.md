@@ -41,8 +41,12 @@ sort order. Irreversible V2 floor-evidence binding is executable only with its
 closed `NonReversibleReason`; V1 binding is reported unsupported because its
 legacy inverse cannot prove reversibility.
 
-Materialization retains bounded invocation-wide causal witness work and rejects
-oversized sets before replay. It also enforces two separate copy safeguards:
+Materialization retains bounded per-job causal witness work and rejects
+oversized sets before replay. Callers that verify several historical results
+can use `materialize_with_budget` with the pure shared
+`kyberia-resource-budget::ResourceBudget`; usage then remains cumulative
+across replay, conflict, witness and copy work. It also enforces two separate
+copy safeguards:
 the estimated serialized size of each candidate state includes operation-induced
 data growth, and a cumulative serialized-byte copy-work proxy charges every
 baseline and domain clone, including repeated ancestor reconstruction. These

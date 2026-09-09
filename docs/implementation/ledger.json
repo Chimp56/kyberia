@@ -105152,8 +105152,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -105178,8 +105178,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -105397,8 +105397,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -105423,8 +105423,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -105625,8 +105625,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -105651,8 +105651,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -105853,8 +105853,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -105888,8 +105888,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -106038,8 +106038,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -106064,8 +106064,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -106224,8 +106224,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -106250,8 +106250,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -106410,8 +106410,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -106436,8 +106436,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -106596,8 +106596,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -106622,8 +106622,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -106782,8 +106782,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -106808,8 +106808,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -107012,8 +107012,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -107050,8 +107050,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -169034,8 +169034,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -169064,22 +169064,22 @@
         {
           "path": "crates/materialization-identity/src/lib.rs",
           "description": "Canonical baseline and exact operation-set identities; causal application remains open",
-          "revision": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
-          "sha256": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6"
+          "revision": "f96f831f9c06b74aca4cf3b67e747026fd0e90155c853a8f8edf3d52a0122b2d",
+          "sha256": "f96f831f9c06b74aca4cf3b67e747026fd0e90155c853a8f8edf3d52a0122b2d"
         },
         {
           "path": "crates/causal-materializer/src/lib.rs",
           "description": "Pure baseline-bound causal aggregate materialization with typed prior validation and bounded copy work",
-          "revision": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7",
-          "sha256": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7"
+          "revision": "c022ad925c5ae89eeea60e174cd525a1af5e1a0d4222a2eb509b8d1e055a5b88",
+          "sha256": "c022ad925c5ae89eeea60e174cd525a1af5e1a0d4222a2eb509b8d1e055a5b88"
         }
       ],
       "validation": [
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -169132,8 +169132,8 @@
         {
           "path": "crates/materialization-identity/src/lib.rs",
           "description": "Fifteen independently run identity, exact-limit, V2 payload, tamper and ordering tests",
-          "revision": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
-          "sha256": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
+          "revision": "f96f831f9c06b74aca4cf3b67e747026fd0e90155c853a8f8edf3d52a0122b2d",
+          "sha256": "f96f831f9c06b74aca4cf3b67e747026fd0e90155c853a8f8edf3d52a0122b2d",
           "command": "cargo test -p kyberia-materialization-identity --locked --offline",
           "scope": "materialization_input_identity",
           "result": "PASS"
@@ -169141,8 +169141,8 @@
         {
           "path": "crates/causal-materializer/src/lib.rs",
           "description": "26 independently executed causal, geometry-preservation, unknown, forged-prior and resource regressions",
-          "revision": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7",
-          "sha256": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7",
+          "revision": "c022ad925c5ae89eeea60e174cd525a1af5e1a0d4222a2eb509b8d1e055a5b88",
+          "sha256": "c022ad925c5ae89eeea60e174cd525a1af5e1a0d4222a2eb509b8d1e055a5b88",
           "command": "cargo test -p kyberia-causal-materializer --locked --offline",
           "scope": "pure_causal_materialization",
           "result": "PASS"
@@ -169250,6 +169250,15 @@
           "revision": "5f24cb8e3eb8daf6da75366713890ee2284ae49fab341695c2e2815f6a24609b",
           "sha256": "5f24cb8e3eb8daf6da75366713890ee2284ae49fab341695c2e2815f6a24609b",
           "reviewer": "/root and /root/operation_log_review_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/shared-budget-review-in-progress.md",
+          "description": "Independent cumulative consumer accounting review; storage transaction integration remains open",
+          "revision": "b6908d374f3ffa52c015c6db79e01701f9121851f79bab53738f30936dcdc7c2",
+          "sha256": "b6908d374f3ffa52c015c6db79e01701f9121851f79bab53738f30936dcdc7c2",
+          "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -236221,8 +236230,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -236247,8 +236256,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -238476,8 +238485,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -238502,8 +238511,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"
@@ -243489,8 +243498,8 @@
         {
           "path": "crates/operation-log/src/lib.rs",
           "description": "Pure operation DAG, conflict, resolution, and replay-semantic admission contract",
-          "revision": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055",
-          "sha256": "157add36207ef550d22888a94ed0099fc0658e43ca691b19657800eb0dd22055"
+          "revision": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7",
+          "sha256": "b9d079ad728e219ff7ccaf76f27de42c64a162af0393440da094c9cee360d4d7"
         },
         {
           "path": "crates/project-store/src/operation_log.rs",
@@ -243515,8 +243524,8 @@
         {
           "path": "crates/operation-log/tests/operation_log.rs",
           "description": "Deterministic bounded merge and replay-semantic contract tests",
-          "revision": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
-          "sha256": "8683be3a02bcd9d7029cbb5ba60cd830dec65c6140d51a0d1cc713a832631843",
+          "revision": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
+          "sha256": "043d5ed7c2335cf0a01750ab5616ec241b2b421de1bd85395b289d5b09eb5264",
           "command": "cargo test -p kyberia-operation-log --locked --offline",
           "scope": "operation_log_contract",
           "result": "PASS"

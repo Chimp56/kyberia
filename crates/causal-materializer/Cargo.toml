@@ -9,6 +9,7 @@ description = "Bounded causal operation-to-project materialization"
 kyberia-domain = { version = "=0.1.0", path = "../domain" }
 kyberia-materialization-identity = { version = "=0.1.0", path = "../materialization-identity" }
 kyberia-operation-log = { version = "=0.1.0", path = "../operation-log" }
+kyberia-resource-budget = { version = "=0.1.0", path = "../resource-budget" }
 
 [dev-dependencies]
 serde_json = "=1.0.149"

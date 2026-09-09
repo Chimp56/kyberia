@@ -12,6 +12,7 @@ use kyberia_operation_log::{
     OperationError, OperationLog, OperationPayload, OperationReference, OperationSchemaVersion,
     OperationSet, ProjectVersion, ResolutionValue, ToggleDirection,
 };
+use kyberia_resource_budget::{BudgetKind, CancellationHook, ResourceBudget, ResourceLimits};
 use proptest::prelude::*;
 use sha2::Digest;
 
@@ -298,6 +299,71 @@ fn canonical_hash_is_verified_and_encoding_is_strict() {
         Operation::from_bytes(&noncanonical),
         Err(OperationError::NonCanonicalEncoding)
     );
+}
+
+#[test]
+fn wire_length_preflight_matches_every_operation_shape() {
+    let root = apply(2, 1, 1, 0, vec![], "escaped \\\"value\\\"", "initial");
+    let left = apply(3, 1, 2, 1, vec![root.operation_id()], "left", "root");
+    let right = apply(4, 2, 2, 1, vec![root.operation_id()], "right", "root");
+    let root_reference = OperationReference::from(&root);
+    let undo = Operation::try_undo(
+        op_id(6),
+        project(),
+        actor(3),
+        device(3),
+        LogicalTimestamp::new(3).unwrap(),
+        CausalDepth::new(2),
+        vec![left.operation_id()],
+        root_reference,
+    )
+    .unwrap();
+    let redo = Operation::try_redo(
+        op_id(7),
+        project(),
+        actor(3),
+        device(3),
+        LogicalTimestamp::new(4).unwrap(),
+        CausalDepth::new(3),
+        vec![undo.operation_id()],
+        root_reference,
+    )
+    .unwrap();
+    let resolution = Operation::try_resolve(
+        op_id(8),
+        project(),
+        actor(4),
+        device(4),
+        LogicalTimestamp::new(3).unwrap(),
+        CausalDepth::new(2),
+        vec![left.operation_id(), right.operation_id()],
+        OperationReference::from(&left),
+        OperationReference::from(&right),
+        Mutation::set_project_name(text("chosen")),
+        Mutation::set_project_name(text("root")),
+    )
+    .unwrap();
+    let v2 = Operation::try_apply_v2(
+        op_id(9),
+        project(),
+        actor(5),
+        device(5),
+        LogicalTimestamp::new(5).unwrap(),
+        CausalDepth::new(0),
+        Vec::new(),
+        Mutation::set_project_name(text("v2")),
+        InversePrior::ProjectName {
+            name: text("initial"),
+        },
+    )
+    .unwrap();
+
+    for operation in [root, left, right, undo, redo, resolution, v2] {
+        assert_eq!(
+            operation.wire_bytes_len().unwrap(),
+            operation.to_bytes().unwrap().len()
+        );
+    }
 }
 
 #[test]
@@ -1773,6 +1839,716 @@ fn resolution_requires_current_canonical_heads_and_preserves_unrelated_conflicts
 
 fn root_for_test() -> Operation {
     apply(2, 1, 1, 0, vec![], "root", "initial")
+}
+
+#[derive(Debug)]
+struct CancelImmediately;
+
+impl CancellationHook for CancelImmediately {
+    fn is_cancelled(&mut self) -> bool {
+        true
+    }
+}
+
+#[derive(Debug)]
+struct CancelAfter {
+    remaining_checks: usize,
+}
+
+impl CancellationHook for CancelAfter {
+    fn is_cancelled(&mut self) -> bool {
+        if self.remaining_checks == 0 {
+            true
+        } else {
+            self.remaining_checks -= 1;
+            false
+        }
+    }
+}
+
+struct DuplicateThenPanic {
+    operation: Operation,
+    yielded: u8,
+}
+
+struct TooManyDuplicates {
+    operation: Operation,
+    yielded: usize,
+}
+
+impl Iterator for TooManyDuplicates {
+    type Item = Operation;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.yielded > MAX_OPERATION_COUNT {
+            panic!("duplicate iterator was not bounded at the format limit");
+        }
+        self.yielded += 1;
+        Some(self.operation.clone())
+    }
+}
+
+impl Iterator for DuplicateThenPanic {
+    type Item = Operation;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.yielded {
+            0 | 1 => {
+                self.yielded += 1;
+                Some(self.operation.clone())
+            }
+            _ => panic!("duplicate iterator was not cancelled before unbounded input"),
+        }
+    }
+}
+
+#[test]
+fn caller_budget_accumulates_across_replay_calls() {
+    let set = OperationSet::from_operations([root_for_test()]).unwrap();
+    let operation_bytes = set.operation(op_id(2)).unwrap().canonical_bytes().len();
+    let mut budget = ResourceBudget::new(ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        384 + operation_bytes.saturating_mul(4),
+    ));
+
+    set.replay_effects_with_budget(&mut budget).unwrap();
+    assert_eq!(
+        budget.usage().working_set_bytes(),
+        256 + operation_bytes.saturating_mul(4)
+    );
+    assert_eq!(
+        set.replay_effects_with_budget(&mut budget),
+        Err(MergeError::ResourceLimit(
+            BudgetKind::WorkingSetBytes.label()
+        ))
+    );
+    assert_eq!(
+        budget.usage().working_set_bytes(),
+        384 + operation_bytes.saturating_mul(4)
+    );
+}
+
+#[test]
+fn replay_budget_charges_referenced_payloads_for_repeated_toggles() {
+    let unlimited = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    );
+
+    fn replay_working_set_usage(target: Operation, limits: ResourceLimits) -> usize {
+        let target_reference = OperationReference::from(&target);
+        let undo = Operation::try_undo(
+            op_id(3),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![target.operation_id()],
+            target_reference,
+        )
+        .unwrap();
+        let redo = Operation::try_redo(
+            op_id(4),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(3).unwrap(),
+            CausalDepth::new(2),
+            vec![undo.operation_id()],
+            target_reference,
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([target, undo, redo]).unwrap();
+        let mut budget = ResourceBudget::new(limits);
+        set.validate_replay_semantics_with_budget(&mut budget)
+            .unwrap();
+        budget.usage().working_set_bytes()
+    }
+
+    let short_target = apply(2, 1, 1, 0, vec![], "short", "initial");
+    let long_value = "x".repeat(1024);
+    let long_target = apply(2, 1, 1, 0, vec![], &long_value, "initial");
+    let short_usage = replay_working_set_usage(short_target.clone(), unlimited);
+    let long_usage = replay_working_set_usage(long_target.clone(), unlimited);
+    let target_delta = long_target
+        .canonical_bytes()
+        .len()
+        .saturating_sub(short_target.canonical_bytes().len());
+    // The target is charged once as the current Apply and once for each of
+    // the two later toggles. This differential oracle is independent of the
+    // absolute structural charge schedule and fails if referenced payloads
+    // are omitted from the budget.
+    assert_eq!(
+        long_usage.saturating_sub(short_usage),
+        target_delta.saturating_mul(3)
+    );
+
+    let short_inverse_target = apply(5, 1, 1, 0, vec![], "short", "initial");
+    let long_inverse_target = apply(5, 1, 1, 0, vec![], "short", &long_value);
+    let short_inverse_usage = replay_working_set_usage(short_inverse_target.clone(), unlimited);
+    let long_inverse_usage = replay_working_set_usage(long_inverse_target.clone(), unlimited);
+    let inverse_target_delta = long_inverse_target
+        .canonical_bytes()
+        .len()
+        .saturating_sub(short_inverse_target.canonical_bytes().len());
+    assert_eq!(
+        long_inverse_usage.saturating_sub(short_inverse_usage),
+        inverse_target_delta.saturating_mul(3)
+    );
+}
+
+#[test]
+fn conflict_budget_charges_each_effect_payload_copy() {
+    fn unlimited() -> ResourceLimits {
+        ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        )
+    }
+
+    fn conflicting_apply_usage(left: Operation) -> usize {
+        let right = apply(3, 2, 1, 0, vec![], "right", "initial");
+        let set = OperationSet::from_operations([left, right]).unwrap();
+        let mut budget = ResourceBudget::new(unlimited());
+        assert!(matches!(
+            set.replay_effects_with_budget(&mut budget),
+            Err(MergeError::Conflicts(conflicts)) if conflicts.len() == 1
+        ));
+        budget.usage().working_set_bytes()
+    }
+
+    let short = apply(2, 1, 1, 0, vec![], "short", "initial");
+    let long_value = "x".repeat(1024);
+    let long = apply(2, 1, 1, 0, vec![], &long_value, "initial");
+    let short_usage = conflicting_apply_usage(short.clone());
+    let long_usage = conflicting_apply_usage(long.clone());
+    let payload_delta = long.canonical_bytes().len() - short.canonical_bytes().len();
+    // A conflicting Apply owns four payload-bearing copies: event creation,
+    // EffectValue conversion, canonical identity normalization, and the
+    // retained conflict effect. This differential does not depend on the
+    // absolute structural charge schedule.
+    assert_eq!(long_usage - short_usage, payload_delta.saturating_mul(4));
+
+    let target_short_inverse = apply(2, 1, 1, 0, vec![], "short", "initial");
+    let target_long_inverse = apply(2, 1, 1, 0, vec![], "short", &long_value);
+    fn conflicting_undo_usage(target: Operation) -> usize {
+        let target_reference = OperationReference::from(&target);
+        let undo = Operation::try_undo(
+            op_id(3),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![target.operation_id()],
+            target_reference,
+        )
+        .unwrap();
+        let competitor = apply(4, 2, 3, 0, vec![], "competitor", "initial");
+        let set = OperationSet::from_operations([target, undo, competitor]).unwrap();
+        let mut budget = ResourceBudget::new(unlimited());
+        assert!(matches!(
+            set.replay_effects_with_budget(&mut budget),
+            Err(MergeError::Conflicts(conflicts)) if conflicts.len() == 1
+        ));
+        budget.usage().working_set_bytes()
+    }
+    let short_inverse_usage = conflicting_undo_usage(target_short_inverse.clone());
+    let long_inverse_usage = conflicting_undo_usage(target_long_inverse.clone());
+    let inverse_delta =
+        target_long_inverse.canonical_bytes().len() - target_short_inverse.canonical_bytes().len();
+    // The target is the source for Apply and Undo event construction and
+    // normalization (three copies each), plus the retained Undo conflict
+    // effect (one copy).
+    assert_eq!(
+        long_inverse_usage - short_inverse_usage,
+        inverse_delta.saturating_mul(7)
+    );
+
+    let target_short_forward = apply(2, 1, 1, 0, vec![], "short", "initial");
+    let target_long_forward = apply(2, 1, 1, 0, vec![], &long_value, "initial");
+    fn conflicting_redo_usage(target: Operation) -> usize {
+        let target_reference = OperationReference::from(&target);
+        let undo = Operation::try_undo(
+            op_id(3),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![target.operation_id()],
+            target_reference,
+        )
+        .unwrap();
+        let redo = Operation::try_redo(
+            op_id(4),
+            project(),
+            actor(1),
+            device(1),
+            LogicalTimestamp::new(3).unwrap(),
+            CausalDepth::new(2),
+            vec![undo.operation_id()],
+            target_reference,
+        )
+        .unwrap();
+        let competitor = apply(5, 2, 4, 0, vec![], "competitor", "initial");
+        let set = OperationSet::from_operations([target, undo, redo, competitor]).unwrap();
+        let mut budget = ResourceBudget::new(unlimited());
+        assert!(matches!(
+            set.replay_effects_with_budget(&mut budget),
+            Err(MergeError::Conflicts(conflicts)) if conflicts.len() == 1
+        ));
+        budget.usage().working_set_bytes()
+    }
+    let short_forward_usage = conflicting_redo_usage(target_short_forward.clone());
+    let long_forward_usage = conflicting_redo_usage(target_long_forward.clone());
+    let forward_delta =
+        target_long_forward.canonical_bytes().len() - target_short_forward.canonical_bytes().len();
+    // Apply, Undo, and Redo each construct and normalize an event from the
+    // target (three copies each), then the retained Redo conflict owns one.
+    assert_eq!(
+        long_forward_usage - short_forward_usage,
+        forward_delta.saturating_mul(10)
+    );
+
+    fn resolved_usage(value: &str) -> (usize, usize) {
+        let left = apply(6, 1, 1, 0, vec![], "left", "initial");
+        let right = apply(7, 2, 1, 0, vec![], "right", "initial");
+        let resolution = Operation::try_resolve(
+            op_id(8),
+            project(),
+            actor(3),
+            device(3),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![left.operation_id(), right.operation_id()],
+            OperationReference::from(&left),
+            OperationReference::from(&right),
+            Mutation::set_project_name(text(value)),
+            Mutation::set_project_name(text("initial")),
+        )
+        .unwrap();
+        let resolution_bytes = resolution.canonical_bytes().len();
+        let set = OperationSet::from_operations([left, right, resolution]).unwrap();
+        let mut budget = ResourceBudget::new(unlimited());
+        set.replay_effects_with_budget(&mut budget).unwrap();
+        (resolution_bytes, budget.usage().working_set_bytes())
+    }
+    let (short_resolution_bytes, short_resolution_usage) = resolved_usage("short");
+    let (long_resolution_bytes, long_resolution_usage) = resolved_usage(&long_value);
+    let resolution_delta = long_resolution_bytes - short_resolution_bytes;
+    // Resolve owns the selected value in conflict inspection and once again
+    // in direct replay after the conflict has been cleared.
+    assert_eq!(
+        long_resolution_usage - short_resolution_usage,
+        resolution_delta.saturating_mul(4)
+    );
+}
+
+#[test]
+fn conflict_budget_rejects_before_a_large_effect_copy() {
+    let short = apply(2, 1, 1, 0, vec![], "short", "initial");
+    let long_value = "x".repeat(1024);
+    let long = apply(2, 1, 1, 0, vec![], &long_value, "initial");
+    let right = apply(3, 2, 1, 0, vec![], "right", "initial");
+
+    fn conflict_usage(
+        left: Operation,
+        right: Operation,
+        limits: ResourceLimits,
+    ) -> Result<usize, MergeError> {
+        let set = OperationSet::from_operations([left, right]).unwrap();
+        let mut budget = ResourceBudget::new(limits);
+        let result = set.replay_effects_with_budget(&mut budget);
+        match result {
+            Err(MergeError::Conflicts(_)) => Ok(budget.usage().working_set_bytes()),
+            Err(error) => Err(error),
+            Ok(_) => panic!("the inputs must conflict"),
+        }
+    }
+
+    let unlimited = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    );
+    let short_usage = conflict_usage(short, right.clone(), unlimited).unwrap();
+    let payload_delta = long.canonical_bytes().len()
+        - apply(2, 1, 1, 0, vec![], "short", "initial")
+            .canonical_bytes()
+            .len();
+    let expected_long_usage = short_usage + payload_delta.saturating_mul(4);
+    let constrained = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        expected_long_usage - 1,
+    );
+    let set = OperationSet::from_operations([long, right]).unwrap();
+    let mut budget = ResourceBudget::new(constrained);
+    assert_eq!(
+        set.replay_effects_with_budget(&mut budget),
+        Err(MergeError::ResourceLimit("working_set_bytes"))
+    );
+    assert!(budget.usage().working_set_bytes() < expected_long_usage);
+}
+
+#[test]
+fn resolution_admission_charges_repeated_effect_copies_and_cancels() {
+    fn resolution_operations(value: &str) -> (Vec<Operation>, usize) {
+        let left_site = site_apply(2, 1, 1, 0, vec![], 2, "left", "initial");
+        let right_site = site_apply(3, 2, 1, 0, vec![], 2, "right", "initial");
+        let first_resolution = Operation::try_resolve(
+            op_id(4),
+            project(),
+            actor(3),
+            device(3),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![left_site.operation_id(), right_site.operation_id()],
+            OperationReference::from(&left_site),
+            OperationReference::from(&right_site),
+            Mutation::set_site_name(SiteId::from_bytes([2; 16]).unwrap(), text(value)),
+            Mutation::set_site_name(SiteId::from_bytes([2; 16]).unwrap(), text("initial")),
+        )
+        .unwrap();
+        let second_left = site_apply(5, 3, 1, 0, vec![], 3, "left", "initial");
+        let second_right = site_apply(6, 4, 1, 0, vec![], 3, "right", "initial");
+        let second_resolution = Operation::try_resolve(
+            op_id(7),
+            project(),
+            actor(5),
+            device(5),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![second_left.operation_id(), second_right.operation_id()],
+            OperationReference::from(&second_left),
+            OperationReference::from(&second_right),
+            Mutation::set_site_name(SiteId::from_bytes([3; 16]).unwrap(), text(value)),
+            Mutation::set_site_name(SiteId::from_bytes([3; 16]).unwrap(), text("initial")),
+        )
+        .unwrap();
+        let resolution_bytes = first_resolution.canonical_bytes().len();
+        (
+            vec![
+                left_site,
+                right_site,
+                first_resolution,
+                second_left,
+                second_right,
+                second_resolution,
+            ],
+            resolution_bytes,
+        )
+    }
+
+    let unlimited = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    );
+    let (short_operations, short_resolution_bytes) = resolution_operations("short");
+    let mut short_budget = ResourceBudget::new(unlimited);
+    OperationSet::from_operations_with_budget(short_operations, &mut short_budget).unwrap();
+    let short_usage = short_budget.usage().working_set_bytes();
+
+    let (long_operations, long_resolution_bytes) = resolution_operations(&"x".repeat(1024));
+    let mut long_budget = ResourceBudget::new(unlimited);
+    OperationSet::from_operations_with_budget(long_operations.clone(), &mut long_budget).unwrap();
+    let long_usage = long_budget.usage().working_set_bytes();
+    let resolution_delta = long_resolution_bytes - short_resolution_bytes;
+    // Two independent resolutions each charge their selected-value validation
+    // copy. Operation bytes are a separate budget kind, so the working-set
+    // differential is 2x.
+    assert_eq!(long_usage - short_usage, resolution_delta.saturating_mul(2));
+
+    let constrained = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        short_usage + resolution_delta.saturating_mul(2) - 1,
+    );
+    let mut constrained_budget = ResourceBudget::new(constrained);
+    assert_eq!(
+        OperationSet::from_operations_with_budget(long_operations, &mut constrained_budget),
+        Err(OperationError::ResourceLimit("working_set_bytes"))
+    );
+    assert!(constrained_budget.usage().working_set_bytes() < long_usage);
+
+    let (cancellable_operations, _) = resolution_operations(&"y".repeat(1024));
+    let mut cancellation_budget = ResourceBudget::with_cancellation(
+        unlimited,
+        CancelAfter {
+            remaining_checks: 40,
+        },
+    );
+    assert_eq!(
+        OperationSet::from_operations_with_budget(cancellable_operations, &mut cancellation_budget,),
+        Err(OperationError::Cancelled)
+    );
+    assert!(cancellation_budget.usage().operation_ancestry_work() > 0);
+}
+
+#[test]
+fn resolution_toggle_validation_charges_referenced_target_payloads() {
+    fn toggle_resolution_operations(value: &str, redo: bool) -> (Vec<Operation>, usize) {
+        let target = if redo {
+            apply(2, 1, 1, 0, vec![], value, "initial")
+        } else {
+            apply(2, 1, 1, 0, vec![], "forward", value)
+        };
+        let other_target = apply(3, 2, 1, 0, vec![], "other", "prior");
+        let target_reference = OperationReference::from(&target);
+        let other_reference = OperationReference::from(&other_target);
+        let left = if redo {
+            Operation::try_redo(
+                op_id(4),
+                project(),
+                actor(3),
+                device(3),
+                LogicalTimestamp::new(2).unwrap(),
+                CausalDepth::new(1),
+                vec![target.operation_id()],
+                target_reference,
+            )
+        } else {
+            Operation::try_undo(
+                op_id(4),
+                project(),
+                actor(3),
+                device(3),
+                LogicalTimestamp::new(2).unwrap(),
+                CausalDepth::new(1),
+                vec![target.operation_id()],
+                target_reference,
+            )
+        }
+        .unwrap();
+        let right = if redo {
+            Operation::try_redo(
+                op_id(5),
+                project(),
+                actor(4),
+                device(4),
+                LogicalTimestamp::new(2).unwrap(),
+                CausalDepth::new(1),
+                vec![other_target.operation_id()],
+                other_reference,
+            )
+        } else {
+            Operation::try_undo(
+                op_id(5),
+                project(),
+                actor(4),
+                device(4),
+                LogicalTimestamp::new(2).unwrap(),
+                CausalDepth::new(1),
+                vec![other_target.operation_id()],
+                other_reference,
+            )
+        }
+        .unwrap();
+        let resolution = Operation::try_resolve(
+            op_id(6),
+            project(),
+            actor(5),
+            device(5),
+            LogicalTimestamp::new(3).unwrap(),
+            CausalDepth::new(2),
+            vec![left.operation_id(), right.operation_id()],
+            OperationReference::from(&left),
+            OperationReference::from(&right),
+            Mutation::set_project_name(text("selected")),
+            Mutation::set_project_name(text("initial")),
+        )
+        .unwrap();
+        let target_bytes = target.canonical_bytes().len();
+        (
+            vec![target, other_target, left, right, resolution],
+            target_bytes,
+        )
+    }
+
+    let unlimited = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    );
+    let (short_undo, short_undo_target_bytes) = toggle_resolution_operations("prior", false);
+    let mut short_undo_budget = ResourceBudget::new(unlimited);
+    OperationSet::from_operations_with_budget(short_undo, &mut short_undo_budget).unwrap();
+    let short_undo_usage = short_undo_budget.usage().working_set_bytes();
+    let (long_undo, long_undo_target_bytes) =
+        toggle_resolution_operations(&"x".repeat(1024), false);
+    let mut long_undo_budget = ResourceBudget::new(unlimited);
+    OperationSet::from_operations_with_budget(long_undo, &mut long_undo_budget).unwrap();
+    assert_eq!(
+        long_undo_budget.usage().working_set_bytes() - short_undo_usage,
+        (long_undo_target_bytes - short_undo_target_bytes).saturating_mul(3)
+    );
+
+    let (short_redo, short_redo_target_bytes) = toggle_resolution_operations("short", true);
+    let mut short_redo_budget = ResourceBudget::new(unlimited);
+    OperationSet::from_operations_with_budget(short_redo, &mut short_redo_budget).unwrap();
+    let short_redo_usage = short_redo_budget.usage().working_set_bytes();
+    let (long_redo, long_redo_target_bytes) = toggle_resolution_operations(&"y".repeat(1024), true);
+    let mut long_redo_budget = ResourceBudget::new(unlimited);
+    OperationSet::from_operations_with_budget(long_redo, &mut long_redo_budget).unwrap();
+    assert_eq!(
+        long_redo_budget.usage().working_set_bytes() - short_redo_usage,
+        (long_redo_target_bytes - short_redo_target_bytes).saturating_mul(3)
+    );
+}
+
+#[test]
+fn duplicate_input_is_budgeted_and_cancelled_before_the_next_item() {
+    let operation = root_for_test();
+    let mut budget = ResourceBudget::with_cancellation(
+        ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        ),
+        CancelAfter {
+            remaining_checks: 4,
+        },
+    );
+    assert_eq!(
+        OperationSet::from_operations_with_budget(
+            DuplicateThenPanic {
+                operation,
+                yielded: 0,
+            },
+            &mut budget,
+        ),
+        Err(OperationError::Cancelled)
+    );
+}
+
+#[test]
+fn repeated_duplicate_input_exhausts_work_before_validation() {
+    let operation = root_for_test();
+    let mut budget = ResourceBudget::new(ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        128 * 2,
+    ));
+    assert_eq!(
+        OperationSet::from_operations_with_budget(
+            [operation.clone(), operation.clone(), operation],
+            &mut budget,
+        ),
+        Err(OperationError::ResourceLimit("working_set_bytes"))
+    );
+    assert_eq!(budget.usage().working_set_bytes(), 128 * 2);
+}
+
+#[test]
+fn default_input_admission_bounds_duplicate_streams() {
+    let result = OperationSet::from_operations(TooManyDuplicates {
+        operation: root_for_test(),
+        yielded: 0,
+    });
+    assert_eq!(
+        result,
+        Err(OperationError::ResourceLimit("operation_count"))
+    );
+}
+
+#[test]
+fn operation_bytes_are_charged_before_set_insertion() {
+    let operation = root_for_test();
+    let byte_length = operation.canonical_bytes().len();
+    let mut budget = ResourceBudget::new(ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        byte_length - 1,
+        usize::MAX,
+        usize::MAX,
+    ));
+    assert_eq!(
+        OperationSet::from_operations_with_budget([operation], &mut budget),
+        Err(OperationError::ResourceLimit("operation_bytes"))
+    );
+    assert_eq!(budget.usage().operation_bytes(), 0);
+}
+
+#[test]
+fn cancellation_is_preserved_at_the_operation_boundary() {
+    let set = OperationSet::from_operations([root_for_test()]).unwrap();
+    let mut budget = ResourceBudget::with_cancellation(
+        ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        ),
+        CancelImmediately,
+    );
+    assert_eq!(
+        set.replay_effects_with_budget(&mut budget),
+        Err(MergeError::Cancelled)
+    );
+}
+
+#[test]
+fn replay_work_accounting_is_input_order_independent() {
+    let operations = vec![
+        apply(2, 1, 1, 0, vec![], "one", "initial"),
+        site_apply(3, 2, 1, 0, vec![], 3, "two", "old"),
+    ];
+    let forward = OperationSet::from_operations(operations.clone()).unwrap();
+    let reverse = OperationSet::from_operations(operations.into_iter().rev()).unwrap();
+    let limits = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    );
+    let mut first_budget = ResourceBudget::new(limits);
+    let mut second_budget = ResourceBudget::new(limits);
+    assert_eq!(
+        forward.replay_effects_with_budget(&mut first_budget),
+        reverse.replay_effects_with_budget(&mut second_budget)
+    );
+    assert_eq!(first_budget.usage(), second_budget.usage());
 }
 
 proptest! {
