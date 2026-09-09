@@ -39390,8 +39390,8 @@
         {
           "path": "docs/validation/native-capture-session.md",
           "description": "Independent redacted CoreWLAN probe through integrated process and persistence; does not validate authorized RF scan",
-          "revision": "92de1cca17350969bca8c426df2663204de9c0e34c426392f46421f84fc2a3c3",
-          "sha256": "92de1cca17350969bca8c426df2663204de9c0e34c426392f46421f84fc2a3c3",
+          "revision": "0cc7da4f71e1d2839b9e098f13772bfde3d408031332a3c32ac5e098b0132e15",
+          "sha256": "0cc7da4f71e1d2839b9e098f13772bfde3d408031332a3c32ac5e098b0132e15",
           "command": "cargo test -p kyberia-observation-pipeline tests::supervised_real_redacted_capability_probe_uses_the_rust_boundary --locked --offline -- --ignored --exact",
           "scope": "current_host_redacted_capability_probe",
           "result": "PASS"

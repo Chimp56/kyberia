@@ -8,6 +8,32 @@ The fixtures are explicitly synthetic process-supervision fixtures. They do
 not invoke CoreWLAN, request macOS consent, fabricate capture clocks or poses,
 or represent shell output as measurements.
 
+## Extracted normalization operation
+
+This section describes candidate `91a0f60`, pending integration after its
+independent review correction. It is not yet part of the integration branch.
+
+`run_and_normalize` is the reusable outward operation for callers that need a
+validated native capture before choosing survey or storage behavior. It
+returns an opaque `NativeCaptureSession`: its process session, exact source
+clock-epoch UUID, validated terminal and exit code, and one normalized capture
+are read-only views of the same decoded stream. No caller can construct the
+session by combining values from separate process results.
+
+The operation performs process supervision, bounded decode, command and
+timeout provenance, source-build attestation, identifier policy, observation
+limit, requested-interface, terminal/exit, and cancellation checks before it
+invokes the mapping callback. It checks cancellation again immediately before
+mapping and after mapping/normalization. `run_and_persist` delegates to this
+same operation, so persistence cannot grow a second validation path.
+
+`DecodedStream::clock_epoch()` exposes the collector's validated wire UUID
+without converting it to a host timestamp or a canonical Kyberia clock ID.
+The mapping caller must make any explicit clock-model binding. Capture time,
+pose, dwell and calibration remain unknown when the source does not provide
+them; the extraction operation does not synthesize them. The terminal accessor
+is similarly derived only from the decoder-validated final complete record.
+
 ## Focused acceptance matrix
 
 `supervised_scan_normalizes_persists_and_reopens_exactly` runs a real trusted

@@ -992,6 +992,59 @@
       "requirements": [
         "source:heading:2369a7236763a4cbea4f:1"
       ]
+    },
+    {
+      "id": "iteration-4-capture-normalization-operation",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-native-capture-session"
+      ],
+      "owner": "capture composition",
+      "requirements": [
+        "catalog:PAS-001:1",
+        "backlog:FND-002:1"
+      ],
+      "owned_paths": [
+        "crates/observation-pipeline/src/process.rs",
+        "crates/capture-adapter/src/macos.rs"
+      ],
+      "acceptance": "One opaque validated native result before storage or survey choice; all command, build, privacy, interface, terminal/exit and cancellation checks precede mapping. Preserve source epoch without fabricated clocks or poses. Independent review and affected platform checks required."
+    },
+    {
+      "id": "iteration-4-acquisition-spool",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-native-observation-pipeline",
+        "iteration-4-observation-chunks"
+      ],
+      "owner": "capture/storage",
+      "requirements": [
+        "catalog:PAS-001:1",
+        "backlog:FND-006:1"
+      ],
+      "owned_paths": [
+        "crates/observation-pipeline/src/spool.rs",
+        "crates/observation-pipeline/src/bundle.rs"
+      ],
+      "acceptance": "Publish validated completed batches without invented survey snapshots; preserve terminal/capability/unknown evidence, raw retention closure, exact reopen and idempotent retry with explicit partial progress. Independent review required. Does not prove in-flight process crash recovery."
+    },
+    {
+      "id": "iteration-4-capture-session-cli",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-capture-normalization-operation",
+        "iteration-4-acquisition-spool",
+        "iteration-4-canonical-project-cli"
+      ],
+      "owner": "capture/CLI application",
+      "requirements": [
+        "catalog:PAS-001:1",
+        "backlog:COL-004:1"
+      ],
+      "owned_paths": [
+        "apps/cli/src/capture_session.rs"
+      ],
+      "acceptance": "Strict versioned trusted collector request, explicit identity allocation and mapping provenance, privacy, source clock binding, cancellation, bounded request admission and recoverable durable reports. No fabricated survey completion. Native authorized scan and downstream UI remain separate acceptance gates."
     }
   ]
 }
