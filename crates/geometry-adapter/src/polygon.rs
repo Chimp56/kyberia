@@ -13,8 +13,9 @@ pub const MAX_POLYGON_HOLES: usize = 128;
 pub const MAX_MULTIPOLYGON_POLYGONS: usize = 256;
 pub const MAX_MULTIPOLYGON_COORDINATES: usize = 16_384;
 /// Conservative bound on the pairwise kernel work estimate. The estimate is
-/// checked before a boolean operation starts; callers receive an explicit
-/// resource error instead of allowing an unbounded overlay workload.
+/// checked before a boolean operation starts and while sequential component
+/// results grow; callers receive an explicit resource error instead of
+/// allowing an unbounded overlay workload.
 pub const MAX_BOOLEAN_WORK: usize = 4_194_304;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -47,6 +48,7 @@ pub enum BooleanError {
     FrameMismatch,
     ResourceLimit,
     UnsupportedCoordinateResolution,
+    UnsupportedTopology,
     InvalidKernelResult,
     TouchingTopologyUnsupported,
 }
@@ -370,16 +372,25 @@ impl ValidatedMultiPolygon {
             };
         }
         ensure_kernel_precision(self, other, scale)?;
+        if matches!(
+            operation,
+            BooleanOperation::Intersection | BooleanOperation::Difference
+        ) {
+            ensure_supported_overlay_topology(self, other, scale)?;
+        }
         let result = match operation {
-            BooleanOperation::Intersection => left.intersection(&right),
+            BooleanOperation::Intersection => componentwise_intersection(&left, &right)?,
             BooleanOperation::Union => left.union(&right),
-            BooleanOperation::Difference => left.difference(&right),
+            BooleanOperation::Difference => componentwise_difference(&left, &right)?,
         };
         if operation == BooleanOperation::Union && result.0.is_empty() {
             return Err(BooleanError::InvalidKernelResult);
         }
         match operation {
-            BooleanOperation::Union if !result.covers(&left) || !result.covers(&right) => {
+            BooleanOperation::Union
+                if !multipolygon_covers(&result, &left)
+                    || !multipolygon_covers(&result, &right) =>
+            {
                 return Err(BooleanError::UnsupportedCoordinateResolution);
             }
             BooleanOperation::Intersection => {
@@ -389,9 +400,7 @@ impl ValidatedMultiPolygon {
                 if result.0.is_empty() {
                     return Ok(Self::empty(self.floor_id, self.frame_id));
                 }
-                if !left.covers(&result) || !right.covers(&result) {
-                    return Err(BooleanError::InvalidKernelResult);
-                }
+                ensure_intersection_completeness(&left, &right, &result)?;
             }
             BooleanOperation::Difference => {
                 if result.0.is_empty() {
@@ -400,9 +409,10 @@ impl ValidatedMultiPolygon {
                     }
                     return Ok(Self::empty(self.floor_id, self.frame_id));
                 }
-                if !left.covers(&result) {
+                if !multipolygon_covers(&left, &result) {
                     return Err(BooleanError::InvalidKernelResult);
                 }
+                ensure_difference_completeness(&left, &right, &result)?;
             }
             _ => {}
         }
@@ -579,6 +589,131 @@ fn bounds_are_strictly_separate(left: (f64, f64, f64, f64), right: (f64, f64, f6
     left.2 < right.0 || right.2 < left.0 || left.3 < right.1 || right.3 < left.1
 }
 
+fn componentwise_intersection(
+    left: &MultiPolygon<f64>,
+    right: &MultiPolygon<f64>,
+) -> Result<MultiPolygon<f64>, BooleanError> {
+    let mut result = Vec::new();
+    let mut total_coordinates = 0usize;
+    for left in &left.0 {
+        for right in &right.0 {
+            let pair = left.intersection(right);
+            for polygon in pair.0 {
+                append_bounded_polygon(&mut result, &mut total_coordinates, polygon)?;
+            }
+        }
+    }
+    Ok(MultiPolygon(result))
+}
+
+fn componentwise_difference(
+    left: &MultiPolygon<f64>,
+    right: &MultiPolygon<f64>,
+) -> Result<MultiPolygon<f64>, BooleanError> {
+    let mut result = Vec::new();
+    let mut total_coordinates = 0usize;
+    let mut work_used = 0usize;
+    for left in &left.0 {
+        let mut remaining = vec![left.clone()];
+        for right in &right.0 {
+            let mut next = Vec::new();
+            let mut next_coordinates = 0usize;
+            for remaining in remaining {
+                let pair_work = polygon_coordinate_count(&remaining)
+                    .checked_mul(polygon_coordinate_count(right))
+                    .ok_or(BooleanError::ResourceLimit)?;
+                work_used = work_used
+                    .checked_add(pair_work)
+                    .ok_or(BooleanError::ResourceLimit)?;
+                if work_used > MAX_BOOLEAN_WORK {
+                    return Err(BooleanError::ResourceLimit);
+                }
+                for polygon in remaining.difference(right).0 {
+                    append_bounded_polygon(&mut next, &mut next_coordinates, polygon)?;
+                }
+            }
+            remaining = next;
+            if remaining.is_empty() {
+                break;
+            }
+        }
+        for polygon in remaining {
+            append_bounded_polygon(&mut result, &mut total_coordinates, polygon)?;
+        }
+    }
+    Ok(MultiPolygon(result))
+}
+
+fn polygon_coordinate_count(polygon: &Polygon<f64>) -> usize {
+    polygon.exterior().0.len()
+        + polygon
+            .interiors()
+            .iter()
+            .map(|ring| ring.0.len())
+            .sum::<usize>()
+}
+
+fn append_bounded_polygon(
+    polygons: &mut Vec<Polygon<f64>>,
+    total_coordinates: &mut usize,
+    polygon: Polygon<f64>,
+) -> Result<(), BooleanError> {
+    if polygons.len() >= MAX_MULTIPOLYGON_POLYGONS {
+        return Err(BooleanError::ResourceLimit);
+    }
+    *total_coordinates = total_coordinates
+        .checked_add(polygon_coordinate_count(&polygon))
+        .ok_or(BooleanError::ResourceLimit)?;
+    if *total_coordinates > MAX_MULTIPOLYGON_COORDINATES {
+        return Err(BooleanError::ResourceLimit);
+    }
+    polygons.push(polygon);
+    Ok(())
+}
+
+fn ensure_supported_overlay_topology(
+    left: &ValidatedMultiPolygon,
+    right: &ValidatedMultiPolygon,
+    scale: f64,
+) -> Result<(), BooleanError> {
+    if left
+        .polygons
+        .iter()
+        .chain(&right.polygons)
+        .all(|polygon| polygon.holes.is_empty() && ring_is_convex(&polygon.exterior, scale))
+    {
+        return Ok(());
+    }
+    Err(BooleanError::UnsupportedTopology)
+}
+
+fn ring_is_convex(ring: &[Point2], scale: f64) -> bool {
+    let body = &ring[..ring.len() - 1];
+    let mut orientation = 0.0;
+    for index in 0..body.len() {
+        let first = body[index];
+        let second = body[(index + 1) % body.len()];
+        let third = body[(index + 2) % body.len()];
+        let first_x = first.x.get() / scale;
+        let first_y = first.y.get() / scale;
+        let second_x = second.x.get() / scale;
+        let second_y = second.y.get() / scale;
+        let third_x = third.x.get() / scale;
+        let third_y = third.y.get() / scale;
+        let cross =
+            (second_x - first_x) * (third_y - first_y) - (second_y - first_y) * (third_x - first_x);
+        if cross == 0.0 {
+            continue;
+        }
+        if orientation == 0.0 {
+            orientation = cross.signum();
+        } else if cross.signum() != orientation {
+            return false;
+        }
+    }
+    orientation != 0.0
+}
+
 fn ensure_kernel_precision(
     left: &ValidatedMultiPolygon,
     right: &ValidatedMultiPolygon,
@@ -660,15 +795,122 @@ fn ensure_kernel_precision(
     }) {
         return Err(BooleanError::UnsupportedCoordinateResolution);
     }
+    if boundary_is_below_kernel_resolution(left, right, scale, minimum_separation) {
+        return Err(BooleanError::UnsupportedCoordinateResolution);
+    }
     Ok(())
+}
+
+fn polygon_rings(polygon: &ValidatedPolygon) -> impl Iterator<Item = &[Point2]> {
+    std::iter::once(polygon.exterior.as_slice()).chain(polygon.holes.iter().map(Vec::as_slice))
+}
+
+fn boundary_is_below_kernel_resolution(
+    left: &ValidatedMultiPolygon,
+    right: &ValidatedMultiPolygon,
+    scale: f64,
+    minimum_separation: f64,
+) -> bool {
+    let point_is_too_close = |point: Point2, start: Point2, end: Point2| {
+        let start_x = start.x.get() / scale;
+        let start_y = start.y.get() / scale;
+        let end_x = end.x.get() / scale;
+        let end_y = end.y.get() / scale;
+        let point_x = point.x.get() / scale;
+        let point_y = point.y.get() / scale;
+        let edge_x = end_x - start_x;
+        let edge_y = end_y - start_y;
+        let length_squared = edge_x.mul_add(edge_x, edge_y * edge_y);
+        if !length_squared.is_finite() || length_squared == 0.0 {
+            return false;
+        }
+        let projection =
+            ((point_x - start_x) * edge_x + (point_y - start_y) * edge_y) / length_squared;
+        if !(0.0..=1.0).contains(&projection) {
+            return false;
+        }
+        let cross = (point_x - start_x) * edge_y - (point_y - start_y) * edge_x;
+        let distance = cross.abs() / length_squared.sqrt();
+        distance != 0.0 && distance < minimum_separation
+    };
+    let one_direction = |source: &ValidatedMultiPolygon, target: &ValidatedMultiPolygon| {
+        source.polygons.iter().any(|source_polygon| {
+            target.polygons.iter().any(|target_polygon| {
+                polygon_rings(source_polygon).any(|source_ring| {
+                    source_ring.iter().any(|point| {
+                        polygon_rings(target_polygon).any(|target_ring| {
+                            target_ring
+                                .windows(2)
+                                .any(|edge| point_is_too_close(*point, edge[0], edge[1]))
+                        })
+                    })
+                })
+            })
+        })
+    };
+    one_direction(left, right) || one_direction(right, left)
 }
 
 fn has_interior_overlap(left: &MultiPolygon<f64>, right: &MultiPolygon<f64>) -> bool {
     left.0.iter().any(|left| {
-        right.0.iter().any(|right| {
-            left.relate(right).get(CoordPos::Inside, CoordPos::Inside) == Dimensions::TwoDimensional
-        })
+        right
+            .0
+            .iter()
+            .any(|right| polygons_have_interior_overlap(left, right))
     })
+}
+
+fn polygons_have_interior_overlap(left: &Polygon<f64>, right: &Polygon<f64>) -> bool {
+    left.relate(right).get(CoordPos::Inside, CoordPos::Inside) == Dimensions::TwoDimensional
+}
+
+fn multipolygon_covers(container: &MultiPolygon<f64>, target: &MultiPolygon<f64>) -> bool {
+    target
+        .0
+        .iter()
+        .all(|target| container.0.iter().any(|container| container.covers(target)))
+}
+
+fn ensure_intersection_completeness(
+    left: &MultiPolygon<f64>,
+    right: &MultiPolygon<f64>,
+    result: &MultiPolygon<f64>,
+) -> Result<(), BooleanError> {
+    for left in &left.0 {
+        for right in &right.0 {
+            if polygons_have_interior_overlap(left, right)
+                && !result.0.iter().any(|result| {
+                    polygons_have_interior_overlap(result, left)
+                        && polygons_have_interior_overlap(result, right)
+                })
+            {
+                return Err(BooleanError::UnsupportedCoordinateResolution);
+            }
+        }
+    }
+    Ok(())
+}
+
+fn ensure_difference_completeness(
+    left: &MultiPolygon<f64>,
+    right: &MultiPolygon<f64>,
+    result: &MultiPolygon<f64>,
+) -> Result<(), BooleanError> {
+    if has_interior_overlap(result, right) {
+        return Err(BooleanError::InvalidKernelResult);
+    }
+    for left in &left.0 {
+        let fully_removed = right.0.iter().any(|right| right.covers(left));
+        if !fully_removed
+            && !result
+                .0
+                .iter()
+                .any(|result| polygons_have_interior_overlap(result, left))
+        {
+            return Err(BooleanError::UnsupportedCoordinateResolution);
+        }
+    }
+    Ok(())
 }
 
 fn from_geo_ring(ring: &LineString<f64>, scale: f64) -> Result<Vec<Point2>, BooleanError> {

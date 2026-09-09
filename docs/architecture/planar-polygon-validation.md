@@ -45,6 +45,18 @@ provably disjoint, union/intersection/difference use exact component-set
 semantics and avoid the overlay kernel. This preserves valid narrow components
 that the kernel's integer conversion could otherwise alias away.
 
+For overlapping intersection and difference, the adapter invokes the kernel
+per component pair and per sequential subtraction step, with the same limits
+applied to every intermediate result. Each positive-area intersection pair
+must contribute to the result, difference output must not overlap the excluded
+right-hand set, and every left component with a residual must remain present.
+This avoids a global multipolygon overlay silently losing a component. The
+supported overlapping overlay contract currently requires simple convex,
+hole-free input components; a non-convex or holed overlapping input returns
+`UnsupportedTopology` until an independently verified decomposition is
+available. Difference may still produce a validated hole when subtracting a
+contained simple component.
+
 For workloads requiring overlay, the adapter models the pinned kernel's
 float-to-integer grid and requires two grid steps between distinct normalized
 coordinate values. A narrower feature returns

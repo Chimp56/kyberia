@@ -129,6 +129,46 @@ fn rectangle(x0: f64, y0: f64, x1: f64, y1: f64) -> Result<ValidatedPolygon, Pol
     )
 }
 
+fn partial_overlap_multipolygons_with_offset(
+    right_triangle_y: f64,
+) -> (ValidatedMultiPolygon, ValidatedMultiPolygon) {
+    let left_triangle = polygon(ring(&[(0., 0.), (10., 0.), (0., 10.), (0., 0.)]), vec![]).unwrap();
+    let right_triangle = polygon(
+        ring(&[
+            (5., right_triangle_y),
+            (20., 1.),
+            (1., 20.),
+            (5., right_triangle_y),
+        ]),
+        vec![],
+    )
+    .unwrap();
+    let left_square = rectangle(30., 30., 40., 40.).unwrap();
+    let right_square = rectangle(30., 30., 40., 40.).unwrap();
+    (
+        ValidatedMultiPolygon::new(
+            FloorId::from_bytes([1; 16]).unwrap(),
+            FrameId::from_bytes([2; 16]).unwrap(),
+            vec![left_triangle, left_square],
+        )
+        .unwrap(),
+        ValidatedMultiPolygon::new(
+            FloorId::from_bytes([1; 16]).unwrap(),
+            FrameId::from_bytes([2; 16]).unwrap(),
+            vec![right_triangle, right_square],
+        )
+        .unwrap(),
+    )
+}
+
+fn partial_overlap_multipolygons() -> (ValidatedMultiPolygon, ValidatedMultiPolygon) {
+    partial_overlap_multipolygons_with_offset(4.0)
+}
+
+fn narrow_partial_overlap_multipolygons() -> (ValidatedMultiPolygon, ValidatedMultiPolygon) {
+    partial_overlap_multipolygons_with_offset(4.9999999999)
+}
+
 #[test]
 fn boolean_overlapping_squares_have_expected_geometry() {
     let left = rectangle(0., 0., 2., 2.).unwrap();
@@ -332,5 +372,92 @@ fn boolean_near_collinear_sliver_is_explicitly_unsupported() {
     assert_eq!(
         near_collinear.intersection(&near_collinear),
         Err(BooleanError::UnsupportedCoordinateResolution)
+    );
+}
+
+#[test]
+fn boolean_partial_multipolygon_intersection_preserves_each_positive_area_pair() {
+    let (left, right) = partial_overlap_multipolygons();
+    let result = left.intersection(&right).unwrap();
+
+    assert_eq!(result.polygons().len(), 2);
+    assert!(
+        result
+            .polygons()
+            .iter()
+            .any(|polygon| { polygon.exterior().iter().all(|point| point.x.get() >= 30.0) })
+    );
+    assert!(
+        result
+            .polygons()
+            .iter()
+            .any(|polygon| { polygon.exterior().iter().all(|point| point.x.get() <= 10.0) })
+    );
+    assert!(area(&result) > 100.0);
+}
+
+#[test]
+fn boolean_partial_multipolygon_difference_preserves_residual_component() {
+    let (left, right) = partial_overlap_multipolygons();
+    let result = left.difference(&right).unwrap();
+
+    assert_eq!(result.polygons().len(), 1);
+    assert!(
+        result.polygons()[0]
+            .exterior()
+            .iter()
+            .all(|point| point.x.get() <= 10.0)
+    );
+    assert!(area(&result) > 0.0 && area(&result) < 50.0);
+}
+
+#[test]
+fn boolean_narrow_partial_overlap_is_explicitly_unsupported() {
+    let (left, right) = narrow_partial_overlap_multipolygons();
+
+    assert_eq!(
+        left.intersection(&right),
+        Err(BooleanError::UnsupportedCoordinateResolution)
+    );
+    assert_eq!(
+        left.difference(&right),
+        Err(BooleanError::UnsupportedCoordinateResolution)
+    );
+}
+
+#[test]
+fn boolean_non_convex_overlay_is_explicitly_unsupported() {
+    let concave = polygon(
+        ring(&[
+            (0., 0.),
+            (4., 0.),
+            (4., 1.),
+            (1., 1.),
+            (1., 4.),
+            (0., 4.),
+            (0., 0.),
+        ]),
+        vec![],
+    )
+    .unwrap();
+    let square = rectangle(0., 0., 2., 2.).unwrap();
+
+    assert_eq!(
+        concave.intersection(&square),
+        Err(BooleanError::UnsupportedTopology)
+    );
+    assert_eq!(
+        concave.difference(&square),
+        Err(BooleanError::UnsupportedTopology)
+    );
+
+    let holed = polygon(
+        ring(&[(0., 0.), (4., 0.), (4., 4.), (0., 4.), (0., 0.)]),
+        vec![ring(&[(1., 1.), (2., 1.), (2., 2.), (1., 2.), (1., 1.)])],
+    )
+    .unwrap();
+    assert_eq!(
+        holed.intersection(&square),
+        Err(BooleanError::UnsupportedTopology)
     );
 }

@@ -26,6 +26,12 @@ and `FrameId` values while keeping `geo` types private to the adapter.
 - A valid near-collinear sliver is rejected before overlay when its area is
   below the pinned kernel's conservative precision bound; it cannot become a
   false empty result.
+- A multipolygon with two positive-area component pairs preserves both
+  intersection components and the residual difference component. A narrow
+  partial overlap is rejected explicitly instead of returning the unrelated
+  surviving component.
+- Overlapping non-convex or holed inputs return `UnsupportedTopology`; this is
+  the current bounded overlay contract rather than an implicit repair.
 - Tiny `1e-200` coordinates are normalized for overlay without returning a
   false empty result.
 
@@ -38,8 +44,10 @@ The implementation is
 
 The adapter caps a multipolygon at 256 components and 16,384 total ring
 coordinates. Each boolean estimates coordinate-pair work before calling
-`geo`, with a cap of 4,194,304 units. Results are counted and revalidated after
-the kernel. No repair, snapping, CRS conversion, material attenuation,
+`geo`, with a cap of 4,194,304 units; componentwise intersection and sequential
+difference also enforce the cap and output limits after every intermediate
+step. Results are counted and revalidated after the kernel. No repair, snapping,
+CRS conversion, material attenuation,
 three-dimensional operation, or import-format handling is performed here.
 Touching component topology and precision below the kernel grid are explicit
 unsupported outcomes. Full Gate E evidence still requires broader import,
