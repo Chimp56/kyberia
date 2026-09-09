@@ -83,3 +83,27 @@ calibration prior is insufficient if replay converts it back to V1 Mutation
 and rejects it as TypedPriorRequired. The pure operation API must expose usable
 unknown-state restoration effects while preserving legacy V1 compatibility;
 storage/materializer integration can then consume that versioned contract.
+
+## Independent API audit and executable ordering
+
+The current `Project::execute` rejects any logical time less than or equal to
+the aggregate's current logical time. Reusing it unchanged for a DAG therefore
+rejects valid concurrent edits to different fields with equal Lamport times.
+Keep the legacy linear receipt behavior intact; establish a separate reviewed
+materialized-application boundary that preserves aggregate invariants and the
+maximum logical time without treating Lamport time as revision.
+
+The validated project exposes serde serialization but no versioned canonical
+identity contract. The operation set similarly needs an exact membership and
+byte identity independent of arrival order. The first independent prerequisite
+is now assigned to `feat/materialization-identity`: domain-separated canonical
+baseline and operation-set hashes, project/revision/logical-time bindings,
+resource limits and mutation/permutation tests. It must not claim to validate
+causal inverse truth or materialize a project merely by hashing inputs.
+
+Subsequent application tests must compare actual causal field states, including
+the baseline prior for roots, rather than whichever state happens to precede an
+operation in a deterministic presentation. Verify equal-timestamp independent
+edits, forged causal priors, unknown restoration, evidence locks, and unresolved
+same-field conflicts against complete canonical project outputs. Storage
+publication remains downstream of this pure application boundary.
