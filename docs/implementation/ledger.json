@@ -186424,14 +186424,20 @@
         {
           "path": "crates/geometry-adapter/src/lib.rs",
           "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
-          "revision": "7b61d99b357d48e3f0fbab87b12c9392bef7e7d04293c6623dd96027a6d28a27",
-          "sha256": "7b61d99b357d48e3f0fbab87b12c9392bef7e7d04293c6623dd96027a6d28a27"
+          "revision": "51bea8a82fccd0169bd0ea1c1507d375ccff9ac29527dcf40aa3efcd9744b07c",
+          "sha256": "51bea8a82fccd0169bd0ea1c1507d375ccff9ac29527dcf40aa3efcd9744b07c"
         },
         {
           "path": "crates/geometry-adapter/src/polygon.rs",
           "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
-          "revision": "9016f068259be7a554450dfefbe19b8c929fb441c63c1e86abadb04beb1e6ba2",
-          "sha256": "9016f068259be7a554450dfefbe19b8c929fb441c63c1e86abadb04beb1e6ba2"
+          "revision": "2a3bd200600665b2f2ee5cff2ced732301529c26b24492c3c5954591715f4099",
+          "sha256": "2a3bd200600665b2f2ee5cff2ced732301529c26b24492c3c5954591715f4099"
+        },
+        {
+          "path": "crates/geometry-adapter/src/offset.rs",
+          "description": "Typed inward/outward rounded offsets with bounded admission and cancellation",
+          "revision": "7cfb49e8112a06f88ff6c4c366230934765610e9c60bc1a63951dd42c048566a",
+          "sha256": "7cfb49e8112a06f88ff6c4c366230934765610e9c60bc1a63951dd42c048566a"
         }
       ],
       "validation": [
@@ -186461,6 +186467,15 @@
           "command": "cargo test --workspace --locked --offline --quiet",
           "scope": "bounded_planar_adapter",
           "result": "PASS"
+        },
+        {
+          "path": "crates/geometry-adapter/tests/offsets.rs",
+          "description": "Offset numerical/topology/cancellation and mixed-scale component-completeness regression",
+          "revision": "5e3b87f8f090480a06e69fc208aa1d8ff1a1136e3580c13f9bffbc9426d6a8d0",
+          "sha256": "5e3b87f8f090480a06e69fc208aa1d8ff1a1136e3580c13f9bffbc9426d6a8d0",
+          "command": "cargo test -p kyberia-geometry-adapter --locked --offline",
+          "scope": "planar_polygon_offsets",
+          "result": "PASS"
         }
       ],
       "reviews": [
@@ -186479,6 +186494,15 @@
           "revision": "eb9a33e2ead5d6107ae8625ec157f748c3e937bcd3ce1d15fc5ef5f5e8676e3f",
           "sha256": "eb9a33e2ead5d6107ae8625ec157f748c3e937bcd3ce1d15fc5ef5f5e8676e3f",
           "reviewer": "/root/operation_log_luna",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/polygon-offsets-review.md",
+          "description": "Independent offset completeness correction review and tolerance clarification",
+          "revision": "c20b0bc0b0263e1f8ed71395991032edb9d1deb84bace366467c76e3de19b336",
+          "sha256": "c20b0bc0b0263e1f8ed71395991032edb9d1deb84bace366467c76e3de19b336",
+          "reviewer": "/root/channel_coupling_review_luna",
           "disposition": "APPROVED",
           "findings": []
         }

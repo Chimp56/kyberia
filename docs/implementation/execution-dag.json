@@ -980,6 +980,18 @@
         "backlog:FND-004:1",
         "backlog:FND-011:1"
       ]
+    },
+    {
+      "id": "iteration-4-polygon-offsets",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "iteration-4-polygon-booleans"
+      ],
+      "owner": "geometry",
+      "acceptance": "Typed rounded inward/outward offsets preserve canonical topology or return explicit unsupported resolution. Bounded admission, cancellation and mixed-scale completeness tested; independent correction review21b156e8 approved. Full Gate E remains open.",
+      "requirements": [
+        "source:heading:2369a7236763a4cbea4f:1"
+      ]
     }
   ]
 }

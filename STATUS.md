@@ -8,7 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **4 — Integration audit remediation and architecture proofs**.
 - Integration branch: `main`.
-- Latest integrated feature sources: `57f8129` and `0ab4bc7`, canonical project CLI and single-snapshot queries (integration `95b2f77`, `d9dfd0c`).
+- Latest integrated feature source: `21b156e8`, corrected rounded polygon offsets (integration `7645079`, review documentation `c88b072`).
+- Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
   [publication review](docs/reviews/materialized-publication-correction-review.md).
@@ -43,7 +44,8 @@ product capability is validated.
   renderer scenes, and CLI analysis/scene export preserving numeric values,
   unknown reasons, frame geometry and source binding. Scene adapter integration
   is `6e13258`; CLI integration is `4a55d35`.
-- Bounded planar intersection/polygon-boolean adapter; provisional current-host
+- Bounded planar intersection/polygon-boolean/rounded-offset adapter, including
+  independently reviewed mixed-scale completeness correction `21b156e8`; provisional current-host
   OpenLayers/custom-WebGL comparison; synthetic RF fixtures; Kismet offline
   metadata/container adapters and bounded authenticated status transport;
   isolated Sionna CPU proof; active-process research proof.
@@ -57,13 +59,16 @@ product capability is validated.
 | Neutral planning interchange | Russell / `planning-interchange` | Original geometry/AP/radio/channel-constraint schema, defensive import/export, deterministic roundtrip and independent review |
 | Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Browser review found canonical admission, metric/replay, predecode limits, coordinate mapping and stale-raster MAJOR defects; correction and fresh review required |
 | Windows analysis request acquisition | Correction awaiting review / `windows-analysis-requests` | `c3dd163` adds disk-handle validation and read-only sharing after WR-001/002; 23 local CLI tests and Windows adapter cross-Clippy pass; native runtime remains open |
-| Rounded polygon offsets | Laplace correcting / `polygon-offsets` | Independent review found partial loss of mixed-scale components in `3406d6b`; coverage-completeness fix and fresh review required |
+
 
 The publication review is approved for the bounded increment in
 [its review packet](docs/reviews/materialized-publication-integration-review.md).
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+After offset integration, workspace tests and Clippy pass; logs are
+`.tools/offset-integrated-workspace-tests.log` and `.tools/offset-integrated-clippy.log`.
 
 Canonical CLI workspace regression log: `.tools/canonical-cli-integration-network-tests.log`.
 The initial sandboxed run could not bind local Kismet HTTP fixtures; rerunning
@@ -79,7 +84,7 @@ ordered checks while exposing lint, typecheck, regression, source inventory and
 evidence failures separately. Independent review found no blocking findings;
 the command-discoverability follow-up is included in README.
 
-For integrated canonical CLI source `d9dfd0c`, `cargo test --workspace --locked --offline` passes **622 tests,
+For integrated source `c88b072`, `cargo test --workspace --locked --offline` passes **630 tests,
 zero failures, nine ignored tests**, recorded in
 `.tools/publication-final-integration.log`. Existing local TCP fixtures ran
 with authorized listener access. This count excludes unintegrated worktrees.
@@ -108,7 +113,7 @@ runnable implementation and fixture work.
 
 Remaining work includes product capture/point-survey wiring and acquisition
 spooling; final renderer choice, Tauri/WebView and broader host/driver tests;
-remaining Windows publication runtime validation; geometry imports/offsets/3D/CRS/CAD;
+remaining Windows publication runtime validation; geometry imports/3D/CRS/CAD and broader offset numerical/platform validation;
 complete metric families, regulatory/PHY/airtime/capacity semantics; live Kismet
 and PCAPNG normalization parity; full Sionna runtime/calibration gates; storage
 live-load/failure/fuzz/portability gates; authorization/coordinator/conflict UX;
@@ -119,7 +124,7 @@ IDs must remain section-qualified.
 
 ## Next executable work
 
-1. Complete the three active isolated increments, independently review them,
+1. Complete the active isolated increments, independently review them,
    address findings, integrate and run affected plus workspace regression suites.
 2. Wire verified stored scenes into the renderer workflow and record actual
    interaction evidence without silently selecting or promoting a renderer.
