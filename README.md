@@ -6,7 +6,7 @@ The initial foundation includes canonical unit-safe evidence contracts, determin
 
 ## Developer setup
 
-Use `python3 tools/dev.py bootstrap` once, then `python3 tools/dev.py check` for all current checks. Individual commands include `clean`, `build`, `format`, `lint`, `typecheck`, `unit`, `integration`, `e2e`, `benchmark`, and `source-check`. `clean` moves only the documented root build and test outputs into an ignored `.trash/clean-runs/` directory and never deletes files; see the [clean command guide](docs/development/clean-command.md). `e2e` currently runs the real CLI workflow; browser/native desktop acceptance joins it with the desktop implementation. Packaging, distributable SBOM and complete application benchmarks remain delivery work.
+Use `python3 tools/dev.py bootstrap` once, then `python3 tools/dev.py check` for all current checks. Individual commands include `clean`, `build`, `format`, `lint`, `typecheck`, `unit`, `integration`, `e2e`, `benchmark`, `source-check`, and `evidence-check`. `clean` moves only the documented root build and test outputs into an ignored `.trash/clean-runs/` directory and never deletes files; see the [clean command guide](docs/development/clean-command.md). `e2e` currently runs the real CLI workflow; browser/native desktop acceptance joins it with the desktop implementation. Packaging, distributable SBOM and complete application benchmarks remain delivery work.
 
 Install Rust through [rustup](https://rustup.rs/) and Python 3.9 or newer. The repository pins Rust 1.98.1 with rustfmt and Clippy. Cargo uses the committed dependency lockfile. A C compiler is required for the bundled SQLite build; on macOS use the Xcode Command Line Tools. Node 24.20.0 and pnpm 12.3.4 are the selected forthcoming desktop toolchain.
 

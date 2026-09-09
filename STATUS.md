@@ -54,13 +54,18 @@ product capability is validated.
 | --- | --- | --- |
 | Canonical project CLI | Laplace / `canonical-project-cli` | Verified project queries and explicit baseline initialization for new projects; real CLI recovery/legacy/corruption tests and independent review |
 | Canonical scene renderer input | Russell reviewing / `renderer-canonical-scenes` | Independent scientific/security review and actual browser evidence after dependency installation |
-| Rounded polygon offsets | Fresh independent reviewer / `polygon-offsets` | Adversarial review of `3406d6b`; numerical precision, topology and resource behavior |
+| Rounded polygon offsets | Laplace correcting / `polygon-offsets` | Independent review found partial loss of mixed-scale components in `3406d6b`; coverage-completeness fix and fresh review required |
 
 The publication review is approved for the bounded increment in
 [its review packet](docs/reviews/materialized-publication-integration-review.md).
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+CI stage diagnostics (`5c5ffc1`, reviewed source `a979d3c`) preserve the same
+ordered checks while exposing lint, typecheck, regression, source inventory and
+evidence failures separately. Independent review found no blocking findings;
+the command-discoverability follow-up is included in README.
 
 For integrated source `7be5e9a`, `cargo test --workspace --locked --offline` passes **617 tests,
 zero failures, nine ignored tests**, recorded in
