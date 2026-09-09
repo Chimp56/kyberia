@@ -46,3 +46,19 @@ Reviewed diagnostic source `1870390`, integrated as `b937905`, adds an escaped
 public annotation naming the failed developer command and exit code. It never
 includes child output or environment values. Focused tests and independent
 review passed; a new hosted run is required to observe the Windows diagnosis.
+
+## Exact Windows failing command
+
+Public annotations for Windows check `102381576107` in
+[run 34325462822](https://github.com/Chimp56/kyberia/actions/runs/34325462822),
+source `b937905268aa96954fe14375bda90e3727c8ad9c`, now identify:
+
+```text
+Validation command failed (exit 101): cargo clippy --workspace --all-targets --locked --offline -- -D warnings
+```
+
+The enclosing Windows shell step reports exit 1. The inner Clippy command
+and exit 101 are the useful diagnosis; the individual compiler diagnostic is
+not yet present in public annotations. The request-reader correction `c3dd163`
+has passed local CLI Clippy and Windows-target file-adapter Clippy, but remains
+unmerged pending independent review and cannot yet be claimed to fix this run.

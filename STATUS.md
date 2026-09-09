@@ -54,7 +54,7 @@ product capability is validated.
 | --- | --- | --- |
 | Canonical project CLI | Root correction / `canonical-project-cli` | `57f8129` review found mixed read snapshots; correction `0ab4bc7` passes 155 affected tests and needs independent review |
 | Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Browser review found canonical admission, metric/replay, predecode limits, coordinate mapping and stale-raster MAJOR defects; correction and fresh review required |
-| Windows analysis request acquisition | Independent review / `windows-analysis-requests` | Local CLI tests pass; Windows handle safety review and native execution remain open |
+| Windows analysis request acquisition | Correction awaiting review / `windows-analysis-requests` | `c3dd163` adds disk-handle validation and read-only sharing after WR-001/002; 23 local CLI tests and Windows adapter cross-Clippy pass; native runtime remains open |
 | Rounded polygon offsets | Laplace correcting / `polygon-offsets` | Independent review found partial loss of mixed-scale components in `3406d6b`; coverage-completeness fix and fresh review required |
 
 The publication review is approved for the bounded increment in
