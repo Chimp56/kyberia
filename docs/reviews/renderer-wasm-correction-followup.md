@@ -98,3 +98,7 @@ Requested correction covers both pre-fetch and in-flight selections, with
 deterministic synchronization of the route-held test. The author-reported
 benchmark pass does not resolve this independently failing lifecycle test.
 Renderer integration remains pending.
+
+## Independent runtime follow-up at 125133e
+
+Static independent review approved the bounded boot-generation correction, but the root's authorized Chromium run still failed. Command: `npm run test:browser-canonical -- http://127.0.0.1:4173/index.html /private/tmp/kyberia-renderer-root-125133e`. The process exited 1 with a 30-second timeout in `verifyDelayedBundledFetchCannotOverrideSynthetic`, browser-canonical-scenes.mjs line 126. Log retained at `/private/tmp/kyberia-renderer-root-125133e.log`. The author is investigating the discrepancy, including served-source identity. Renderer integration remains pending runtime acceptance.
