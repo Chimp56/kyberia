@@ -1,0 +1,39 @@
+{
+  "schema": "kyberia-wasm-reproducibility-evidence/1",
+  "artifact": "research/renderer/wasm/kyberia_scene_validator_wasm.wasm",
+  "sha256": "20660fda0de0775bda08300b5584961c417384cb19c5d65d254711bd9f78c193",
+  "bytes": 902426,
+  "toolchain": "[toolchain]\nchannel = \"1.98.1\"\nprofile = \"minimal\"\ncomponents = [\"clippy\", \"rustfmt\"]\n",
+  "profile": {
+    "release_lto": "thin",
+    "release_codegen_units": 1
+  },
+  "checkout_comparison": {
+    "roots": [
+      "/Users/vincent/code/kyberia",
+      "/Users/vincent/code/kyberia/.trash/wasm-workspace-proof/run-a397r2yr/short",
+      "/Users/vincent/code/kyberia/.trash/wasm-workspace-proof/run-a397r2yr/different/nested/checkout"
+    ],
+    "byte_identical": true,
+    "copied_workspace_fixture": "retained original Kyberia source copies; see provenance.json in their parent"
+  },
+  "source_hashes": {
+    "Cargo.toml": "be4edcca21214bccf95bc5879aa63a3a43027eb2efee085d0dfe9d9d04aaeb06",
+    "Cargo.lock": "602465383d252e42c794ea2bf1f2375e1f104654cc9a416a69bd829681a81861",
+    "research/renderer/support/scene-validator-wasm/Cargo.toml": "c87ddfa631559a62be07b61540c7f3d4dd63441092c33504e63feca8d188862c",
+    "research/renderer/support/scene-validator-wasm/src/lib.rs": "187ad6bdeba9008b8adbee7c2b9981c0dd5e948ccb6993672c2fa95bc9730091",
+    "research/renderer/check-wasm-reproducibility.mjs": "08624536a7cc0f9300d44546ba986580cebec155c5cdf33cf621f38cd23aefd4"
+  },
+  "validation": {
+    "node_tests": 31,
+    "check_wasm": "passed",
+    "clippy": "passed",
+    "architecture": "passed",
+    "source_inventory_external_packages": 241
+  },
+  "limitations": [
+    "Current macOS ARM64 host and pinned toolchain only",
+    "Separate canonical-scene fixture generator not covered by this build gate",
+    "Not a release SBOM or final renderer decision"
+  ]
+}

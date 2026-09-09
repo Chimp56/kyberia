@@ -112,3 +112,21 @@ Comparing the served renderer modules on ports 4173 and 4177 found identical app
 ## Independent full synthetic workload benchmark
 
 At candidate 125133e, the root ran `node benchmark.mjs http://127.0.0.1:4177/index.html /private/tmp/kyberia-renderer-root-benchmark-125133e/proof.json /private/tmp/kyberia-renderer-root-benchmark-125133e/proof.png`. Exit 0: all eight custom/OpenLayers numeric, overlay, combined and 3D workloads reached ready, with zero page errors and five preserved console messages. This includes the harness's layer-switch, framebuffer-mask, camera-alignment and resize assertions. [Source-bound summary](../validation/renderer-independent-125133e.json) retains the full local report hash and source/browser/screenshot bindings. This is current-host synthetic proof, not a final renderer choice or a usable application acceptance claim.
+
+## Integrated rebuild exposes cross-checkout nondeterminism
+
+The initial main-tree `npm run check:wasm` failed: checked artifact `3aa3541c85e40b4564227b4b3101362b0b3ceb33c4c0904f996d98c4f844e888` (977165 bytes), rebuild `f441d192d0113df8f4e68f09e63e4873803472303b5dce6651b84dc918794aa8` (989734 bytes). Tracked Rust sources, support manifests/locks and toolchain were byte-identical across the two worktrees. Both binaries contained absolute checkout and Cargo registry paths.
+
+The root is testing compiler path remapping against actual builds from both roots; changing a sidecar alone is not accepted. Initial split-argument remapping removed private path strings but did not equalize bytes. Compiler metadata and codegen partition experiments remain research-only. The [Rust compiler path-remapping documentation](https://doc.rust-lang.org/rustc/remap-source-paths.html) and [Cargo team discussion of remapping/cache keys](https://blog.rust-lang.org/inside-rust/2025/01/17/this-development-cycle-in-cargo-1.85/) inform the investigation. Integration stays uncommitted pending a passing reproducibility correction and independent review.
+
+## Shared-workspace correction passes integration gates
+
+The same-workspace experiment succeeded at both retained checkout roots and the main integration root: 902426 bytes, SHA-256 `20660fda0de0775bda08300b5584961c417384cb19c5d65d254711bd9f78c193`. The research validator now uses the primary workspace lock/profile and an explicit composition-layer rule. The old nested lock and path-dependent binary were moved to unique `.trash/renderer-integration/` entries with original-path notes. Only one internal package was added to Cargo.lock; all 241 external package records remain unchanged.
+
+Independent reviewer Laplace confirmed the build-layout diagnosis and dependency direction. The build environment additionally pins the repository toolchain and clears inherited compiler, wrapper, profile and WASM-target overrides; Laplace independently approved the final bounded correction. Node tests now pass 31/31, syntax checks pass, `npm run check:wasm` passes, native rendering-scene tests pass 35/35, and affected Clippy, architecture and source inventory pass. [Exact build evidence](../validation/renderer-wasm-reproducibility.json) records the source hashes and limitations.
+
+Root browser command on integrated main: `npm run test:browser-canonical -- http://127.0.0.1:4179/index.html /private/tmp/kyberia-renderer-main-workspace-20660f`, exit 0, `errors: []`. Log retained at `/private/tmp/kyberia-renderer-main-workspace-20660f.log`. The full `tools/dev.py check` is running separately. The previous synthetic benchmark remains source-bound to 125133e; its old WASM artifact is not silently relabeled as the rebuilt artifact.
+
+The complete integrated `.tools/venv/bin/python tools/dev.py check` subsequently exited 0: 635 Rust tests passed, 9 ignored; 215 Python tests ran with 19 skipped and no failures. Formatting, lint, typecheck, architecture, source inventory (241), ledger and fixture checks passed. Log: `.tools/post-renderer-workspace-check.log`. The compilation scope includes the new research workspace member; the product/release gates remain open.
+
+Final disposition: the canonical renderer increment and workspace reproducibility correction are approved for integration. Prior failure evidence is retained; broader renderer choice, runtime portability, release and product UX gates remain open.

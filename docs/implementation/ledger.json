@@ -102414,8 +102414,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -102426,14 +102426,26 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
         },
         {
           "path": "crates/rendering-scene/src/lib.rs",
           "description": "Bounded renderer-neutral canonical scene adapter; final renderer and product UI remain open",
           "revision": "f77853c2a1d6097c18947e6cb8960437d2345f0bc1f6d94191283e1e100dd2d9",
           "sha256": "f77853c2a1d6097c18947e6cb8960437d2345f0bc1f6d94191283e1e100dd2d9"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -158738,8 +158750,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -158750,8 +158762,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -169427,8 +169451,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d",
-          "sha256": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d"
+          "revision": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc",
+          "sha256": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -177654,8 +177678,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d",
-          "sha256": "534038fb721518b4736f5f7acff442dd1c50175002be91a35d0bee1b2d9a250d"
+          "revision": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc",
+          "sha256": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -183705,8 +183729,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -183717,8 +183741,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -183877,8 +183913,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -183889,8 +183925,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -184037,8 +184085,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -184049,8 +184097,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -184154,8 +184214,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -184166,8 +184226,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -184271,8 +184343,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -184283,8 +184355,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -184388,8 +184472,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -184400,8 +184484,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -184505,8 +184601,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -184517,8 +184613,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -184665,8 +184773,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -184677,8 +184785,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [
@@ -242982,8 +243102,8 @@
         {
           "path": "research/renderer/renderer.js",
           "description": "Bounded custom WebGL2 and OpenLayers candidate implementations with explicit unsupported states",
-          "revision": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91",
-          "sha256": "bdaff3fa0d34ed94c68a9fedaf48d2d5c752e9f725da68e5be01da9256a6ab91"
+          "revision": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a",
+          "sha256": "618317e91d83645e0ae9e763021648dcd191832724bb1e18b51accbba312941a"
         },
         {
           "path": "research/renderer/fixture.js",
@@ -242994,8 +243114,20 @@
         {
           "path": "research/renderer/benchmark.mjs",
           "description": "Playwright browser matrix, framebuffer truth probes, timings, cache diagnostics and artifact binding",
-          "revision": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc",
-          "sha256": "fc789fb37f47a5e4e80fd7601c09389f45e007a24a5c81a6e66b8d3d5dee07cc"
+          "revision": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a",
+          "sha256": "7991ec11e641de1bb0d04f6a8456f3197e40133c7771db28c4d270011580861a"
+        },
+        {
+          "path": "research/renderer/scene.js",
+          "description": "Bounded canonical scene admission through Rust WASM with explicit failure, cancellation, unknown masks and numeric replay",
+          "revision": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa",
+          "sha256": "1e9f72b2ca040edc0e0e48065f26e9d52010a291267c2509f64387fa745fe1aa"
+        },
+        {
+          "path": "docs/validation/renderer-wasm-reproducibility.json",
+          "description": "Current-host byte-identical validator builds from three checkout roots; final renderer and cross-platform gates remain open",
+          "revision": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf",
+          "sha256": "063e1d7a07b2f02509eabdce2966688f8cdccbc18ef3fc94ee7041011e1f74bf"
         }
       ],
       "validation": [

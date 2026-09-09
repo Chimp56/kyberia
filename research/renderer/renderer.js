@@ -1,9 +1,11 @@
 import { canonicalFixtureBytes, createCamera, FIXTURE_PROVENANCE, framebufferSize, makeFixture, makeTileData, sampleLayer, screenToWorld, WORLD_MILLIMETRES_PER_METRE, worldToScreen } from './fixture.js';
+import { loadCanonicalScene, MAX_SCENE_BYTES, sceneCellCenter, sceneStatus } from './scene.js';
 
 const fixture = makeFixture();
 const state = {
   candidate: 'custom',
   workload: 'numeric',
+  source: 'canonical',
   layerIndex: 0,
   camera: createCamera(fixture),
   viewport: { width: 1, height: 1, dpr: 1 },
@@ -12,6 +14,10 @@ const state = {
   benchmark: null,
   fixtureHash: null,
   canonicalFixtureByteLength: 0,
+  scene: null,
+  sceneStatus: { state: 'loading', detail: 'Loading bundled canonical scene…' },
+  sceneLoadGeneration: 0,
+  sceneLoadController: null,
 };
 
 const els = {};
@@ -32,6 +38,39 @@ function percentile(values, p) {
 }
 function nextFrame() { return new Promise((resolve) => requestAnimationFrame(resolve)); }
 
+function activeLayer() { return state.source === 'canonical' ? state.scene?.layer || null : fixture.layers[state.layerIndex]; }
+function activeLayers() { return state.source === 'canonical' ? (state.scene ? [state.scene.layer] : []) : fixture.layers; }
+function activeLayerId() { return activeLayer()?.id || 'canonical-scene-unavailable'; }
+function worldBounds(layer = activeLayer()) { return layer?.worldBounds || [0, 0, fixture.provenance.world.width, fixture.provenance.world.height]; }
+function worldUnitScale(layer = activeLayer()) { return layer?.worldUnit === 'metres' ? 1 : WORLD_MILLIMETRES_PER_METRE; }
+function activeWorldBounds() { return worldBounds(); }
+function mapBounds(layer = activeLayer()) { const bounds = worldBounds(layer); const scale = worldUnitScale(layer); return [bounds[0] / scale, 0, (bounds[2] - bounds[0]) / scale, (bounds[3] - bounds[1]) / scale]; }
+function worldSpan(bounds) { return { width: Math.max(Number.EPSILON, bounds[2] - bounds[0]), height: Math.max(Number.EPSILON, bounds[3] - bounds[1]) }; }
+function fitCameraToActiveLayer() {
+  const bounds = activeWorldBounds();
+  const span = worldSpan(bounds);
+  state.camera = { ...state.camera, x: (bounds[0] + bounds[2]) / 2, y: (bounds[1] + bounds[3]) / 2, worldWidth: span.width, worldHeight: span.height };
+}
+function activeWorldPoint(index) {
+  const layer = activeLayer();
+  if (state.source === 'canonical' && state.scene && layer) {
+    const center = sceneCellCenter(state.scene.scene, index);
+    return [center.x, center.y];
+  }
+  return layer ? cellWorldPoint({ x: index % layer.width, y: Math.floor(index / layer.width) }) : [0, 0];
+}
+function activeProbeIndex(kind = 'knownCell') {
+  const layer = activeLayer();
+  if (layer?.probes?.[kind] !== undefined) return layer.probes[kind];
+  if (state.source === 'synthetic') {
+    const point = fixture.probes?.[kind];
+    if (point && Number.isInteger(point.x) && Number.isInteger(point.y) && point.x >= 0 && point.y >= 0 && point.x < layer.width && point.y < layer.height) return point.y * layer.width + point.x;
+  }
+  return 0;
+}
+function activeProbePoint(kind = 'knownCell') { return activeWorldPoint(activeProbeIndex(kind)); }
+function rendererDataDescription() { return state.source === 'canonical' && state.scene ? `canonical ${state.scene.contract} scene (${state.scene.evidencePlane} evidence)` : 'explicit synthetic Gate B stress fixture'; }
+
 async function sha256Hex(bytes) {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
@@ -44,6 +83,36 @@ function cellWorldPoint(cell) {
 function framebufferPoint(point, camera, viewport) {
   const screen = worldToScreen(point, camera, viewport);
   return { css: [screen.x, screen.y], pixel: [Math.round(screen.x * viewport.dpr), Math.round((viewport.height - screen.y) * viewport.dpr)] };
+}
+
+function rasterProbePoints(layer) {
+  const bounds = worldBounds(layer);
+  const cellWidth = (bounds[2] - bounds[0]) / layer.width;
+  const cellHeight = (bounds[3] - bounds[1]) / layer.height;
+  const pointFor = (index, xFraction, yFraction) => [
+    bounds[0] + ((index % layer.width) + xFraction) * cellWidth,
+    bounds[1] + (Math.floor(index / layer.width) + yFraction) * cellHeight,
+  ];
+  const knownIndex = layer.probes?.knownCell ?? layer.mask.findIndex((mask) => mask !== 0);
+  if (knownIndex < 0 || knownIndex >= layer.mask.length) return [];
+  const knownColumn = knownIndex % layer.width;
+  const knownRow = Math.floor(knownIndex / layer.width);
+  const adjacent = [knownIndex - 1, knownIndex + 1, knownIndex - layer.width, knownIndex + layer.width]
+    .filter((index) => index >= 0 && index < layer.mask.length)
+    .find((index) => layer.mask[index] === 0);
+  const unknownIndex = adjacent ?? layer.probes?.unknownCell ?? layer.mask.findIndex((mask) => mask === 0);
+  if (unknownIndex < 0 || unknownIndex >= layer.mask.length) return [];
+  const unknownColumn = unknownIndex % layer.width;
+  const unknownRow = Math.floor(unknownIndex / layer.width);
+  const nearUnknownX = unknownRow === knownRow ? (unknownColumn < knownColumn ? 0.98 : 0.02) : 0.5;
+  const nearUnknownY = unknownColumn === knownColumn ? (unknownRow < knownRow ? 0.98 : 0.02) : 0.5;
+  return [
+    { name: 'known-center', index: knownIndex, expected: 'known', point: pointFor(knownIndex, 0.5, 0.5) },
+    { name: 'known-near-left-edge', index: knownIndex, expected: 'known', point: pointFor(knownIndex, 0.02, 0.5) },
+    { name: 'known-near-right-edge', index: knownIndex, expected: 'known', point: pointFor(knownIndex, 0.98, 0.5) },
+    { name: 'unknown-center', index: unknownIndex, expected: 'unknown', point: pointFor(unknownIndex, 0.5, 0.5) },
+    { name: 'unknown-near-known-edge', index: unknownIndex, expected: 'unknown', point: pointFor(unknownIndex, nearUnknownX, nearUnknownY) },
+  ];
 }
 
 function pixelHasInk(pixel) { return pixel[3] > 12 && (pixel[0] + pixel[1] + pixel[2]) > 18; }
@@ -239,6 +308,7 @@ class BaseRenderer {
     return values;
   }
   scheduleViewportTiles() {
+    if (state.source === 'canonical') return;
     const camera = state.camera;
     if (!this.lastTileCamera || this.lastTileCamera.x !== camera.x || this.lastTileCamera.y !== camera.y || this.lastTileCamera.zoom !== camera.zoom) {
       this.lastTileCamera = { x: camera.x, y: camera.y, zoom: camera.zoom };
@@ -247,29 +317,43 @@ class BaseRenderer {
   }
   async exerciseAllLayers() {
     const original = state.layerIndex;
+    const layers = activeLayers();
     const rendered = [];
     const framebufferSamples = [];
-    const samplePoint = framebufferPoint(cellWorldPoint(fixture.probes.knownCell), state.camera, state.viewport);
+    const samplePoint = framebufferPoint(activeProbePoint('knownCell'), state.camera, state.viewport);
     const started = performance.now();
     const memoryBefore = performance.memory ? performance.memory.usedJSHeapSize : null;
-    for (let index = 0; index < fixture.layers.length; index += 1) {
+    for (let index = 0; index < layers.length; index += 1) {
       state.layerIndex = index;
       this.render('numeric');
       const pixel = this.readPixel(samplePoint.pixel, 'known');
-      framebufferSamples.push({ layerId: fixture.layers[index].id, framebuffer: samplePoint.pixel, pixel, visible: pixelHasInk(pixel) });
+      framebufferSamples.push({ layerId: layers[index].id, framebuffer: samplePoint.pixel, pixel, visible: pixelHasInk(pixel) });
       await nextFrame();
-      rendered.push(fixture.layers[index].id);
+      rendered.push(layers[index].id);
     }
     state.layerIndex = original;
     this.render(state.workload);
-    return { requested: fixture.layers.length, rendered, framebufferSamples, framebufferSampleVisible: framebufferSamples.every((sample) => sample.visible), distinctFramebufferSamples: new Set(framebufferSamples.map((sample) => sample.pixel.join(','))).size, cacheEntries: this.numericTextures?.size ?? null, duration: performance.now() - started, memoryBefore, memoryAfter: performance.memory ? performance.memory.usedJSHeapSize : null };
+    return { requested: layers.length, rendered, framebufferSamples, framebufferSampleVisible: framebufferSamples.every((sample) => sample.visible), distinctFramebufferSamples: new Set(framebufferSamples.map((sample) => sample.pixel.join(','))).size, cacheEntries: this.numericTextures?.size ?? null, duration: performance.now() - started, memoryBefore, memoryAfter: performance.memory ? performance.memory.usedJSHeapSize : null };
   }
   readPixel() { return [0, 0, 0, 0]; }
+  numericRasterProbe() {
+    const layer = activeLayer();
+    if (!layer) return { sampling: 'nearest-cell', samples: [] };
+    const camera = { ...state.camera };
+    const viewport = { ...state.viewport };
+    const samples = rasterProbePoints(layer).map(({ name, index, expected, point }) => {
+      const position = framebufferPoint(point, camera, viewport);
+      const inViewport = position.css[0] >= 0 && position.css[0] < viewport.width && position.css[1] >= 0 && position.css[1] < viewport.height;
+      const pixel = inViewport ? this.readPixel(position.pixel, expected) : [0, 0, 0, 0];
+      return { name, index, expected, world: point, css: position.css, framebuffer: position.pixel, inViewport, pixel, known: layer.mask[index] !== 0, value: layer.mask[index] === 0 ? null : layer.values[index], class: layer.mask[index] === 0 ? 'unknown' : 'known', visible: inViewport && pixelHasInk(pixel), pixelClass: expected === 'known' ? pixelLooksKnown(pixel) : pixelLooksUnknown(pixel) };
+    });
+    return { sampling: 'nearest-cell', layerId: layer.id, width: layer.width, height: layer.height, samples };
+  }
   framebufferProbe(workload = 'all') {
     const camera = { ...state.camera };
     const viewport = { ...state.viewport };
-    const knownPoint = cellWorldPoint(fixture.probes.knownCell);
-    const unknownPoint = cellWorldPoint(fixture.probes.unknownCell);
+    const knownPoint = activeProbePoint('knownCell');
+    const unknownPoint = activeProbePoint('unknownCell');
     const wall = fixture.probes.wallPoint;
     const wallPoint = [(wall.x1 + wall.x2) / 2, (wall.y1 + wall.y2) / 2];
     const overlayPoint = [fixture.probes.overlayPoint.x, fixture.probes.overlayPoint.y];
@@ -281,7 +365,7 @@ class BaseRenderer {
     const rasterBound = this.lastRender?.rasterWorldBound === true;
     const vectorWallVisible = candidateProbe?.required ? candidateProbe.wall.colorMatch : probes[2].visible;
     const vectorOverlayVisible = candidateProbe?.required ? candidateProbe.overlay.colorMatch : probes[3].visible;
-    return { workload, camera, viewportCss: [viewport.width, viewport.height], framebuffer: [this.canvas.width, this.canvas.height], probes, candidateProbe, masks: { knownCell: fixture.probes.knownCell, unknownCell: fixture.probes.unknownCell, knownPixelClass: pixelLooksKnown(probes[0].pixel), unknownPixelClass: pixelLooksUnknown(probes[1].pixel), knownVisible: probes[0].visible, unknownVisible: probes[1].visible }, alignment: { cameraBoundRaster: Boolean(sameCamera && rasterBound), overlayWorldPointsUseSameCamera: Boolean(sameCamera), wallWorldPointsUseSameCamera: Boolean(sameCamera), wallVisible: vectorWallVisible, overlayVisible: vectorOverlayVisible } };
+    return { workload, camera, viewportCss: [viewport.width, viewport.height], framebuffer: [this.canvas.width, this.canvas.height], probes, raster: workload === 'numeric' || workload === 'all' ? this.numericRasterProbe() : null, candidateProbe, masks: { knownCell: activeProbeIndex('knownCell'), unknownCell: activeProbeIndex('unknownCell'), knownPixelClass: pixelLooksKnown(probes[0].pixel), unknownPixelClass: pixelLooksUnknown(probes[1].pixel), knownVisible: probes[0].visible, unknownVisible: probes[1].visible }, alignment: { cameraBoundRaster: Boolean(sameCamera && rasterBound), overlayWorldPointsUseSameCamera: Boolean(sameCamera), wallWorldPointsUseSameCamera: Boolean(sameCamera), wallVisible: vectorWallVisible, overlayVisible: vectorOverlayVisible } };
   }
   candidateGeometryProbe() { return null; }
   probeThreeD() { return null; }
@@ -294,6 +378,8 @@ class BaseRenderer {
     renderStatus(this.status);
   }
   render() {}
+  refreshData() {}
+  clearRenderedData() { this.lastRender = null; }
   destroy() {}
 }
 
@@ -331,7 +417,7 @@ class CustomWebGLRenderer extends BaseRenderer {
     this.numericTextures = new Map();
     this.initGL();
     this.resize();
-    this.setStatus('WebGL2 custom path; numeric values and unknown mask rendered from the shared typed-array fixture.');
+    this.setStatus(`WebGL2 custom path; numeric values and unknown mask rendered from the ${rendererDataDescription()}.`);
   }
   initGL() {
     const gl = this.gl;
@@ -382,12 +468,13 @@ class CustomWebGLRenderer extends BaseRenderer {
       const known = layer.mask[i] !== 0; const normalized = known ? Math.max(0, Math.min(1, (layer.values[i] + 85) / 55)) : 0;
       pixels[i * 4] = Math.round(normalized * 255); pixels[i * 4 + 1] = layer.mask[i] === 2 ? 180 : 80; pixels[i * 4 + 2] = 210; pixels[i * 4 + 3] = known ? 255 : 0;
     }
-    gl.bindTexture(gl.TEXTURE_2D, texture); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, layer.width, layer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    gl.bindTexture(gl.TEXTURE_2D, texture); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, layer.width, layer.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     return texture;
   }
   drawNumeric(layer) {
     const gl = this.gl; const program = this.programs.numeric; gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.numericQuad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, fixture.provenance.world.height, fixture.provenance.world.width, fixture.provenance.world.height, 0, 0, fixture.provenance.world.width, 0]), gl.STATIC_DRAW); const pos = gl.getAttribLocation(program, 'a_position'); gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+    const bounds = worldBounds(layer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.numericQuad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([bounds[0], bounds[3], bounds[2], bounds[3], bounds[0], bounds[1], bounds[2], bounds[1]]), gl.STATIC_DRAW); const pos = gl.getAttribLocation(program, 'a_position'); gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
     let uv = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, uv); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 1,0]), gl.STATIC_DRAW); const uvLoc = gl.getAttribLocation(program, 'a_uv'); gl.enableVertexAttribArray(uvLoc); gl.vertexAttribPointer(uvLoc, 2, gl.FLOAT, false, 0, 0);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.numericTexture(layer)); gl.uniform1i(gl.getUniformLocation(program, 'u_values'), 0); this.viewUniform(program, orthoCamera(state.camera, state.viewport)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); gl.disableVertexAttribArray(uvLoc); gl.deleteBuffer(uv);
   }
@@ -444,11 +531,19 @@ class CustomWebGLRenderer extends BaseRenderer {
       // the raster background. OpenLayers reports this workload unsupported.
       this.draw3d();
     } else {
-      if (workload === 'numeric' || workload === 'all') this.drawNumeric(fixture.layers[state.layerIndex]);
+      if ((workload === 'numeric' || workload === 'all') && activeLayer()) this.drawNumeric(activeLayer());
       const view = orthoCamera(state.camera, state.viewport); const walls = []; for (const wall of fixture.floorplan.walls) walls.push(wall.x1, wall.y1, wall.x2, wall.y2); this.drawColorLines(walls, [0.8, 0.86, 0.95, 0.95], 2);
       if (workload === 'overlays' || workload === 'all') this.drawOverlays(view);
     }
-    this.lastRender = { candidate: 'custom-webgl2', workload, dpr: state.viewport.dpr, framebuffer: [this.canvas.width, this.canvas.height], layerId: fixture.layers[state.layerIndex].id, camera: { ...state.camera }, rasterWorldBound: workload === 'numeric' || workload === 'all', floorProjection: workload === '3d' ? this.threeDGeometry?.projection : null };
+    this.lastRender = { candidate: 'custom-webgl2', workload, dpr: state.viewport.dpr, framebuffer: [this.canvas.width, this.canvas.height], layerId: activeLayerId(), camera: { ...state.camera }, rasterWorldBound: (workload === 'numeric' || workload === 'all') && Boolean(activeLayer()), floorProjection: workload === '3d' ? this.threeDGeometry?.projection : null, source: state.source };
+  }
+  clearRenderedData() {
+    super.clearRenderedData();
+    if (!this.gl) return;
+    const gl = this.gl;
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.clearColor(0.025, 0.04, 0.07, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   }
   readPixel([x, y]) { const pixel = new Uint8Array(4); this.gl.readPixels(Math.max(0, Math.min(this.canvas.width - 1, x)), Math.max(0, Math.min(this.canvas.height - 1, y)), 1, 1, this.gl.RGBA, this.gl.UNSIGNED_BYTE, pixel); return Array.from(pixel); }
   probeThreeD() {
@@ -470,14 +565,14 @@ class OpenLayersRenderer extends BaseRenderer {
         import('/node_modules/ol/Map.js'), import('/node_modules/ol/View.js'), import('/node_modules/ol/proj/Projection.js'), import('/node_modules/ol/layer/Image.js'), import('/node_modules/ol/source/ImageCanvas.js'), import('/node_modules/ol/layer/WebGLVector.js'), import('/node_modules/ol/source/Vector.js'), import('/node_modules/ol/Feature.js'), import('/node_modules/ol/geom/LineString.js'), import('/node_modules/ol/geom/Point.js'),
       ]).then((imports) => imports.map((item) => item.default || item));
       this.modules = { Map, View, Projection, ImageLayer, ImageCanvas, WebGLVectorLayer, VectorSource, Feature, LineString, Point };
-      const { Projection: Proj } = this.modules; const projection = new Proj({ code: 'RF_ATLAS_LOCAL_M', units: 'm', extent: [0, 0, fixture.provenance.world.width / WORLD_MILLIMETRES_PER_METRE, fixture.provenance.world.height / WORLD_MILLIMETRES_PER_METRE] }); this.projection = projection;
+      const { Projection: Proj } = this.modules; const projection = new Proj({ code: 'RF_ATLAS_LOCAL_M', units: 'm', extent: [-1_000_000, -1_000_000, 1_000_000, 1_000_000] }); this.projection = projection;
       const { Map: MapClass, View: ViewClass } = this.modules;
       const target = (name, zIndex) => { const element = document.createElement('div'); element.className = `rfatlas-ol-${name}`; element.setAttribute('aria-hidden', 'true'); Object.assign(element.style, { position: 'absolute', inset: '0', zIndex: String(zIndex), pointerEvents: 'none' }); this.canvas.parentElement.append(element); this.mapTargets.push(element); return element; };
-      const viewOptions = { projection, center: [2048 / WORLD_MILLIMETRES_PER_METRE, 1536 / WORLD_MILLIMETRES_PER_METRE], zoom: 1 };
+      const initialBounds = activeWorldBounds(); const initialScale = worldUnitScale(); const viewOptions = { projection, center: [(initialBounds[0] + initialBounds[2]) / 2 / initialScale, (initialBounds[3] - initialBounds[1]) / 2 / initialScale], zoom: 1, showFullExtent: true };
       this.map = new MapClass({ target: target('raster', 0), layers: [], view: new ViewClass(viewOptions) });
       this.wallMap = new MapClass({ target: target('walls', 1), layers: [], controls: [], view: new ViewClass(viewOptions) });
       this.overlayMap = new MapClass({ target: target('overlays', 2), layers: [], controls: [], view: new ViewClass(viewOptions) });
-      this.buildLayers(); this.map.renderSync(); this.wallMap.renderSync(); this.overlayMap.renderSync(); this.setStatus('OpenLayers 10.10.0; local projection and synthetic canvas/vector sources; no external tiles.');
+      this.buildLayers(); this.map.renderSync(); this.wallMap.renderSync(); this.overlayMap.renderSync(); this.setStatus(`OpenLayers 10.10.0; local projection and ${rendererDataDescription()}; no external tiles.`);
     } catch (error) {
       this.unsupported(`OpenLayers 10.10.0 unavailable in local node_modules (${error.message}); no fallback is reported.`);
     }
@@ -485,8 +580,8 @@ class OpenLayersRenderer extends BaseRenderer {
   buildLayers() {
     const { ImageCanvas, ImageLayer: ImageLayerClass, WebGLVectorLayer: WebGLVectorLayerClass, VectorSource: VectorSourceClass, Feature: FeatureClass, LineString: LineStringClass, Point: PointClass } = this.modules;
     const mapPoint = ([x, y]) => [x / WORLD_MILLIMETRES_PER_METRE, (fixture.provenance.world.height - y) / WORLD_MILLIMETRES_PER_METRE];
-    const extent = [0, 0, fixture.provenance.world.width / WORLD_MILLIMETRES_PER_METRE, fixture.provenance.world.height / WORLD_MILLIMETRES_PER_METRE];
-    const imageSource = new ImageCanvas({ projection: this.projection, ratio: 1, interpolate: false, canvasFunction: (requestedExtent, _resolution, _pixelRatio, size) => { const canvas = document.createElement('canvas'); canvas.width = size[0]; canvas.height = size[1]; const ctx = canvas.getContext('2d'); const layer = fixture.layers[state.layerIndex]; const image = ctx.createImageData(layer.width, layer.height); for (let i = 0; i < layer.values.length; i += 1) { const x = i % layer.width; const y = Math.floor(i / layer.width); const known = layer.mask[i] !== 0; const t = known ? Math.max(0, Math.min(1, (layer.values[i] + 85) / 55)) : 0; const hatch = ((x >> 3) + (y >> 3)) % 2 === 0; image.data[i * 4] = known ? Math.round(t * 220) : (hatch ? 34 : 18); image.data[i * 4 + 1] = known ? 70 : (hatch ? 42 : 24); image.data[i * 4 + 2] = known ? 200 : (hatch ? 58 : 36); image.data[i * 4 + 3] = known ? 208 : (hatch ? 224 : 190); } const scratch = document.createElement('canvas'); scratch.width = layer.width; scratch.height = layer.height; scratch.getContext('2d').putImageData(image, 0, 0); const worldWidth = fixture.provenance.world.width / WORLD_MILLIMETRES_PER_METRE; const worldHeight = fixture.provenance.world.height / WORLD_MILLIMETRES_PER_METRE; const sourceX = Math.max(0, requestedExtent[0] / worldWidth * layer.width); const sourceY = Math.max(0, (worldHeight - requestedExtent[3]) / worldHeight * layer.height); const sourceWidth = Math.min(layer.width - sourceX, (requestedExtent[2] - requestedExtent[0]) / worldWidth * layer.width); const sourceHeight = Math.min(layer.height - sourceY, (requestedExtent[3] - requestedExtent[1]) / worldHeight * layer.height); ctx.imageSmoothingEnabled = false; ctx.drawImage(scratch, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height); return canvas; }, });
+    const extent = mapBounds();
+    const imageSource = new ImageCanvas({ projection: this.projection, ratio: 1, interpolate: false, canvasFunction: (requestedExtent, _resolution, _pixelRatio, size) => { const canvas = document.createElement('canvas'); canvas.width = size[0]; canvas.height = size[1]; const ctx = canvas.getContext('2d'); const layer = activeLayer(); if (!layer) return canvas; const image = ctx.createImageData(layer.width, layer.height); for (let i = 0; i < layer.values.length; i += 1) { const x = i % layer.width; const y = Math.floor(i / layer.width); const known = layer.mask[i] !== 0; const t = known ? Math.max(0, Math.min(1, (layer.values[i] + 85) / 55)) : 0; const hatch = ((x >> 3) + (y >> 3)) % 2 === 0; image.data[i * 4] = known ? Math.round(t * 220) : (hatch ? 34 : 18); image.data[i * 4 + 1] = known ? 70 : (hatch ? 42 : 24); image.data[i * 4 + 2] = known ? 200 : (hatch ? 58 : 36); image.data[i * 4 + 3] = known ? 208 : (hatch ? 224 : 190); } const scratch = document.createElement('canvas'); scratch.width = layer.width; scratch.height = layer.height; scratch.getContext('2d').putImageData(image, 0, 0); const sourceBounds = mapBounds(layer); const sourceWidthMap = sourceBounds[2] - sourceBounds[0]; const sourceHeightMap = sourceBounds[3] - sourceBounds[1]; const sourceX = Math.max(0, (requestedExtent[0] - sourceBounds[0]) / sourceWidthMap * layer.width); const sourceY = Math.max(0, (sourceBounds[3] - requestedExtent[3]) / sourceHeightMap * layer.height); const sourceWidth = Math.min(layer.width - sourceX, (requestedExtent[2] - requestedExtent[0]) / sourceWidthMap * layer.width); const sourceHeight = Math.min(layer.height - sourceY, (requestedExtent[3] - requestedExtent[1]) / sourceHeightMap * layer.height); ctx.imageSmoothingEnabled = false; ctx.drawImage(scratch, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height); return canvas; }, });
     this.imageSource = imageSource; this.numericLayer = new ImageLayerClass({ source: imageSource, extent, opacity: 0.9 }); this.map.addLayer(this.numericLayer);
     const wallSource = new VectorSourceClass(); const vectorSource = new VectorSourceClass(); const wallFeatures = []; for (const wall of fixture.floorplan.walls) wallFeatures.push(new FeatureClass({ geometry: new LineStringClass([mapPoint([wall.x1, wall.y1]), mapPoint([wall.x2, wall.y2])]), kind: 'wall', kindCode: 1 }));
     const pointFeatures = []; const pathFeatures = []; for (let i = 0; i < fixture.overlays.count; i += 1) { const a = fixture.overlays.aps; const p = fixture.overlays.paths; pointFeatures.push(new FeatureClass({ geometry: new PointClass(mapPoint([a[i * 4], a[i * 4 + 1]])), kind: 'ap', kindCode: 3 })); pathFeatures.push(new FeatureClass({ geometry: new LineStringClass([mapPoint([p[i * 4], p[i * 4 + 1]]), mapPoint([p[i * 4 + 2], p[i * 4 + 3]])]), kind: 'path', kindCode: 2 })); }
@@ -504,7 +599,9 @@ class OpenLayersRenderer extends BaseRenderer {
     this.overlayLayer = new WebGLVectorLayerClass({ source: vectorSource, disableHitDetection: true, style: { 'stroke-color': [98, 70, 190, 0.72], 'stroke-width': 1.2, 'circle-radius': 3, 'circle-fill-color': [82, 176, 255, 0.88], 'circle-stroke-color': [31, 51, 87, 0.9], 'circle-stroke-width': 1 } }); this.overlayMap.addLayer(this.overlayLayer);
   }
   resize() { super.resize(); this.map?.updateSize(); this.wallMap?.updateSize(); this.overlayMap?.updateSize(); }
-  render(workload = state.workload) { if (!this.map || this.status.state === 'unsupported') return; this.resize(); this.scheduleViewportTiles(); const scale = state.camera.zoom * Math.min(state.viewport.width / fixture.provenance.world.width, state.viewport.height / fixture.provenance.world.height); const center = [state.camera.x / WORLD_MILLIMETRES_PER_METRE, (fixture.provenance.world.height - state.camera.y) / WORLD_MILLIMETRES_PER_METRE]; const resolution = 1 / (scale * WORLD_MILLIMETRES_PER_METRE); for (const map of [this.map, this.wallMap, this.overlayMap]) { map?.getView().setCenter(center); map?.getView().setResolution(resolution); } const showNumeric = workload === 'numeric' || workload === 'all'; const showGeometry = workload === 'overlays' || workload === 'all'; this.numericLayer?.setVisible(showNumeric); this.wallLayer?.setVisible(showGeometry); this.overlayLayer?.setVisible(showGeometry); if (showNumeric) this.imageSource?.changed(); this.map.renderSync(); this.wallMap.renderSync(); this.overlayMap.renderSync(); this.updateVectorCanvas(); this.lastRender = { candidate: 'openlayers-10.10.0', workload, dpr: state.viewport.dpr, layerId: fixture.layers[state.layerIndex].id, threeD: false, camera: { ...state.camera }, rasterWorldBound: showNumeric, worldUnits: 'metres (fixture millimetres / 1000)', vectorCanvas: this.vectorCanvasInfo }; }
+  refreshData() { this.imageSource?.changed(); this.map?.renderSync(); }
+  clearRenderedData() { super.clearRenderedData(); this.numericLayer?.setVisible(false); this.imageSource?.changed(); this.map?.renderSync(); }
+  render(workload = state.workload) { if (!this.map || this.status.state === 'unsupported') return; this.resize(); this.scheduleViewportTiles(); const layer = activeLayer(); const bounds = activeWorldBounds(); const span = worldSpan(bounds); const mapScale = worldUnitScale(layer); const center = [state.camera.x / mapScale, (bounds[3] - state.camera.y) / mapScale]; const scale = state.camera.zoom * Math.min(state.viewport.width / span.width, state.viewport.height / span.height); const resolution = 1 / (scale * mapScale); for (const map of [this.map, this.wallMap, this.overlayMap]) { map?.getView().setCenter(center); map?.getView().setResolution(resolution); } const showNumeric = workload === 'numeric' || workload === 'all'; const showGeometry = workload === 'overlays' || workload === 'all'; this.numericLayer?.setExtent(mapBounds(layer)); this.numericLayer?.setVisible(showNumeric && Boolean(layer)); this.wallLayer?.setVisible(showGeometry); this.overlayLayer?.setVisible(showGeometry); if (showNumeric) this.imageSource?.changed(); this.map.renderSync(); this.wallMap.renderSync(); this.overlayMap.renderSync(); this.updateVectorCanvas(); this.lastRender = { candidate: 'openlayers-10.10.0', workload, dpr: state.viewport.dpr, layerId: activeLayerId(), threeD: false, camera: { ...state.camera }, rasterWorldBound: showNumeric && Boolean(layer), worldUnits: layer?.worldUnit || 'millimetres', vectorCanvas: this.vectorCanvasInfo, source: state.source }; }
   updateVectorCanvas() {
     const canvases = [...Array.from(this.map?.getViewport()?.querySelectorAll('canvas') || []), ...Array.from(this.wallMap?.getViewport()?.querySelectorAll('canvas') || []), ...Array.from(this.overlayMap?.getViewport()?.querySelectorAll('canvas') || [])];
     const rendererCanvas = (layer) => layer?.getRenderer?.()?.helper?.gl_?.canvas || null;
@@ -606,9 +703,121 @@ class OpenLayersRenderer extends BaseRenderer {
   destroy() { this.map?.setTarget(null); this.wallMap?.setTarget(null); this.overlayMap?.setTarget(null); for (const target of this.mapTargets) target.remove(); this.mapTargets = []; }
 }
 
-function renderStatus(status) { els.status.textContent = `${status.state.toUpperCase()}: ${status.detail}`; els.status.dataset.state = status.state; }
+function renderStatus(status) { if (!els.status) return; els.status.textContent = `${status.state.toUpperCase()}: ${status.detail}`; els.status.dataset.state = status.state; }
 function renderStats(stats) { els.stats.textContent = JSON.stringify(stats, null, 2); }
-function renderFixtureInfo() { els.fixture.textContent = JSON.stringify({ ...FIXTURE_PROVENANCE, hash: state.fixtureHash ? `sha256-${state.fixtureHash}` : 'sha256-pending', probes: fixture.probes, checks: fixture.checks, workloads: { raster: 'synthetic local canvas', numericalLayers: fixture.layers.length, unknownMask: 'mask=0 renders as hatched/unknown', overlays: fixture.overlays.count, tiles: fixture.tile, floors3d: fixture.floors.length } }, null, 2); }
+function renderFixtureInfo() { els.fixture.textContent = JSON.stringify({ synthetic: { ...FIXTURE_PROVENANCE, hash: state.fixtureHash ? `sha256-${state.fixtureHash}` : 'sha256-pending', probes: fixture.probes, checks: fixture.checks, workloads: { raster: 'synthetic local canvas', numericalLayers: fixture.layers.length, unknownMask: 'mask=0 renders as hatched/unknown', overlays: fixture.overlays.count, tiles: fixture.tile, floors3d: fixture.floors.length } }, canonical: state.scene ? { contract: state.scene.contract, wireSchema: state.scene.wireSchema, sha256: state.scene.sha256, byteLength: state.scene.byteLength, evidencePlane: state.scene.evidencePlane, identity: state.scene.identity, counts: state.scene.counts, grid: state.scene.cellGeometry } : state.sceneStatus }, null, 2); }
+
+function renderSceneInspector() {
+  if (!els.inspector) return;
+  if (state.source !== 'canonical') {
+    els.inspector.textContent = JSON.stringify({ source: 'synthetic', status: state.sceneStatus, metric: activeLayerId(), unit: 'dBm', unknownMask: 'mask=0; value is intentionally absent', workload: 'Gate B stress fixture' }, null, 2);
+    return;
+  }
+  if (!state.scene) {
+    els.inspector.textContent = JSON.stringify({ source: state.source, status: state.sceneStatus }, null, 2);
+    return;
+  }
+  const scene = state.scene.scene;
+  const index = state.source === 'canonical' ? activeProbeIndex('knownCell') : 0;
+  const cell = scene.cells[index];
+  const center = sceneCellCenter(scene, index);
+  els.inspector.textContent = JSON.stringify({ source: state.source, contract: state.scene.contract, wireSchema: state.scene.wireSchema, sceneSha256: state.scene.sha256, evidencePlane: state.scene.evidencePlane, metric: { id: scene.identity.metric_id, version: scene.identity.metric_version, definitionHash: scene.identity.metric_definition_hash, unit: 'dBm', aggregation: scene.identity.signal_aggregation.method.method }, frame: { floorId: scene.grid.floor_id, frameId: scene.grid.frame_id }, grid: state.scene.cellGeometry, counts: state.scene.counts, selectedCell: { index, column: center.column, row: center.row, centerMetres: { x: center.x, y: center.y }, class: cell.class, value: cell.value, nearestDistance: cell.nearest_distance, uncertainty: cell.uncertainty_db, supportLocations: cell.support_locations, supportObservations: cell.support_observations, contributors: cell.contributors } }, null, 2);
+}
+
+function syncStatus() {
+  if (state.source === 'canonical' && !state.scene) renderStatus(state.sceneStatus);
+  else renderStatus(state.renderer?.status || { state: 'loading', detail: 'renderer not initialized' });
+}
+
+async function loadSceneBytes(bytes, label) {
+  const generation = ++state.sceneLoadGeneration;
+  state.sceneLoadController?.abort();
+  const controller = new AbortController();
+  state.sceneLoadController = controller;
+  state.source = 'canonical';
+  state.scene = null;
+  state.renderer?.clearRenderedData?.();
+  state.sceneStatus = { state: 'loading', detail: `Validating ${label}…` };
+  els.cancelScene.disabled = false;
+  renderSceneInspector(); renderFixtureInfo(); syncStatus();
+  try {
+    const loaded = await loadCanonicalScene(bytes, { isCancelled: () => controller.signal.aborted || generation !== state.sceneLoadGeneration });
+    if (controller.signal.aborted || generation !== state.sceneLoadGeneration) return false;
+    state.scene = loaded;
+    state.sceneStatus = { state: 'ready', detail: `${label} validated; ${loaded.counts.cells} cells and ${loaded.counts.unknownCells} unknown cells preserved.` };
+    els.cancelScene.disabled = true;
+    state.layerIndex = 0;
+    fitCameraToActiveLayer();
+    if (state.renderer?.status.state === 'ready') state.renderer.status.detail = `renderer ready; ${rendererDataDescription()}`;
+    state.renderer?.refreshData?.();
+    state.renderer?.render(state.workload);
+    renderSceneInspector(); renderFixtureInfo(); syncStatus(); updateCoordinateReadout();
+    return true;
+  } catch (error) {
+    if (controller.signal.aborted || generation !== state.sceneLoadGeneration) return false;
+    state.scene = null;
+    state.renderer?.clearRenderedData?.();
+    state.sceneStatus = sceneStatus(error);
+    els.cancelScene.disabled = true;
+    renderSceneInspector(); renderFixtureInfo(); syncStatus(); updateCoordinateReadout();
+    return false;
+  } finally {
+    if (generation === state.sceneLoadGeneration) state.sceneLoadController = null;
+  }
+}
+
+async function loadBundledScene() {
+  const generation = ++state.sceneLoadGeneration;
+  const controller = new AbortController();
+  state.sceneLoadController = controller;
+  try {
+    const response = await fetch('./fixtures/canonical-scene-v1.json', { cache: 'no-store', signal: controller.signal });
+    if (!response.ok) throw new Error(`bundled scene request returned HTTP ${response.status}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (controller.signal.aborted || generation !== state.sceneLoadGeneration) return false;
+    state.sceneLoadController = null;
+    return await loadSceneBytes(bytes, 'bundled canonical scene');
+  } catch (error) {
+    if (controller.signal.aborted || generation !== state.sceneLoadGeneration) return false;
+    state.sceneStatus = sceneStatus(error);
+    renderSceneInspector(); renderFixtureInfo(); syncStatus();
+    return false;
+  } finally {
+    if (generation === state.sceneLoadGeneration && state.sceneLoadController === controller) state.sceneLoadController = null;
+  }
+}
+
+function cancelSceneLoad() {
+  if (!state.sceneLoadController) return;
+  state.sceneLoadGeneration += 1;
+  state.sceneLoadController.abort();
+  state.sceneLoadController = null;
+  state.scene = null;
+  state.renderer?.clearRenderedData?.();
+  state.sceneStatus = { state: 'cancelled', detail: 'scene load cancelled; choose a scene file or synthetic source explicitly' };
+  els.cancelScene.disabled = true;
+  renderSceneInspector(); renderFixtureInfo(); syncStatus(); updateCoordinateReadout();
+}
+
+async function selectSource() {
+  const nextSource = els.source.value;
+  if (nextSource === 'synthetic') {
+    state.sceneLoadGeneration += 1;
+    state.sceneLoadController?.abort(); state.sceneLoadController = null;
+    state.source = 'synthetic';
+    fitCameraToActiveLayer();
+    state.sceneStatus = { state: 'ready', detail: 'synthetic Gate B stress fixture selected explicitly' };
+    els.cancelScene.disabled = true;
+  } else {
+    state.source = 'canonical';
+    if (state.scene) fitCameraToActiveLayer();
+    if (!state.scene) state.sceneStatus = { state: 'error', detail: 'canonical scene is unavailable; load a valid scene file' };
+  }
+  els.layer.disabled = state.source === 'canonical';
+  if (state.renderer?.status.state === 'ready') state.renderer.status.detail = `renderer ready; ${rendererDataDescription()}`;
+  state.renderer?.refreshData?.(); state.renderer?.render(state.workload);
+  renderSceneInspector(); renderFixtureInfo(); syncStatus(); updateCoordinateReadout();
+}
 
 async function getRenderer(candidate = state.candidate) {
   if (state.renderers.has(candidate)) return state.renderers.get(candidate);
@@ -622,7 +831,7 @@ async function selectCandidate() {
   const nextCandidate = els.candidate.value;
   if (state.renderer && state.candidate === nextCandidate) {
     state.renderer.render(state.workload);
-    renderStatus(state.renderer.status);
+    syncStatus();
     return;
   }
   if (state.renderer) {
@@ -635,37 +844,88 @@ async function selectCandidate() {
   els.canvas.style.visibility = state.candidate === 'custom' ? 'visible' : 'hidden';
   state.renderer = await getRenderer(state.candidate);
   state.renderer.render(state.workload);
-  renderStatus(state.renderer.status);
+  syncStatus();
 }
 
 async function runBenchmark() {
   const renderer = await getRenderer(state.candidate);
+  if (state.source === 'canonical' && !state.scene) {
+    const result = { schema: 'renderer-proof-v2', candidate: state.candidate, status: state.sceneStatus.state, source: 'canonical', support: 'unavailable', reason: state.sceneStatus.detail, layerExercise: null };
+    state.benchmark = result; renderStats(result); return result;
+  }
+  const layers = activeLayers();
+  const benchmarkFixture = state.source === 'canonical' && state.scene ? { contract: state.scene.contract, sha256: state.scene.sha256, byteLength: state.scene.byteLength, evidencePlane: state.scene.evidencePlane, counts: state.scene.counts } : fixture.provenance;
   if (renderer.status.state !== 'ready') {
     const candidate = state.candidate === 'custom' ? 'custom-webgl2' : 'openlayers-10.10.0';
     const unsupported3d = state.candidate === 'openlayers';
-    const result = { schema: 'renderer-proof-v2', candidate, status: renderer.status.state, fixture: fixture.provenance, workload: { requested: state.workload, layerCount: fixture.layers.length, overlays: fixture.overlays.count, floorplanWalls: fixture.floorplan.walls.length, tilesRequested: 0, threeDFloors: fixture.floors.length }, layerExercise: null, environment: { userAgent: navigator.userAgent, platform: navigator.platform, viewportCss: [state.viewport.width, state.viewport.height], framebuffer: [els.canvas.width, els.canvas.height], dpr: state.viewport.dpr, webgl2: false, gpu: 'unavailable', vendor: 'unavailable', timerQuery: false, memoryApi: Boolean(performance.memory), preserveDrawingBuffer: false, worldUnit: 'fixture mm; OpenLayers map units m (mm / 1000)' }, latencyMs: null, tileCache: null, memory: null, support: { twoD: false, threeD: unsupported3d ? 'unsupported-by-this-candidate' : 'unsupported-by-runtime', unsupportedReason: renderer.status.detail }, correctness: { coordinateRoundTripError: fixture.checks.coordinateRoundTripError, unknownCellsAreNull: fixture.checks.unknownCellsAreNull, sampledCells: fixture.checks.sampledCells, selectedLayer: fixture.layers[state.layerIndex].id, framebufferProbes: [], threeDProbe: null, cameraSequence: [] } };
+    const result = { schema: 'renderer-proof-v2', candidate, status: renderer.status.state, fixture: benchmarkFixture, workload: { requested: state.workload, layerCount: layers.length, overlays: fixture.overlays.count, floorplanWalls: fixture.floorplan.walls.length, tilesRequested: 0, threeDFloors: fixture.floors.length }, layerExercise: null, environment: { userAgent: navigator.userAgent, platform: navigator.platform, viewportCss: [state.viewport.width, state.viewport.height], framebuffer: [els.canvas.width, els.canvas.height], dpr: state.viewport.dpr, webgl2: false, gpu: 'unavailable', vendor: 'unavailable', timerQuery: false, memoryApi: Boolean(performance.memory), preserveDrawingBuffer: false, worldUnit: state.source === 'canonical' ? 'canonical scene metres' : 'fixture millimetres; OpenLayers map units metres' }, latencyMs: null, tileCache: null, memory: null, support: { twoD: false, threeD: unsupported3d ? 'unsupported-by-this-candidate' : 'unsupported-by-runtime', unsupportedReason: renderer.status.detail }, correctness: { coordinateRoundTripError: fixture.checks.coordinateRoundTripError, unknownCellsAreNull: fixture.checks.unknownCellsAreNull, sampledCells: fixture.checks.sampledCells, selectedLayer: activeLayerId(), framebufferProbes: [], threeDProbe: null, cameraSequence: [] } };
     state.benchmark = result; renderStats(result); els.download.disabled = false; els.run.disabled = false; return result;
   }
   els.run.disabled = true;
   const layerExercise = await renderer.exerciseAllLayers();
   const started = performance.now(); renderer.render(state.workload); await nextFrame(); const loadStart = performance.now(); renderer.render(state.workload); await nextFrame(); const load = performance.now() - loadStart;
-  const original = { ...state.camera }; const panZoom = [];
-  for (let i = 0; i < 40; i += 1) { state.camera.x = 700 + ((i * 173) % 2700); state.camera.y = 550 + ((i * 137) % 1800); state.camera.zoom = 0.55 + (i % 8) * 0.23; const t = performance.now(); renderer.render(state.workload); await nextFrame(); panZoom.push(performance.now() - t); }
+  const original = { ...state.camera }; const panZoom = []; const bounds = activeWorldBounds(); const span = worldSpan(bounds);
+  for (let i = 0; i < 40; i += 1) { state.camera.x = bounds[0] + span.width * (0.15 + ((i * 173) % 70) / 100); state.camera.y = bounds[1] + span.height * (0.15 + ((i * 137) % 70) / 100); state.camera.zoom = 0.55 + (i % 8) * 0.23; const t = performance.now(); renderer.render(state.workload); await nextFrame(); panZoom.push(performance.now() - t); }
   const framebufferProbes = [];
-  for (const camera of [original, { ...original, x: 950, y: 870, zoom: 1.35 }, { ...original, x: 3150, y: 2220, zoom: 2.4 }]) { state.camera = { ...camera }; renderer.render('numeric'); const numeric = renderer.framebufferProbe('numeric'); renderer.render('all'); const composed = renderer.framebufferProbe('all'); framebufferProbes.push({ camera: { ...camera }, numeric, composed }); }
+  for (const camera of [original, { ...original, x: bounds[0] + span.width * 0.28, y: bounds[1] + span.height * 0.32, zoom: 1.35 }, { ...original, x: bounds[0] + span.width * 0.78, y: bounds[1] + span.height * 0.7, zoom: 2.4 }]) { state.camera = { ...camera }; renderer.render('numeric'); const numeric = renderer.framebufferProbe('numeric'); renderer.render('all'); const composed = renderer.framebufferProbe('all'); framebufferProbes.push({ camera: { ...camera }, numeric, composed }); }
   state.camera = original; renderer.render(state.workload); const frames = await renderer.benchmarkFrameCount(50); const viewportTile = await renderer.tileCache.waitViewport(); const tiles = await renderer.tileCache.stream(96); state.camera = original; renderer.render('3d'); await nextFrame(); const threeDProbe = renderer.probeThreeD(); renderer.render(state.workload); const memory = performance.memory ? { usedJSHeapSize: performance.memory.usedJSHeapSize, totalJSHeapSize: performance.memory.totalJSHeapSize, limit: performance.memory.jsHeapSizeLimit } : null;
-  const gl = renderer.gl || renderer.getWebGLContext?.(); const timerExtension = gl?.getExtension('EXT_disjoint_timer_query_webgl2'); const unsupported3d = state.candidate === 'openlayers'; const result = { schema: 'renderer-proof-v2', candidate: state.candidate === 'custom' ? 'custom-webgl2' : 'openlayers-10.10.0', status: renderer.status.state, fixture: fixture.provenance, workload: { requested: state.workload, layerCount: fixture.layers.length, overlays: fixture.overlays.count, floorplanWalls: fixture.floorplan.walls.length, tilesRequested: 96, threeDFloors: fixture.floors.length }, layerExercise, environment: { userAgent: navigator.userAgent, platform: navigator.platform, viewportCss: [state.viewport.width, state.viewport.height], framebuffer: [els.canvas.width, els.canvas.height], dpr: state.viewport.dpr, webgl2: Boolean(gl), gpu: gl ? (gl.getParameter(gl.RENDERER) || 'hidden') : 'unknown', vendor: gl ? (gl.getParameter(gl.VENDOR) || 'hidden') : 'unknown', timerQuery: Boolean(timerExtension), memoryApi: Boolean(memory), preserveDrawingBuffer: false, worldUnit: 'fixture mm; OpenLayers map units m (mm / 1000)' }, latencyMs: { load, panZoomP50: percentile(panZoom, 0.5), panZoomP95: percentile(panZoom, 0.95), frameP50: percentile(frames, 0.5), frameP95: percentile(frames, 0.95), tileStream: tiles.duration, total: performance.now() - started }, tileCache: { viewport: viewportTile, stress: tiles }, memory, support: { twoD: true, threeD: unsupported3d ? 'unsupported-by-this-candidate' : 'custom-floor-extrusion-proof-only', unsupportedReason: unsupported3d ? 'OpenLayers candidate is exercised as a 2D mapping stack; this harness does not silently claim native 3D floors.' : null }, correctness: { coordinateRoundTripError: fixture.checks.coordinateRoundTripError, unknownCellsAreNull: fixture.checks.unknownCellsAreNull, sampledCells: fixture.checks.sampledCells, selectedLayer: fixture.layers[state.layerIndex].id, framebufferProbes, threeDProbe, cameraSequence: framebufferProbes.map((probe) => probe.camera) } };
+  const gl = renderer.gl || renderer.getWebGLContext?.(); const timerExtension = gl?.getExtension('EXT_disjoint_timer_query_webgl2'); const unsupported3d = state.candidate === 'openlayers'; const result = { schema: 'renderer-proof-v2', candidate: state.candidate === 'custom' ? 'custom-webgl2' : 'openlayers-10.10.0', status: renderer.status.state, fixture: benchmarkFixture, workload: { requested: state.workload, layerCount: layers.length, overlays: fixture.overlays.count, floorplanWalls: fixture.floorplan.walls.length, tilesRequested: 96, threeDFloors: fixture.floors.length }, layerExercise, environment: { userAgent: navigator.userAgent, platform: navigator.platform, viewportCss: [state.viewport.width, state.viewport.height], framebuffer: [els.canvas.width, els.canvas.height], dpr: state.viewport.dpr, webgl2: Boolean(gl), gpu: gl ? (gl.getParameter(gl.RENDERER) || 'hidden') : 'unknown', vendor: gl ? (gl.getParameter(gl.VENDOR) || 'hidden') : 'unknown', timerQuery: Boolean(timerExtension), memoryApi: Boolean(memory), preserveDrawingBuffer: false, worldUnit: state.source === 'canonical' ? 'canonical scene metres' : 'fixture millimetres; OpenLayers map units metres' }, latencyMs: { load, panZoomP50: percentile(panZoom, 0.5), panZoomP95: percentile(panZoom, 0.95), frameP50: percentile(frames, 0.5), frameP95: percentile(frames, 0.95), tileStream: tiles.duration, total: performance.now() - started }, tileCache: { viewport: viewportTile, stress: tiles }, memory, support: { twoD: true, threeD: unsupported3d ? 'unsupported-by-this-candidate' : 'custom-floor-extrusion-proof-only', unsupportedReason: unsupported3d ? 'OpenLayers candidate is exercised as a 2D mapping stack; this harness does not silently claim native 3D floors.' : null }, correctness: { coordinateRoundTripError: fixture.checks.coordinateRoundTripError, unknownCellsAreNull: fixture.checks.unknownCellsAreNull, sampledCells: fixture.checks.sampledCells, selectedLayer: activeLayerId(), framebufferProbes, threeDProbe, cameraSequence: framebufferProbes.map((probe) => probe.camera) } };
   state.benchmark = result; renderStats(result); els.download.disabled = false; els.download.onclick = () => downloadJson('renderer-proof-result.json', result); els.run.disabled = false; return result;
 }
 
 function downloadJson(name, data) { const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 
-function moveCamera(dx, dy, zoomDelta = 0) { state.camera.x = Math.max(0, Math.min(fixture.provenance.world.width, state.camera.x + dx)); state.camera.y = Math.max(0, Math.min(fixture.provenance.world.height, state.camera.y + dy)); state.camera.zoom = Math.max(0.25, Math.min(8, state.camera.zoom + zoomDelta)); state.renderer?.render(state.workload); updateCoordinateReadout(); }
-function updateCoordinateReadout() { const rect = els.canvas.getBoundingClientRect(); const world = screenToWorld([rect.width / 2, rect.height / 2], state.camera, { width: rect.width, height: rect.height }); const cellX = Math.max(0, Math.min(255, Math.floor((world[0] / fixture.provenance.world.width) * 256))); const cellY = Math.max(0, Math.min(191, Math.floor((world[1] / fixture.provenance.world.height) * 192))); const sample = sampleLayer(fixture.layers[state.layerIndex], cellX, cellY); els.coordinate.textContent = `center world=(${world[0].toFixed(2)}, ${world[1].toFixed(2)}) mm · layer=${fixture.layers[state.layerIndex].id} · cell=(${cellX},${cellY}) · ${sample.mask === 0 ? 'UNKNOWN' : `value=${sample.value.toFixed(2)} dBm mask=${sample.mask}`}`; }
+function moveCamera(dx, dy, zoomDelta = 0) { const bounds = activeWorldBounds(); const span = worldSpan(bounds); const unitScale = state.source === 'canonical' ? span.width / fixture.provenance.world.width : 1; const nextX = state.camera.x + dx * unitScale; const nextY = state.camera.y + dy * unitScale; state.camera.x = Math.max(bounds[0], Math.min(bounds[2], nextX)); state.camera.y = Math.max(bounds[1], Math.min(bounds[3], nextY)); state.camera.zoom = Math.max(0.25, Math.min(8, state.camera.zoom + zoomDelta)); state.renderer?.render(state.workload); updateCoordinateReadout(); }
+function updateCoordinateReadout() {
+  if (!els.coordinate || !els.canvas) return;
+  const rect = els.canvas.getBoundingClientRect();
+  const world = screenToWorld([rect.width / 2, rect.height / 2], state.camera, { width: rect.width, height: rect.height });
+  const layer = activeLayer();
+  if (!layer) {
+    els.coordinate.textContent = `center world=(${world[0].toFixed(2)}, ${world[1].toFixed(2)}) · canonical scene unavailable`;
+    return;
+  }
+  if (state.source === 'canonical' && state.scene) {
+    const scene = state.scene.scene;
+    const column = Math.floor((world[0] - scene.grid.origin.x) / scene.grid.resolution) - scene.grid.column_offset;
+    const row = Math.floor((world[1] - scene.grid.origin.y) / scene.grid.resolution) - scene.grid.row_offset;
+    if (column < 0 || row < 0 || column >= scene.grid.width || row >= scene.grid.height) {
+      els.coordinate.textContent = `center world=(${world[0].toFixed(2)}, ${world[1].toFixed(2)}) m · outside canonical grid ${scene.grid.width}×${scene.grid.height}`;
+      return;
+    }
+    const index = row * scene.grid.width + column;
+    const center = sceneCellCenter(scene, index);
+    const cell = scene.cells[index];
+    const value = cell.value.state === 'unknown' ? `UNKNOWN (${cell.value.detail})` : `value=${cell.value.detail.toFixed(2)} dBm class=${cell.class}`;
+    els.coordinate.textContent = `center world=(${world[0].toFixed(2)},${world[1].toFixed(2)}) m · ${activeLayerId()} · scene cell=(${center.column},${center.row}) center=(${center.x.toFixed(2)},${center.y.toFixed(2)}) m · ${value} · support=${cell.support_locations}/${cell.support_observations}`;
+    return;
+  }
+  const cellX = Math.max(0, Math.min(layer.width - 1, Math.floor((world[0] / fixture.provenance.world.width) * layer.width)));
+  const cellY = Math.max(0, Math.min(layer.height - 1, Math.floor((world[1] / fixture.provenance.world.height) * layer.height)));
+  const index = cellY * layer.width + cellX;
+  const sample = sampleLayer(layer, cellX, cellY);
+  els.coordinate.textContent = `center world=(${world[0].toFixed(2)}, ${world[1].toFixed(2)}) mm · layer=${activeLayerId()} · cell=(${cellX},${cellY}) · ${sample.mask === 0 ? 'UNKNOWN' : `value=${sample.value.toFixed(2)} dBm mask=${sample.mask}`}`;
+}
 
 async function boot() {
-  Object.assign(els, { canvas: byId('map'), candidate: byId('candidate'), workload: byId('workload'), layer: byId('layer'), status: byId('status'), stats: byId('stats'), fixture: byId('fixture'), coordinate: byId('coordinate'), run: byId('run'), download: byId('download') });
-  els.layer.max = fixture.layers.length - 1; els.layer.value = '0'; els.layer.addEventListener('input', () => { state.layerIndex = Number(els.layer.value); state.renderer?.render(state.workload); updateCoordinateReadout(); }); els.candidate.addEventListener('change', selectCandidate); els.workload.addEventListener('change', () => { state.workload = els.workload.value; state.renderer?.render(state.workload); }); els.run.addEventListener('click', runBenchmark); byId('pan-left').addEventListener('click', () => moveCamera(-240, 0)); byId('pan-right').addEventListener('click', () => moveCamera(240, 0)); byId('pan-up').addEventListener('click', () => moveCamera(0, -180)); byId('pan-down').addEventListener('click', () => moveCamera(0, 180)); byId('zoom-in').addEventListener('click', () => moveCamera(0, 0, 0.35)); byId('zoom-out').addEventListener('click', () => moveCamera(0, 0, -0.35)); renderFixtureInfo(); updateCoordinateReadout(); const canonical = canonicalFixtureBytes(fixture); state.canonicalFixtureByteLength = canonical.byteLength; state.fixtureHash = await sha256Hex(canonical); renderFixtureInfo(); await selectCandidate(); state.renderer.render(state.workload); updateCoordinateReadout(); }
+  const initialSceneLoadGeneration = state.sceneLoadGeneration;
+  Object.assign(els, { canvas: byId('map'), candidate: byId('candidate'), workload: byId('workload'), source: byId('source'), sceneFile: byId('scene-file'), cancelScene: byId('cancel-scene'), layer: byId('layer'), status: byId('status'), stats: byId('stats'), fixture: byId('fixture'), inspector: byId('scene-inspector'), coordinate: byId('coordinate'), run: byId('run'), download: byId('download') });
+  els.layer.max = fixture.layers.length - 1; els.layer.value = '0';
+  els.layer.addEventListener('input', () => { state.layerIndex = Number(els.layer.value); state.renderer?.render(state.workload); updateCoordinateReadout(); renderSceneInspector(); });
+  els.candidate.addEventListener('change', selectCandidate);
+  els.source.addEventListener('change', selectSource);
+  els.sceneFile.addEventListener('change', async () => { const file = els.sceneFile.files?.[0]; if (!file) return; state.sceneLoadGeneration += 1; state.sceneLoadController?.abort(); state.sceneLoadController = null; if (file.size > MAX_SCENE_BYTES) { state.source = 'canonical'; state.scene = null; state.renderer?.clearRenderedData?.(); state.sceneStatus = { state: 'error', detail: `resource-limit: scene file exceeds ${MAX_SCENE_BYTES} bytes` }; els.cancelScene.disabled = true; renderSceneInspector(); renderFixtureInfo(); syncStatus(); updateCoordinateReadout(); return; } await loadSceneBytes(new Uint8Array(await file.arrayBuffer()), file.name); });
+  els.cancelScene.addEventListener('click', cancelSceneLoad);
+  els.workload.addEventListener('change', () => { state.workload = els.workload.value; state.renderer?.render(state.workload); updateCoordinateReadout(); });
+  els.run.addEventListener('click', runBenchmark);
+  byId('pan-left').addEventListener('click', () => moveCamera(-240, 0)); byId('pan-right').addEventListener('click', () => moveCamera(240, 0)); byId('pan-up').addEventListener('click', () => moveCamera(0, -180)); byId('pan-down').addEventListener('click', () => moveCamera(0, 180)); byId('zoom-in').addEventListener('click', () => moveCamera(0, 0, 0.35)); byId('zoom-out').addEventListener('click', () => moveCamera(0, 0, -0.35));
+  document.addEventListener('keydown', (event) => { if (['INPUT', 'SELECT', 'BUTTON', 'TEXTAREA'].includes(event.target.tagName)) return; const amount = 180; if (event.key === 'ArrowLeft') moveCamera(-amount, 0); else if (event.key === 'ArrowRight') moveCamera(amount, 0); else if (event.key === 'ArrowUp') moveCamera(0, -amount); else if (event.key === 'ArrowDown') moveCamera(0, amount); else if (event.key === '+' || event.key === '=') moveCamera(0, 0, 0.35); else if (event.key === '-' || event.key === '_') moveCamera(0, 0, -0.35); else return; event.preventDefault(); });
+  renderFixtureInfo(); renderSceneInspector(); updateCoordinateReadout();
+  const canonical = canonicalFixtureBytes(fixture); state.canonicalFixtureByteLength = canonical.byteLength; state.fixtureHash = await sha256Hex(canonical); renderFixtureInfo();
+  if (state.source === 'canonical' && state.sceneLoadGeneration === initialSceneLoadGeneration) await loadBundledScene();
+  els.layer.disabled = state.source === 'canonical';
+  await selectCandidate(); state.renderer.render(state.workload); updateCoordinateReadout(); renderSceneInspector();
+}
 
 if (typeof document !== 'undefined') {
   window.__rfatlas = { fixture, state, makeFixture, runBenchmark, getRenderer, verify: () => fixture.checks };

@@ -5,6 +5,7 @@
  * Screenshots and JSON are supplied by the caller so retained evidence can be
  * kept beside this harness.  No external map or tile service is contacted.
  */
+import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -50,14 +51,22 @@ if (playwright) {
   const dom = await page.locator('body').innerText();
   await page.waitForFunction(() => typeof window.__rfatlas?.state?.fixtureHash === 'string');
   const fixture = await page.evaluate(() => ({ checks: window.__rfatlas.verify(), probes: window.__rfatlas.fixture.probes, sha256: window.__rfatlas.state.fixtureHash, canonicalByteLength: window.__rfatlas.state.canonicalFixtureByteLength }));
+  // The product page opens on the validated canonical scene. This benchmark
+  // intentionally measures the separate synthetic Gate B stress fixture,
+  // whose 120 layers and 10k overlays are the workload asserted below.
+  await page.locator('#source').selectOption('synthetic');
+  await page.waitForFunction(() => window.__rfatlas?.state?.source === 'synthetic' && window.__rfatlas?.state?.sceneStatus?.state === 'ready');
+  const sourceSelection = await page.evaluate(() => ({ source: window.__rfatlas.state.source, detail: window.__rfatlas.state.sceneStatus.detail, layerCount: window.__rfatlas.fixture.layers.length, overlayCount: window.__rfatlas.fixture.overlays.count }));
+  assert.equal(sourceSelection.source, 'synthetic');
+  assert.equal(sourceSelection.layerCount, fixture.checks.layerCount);
+  assert.equal(sourceSelection.overlayCount, fixture.checks.overlayCount);
   const screenshotFiles = [];
   const candidateResults = [];
   for (const candidate of ['custom', 'openlayers']) {
     await page.locator('#candidate').selectOption(candidate);
     await page.waitForFunction((expected) => {
       const current = window.__rfatlas?.state;
-      const detail = current?.renderer?.status?.detail || '';
-      return current?.candidate === expected && current.renderer && (current.renderer.status.state === 'unsupported' || (expected === 'custom' ? detail.startsWith('WebGL2') : detail.startsWith('OpenLayers')));
+      return current?.candidate === expected && current.renderer && ['ready', 'unsupported'].includes(current.renderer.status.state);
     }, candidate, { timeout: 30000 });
     for (const workload of ['numeric', 'overlays', 'all', '3d']) {
       await page.locator('#workload').selectOption(workload);
@@ -70,7 +79,7 @@ if (playwright) {
         return result?.candidate === expected && result?.workload?.requested === expectedWorkload;
       }, { expectedCandidate, expectedWorkload: workload }, { timeout: 120000 });
       const result = await page.evaluate(() => window.__rfatlas.state.benchmark);
-      result.binding = { fixtureSha256: fixture.sha256 };
+      result.binding = { fixtureSha256: fixture.sha256, benchmarkSource: 'synthetic', evidencePlane: 'Synthetic' };
       if (result.status !== 'ready') {
         candidateResults.push(result);
         const unsupportedScreenshot = screenshot.replace(/\.png$/i, `-${candidate}-${workload}.png`);
@@ -107,8 +116,7 @@ if (playwright) {
     await page.locator('#candidate').selectOption(candidate);
     await page.waitForFunction((expected) => {
       const current = window.__rfatlas?.state;
-      const detail = current?.renderer?.status?.detail || '';
-      return current?.candidate === expected && current.renderer && (current.renderer.status.state === 'unsupported' || (expected === 'custom' ? detail.startsWith('WebGL2') : detail.startsWith('OpenLayers')));
+      return current?.candidate === expected && current.renderer && ['ready', 'unsupported'].includes(current.renderer.status.state);
     }, candidate, { timeout: 30000 });
     await page.locator('#workload').selectOption('all');
     await page.waitForFunction(() => window.__rfatlas?.state?.workload === 'all');
@@ -126,7 +134,7 @@ if (playwright) {
   const browserIdentity = { userAgent: await page.evaluate(() => navigator.userAgent), platform: await page.evaluate(() => navigator.platform), playwright: playwrightPackage.version, chromium: playwright.chromium.executablePath(), viewport, deviceScaleFactor };
   const browserSha256 = sha256Text(JSON.stringify(browserIdentity));
   const screenshotDigests = Object.fromEntries(await Promise.all(screenshotFiles.map(async (file) => [file, sha256Bytes(await readFile(file))])));
-  const report = { schema: 'renderer-browser-evidence-v2', binding: { fixtureSha256: fixture.sha256, sourceSha256: sha256Text(JSON.stringify(sourceDigests)), sourceFiles: sourceDigests, lockSha256: lockDigest, browserSha256, browser: browserIdentity, screenshots: screenshotDigests }, environment: { url, browser: browserIdentity.userAgent, platform: browserIdentity.platform, viewport: [viewport.width, viewport.height], dpr: deviceScaleFactor, browserPlugin: 'unavailable; regular Playwright fallback' }, identity, checks: { notBlank: dom.includes('Gate B renderer proof'), consoleErrors: consoleMessages, pageErrors, fixture }, resizeProbe, candidates: candidateResults };
+  const report = { schema: 'renderer-browser-evidence-v2', binding: { fixtureSha256: fixture.sha256, benchmarkSource: 'synthetic', evidencePlane: 'Synthetic', sourceSha256: sha256Text(JSON.stringify(sourceDigests)), sourceFiles: sourceDigests, lockSha256: lockDigest, browserSha256, browser: browserIdentity, screenshots: screenshotDigests }, environment: { url, browser: browserIdentity.userAgent, platform: browserIdentity.platform, viewport: [viewport.width, viewport.height], dpr: deviceScaleFactor, browserPlugin: 'unavailable; regular Playwright fallback', benchmarkSource: sourceSelection }, identity, checks: { notBlank: dom.includes('Gate B renderer proof'), consoleErrors: consoleMessages, pageErrors, fixture }, resizeProbe, candidates: candidateResults };
   await writeFile(output, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
   await browser.close();

@@ -8,7 +8,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **4 — Integration audit remediation and architecture proofs**.
 - Integration branch: `main`.
-- Latest integrated feature source: `c3dd163`, Windows disk-file request admission (integration `2988bc6`, review documentation `1efa558`); native runtime gates remain open.
+- Latest reviewed feature source: renderer `125133e` plus the independently approved workspace reproducibility correction; [integration evidence](docs/reviews/renderer-wasm-correction-followup.md). Final renderer and product gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -57,7 +57,7 @@ product capability is validated.
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
 | Neutral planning interchange | Reviewed source `3604e40` | Original schema proof passes 13 focused tests and independent review; external planner bridge, maintainer RFC and runtime round trips remain open |
-| Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | WASM admission and deadline findings corrected; independent visual review found linear-filter distortion of canonical values and unknown masks, with edge-pixel regression pending; [follow-up](docs/reviews/renderer-wasm-correction-followup.md) |
+| Canonical scene renderer input | Root integration / reviewed source `125133e` | Independent canonical browser probes and 8-workload benchmark pass on a fresh server. Integration rebuild exposed absolute-path-dependent WASM bytes; a shared-workspace build now reproduces identical bytes at three checkout roots. Complete integrated regression and independent build-environment review pass. Final renderer/product gate remains open; [follow-up](docs/reviews/renderer-wasm-correction-followup.md) |
 | Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; timing corrections `73111b0` and `1711f13`; exact identity mapping retention sources `ff70362` + `4c47283` independently approved and integrated, including custom and empty-capture identity regressions |
 | Unassociated acquisition spool | Root / `acquisition-spool`; Beauvoir / `capture-session-record` | Explicit terminal receipts and retained identity mappings implemented in candidates; canonical durable session record, SQLite closure and fault-injection gates remain in progress |
 | Hosted Rust diagnostics | Integrated `2452791` + `c9b4bee` | Hosted annotations now identify Windows unused argv and macOS descendant timing failure; reviewed Windows correction integrated as `00ca425`, reviewed timing correction integrated as `1711f13` |
@@ -145,6 +145,8 @@ Latest hosted run at `9952691` passes Linux but fails Windows workspace Clippy
 and macOS Rust regression tests. Public annotations identify the commands and
 exit 101, but not the underlying diagnostics. Both failures remain under
 investigation; local passing checks do not close these hosted gates.
+
+The renderer integration candidate also passes `.tools/venv/bin/python tools/dev.py check`: 635 Rust tests passed, 9 ignored; 215 Python tests ran with 19 skipped and no failures. Formatting, lint, typecheck, architecture, 241-package inventory, ledger and original fixture checks pass. Log: `.tools/post-renderer-workspace-check.log`. Separate renderer checks pass 31 Node tests, byte-identical WASM rebuilding and the main-tree Chromium matrix. These results do not close the final renderer decision or product UX gate.
 
 ## Blocked capabilities and technical debt
 

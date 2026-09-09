@@ -1,0 +1,19 @@
+[package]
+name = "kyberia-renderer-canonical-scene-fixture"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "Apache-2.0 OR MIT"
+description = "Research-only generator for a canonical kyberia.render-scene/1 fixture"
+
+[workspace]
+
+[dependencies]
+kyberia-domain = { path = "../../../../crates/domain" }
+kyberia-rendering-scene = { path = "../../../../crates/rendering-scene" }
+kyberia-spatial-analysis = { path = "../../../../crates/spatial-analysis" }
+sha2 = "=0.10.9"
+serde_json = "=1.0.149"
+
+[lints.rust]
+unsafe_code = "forbid"

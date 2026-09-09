@@ -6,8 +6,10 @@
   "description": "Deterministic browser renderer proof harness for RF Atlas Gate B",
   "scripts": {
     "serve": "vite --host 127.0.0.1 --port 4173",
-    "check": "node --check renderer.js && node --check benchmark.mjs && node --check package-inventory.mjs",
-    "test": "node --test fixture.test.mjs"
+    "check": "node --check renderer.js && node --check scene.js && node --check scene-validator-worker.js && node --check benchmark.mjs && node --check browser-canonical-scenes.mjs && node --check package-inventory.mjs",
+    "check:wasm": "node check-wasm-reproducibility.mjs",
+    "test:browser-canonical": "node browser-canonical-scenes.mjs",
+    "test": "node --test *.test.mjs"
   },
   "dependencies": {
     "ol": "10.10.0"

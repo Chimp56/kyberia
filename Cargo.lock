@@ -1052,6 +1052,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-renderer-scene-validator-wasm"
+version = "0.1.0"
+dependencies = [
+ "kyberia-rendering-scene",
+]
+
+[[package]]
 name = "kyberia-rendering-scene"
 version = "0.1.0"
 dependencies = [
