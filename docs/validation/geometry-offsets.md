@@ -52,9 +52,11 @@ The adapter performs bounded output checks and buffers each input component as
 an independent completeness probe. The global result must cover each complete
 expected component, so an intersecting fragment cannot be accepted as evidence
 that the component survived. Exact coverage is attempted first; the only
-fallback permits the explicitly bounded `1e-7` normalized-coordinate envelope
-needed for independent `i_overlay` rounding, while larger gaps remain
-unsupported. An inward empty result is accepted only when the component
+fallback uses `max(1e-7, 32 * f64::EPSILON * extent)` in the coverage-check
+coordinates, where `extent` is the maximum absolute x/y displacement from the
+container exterior’s first vertex. Thus `1e-7` is a floor, not a hard maximum;
+the envelope can grow to approximately `1.4e-5` at the largest supported
+extents. Gaps larger than this envelope remain unsupported. An inward empty result is accepted only when the component
 bounding boxes provide a conservative half-width certificate; uncertain
 empty or missing-component outcomes return `UnsupportedCoordinateResolution`.
 These checks reduce known mixed-scale aliasing risks but do not make the
