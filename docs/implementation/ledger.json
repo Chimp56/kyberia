@@ -169028,7 +169028,7 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Existing bounded V1 merge, conflict, syntax-level inverse and immutable storage fixtures pass; full domain prior-state representation, causal inverse truth and baseline-bound materialization remain open after architecture review."
+        "Reviewed V2 typed inverses, canonical input identities and causal aggregate materialization pass; transactional aggregate publication, authorization, transport and product undo/conflict workflows remain open."
       ],
       "implementation": [
         {
@@ -169058,14 +169058,20 @@
         {
           "path": "crates/domain/src/project/commands.rs",
           "description": "Canonical replayable project/site names and exact inverse receipts; full immutable operation materialization remains open",
-          "revision": "869455ce36f7e1b2eb61c08f9a9e5e516cd22cc8a1c7ca0cc9345b800da0756e",
-          "sha256": "869455ce36f7e1b2eb61c08f9a9e5e516cd22cc8a1c7ca0cc9345b800da0756e"
+          "revision": "6c2ecf923b2eff67c070962f680c62c4298e28e47dfbb074225540033456efc7",
+          "sha256": "6c2ecf923b2eff67c070962f680c62c4298e28e47dfbb074225540033456efc7"
         },
         {
           "path": "crates/materialization-identity/src/lib.rs",
           "description": "Canonical baseline and exact operation-set identities; causal application remains open",
           "revision": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
           "sha256": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6"
+        },
+        {
+          "path": "crates/causal-materializer/src/lib.rs",
+          "description": "Pure baseline-bound causal aggregate materialization with typed prior validation and bounded copy work",
+          "revision": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7",
+          "sha256": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7"
         }
       ],
       "validation": [
@@ -169130,6 +169136,15 @@
           "sha256": "e5a7e3ccf0dd95260ab42b3443ce8bf276b8bd3704d2116aabeb3f3341efd7b6",
           "command": "cargo test -p kyberia-materialization-identity --locked --offline",
           "scope": "materialization_input_identity",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/causal-materializer/src/lib.rs",
+          "description": "26 independently executed causal, geometry-preservation, unknown, forged-prior and resource regressions",
+          "revision": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7",
+          "sha256": "ccf76c7ccd70fde58f6b8e0c982620aab7174df2fdab845c8c7ef1a7ffdb74f7",
+          "command": "cargo test -p kyberia-causal-materializer --locked --offline",
+          "scope": "pure_causal_materialization",
           "result": "PASS"
         }
       ],
@@ -169226,6 +169241,15 @@
           "revision": "ec1e5d7113d6bdfb92e7b3bb91ebe39b1a7d35f8334746e9c9020368be8f3b90",
           "sha256": "ec1e5d7113d6bdfb92e7b3bb91ebe39b1a7d35f8334746e9c9020368be8f3b90",
           "reviewer": "/root",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/causal-materializer-draft-review.md",
+          "description": "Independent multi-round review with corrected calibration equivalence and pre-resolution forgery acceptance",
+          "revision": "5f24cb8e3eb8daf6da75366713890ee2284ae49fab341695c2e2815f6a24609b",
+          "sha256": "5f24cb8e3eb8daf6da75366713890ee2284ae49fab341695c2e2815f6a24609b",
+          "reviewer": "/root and /root/operation_log_review_luna",
           "disposition": "APPROVED",
           "findings": []
         }
