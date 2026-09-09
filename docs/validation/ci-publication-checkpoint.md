@@ -80,3 +80,15 @@ diagnostic or failing test name; neither failure cause can be inferred from
 the exit code. Credentialless responses are retained locally in
 `.tools/windows-9952691-annotations.json` and
 `.tools/macos-9952691-annotations.json`.
+
+Local reproduction at integration source `02f9674` on macOS ARM64 ran
+`cargo test --workspace --locked --offline` with local TCP fixture access:
+632 passed, zero failed, nine ignored; process exit 0. Full output is retained
+in `.tools/macos-ci-reproduction-02f9674.log`. The hosted macOS failure was
+not reproduced. This result does not identify or resolve its cause.
+
+The local Windows GNU cross-Clippy attempt stops before linting because
+`x86_64-w64-mingw32-gcc` is unavailable. It cannot establish whether the
+hosted native Windows Clippy diagnostic is resolved. Bounded public compiler
+location diagnostics are being implemented separately; credential access
+remains unused.
