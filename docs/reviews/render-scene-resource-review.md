@@ -54,3 +54,32 @@ harness. Integration remains unapproved pending this evidence.
 
 Full renderer selection, real map/browser integration and Gate B
 performance/accessibility remain open.
+
+## Current-host measurement at import-preflight candidate
+
+Candidate `39f6555` adds lexical string admission, streaming shape admission,
+duplicate-field rejection and a reproducible measurement test. Independent
+follow-up review remains pending.
+
+Root ran the compiled integration-test binary directly under macOS
+`/usr/bin/time -l`, selecting
+`resource_measurement_harness_covers_direct_import_and_cancelled_paths` with
+`--exact --nocapture`. The 512-sample, 1,024-cell fixture passed and reported:
+
+| Quantity | Observation |
+|---|---:|
+| Encoded scene | 618,346 bytes |
+| Deterministic working estimate | 70,080,530 bytes |
+| Direct projection | 93,839 microseconds |
+| Canonical import | 122,898 microseconds |
+| Cancellation | 7 microseconds after 8 polls |
+| Maximum process resident set | 8,863,744 bytes |
+| Peak process memory footprint | 5,554,536 bytes |
+
+The measurement includes fixture construction and test-harness overhead. It is
+one debug-build run on the current macOS host, not an allocation proof, an
+upper bound, a cross-platform benchmark or a product SLO. The resource estimate
+is deliberately distinct from resident memory. Log:
+`.worktrees/canonical-render-scene/.trash/root-scene-resource-measurement-host.log`.
+The earlier sandboxed run passed the test but could not collect macOS resource
+statistics because `kern.clockrate` access was denied; its log is retained too.
