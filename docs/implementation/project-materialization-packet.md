@@ -144,3 +144,34 @@ full-project snapshots do not establish a practical total work or memory bound.
 Test resource rejection before retaining excessive baseline copies, with input
 state unchanged. Resolution-prior semantics and multi-head common ancestry
 need an explicit durable decision and fixtures, not an incidental sorted winner.
+
+## Downstream storage publication acceptance
+
+Storage integration must follow independent approval of the pure materializer.
+Existing `append_operation_if_revision` admits immutable operation bytes under
+an immediate SQLite transaction; its operation revision is distinct from the
+bundle manifest revision and the materialized aggregate revision. Preserve
+these distinctions in the publication contract.
+
+The next storage unit must exercise real bundles and multiple connections:
+
+- Bind a persisted canonical baseline and exact operation-set identity to the
+  published aggregate. Recheck those inputs inside the publication transaction
+  so a concurrent append cannot publish an obsolete result as current.
+- Preserve append/retry idempotence. An exact retry must not add a second
+  aggregate revision, while a different baseline or operation membership must
+  not reuse the prior publication identity.
+- Inject failure before publication, after artifact creation, and around the
+  SQLite commit/projection boundary. Reopening must identify the authoritative
+  committed state; an orphan artifact cannot become a current project.
+- Reject wrong-project inputs, corrupted baseline/result bytes, unresolved
+  conflicts and causal validation failures without changing the current
+  published aggregate. Retain immutable operation evidence for later explicit
+  resolution.
+- Test read-only access, stale revisions from a second connection, deterministic
+  reload, and legacy bundles with no canonical materialization. Missing state
+  must be explicit rather than reconstructed from an unvalidated field map.
+
+Artifact creation alone does not meet this acceptance scope. Existing generic
+`put_artifact` and survey snapshot publication provide transaction patterns, but
+neither establishes a canonical materialized-project publication contract.
