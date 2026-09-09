@@ -885,7 +885,8 @@
       "kind": "implementation_unit",
       "depends_on": [
         "iteration-4-project-materialization",
-        "iteration-4-typed-operation-store-replay"
+        "iteration-4-typed-operation-store-replay",
+        "iteration-4-cumulative-operation-budgets"
       ],
       "owner": "storage/data",
       "requirements": [
@@ -896,6 +897,76 @@
         "docs/implementation/project-materialization-packet.md"
       ],
       "acceptance": "Persist a canonical baseline and immutable materialization history; recompute exact baseline/operation bindings within the publication transaction, reject stale input, preserve exact-retry idempotence, and validate real-bundle recovery, corruption, read-only legacy and schema-group admission. Generic artifact insertion must not establish trusted current project state. Independent review and downstream packet acceptance required."
+    },
+    {
+      "id": "iteration-4-cumulative-operation-budgets",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-typed-operation-contracts",
+        "iteration-4-materialization-identity",
+        "iteration-4-project-materialization"
+      ],
+      "owner": "architecture/domain",
+      "requirements": [
+        "backlog:FND-011:1"
+      ],
+      "owned_paths": [
+        "crates/resource-budget",
+        "crates/operation-log",
+        "crates/materialization-identity",
+        "crates/causal-materializer"
+      ],
+      "acceptance": "Independently reviewed cumulative admission, serialization, replay, merge and ordering budgets preserve cancellation and deterministic inputs. Integrated through 7440ebd; byte counters are allocation proxies, not process RSS guarantees."
+    },
+    {
+      "id": "iteration-4-canonical-render-scene",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-stored-rssi-analysis",
+        "iteration-4-rssi-spatial-metrics"
+      ],
+      "owner": "renderer composition",
+      "requirements": [
+        "source:table_row:3cc170144dcce276c8b8:1"
+      ],
+      "owned_paths": [
+        "crates/rendering-scene"
+      ],
+      "acceptance": "Independently reviewed versioned scene projection and bounded import numerically replay canonical tiles; observed/interpolated/unknown distinctions, frame and source binding survive. Integrated through 6e13258; no renderer selection or product UX promotion."
+    },
+    {
+      "id": "iteration-4-stored-rssi-scene-cli",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-stored-rssi-cli",
+        "iteration-4-canonical-render-scene"
+      ],
+      "owner": "CLI application composition",
+      "requirements": [
+        "backlog:ANA-005:1",
+        "catalog:PAS-001:1"
+      ],
+      "owned_paths": [
+        "apps/cli",
+        "docs/architecture/stored-rssi-cli.md"
+      ],
+      "acceptance": "Real stored evidence exports verified canonical scene bytes with numerical unknowns, exact hash/length, bounded request, cancellation and no overwrite. Independent review of candidate398b0d2 remains required; export does not complete mapper UX."
+    },
+    {
+      "id": "iteration-4-renderer-canonical-input",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-canonical-render-scene",
+        "iteration-4-stored-rssi-scene-cli"
+      ],
+      "owner": "UI/visualization",
+      "requirements": [
+        "source:table_row:3cc170144dcce276c8b8:1"
+      ],
+      "owned_paths": [
+        "research/renderer"
+      ],
+      "acceptance": "Both comparative renderer candidates consume the same canonical scene contract; honest unknowns, numeric inspection, keyboard/error/loading/cancel states and bounded hostile file handling pass browser tests. Research fixtures remain explicit; real stored export workflow documented. Does not resolve full Gate B without remaining runtime evidence."
     }
   ]
 }
