@@ -24,6 +24,22 @@ recovery tests now pass. The shared-budget prerequisite is assigned in the isola
 updates remain open. These results do not replace the integrated
 workspace validation below and the draft is not yet approved for integration.
 
+Additional isolated-draft validation: publication now passes the full Rust
+workspace with 538 tests, zero failures and nine ignored tests
+(`.worktrees/materialized-project-publication/.trash/publication-workspace-regression-3.log`).
+The run required local TCP listener access for existing Kismet transport tests;
+the earlier sandbox bind failures are retained in the preceding log. A minimal
+observation-pipeline error mapping handles the new materialization error variant.
+
+Renderer scene draft: `.worktrees/canonical-render-scene` now preserves canonical
+samples and replays the spatial Model on serialized import, as well as direct
+Tile admission. Twenty-one tests pass, including forged interpolation, shifted
+grid and altered-sample regressions. Encoded-size admission is cancellable before
+projection copies. Total allocation/work accounting and import cancellation
+remain under review; neither this adapter nor the renderer gate is complete.
+The independent follow-up review is active. Shared materialization budgets are
+being implemented separately and have not been integrated or approved.
+
 Integrated validation at `a11ca22`: `cargo test --workspace --locked --offline`
 passes 524 tests with zero failures and nine ignored; workspace Clippy with
 `-D warnings` also passes. Logs are retained in
