@@ -92,3 +92,19 @@ The local Windows GNU cross-Clippy attempt stops before linting because
 hosted native Windows Clippy diagnostic is resolved. Bounded public compiler
 location diagnostics are being implemented separately; credential access
 remains unused.
+
+## Capture timing correction hosted checkpoint
+
+Public run [34334120439](https://github.com/Chimp56/kyberia/actions/runs/34334120439),
+source `1711f13286007a0a99b6a5b1946f87e3bb998f92`, completed with macOS
+and Ubuntu validation successful. This supplies hosted evidence for the
+reviewed descendant-drain timing correction. Windows failed lint because
+Unix-only test imports remained unguarded; public check 102409381715
+identified tests.rs lines 4 and 42.
+
+The independently reviewed import correction is `50f43e4`. Its follow-up
+run [34334873286](https://github.com/Chimp56/kyberia/actions/runs/34334873286)
+was still running on all three platforms at this checkpoint. No Windows
+success or complete runtime-gate claim is inferred from macOS/Linux results.
+Public API responses are retained in .tools/ci-jobs-1711f13-final.json and
+.tools/ci-jobs-50f43e4.json; no credentials were read to obtain them.

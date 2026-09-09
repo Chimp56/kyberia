@@ -73,7 +73,9 @@ An active draft or passing author test is not integration approval.
 At `1711f13`, the complete Rust workspace regression passes **634 tests, zero
 failures, nine ignored**. Log: `.tools/drain-integrated-workspace-loopback.log`.
 The initial sandboxed run failed when local Kismet HTTP fixtures could not bind;
-the authorized loopback rerun completed successfully. Hosted confirmation remains open.
+the authorized loopback rerun completed successfully. Hosted macOS and Linux
+also passed at this source; Windows test-import correction `50f43e4` is in its
+next hosted run, with results pending.
 
 The integrated neutral planning schema proof passes the complete Python suite:
 **215 tests run, zero failures, 19 skipped**. Log:
