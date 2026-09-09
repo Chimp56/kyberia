@@ -23,3 +23,18 @@ Geometry is currently a separate workspace library and its dependencies remain
 covered by the 241-package workspace inventory and dependency audit. Python,
 external workers, native collectors and final packaging require their own
 distribution coverage before release acceptance.
+
+## Repeat-generation check
+
+At `6f8f21c`, root invoked `supply_chain.generate_sbom()` twice using the pinned
+repository Python venv and default current-host target. Both generations passed
+schema/source validation and their normalized bytes were identical. Each contains
+86 components. SHA-256:
+`47674f0989a6b8b80922808ac9457122bfc0fb780594e2ebea7650bfd476f6c9`.
+
+The prior revision's artifact is retained under
+`.trash/sbom-history/determinism-ze44uh61`; the first identical run is retained
+under `.trash/sbom-history/determinism-awydivhb`. The second is in the standard
+ignored evidence location. Original-path manifests accompany the archives.
+This proves repeatability for this source revision, dependency closure, pinned
+tool and target; it does not establish reproducibility across other targets.
