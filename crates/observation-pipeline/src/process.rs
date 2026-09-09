@@ -17,10 +17,12 @@ use kyberia_domain::identity::ContentHash;
 use kyberia_project_store::Bundle;
 use kyberia_survey::PointSurvey;
 use std::{
-    ffi::OsString,
     fs,
     path::{Path, PathBuf},
 };
+
+#[cfg(any(unix, test))]
+use std::ffi::OsString;
 
 #[cfg(unix)]
 use rustix::{
@@ -242,6 +244,7 @@ impl CollectorCommand {
         }
     }
 
+    #[cfg(any(unix, test))]
     fn argv(&self) -> Vec<OsString> {
         let mut args = Vec::new();
         match self {
