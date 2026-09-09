@@ -17,6 +17,7 @@ use sha2::{Digest, Sha256};
 use std::{collections::BTreeSet, fmt};
 
 mod bundle;
+pub mod native_acquisition;
 pub mod process;
 pub mod spool;
 
@@ -32,6 +33,7 @@ pub use kyberia_domain::capture::{
     CaptureCompletion, CaptureManifest, CaptureTerminalStatus, RawSourceDisposition,
     SourceRecordManifest,
 };
+pub use native_acquisition::{NativeAcquisitionBatch, NativeAcquisitionBatchError};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PipelineSchemaVersion {
