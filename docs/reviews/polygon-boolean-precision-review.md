@@ -89,3 +89,26 @@ Root independently ran `cargo test -p kyberia-geometry-adapter --locked
 tests), zero failed. The supplied regression fixtures pass, including explicit
 narrow-overlap rejection. This does not resolve the proof gaps above; the
 candidate remains unapproved pending independent adversarial review.
+
+## Independent correction review: REQUEST_CHANGES
+
+Reviewer `/root/operation_log_review_luna` found a MAJOR containment defect in
+`d29cf40`, independently reproduced by root. Left triangle vertices are
+`(56384,93040), (121920,93040), (56384,158576)`; right vertices are
+`(64547.2,106243.2), (130083.2,99689.6), (57993.6,171779.2)`.
+The successful intersection includes `(59639.4666381836,155320.53341064454)`.
+Its coordinate sum is `214960.00004882814`, outside the left hypotenuse
+`x+y=214960`. Both inputs passed the candidate's admission checks.
+
+Retained probe relative to `.worktrees/polygon-partial-loss`:
+`.trash/review-probes/geometry-independent`; command
+`cargo run --offline --quiet --bin triangle_containment`. This diagnostic
+prints the escaped vertex and exits successfully after detecting it; its exit
+status is not evidence of correct containment.
+
+Restore intersection containment validation and reject unsupported numerical
+excursions. The reviewer also classifies the existential completeness checks
+as MAJOR: preserving some overlap or residual does not establish preservation
+of all required geometry. Independent 5,000-case rectangle and multi-cut
+probes passed, but do not discharge these findings. Candidate integration
+remains rejected until corrections and independent verification.
