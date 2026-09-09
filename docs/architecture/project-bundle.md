@@ -8,6 +8,9 @@ Artifact imports persist and sync bytes before registration. Generic imports rej
 
 The native observation composition adds an optional `capture_publications` table as a bounded recovery index. It records the immutable capture-manifest hash, normalized chunk hash, survey snapshot identity, terminal/intermediate status and row counts. The manifest artifact is stored and verified through the ordinary content-addressed artifact path; chunk and snapshot links are validated against their owning indexes and can be retried after a process crash. Its `revision` is the manifest commit revision at capture registration and is deliberately not a second project revision or a measurement clock. The table is additive: historical bundles may omit the complete group and gain it only during writable migration, while read-only inspection remains side-effect free.
 
+The session record contract and its bounded evidence are validated in the
+[capture-session record guide](../validation/capture-session-record.md).
+
 Capture publication registration accepts the versioned domain `CaptureManifest`
 DTO plus validated provenance and publication time. The store derives canonical
 manifest bytes, content hash, observation/raw counts and terminal status from
@@ -17,6 +20,17 @@ cross-check the bounded SQLite row. Public link operations re-read the
 canonical manifest and verify exact chunk observation identities, snapshot
 survey identity, and every association's copied envelope metadata plus
 survey-level source/mode closure before changing the publication row.
+
+The native acquisition-session increment adds a separate optional
+`capture_sessions` table. Its canonical domain BLOB records the process and
+source-clock UUIDs, canonical session/collector/clock identities, explicit
+registry version, sorted mapping evidence, privacy policy and typed terminal
+result. The row is immutable and indexed by canonical session ID and manifest
+hash; it is never a generic annotation. Reads rehash the BLOB, compare every
+projection, and revalidate the linked manifest/chunk closure. Empty terminal
+captures can therefore retain capability-only source mappings without creating
+an observation chunk. Older bundles gain only an empty table during writable
+migration; no historical session is inferred.
 
 Version 1 uses SQLite's full synchronization and rollback journal. The main database and any SQLite `-wal`, `-journal`, or `-shm` recovery sidecars must be nonsymlink regular files and share one 64 MiB read budget, checked before open and before each operation. This permits bounded crash recovery without letting a small main file hide an unbounded sidecar. The bundle manifest schema version must match SQLite `user_version`. Unknown logical versions using the same supported physical manifest-table envelope can be inspected read-only; writable opens and already-open writer handles reject unsupported versions and required features. No fictitious upgrade migration is supplied for a nonexistent prior format. Future migrations require archived fixtures, transactional conversion and backup/recovery tests.
 
