@@ -301,3 +301,125 @@ fn spool_manifest_rejects_equal_size_chunk_with_unrelated_identity() {
     );
     assert!(publication.snapshot_id.is_none());
 }
+
+#[test]
+fn spool_rejects_unexpected_sql_trigger_before_publication() {
+    let batch = batch();
+    let directory = retained_tempdir();
+    let path = directory.path().join("spool-untrusted-schema");
+    let mut bundle = project(&path);
+    let database = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+    database.execute_batch("CREATE TRIGGER fail_spool_link BEFORE UPDATE OF chunk_hash ON capture_publications BEGIN SELECT RAISE(ABORT, 'injected spool link failure'); END;").unwrap();
+    let provenance = text("spool-untrusted-schema/v1");
+    let error = bundle
+        .persist_acquisition(
+            AcquisitionSpoolRequest::new(&batch, &provenance, 2, &NeverCancel).unwrap(),
+        )
+        .unwrap_err();
+    assert_eq!(error.kind(), PortErrorKind::Corrupt);
+    assert!(error.progress().is_none());
+    let chunks: i64 = database
+        .query_row("SELECT COUNT(*) FROM observation_chunks", [], |row| {
+            row.get(0)
+        })
+        .unwrap();
+    let publications: i64 = database
+        .query_row("SELECT COUNT(*) FROM capture_publications", [], |row| {
+            row.get(0)
+        })
+        .unwrap();
+    assert_eq!((chunks, publications), (0, 0));
+    database
+        .execute_batch("DROP TRIGGER fail_spool_link;")
+        .unwrap();
+    drop(database);
+    drop(bundle);
+    let mut reopened = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    let outcome = reopened
+        .persist_acquisition(
+            AcquisitionSpoolRequest::new(&batch, &provenance, 2, &NeverCancel).unwrap(),
+        )
+        .unwrap();
+    assert!(outcome.publication().snapshot().is_none());
+    assert_eq!(reopened.list_observation_chunks().unwrap().len(), 1);
+    assert_eq!(
+        reopened.read_observations().unwrap(),
+        batch
+            .observations()
+            .iter()
+            .map(|row| row.envelope().clone())
+            .collect::<Vec<_>>()
+    );
+    assert!(reopened.verify().unwrap().failures.is_empty());
+}
+
+#[test]
+fn spool_link_corruption_reports_committed_chunk_and_retry_reuses_it() {
+    let batch = batch();
+    let directory = retained_tempdir();
+    let path = directory.path().join("spool-link-corruption");
+    let mut bundle = project(&path);
+    let database = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+    let injected = Cell::new(false);
+    // Inject at the first cancellation checkpoint after manifest publication.
+    // Return false: this models metadata corruption, not cancellation.
+    let inject = || {
+        if !injected.get() {
+            let changed = database
+                .execute(
+                    "UPDATE capture_publications SET observation_count=observation_count+1",
+                    [],
+                )
+                .unwrap();
+            if changed != 0 {
+                assert_eq!(changed, 1);
+                injected.set(true);
+            }
+        }
+        false
+    };
+    let provenance = text("spool-link-corruption/v1");
+    let error = bundle
+        .persist_acquisition(AcquisitionSpoolRequest::new(&batch, &provenance, 2, &inject).unwrap())
+        .unwrap_err();
+    assert!(injected.get());
+    assert_eq!(error.kind(), PortErrorKind::Corrupt);
+    let progress = error.progress().unwrap().clone();
+    let chunk_hash = progress
+        .chunk()
+        .expect("committed chunk receipt survives link failure")
+        .hash();
+    assert!(progress.snapshot().is_none());
+    assert_eq!(bundle.list_observation_chunks().unwrap().len(), 1);
+    let linked: Option<String> = database
+        .query_row("SELECT chunk_hash FROM capture_publications", [], |row| {
+            row.get(0)
+        })
+        .unwrap();
+    assert!(linked.is_none());
+    // Repair only the injected metadata; production does not silently repair it.
+    assert_eq!(
+        database
+            .execute(
+                "UPDATE capture_publications SET observation_count=observation_count-1",
+                []
+            )
+            .unwrap(),
+        1
+    );
+    drop(database);
+    drop(bundle);
+    let mut reopened = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    let outcome = reopened
+        .persist_acquisition(
+            AcquisitionSpoolRequest::new(&batch, &provenance, 2, &NeverCancel).unwrap(),
+        )
+        .unwrap();
+    assert_eq!(
+        outcome.publication().manifest().hash(),
+        progress.manifest().hash()
+    );
+    assert_eq!(outcome.publication().chunk().unwrap().hash(), chunk_hash);
+    assert_eq!(reopened.list_observation_chunks().unwrap().len(), 1);
+    assert!(reopened.verify().unwrap().failures.is_empty());
+}
