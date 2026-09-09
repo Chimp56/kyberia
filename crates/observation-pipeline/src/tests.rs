@@ -1357,7 +1357,10 @@ fn supervised_process_rejects_malformed_flood_mismatch_and_untrusted_output() {
     let malformed_result = run(
         &mut bundle,
         &malformed,
-        CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
+        // This case tests decode rejection, not process timing. Allow the
+        // same parallel-suite startup margin as the adjacent flood cases;
+        // the dedicated hanging-child test retains its one-second deadline.
+        CollectorCommand::Probe(ProbeOptions::new(20).unwrap()),
         |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
     );
     assert!(
