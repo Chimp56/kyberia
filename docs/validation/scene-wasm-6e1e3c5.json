@@ -1,0 +1,35 @@
+{
+  "source": "6e1e3c5",
+  "cases": [
+    "canonical fixture",
+    "trailing whitespace",
+    "duplicate schema key"
+  ],
+  "native": [
+    1,
+    0,
+    0
+  ],
+  "wasm": [
+    1,
+    0,
+    0
+  ],
+  "wasm_bytes": 1010408,
+  "fixture_sha256": "24c2765339aceef830d05e57999e3b435a10092d2782ed9c2153e2c1e306fc8c",
+  "retained_harness": ".trash/scene-wasm-proof-6e1e3c5",
+  "harness_sha256": {
+    "Cargo.toml": "9cb072f907c50b3c9e213fb75aa680b88014e6e89dd76059eb274415c50896c4",
+    "Cargo.lock": "1f9965b7be998ea396ed345e81827c8324def7b3ceb791cea84961fd062e1827",
+    "src/lib.rs": "08589ad29c3dcaed045666234074c0160f10dc265b8e19e9ad1290335ac80a20",
+    "src/main.rs": "5dde7baaebf3affcbdc249fd078e2d98e2b088561db24fb26f355229427106c5"
+  },
+  "commands": [
+    "cargo check -p kyberia-rendering-scene --target wasm32-unknown-unknown --locked --offline",
+    "cargo run --manifest-path .trash/scene-wasm-proof-6e1e3c5/Cargo.toml --locked --offline",
+    "cargo build --manifest-path .trash/scene-wasm-proof-6e1e3c5/Cargo.toml --lib --release --target wasm32-unknown-unknown --locked --offline",
+    "Node WebAssembly.instantiate, invoke validate_fixture for cases 0,1,2 and compare against native output"
+  ],
+  "scope": "Three admission cases only; not browser worker lifecycle, all numerical regressions, performance or Gate B acceptance.",
+  "external_packages": "Every external name/version/checksum matches repository Cargo.lock."
+}

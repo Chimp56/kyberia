@@ -53,7 +53,7 @@ product capability is validated.
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
 | Canonical project CLI | Root correction / `canonical-project-cli` | `57f8129` review found mixed read snapshots; correction `0ab4bc7` passes 155 affected tests and needs independent review |
-| Canonical scene renderer input | Russell reviewing / `renderer-canonical-scenes` | Independent scientific/security review and actual browser evidence after dependency installation |
+| Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Browser review found canonical admission, metric/replay, predecode limits, coordinate mapping and stale-raster MAJOR defects; correction and fresh review required |
 | Windows analysis request acquisition | Independent review / `windows-analysis-requests` | Local CLI tests pass; Windows handle safety review and native execution remain open |
 | Rounded polygon offsets | Laplace correcting / `polygon-offsets` | Independent review found partial loss of mixed-scale components in `3406d6b`; coverage-completeness fix and fresh review required |
 
@@ -62,6 +62,11 @@ The publication review is approved for the bounded increment in
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+The Rust scene validator passed native/WASM execution for the canonical fixture
+and rejection of trailing whitespace and duplicate schema keys;
+[three-case evidence](docs/validation/scene-wasm-6e1e3c5.json). This supports
+browser reuse of core validation, not full renderer acceptance.
 
 CI stage diagnostics (`5c5ffc1`, reviewed source `a979d3c`) preserve the same
 ordered checks while exposing lint, typecheck, regression, source inventory and
