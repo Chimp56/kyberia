@@ -368,8 +368,21 @@ fn encode_baseline(
 }
 
 fn canonical_project_bytes(project: &Project) -> Result<Vec<u8>, IdentityError> {
-    let mut writer = BoundedWriter::new(MAX_PROJECT_BYTES);
-    serde_json::to_writer(&mut writer, project).map_err(|_| IdentityError::NonCanonicalEncoding)?;
+    canonical_project_bytes_with_limit(project, MAX_PROJECT_BYTES)
+}
+
+fn canonical_project_bytes_with_limit(
+    project: &Project,
+    limit: usize,
+) -> Result<Vec<u8>, IdentityError> {
+    let mut writer = BoundedWriter::new(limit);
+    if serde_json::to_writer(&mut writer, project).is_err() {
+        return Err(if writer.limit_exceeded() {
+            IdentityError::ResourceLimit("project_baseline_bytes")
+        } else {
+            IdentityError::NonCanonicalEncoding
+        });
+    }
     Ok(writer.into_inner())
 }
 
@@ -428,6 +441,7 @@ struct Reader<'a> {
 struct BoundedWriter {
     bytes: Vec<u8>,
     limit: usize,
+    limit_exceeded: bool,
 }
 
 impl BoundedWriter {
@@ -435,7 +449,12 @@ impl BoundedWriter {
         Self {
             bytes: Vec::new(),
             limit,
+            limit_exceeded: false,
         }
+    }
+
+    fn limit_exceeded(&self) -> bool {
+        self.limit_exceeded
     }
 
     fn into_inner(self) -> Vec<u8> {
@@ -445,12 +464,12 @@ impl BoundedWriter {
 
 impl Write for BoundedWriter {
     fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
-        let end = self
-            .bytes
-            .len()
-            .checked_add(bytes.len())
-            .ok_or_else(|| io::Error::other("bounded identity writer overflow"))?;
+        let end = self.bytes.len().checked_add(bytes.len()).ok_or_else(|| {
+            self.limit_exceeded = true;
+            io::Error::other("bounded identity writer overflow")
+        })?;
         if end > self.limit {
+            self.limit_exceeded = true;
             return Err(io::Error::other("bounded identity writer limit"));
         }
         self.bytes.extend_from_slice(bytes);
@@ -531,10 +550,14 @@ impl<'a> Reader<'a> {
 mod tests {
     use super::*;
     use kyberia_domain::{
-        identity::{ActorDeviceId, ActorId, OperationId, Text},
+        evidence::{Evidence, UnknownReason},
+        identity::{ActorDeviceId, ActorId, CalibrationId, MapAssetId, OperationId, Text},
         project::Project,
     };
-    use kyberia_operation_log::{CausalDepth, LogicalTimestamp, Mutation};
+    use kyberia_operation_log::{
+        CausalDepth, InversePrior, LogicalTimestamp, Mutation, OperationPayload,
+        OperationReference, OperationSchemaVersion, ResolutionValue,
+    };
 
     fn project_id(value: u8) -> ProjectId {
         ProjectId::from_bytes([value; 16]).unwrap()
@@ -669,6 +692,20 @@ mod tests {
     }
 
     #[test]
+    fn baseline_serialization_limit_is_a_structured_resource_error() {
+        let project = project("one");
+        let canonical = serde_json::to_vec(&project).unwrap();
+        assert_eq!(
+            canonical_project_bytes_with_limit(&project, canonical.len()).unwrap(),
+            canonical
+        );
+        assert_eq!(
+            canonical_project_bytes_with_limit(&project, canonical.len() - 1),
+            Err(IdentityError::ResourceLimit("project_baseline_bytes"))
+        );
+    }
+
+    #[test]
     fn operation_set_hash_is_independent_of_input_order() {
         let first = operation(1, "first");
         let second = operation(2, "second");
@@ -757,6 +794,158 @@ mod tests {
         assert_eq!(
             OperationSetIdentity::from_canonical_bytes(&bytes),
             Err(IdentityError::ResourceLimit("operation_set_operations"))
+        );
+    }
+
+    #[test]
+    fn operation_set_identity_round_trips_v2_unknown_and_resolution_values() {
+        let map_id = MapAssetId::from_bytes([7; 16]).unwrap();
+        let root_calibration = CalibrationId::from_bytes([8; 16]).unwrap();
+        let right_calibration = CalibrationId::from_bytes([9; 16]).unwrap();
+        let root = kyberia_operation_log::Operation::try_apply_v2(
+            operation_id(2),
+            project_id(1),
+            ActorId::from_bytes([1; 16]).unwrap(),
+            ActorDeviceId::from_bytes([1; 16]).unwrap(),
+            LogicalTimestamp::new(1).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::activate_calibration(map_id, root_calibration),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+            },
+        )
+        .unwrap();
+        let left = kyberia_operation_log::Operation::try_undo_v2(
+            operation_id(3),
+            project_id(1),
+            ActorId::from_bytes([1; 16]).unwrap(),
+            ActorDeviceId::from_bytes([1; 16]).unwrap(),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![root.operation_id()],
+            OperationReference::from(&root),
+        )
+        .unwrap();
+        let right = kyberia_operation_log::Operation::try_apply_v2(
+            operation_id(4),
+            project_id(1),
+            ActorId::from_bytes([2; 16]).unwrap(),
+            ActorDeviceId::from_bytes([2; 16]).unwrap(),
+            LogicalTimestamp::new(2).unwrap(),
+            CausalDepth::new(1),
+            vec![root.operation_id()],
+            Mutation::activate_calibration(map_id, right_calibration),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: Evidence::Known(root_calibration),
+            },
+        )
+        .unwrap();
+        let resolution = kyberia_operation_log::Operation::try_resolve_v2(
+            operation_id(5),
+            project_id(1),
+            ActorId::from_bytes([3; 16]).unwrap(),
+            ActorDeviceId::from_bytes([3; 16]).unwrap(),
+            LogicalTimestamp::new(3).unwrap(),
+            CausalDepth::new(2),
+            vec![left.operation_id(), right.operation_id()],
+            OperationReference::from(&left),
+            OperationReference::from(&right),
+            ResolutionValue::activate_calibration(
+                map_id,
+                Evidence::Unknown(UnknownReason::NotMeasured),
+            ),
+            InversePrior::MapCalibration {
+                map_id,
+                calibration: Evidence::Known(root_calibration),
+            },
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([root, left, right, resolution]).unwrap();
+        let identity = OperationSetIdentity::from_operation_set(&set).unwrap();
+        let decoded =
+            OperationSetIdentity::from_canonical_bytes(identity.canonical_bytes()).unwrap();
+        assert_eq!(decoded, identity);
+        assert_eq!(decoded.operation_count(), 4);
+
+        let mut reader = Reader::new(decoded.canonical_bytes());
+        reader.expect(OPERATION_SET_MAGIC).unwrap();
+        reader.expect_byte(IDENTITY_VERSION).unwrap();
+        assert_eq!(reader.array_16().unwrap(), project_id(1).bytes());
+        assert_eq!(reader.u64().unwrap(), 4);
+        let mut saw_unknown_prior = false;
+        let mut saw_unknown_resolution = false;
+        for _ in 0..4 {
+            reader.array_16().unwrap();
+            reader.array_32().unwrap();
+            let length = reader.u64().unwrap() as usize;
+            let operation = Operation::from_bytes(reader.take(length).unwrap()).unwrap();
+            assert_eq!(operation.schema_version(), OperationSchemaVersion::V2);
+            match operation.payload() {
+                OperationPayload::Apply { .. }
+                    if matches!(
+                        operation.inverse(),
+                        kyberia_operation_log::InverseMetadata::ApplyV2 {
+                            prior: InversePrior::MapCalibration {
+                                calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+                                ..
+                            }
+                        }
+                    ) =>
+                {
+                    saw_unknown_prior = true
+                }
+                OperationPayload::ResolveV2 {
+                    value:
+                        ResolutionValue::Calibration {
+                            calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+                            ..
+                        },
+                    ..
+                } => saw_unknown_resolution = true,
+                _ => {}
+            }
+        }
+        reader.finish().unwrap();
+        assert!(saw_unknown_prior);
+        assert!(saw_unknown_resolution);
+    }
+
+    #[test]
+    fn operation_set_identity_rejects_tampered_v2_operation_bytes_and_hash() {
+        let operation = kyberia_operation_log::Operation::try_apply_v2(
+            operation_id(9),
+            project_id(1),
+            ActorId::from_bytes([9; 16]).unwrap(),
+            ActorDeviceId::from_bytes([9; 16]).unwrap(),
+            LogicalTimestamp::new(1).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::activate_calibration(
+                MapAssetId::from_bytes([7; 16]).unwrap(),
+                CalibrationId::from_bytes([8; 16]).unwrap(),
+            ),
+            InversePrior::MapCalibration {
+                map_id: MapAssetId::from_bytes([7; 16]).unwrap(),
+                calibration: Evidence::Unknown(UnknownReason::NotMeasured),
+            },
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([operation]).unwrap();
+        let identity = OperationSetIdentity::from_operation_set(&set).unwrap();
+
+        let mut tampered_bytes = identity.canonical_bytes().to_vec();
+        *tampered_bytes.last_mut().unwrap() ^= 1;
+        assert!(OperationSetIdentity::from_canonical_bytes(&tampered_bytes).is_err());
+
+        let mut tampered_hash = identity.canonical_bytes().to_vec();
+        let hash_index = OPERATION_SET_HEADER_BYTES + 16 + 31;
+        tampered_hash[hash_index] ^= 1;
+        assert_eq!(
+            OperationSetIdentity::from_canonical_bytes(&tampered_hash),
+            Err(IdentityError::HashMismatch)
         );
     }
 

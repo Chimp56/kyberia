@@ -29,9 +29,11 @@ content-addressed records:
 - `MaterializationIdentity::bind` checks the project IDs and exposes both
   hashes plus baseline metadata. It does not replay or apply effects.
 
-Each identity is bounded to 64 MiB. SHA-256 is computed over an explicit
-identity domain and the complete envelope. Existing domain and operation bytes
-remain unchanged.
+Each identity is bounded to 64 MiB. Project serialization reports a structured
+`ResourceLimit("project_baseline_bytes")` when the bounded writer reaches its
+ceiling. SHA-256 is computed over an explicit identity domain and the complete
+envelope. Existing domain and operation bytes remain unchanged, including V2
+typed unknown evidence and resolution values.
 
 ## Alternatives
 
@@ -50,10 +52,12 @@ remain unchanged.
 ## Evidence and validation
 
 Tests cover same-revision baseline changes, canonical round trips, trailing and
-tampered bytes, operation input permutations, membership/content changes,
-empty sets, graph validation on decode, project mismatch, and separation of
-baseline counters from operation-set count. Focused commands are recorded in
-the implementation handoff and must pass before integration.
+tampered bytes, exact bounded project serialization, V2 typed unknown and
+resolution round trips, V2 wire/hash tampering, operation input permutations,
+membership/content changes, empty sets, graph validation on decode, project
+mismatch, and separation of baseline counters from operation-set count. Focused
+commands are recorded in the implementation handoff and must pass before
+integration.
 
 ## Consequences
 
