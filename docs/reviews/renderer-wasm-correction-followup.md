@@ -28,3 +28,14 @@ SHA-256 3aa3541c85e40b4564227b4b3101362b0b3ceb33c4c0904f996d98c4f844e888.
 Integration remains pending final portability correction to the build-argument
 test, source-inventory reconciliation and integrated regression. No Gate B
 completion or production mapper usability is claimed.
+
+## Additional visual finding — MAJOR, integration blocked
+
+Root inspected the retained PointValue screenshot and traced rounded gradient
+blobs to numericTexture in renderer.js: RGBA values and the unknown mask use
+LINEAR filtering. This blends constant known-cell values with unknown texels
+and changes cell support at the alpha threshold. Canonical numeric and mask
+semantics must survive rasterization, including near cell edges. The author
+is correcting sampling and adding framebuffer checks beyond cell centers;
+OpenLayers sampling also requires inspection. Passing admission tests and
+center probes do not close this rendering correctness finding.
