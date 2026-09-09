@@ -910,6 +910,7 @@ dependencies = [
  "kyberia-domain",
  "kyberia-observation-analysis",
  "kyberia-project-store",
+ "kyberia-rendering-scene",
  "kyberia-spatial-analysis",
  "kyberia-stored-analysis",
  "kyberia-survey",

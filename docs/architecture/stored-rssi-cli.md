@@ -1,5 +1,20 @@
 # Stored RSSI analysis CLI
 
+`kyberia export-stored-rssi-scene <project.rfatlas> <request.json> <new-directory>`
+uses the same bounded request and verified project selection as
+`analyze-stored-rssi`, then projects the result through the canonical scene
+adapter. It publishes `scene.json` for renderer consumption. The JSON stdout
+report uses `kyberia.stored-rssi-scene-cli/1` and identifies the scene artifact's
+hash and byte length. Numeric values, unknown reasons, floor/frame geometry and
+selection provenance remain in the scene; a source hash is not a claim of
+external measurement authenticity.
+
+The command requires a new output directory and never replaces a final file.
+It retains `.scene.json.pending` for manual recovery/cleanup, supports SIGINT
+through analysis and scene projection, and reports cancellation after a
+successful publication as a committed outcome. Review observation and location
+identifiers before sharing the artifact. This export is not a complete survey UI.
+
 The `kyberia analyze-stored-rssi <bundle> <request.json>
 <new-output-directory>` command is a read-only composition boundary around
 `kyberia-stored-analysis`. It opens a committed `Bundle` in read-only mode,
@@ -51,8 +66,8 @@ for a producer. The command returns an explicit unsupported-platform error on
 non-Unix hosts until an equivalent no-follow, nonblocking regular-file adapter
 is provided; it does not risk opening an unbounded named pipe there.
 
-On Unix, a syntactically valid four-argument `analyze-stored-rssi` invocation
-installs the maintained `signal-hook` 0.4.4 flag adapter before dispatch. Its
+On Unix, a syntactically valid four-argument `analyze-stored-rssi` or
+`export-stored-rssi-scene` invocation installs the maintained `signal-hook` 0.4.4 flag adapter before dispatch. Its
 signal handler only sets an atomic flag; the storage and
 numerical layers poll the existing `Cancellation` port at their documented
 boundaries. The CLI emits an `analysis_started` stderr lifecycle event after
@@ -77,8 +92,8 @@ the publication commit point. If that check fails, the CLI returns a structured
 and retained pending bytes remain available for inspection and recovery. It
 never reports that publication did not happen after the final link succeeded.
 
-Only a syntactically valid four-argument `analyze-stored-rssi` invocation gets
-the process SIGINT adapter. Other commands retain the operating system's
+Only syntactically valid four-argument `analyze-stored-rssi` and
+`export-stored-rssi-scene` invocations get the process SIGINT adapter. Other commands retain the operating system's
 default signal disposition and do not install an analysis cancellation handler.
 
 The command does not persist an analysis result back into the project bundle,

@@ -368,6 +368,74 @@ fn real_bundle_reports_known_and_unknown_cells_with_canonical_hash() {
 }
 
 #[test]
+fn stored_scene_export_preserves_values_unknowns_and_refuses_overwrite() {
+    let root = retained_directory();
+    let project_path = root.join("scene.rfatlas");
+    let (project, floor, frame, observation, snapshot, revision) =
+        create_fixture(&project_path, false);
+    for (label, x, known) in [("measured", -1.5, true), ("gap", 1000.0, false)] {
+        let request_path = root.join(format!("{label}.json"));
+        write_json(
+            &request_path,
+            &request_json(project, floor, frame, observation, snapshot, revision, x),
+        );
+        let destination = root.join(label);
+        let invoke = || {
+            std::process::Command::new(env!("CARGO_BIN_EXE_kyberia"))
+                .arg("export-stored-rssi-scene")
+                .arg(&project_path)
+                .arg(&request_path)
+                .arg(&destination)
+                .output()
+                .unwrap()
+        };
+        let output = invoke();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(report["schema"], "kyberia.stored-rssi-scene-cli/1");
+        assert_eq!(report["output_file"], "scene.json");
+        assert_eq!(report["selected_observations"], 1);
+        let bytes = fs::read(destination.join("scene.json")).unwrap();
+        let scene = kyberia_rendering_scene::SceneDocument::from_canonical_bytes(&bytes).unwrap();
+        assert_eq!(scene.cells().len(), 1);
+        if known {
+            assert_eq!(
+                scene.cells()[0].value(),
+                &Evidence::Known(kyberia_domain::units::Dbm::new(-55.0).unwrap())
+            );
+            assert_eq!(
+                scene.cells()[0].class(),
+                kyberia_rendering_scene::SceneCellClass::Observed
+            );
+        } else {
+            assert_eq!(
+                scene.cells()[0].value(),
+                &Evidence::Unknown(UnknownReason::OutsideEvidenceSupport)
+            );
+            assert_eq!(
+                scene.cells()[0].class(),
+                kyberia_rendering_scene::SceneCellClass::Unknown
+            );
+        }
+        assert_eq!(
+            report["artifact"]["sha256"],
+            serde_json::to_value(scene.sha256()).unwrap()
+        );
+        assert_eq!(report["artifact"]["byte_length"], bytes.len() as u64);
+        assert_eq!(
+            fs::read(destination.join(".scene.json.pending")).unwrap(),
+            bytes
+        );
+        assert!(!invoke().status.success());
+        assert_eq!(fs::read(destination.join("scene.json")).unwrap(), bytes);
+    }
+}
+
+#[test]
 fn malformed_oversize_mismatch_and_existing_output_fail_before_publication() {
     let root = retained_directory();
     let project_path = root.join("bundle.rfatlas");

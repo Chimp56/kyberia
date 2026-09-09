@@ -393,8 +393,18 @@ fn publish_in_directory_with_sync(
     cancel: &dyn Cancellation,
     sync: impl Fn(&Path) -> Result<(), Box<dyn std::error::Error>>,
 ) -> Result<Publication, Box<dyn std::error::Error>> {
+    publish_named_in_directory(destination, bytes, cancel, OUTPUT_FILE, sync)
+}
+
+fn publish_named_in_directory(
+    destination: &Path,
+    bytes: &[u8],
+    cancel: &dyn Cancellation,
+    filename: &'static str,
+    sync: impl Fn(&Path) -> Result<(), Box<dyn std::error::Error>>,
+) -> Result<Publication, Box<dyn std::error::Error>> {
     check_cancel(cancel)?;
-    let pending = destination.join(".analysis.json.pending");
+    let pending = destination.join(format!(".{filename}.pending"));
     let mut file = OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -406,7 +416,7 @@ fn publish_in_directory_with_sync(
     // unlike rename, it cannot replace a final artifact that appeared after
     // the destination directory was created. The pending link is retained so
     // an operator can inspect or manually retire the exact committed bytes.
-    fs::hard_link(&pending, destination.join(OUTPUT_FILE))?;
+    fs::hard_link(&pending, destination.join(filename))?;
     sync(destination).map_err(|error| {
         Box::new(PublicationDurabilityError::new(error.to_string())) as Box<dyn std::error::Error>
     })?;
@@ -420,6 +430,25 @@ pub fn analyze_with_cancellation(
     request_path: &Path,
     destination: &Path,
     cancel: &dyn Cancellation,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    analyze_output(project_path, request_path, destination, cancel, false)
+}
+
+pub fn scene_with_cancellation(
+    project_path: &Path,
+    request_path: &Path,
+    destination: &Path,
+    cancel: &dyn Cancellation,
+) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    analyze_output(project_path, request_path, destination, cancel, true)
+}
+
+fn analyze_output(
+    project_path: &Path,
+    request_path: &Path,
+    destination: &Path,
+    cancel: &dyn Cancellation,
+    scene_output: bool,
 ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     check_cancel(cancel)?;
     let request = parse_request(request_path)?;
@@ -450,7 +479,39 @@ pub fn analyze_with_cancellation(
         cells: cell_summary(&result)?,
         privacy_warning: PRIVACY_WARNING,
     };
-    let publication = publish(destination, result.canonical_bytes(), cancel)?;
+    let publication = if scene_output {
+        let scene = kyberia_rendering_scene::SceneDocument::from_verified_tile_with_cancellation(
+            result.tile(),
+            result.selection_manifest(),
+            || cancel.is_cancelled(),
+        )
+        .map_err(|error| match error {
+            kyberia_rendering_scene::SceneError::Cancelled => {
+                Box::new(Cancelled) as Box<dyn std::error::Error>
+            }
+            other => Box::new(other) as Box<dyn std::error::Error>,
+        })?;
+        report.schema = "kyberia.stored-rssi-scene-cli/1";
+        report.output_file = "scene.json";
+        report.artifact = ArtifactReference {
+            sha256: scene.sha256(),
+            media_type: kyberia_domain::identity::Text::new(
+                "application/vnd.kyberia.render-scene+json;version=1",
+            )?,
+            byte_length: scene.canonical_bytes().len() as u64,
+        };
+        check_cancel(cancel)?;
+        fs::create_dir(destination)?;
+        publish_named_in_directory(
+            destination,
+            scene.canonical_bytes(),
+            cancel,
+            "scene.json",
+            sync_directory,
+        )?
+    } else {
+        publish(destination, result.canonical_bytes(), cancel)?
+    };
     match publication {
         Publication::Committed {
             cancelled_after_commit,

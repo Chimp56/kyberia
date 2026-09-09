@@ -2,15 +2,14 @@
 
 The authoritative specification is [plan.md](plan.md). This is an active implementation, not a completed product.
 
-Current integration checkpoint: independently approved cumulative merge and
-ordering budgets through source commit `a29967a` are integrated. Full workspace
-regression passes 590 tests, zero failures and nine ignored tests
-(`.tools/merge-integration-regression.log`). Focused all-target Clippy, formatting,
-architecture, source inventory and source-qualified ledger checks pass. See
-[merge review](docs/reviews/budgeted-operation-merge-review.md). Stored RSSI scene
-CLI export is under independent review in its isolated worktree; renderer
-harness integration and hostile-storage preallocation fixes remain in progress.
-These increments do not complete Phase 0 or the user-facing mapper.
+Current integration checkpoint: stored RSSI scene CLI export through source
+`794941f` is integrated after independent runtime review and correction of its
+three minor findings. Full workspace regression passes 591 tests, zero failures
+and nine ignored tests (`.tools/scene-cli-integration-regression.log`). Focused
+Clippy, formatting, architecture, source inventory and ledger checks pass. See
+[scene CLI review](docs/reviews/stored-rssi-scene-cli-review.md). Renderer harness
+integration, hostile-storage preallocation fixes and polygon offsets remain in
+isolated worktrees. These increments do not complete Phase 0 or the mapper UI.
 
 Current review checkpoint: bounded polygon booleans are independently reviewed
 and integrated through `21f1e16`; all 30 geometry tests pass. Full Gate E remains

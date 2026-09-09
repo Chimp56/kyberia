@@ -9,6 +9,7 @@ name = "kyberia"
 path = "src/main.rs"
 
 [dependencies]
+kyberia-rendering-scene = { version = "=0.1.0", path = "../../crates/rendering-scene" }
 kyberia-domain = { version = "=0.1.0", path = "../../crates/domain" }
 kyberia-observation-analysis = { version = "=0.1.0", path = "../../crates/observation-analysis" }
 kyberia-project-store = { version = "=0.1.0", path = "../../crates/project-store" }

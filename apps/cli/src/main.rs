@@ -13,7 +13,7 @@ fn run(
 ) -> Result<bool, Box<dyn std::error::Error>> {
     if args.is_empty() || args == ["--help"] || args == ["help"] {
         println!(
-            "Kyberia project CLI\n\n  kyberia new <directory.rfatlas> <name>\n  kyberia inspect <directory.rfatlas>\n  kyberia verify <directory.rfatlas>\n  kyberia recover-manifest <directory.rfatlas>\n  kyberia export-observations-parquet <directory.rfatlas> <new-directory>\n  kyberia analyze-stored-rssi <directory.rfatlas> <request.json> <new-output-directory>\n\nOutputs are JSON. verify exits nonzero for integrity failures. Exports and analysis outputs never overwrite an existing destination."
+            "Kyberia project CLI\n\n  kyberia new <directory.rfatlas> <name>\n  kyberia inspect <directory.rfatlas>\n  kyberia verify <directory.rfatlas>\n  kyberia recover-manifest <directory.rfatlas>\n  kyberia export-observations-parquet <directory.rfatlas> <new-directory>\n  kyberia analyze-stored-rssi <directory.rfatlas> <request.json> <new-output-directory>\n  kyberia export-stored-rssi-scene <directory.rfatlas> <request.json> <new-output-directory>\n\nOutputs are JSON. verify exits nonzero for integrity failures. Exports and analysis outputs never overwrite an existing destination."
         );
         return Ok(true);
     }
@@ -55,7 +55,7 @@ fn run(
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
-        Some("analyze-stored-rssi") if args.len() == 4 => {
+        Some("analyze-stored-rssi" | "export-stored-rssi-scene") if args.len() == 4 => {
             eprintln!(
                 "{}",
                 serde_json::json!({
@@ -63,7 +63,12 @@ fn run(
                     "cancellation": "sigint",
                 })
             );
-            let result = stored_analysis::analyze_with_cancellation(
+            let analyze = if args[0] == "export-stored-rssi-scene" {
+                stored_analysis::scene_with_cancellation
+            } else {
+                stored_analysis::analyze_with_cancellation
+            };
+            let result = analyze(
                 Path::new(&args[1]),
                 Path::new(&args[2]),
                 Path::new(&args[3]),
@@ -80,7 +85,7 @@ fn run(
 fn uses_process_cancellation(args: &[String]) -> bool {
     matches!(
         args,
-        [command, _project, _request, _destination] if command == "analyze-stored-rssi"
+        [command, _project, _request, _destination] if command == "analyze-stored-rssi" || command == "export-stored-rssi-scene"
     )
 }
 
@@ -142,6 +147,17 @@ mod tests {
 
     #[test]
     fn process_signal_registration_is_limited_to_valid_analysis_invocations() {
+        assert!(uses_process_cancellation(&args(&[
+            "export-stored-rssi-scene",
+            "project",
+            "request",
+            "destination",
+        ])));
+        assert!(!uses_process_cancellation(&args(&[
+            "export-stored-rssi-scene",
+            "project",
+            "request",
+        ])));
         assert!(uses_process_cancellation(&args(&[
             "analyze-stored-rssi",
             "project",
