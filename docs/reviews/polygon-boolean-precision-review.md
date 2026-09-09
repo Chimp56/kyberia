@@ -68,3 +68,18 @@ Retained public-API probe:
 `cargo run --offline --quiet`; output `result Ok(1)` followed by the failing
 two-component assertion. The frozen candidate remains unintegrated pending
 correction and independent review.
+
+## Correction `d29cf40`: independent review in progress
+
+The correction processes component pairs and adds intermediate budgets. It
+explicitly rejects overlapping concave or holed intersection/difference inputs;
+those required geometry capabilities remain open, not completed by rejection.
+
+Root source inspection identified two checks for the independent reviewer to
+challenge before approval. Intersection removes the previous result-subset
+checks and substitutes an existential overlap check; overlap alone does not
+establish containment. Difference checks that some residual survives for each
+original left polygon, which alone cannot establish completeness when sequential
+convex cuts produce several residual pieces. These are proof gaps under review,
+not yet new reproduced kernel failures. No approval is recorded for this
+correction while numerical probes and containment review remain pending.
