@@ -60,6 +60,9 @@ def command(name):
         python("-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py")
     elif name == "source-check":
         python("tools/source_inventory.py", "check")
+    elif name == "evidence-check":
+        python("tools/ledger.py", "check")
+        python("tools/validation/fixtures.py", "check")
     elif name == "benchmark":
         run("cargo", "run", "--release", "--locked", "--offline", "-p", "kyberia-domain", "--example", "project_benchmark")
     elif name == "sbom":
@@ -72,15 +75,13 @@ def command(name):
     elif name == "supply-chain-refresh":
         supply_chain("refresh-advisories")
     elif name == "check":
-        for step in ["lint", "typecheck", "test", "source-check"]:
+        for step in ["lint", "typecheck", "test", "source-check", "evidence-check"]:
             command(step)
-        python("tools/ledger.py", "check")
-        python("tools/validation/fixtures.py", "check")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "check"])
+    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "evidence-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "check"])
     args = parser.parse_args()
     try:
         command(args.command)

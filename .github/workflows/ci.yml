@@ -21,5 +21,13 @@ jobs:
         run: python tools/dev.py bootstrap
       - name: Compile foundation and CLI
         run: python tools/dev.py build
-      - name: Validate implementation, evidence, and source boundaries
-        run: python tools/dev.py check
+      - name: Check formatting, lint and dependency boundaries
+        run: python tools/dev.py lint
+      - name: Typecheck all workspace targets
+        run: python tools/dev.py typecheck
+      - name: Run Rust and Python regression suites
+        run: python tools/dev.py test
+      - name: Verify locked dependency source inventory
+        run: python tools/dev.py source-check
+      - name: Verify traceability and scientific fixtures
+        run: python tools/dev.py evidence-check
