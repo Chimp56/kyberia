@@ -58,8 +58,8 @@ product capability is validated.
 | --- | --- | --- |
 | Neutral planning interchange | Beauvoir reviewing / `planning-interchange` | Corrected version typing at `a0a18b3` passes ten focused tests; full independent defensive import/export and geometry contract review remains open |
 | Canonical scene renderer input | Laplace correcting / `renderer-canonical-scenes` | Independent review of `1af1cba` requires valid PointValue/Nearest handling, mandatory Rust admission and worker deadlines; [findings](docs/reviews/renderer-wasm-independent-review.md) |
-| Native capture session boundary | Laplace / `capture-session-normalization` | Extract shared validated normalization without fabricated survey association; adversarial process tests and independent review |
-| Unassociated acquisition spool | Laplace reviewing root candidate / `acquisition-spool` | Frozen `3aaa3c9`; five focused tests and pipeline regression pass; independent correctness/privacy/recovery review required |
+| Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; parser fixture timing correction `73111b0`; full regression and remaining timing diagnostics under validation |
+| Unassociated acquisition spool | Root correcting / `acquisition-spool` | Review requires durable session identity for empty captures; explicit terminal outcomes and early cancellation are implemented in the candidate, with fresh review pending |
 | Hosted Rust diagnostics | Russell / `ci-rust-diagnostics` | Bounded public compiler locations and test identifiers without arbitrary output disclosure; independent review |
 | Windows native request runtime | CI / integrated `2988bc6` | Independently approved disk-handle/reparse/sharing boundary; native disk/device/pipe and full CLI execution remain required |
 
@@ -69,6 +69,11 @@ The publication review is approved for the bounded increment in
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+After normalization and parser-test integration at `73111b0`, the full Rust
+workspace suite passes **634 tests, zero failures, nine ignored**. Log:
+`.tools/normalization-final-workspace.log`. Affected Clippy and traceability
+checks pass. This local result does not resolve the hosted CI diagnostics.
 
 Complete `.tools/venv/bin/python tools/dev.py check` passes after Windows integration:
 Rust tests, workspace lint/typecheck, 189 Python tests run (19 skipped), source

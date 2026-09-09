@@ -10,8 +10,8 @@ or represent shell output as measurements.
 
 ## Extracted normalization operation
 
-This section describes candidate `91a0f60`, pending integration after its
-independent review correction. It is not yet part of the integration branch.
+Reviewed sources `91a0f60` and `e9bef50` are integrated as `1fb8d12` and
+`ecf9b59`. The shared operation is available independently of survey persistence.
 
 `run_and_normalize` is the reusable outward operation for callers that need a
 validated native capture before choosing survey or storage behavior. It

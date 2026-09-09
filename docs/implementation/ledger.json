@@ -39334,8 +39334,8 @@
         {
           "path": "crates/observation-pipeline/src/process.rs",
           "description": "Reviewed native collector supervision and request privacy binding; authorized RF scan/product wiring remain open",
-          "revision": "5328abb3010bbf4e22776470862e0a737da154039bac0252f1702a171d6757a9",
-          "sha256": "5328abb3010bbf4e22776470862e0a737da154039bac0252f1702a171d6757a9"
+          "revision": "27caf468bad45abffd3876a102d13af5566ac9a03f615114c3c1776d33ffdc71",
+          "sha256": "27caf468bad45abffd3876a102d13af5566ac9a03f615114c3c1776d33ffdc71"
         },
         {
           "path": "apps/cli/src/stored_analysis.rs",
@@ -39372,8 +39372,8 @@
         {
           "path": "crates/observation-pipeline/src/tests.rs",
           "description": "Recoverable native persistence, exact raw and observation closure, hostile snapshot readback",
-          "revision": "7e0a0e9eff5e262f0f439efec67ce88a943c802593221fc854cbe695de81acdc",
-          "sha256": "7e0a0e9eff5e262f0f439efec67ce88a943c802593221fc854cbe695de81acdc",
+          "revision": "da84e3b99e935ffd2f259970183131409ed5e921ca6a9fad7fd6ef5d10b2904c",
+          "sha256": "da84e3b99e935ffd2f259970183131409ed5e921ca6a9fad7fd6ef5d10b2904c",
           "command": "cargo test -p kyberia-observation-pipeline --locked --offline",
           "scope": "native_persistence_contract",
           "result": "PASS"
@@ -39390,8 +39390,8 @@
         {
           "path": "docs/validation/native-capture-session.md",
           "description": "Independent redacted CoreWLAN probe through integrated process and persistence; does not validate authorized RF scan",
-          "revision": "0cc7da4f71e1d2839b9e098f13772bfde3d408031332a3c32ac5e098b0132e15",
-          "sha256": "0cc7da4f71e1d2839b9e098f13772bfde3d408031332a3c32ac5e098b0132e15",
+          "revision": "2e39bac69eb8b324052df288d6019d68e8437be6073f0621426a9398d372111f",
+          "sha256": "2e39bac69eb8b324052df288d6019d68e8437be6073f0621426a9398d372111f",
           "command": "cargo test -p kyberia-observation-pipeline tests::supervised_real_redacted_capability_probe_uses_the_rust_boundary --locked --offline -- --ignored --exact",
           "scope": "current_host_redacted_capability_probe",
           "result": "PASS"
