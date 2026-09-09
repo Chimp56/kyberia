@@ -32,5 +32,11 @@ Windows CLI runtime, final-path reparse tests and race/sharing validation remain
 open. Native fixture execution uses a local PowerShell pipe server terminated
 and reaped by its test owner; no test directory is deleted.
 
-The correction needs independent review before integration. This packet does
-not close WR-001/WR-002 by author assertion.
+Independent reviewer `/root/offset_review_luna` (Beauvoir) approved correction
+`c3dd163` with no BLOCKER, MAJOR or MINOR findings. WR-001 and WR-002 are
+resolved for this bounded increment. The reviewer reran the listed checks,
+including 23 local CLI tests and Windows-target adapter compilation/Clippy.
+Logs remain in `.trash/test-runs/windows-request-rereview-c3dd163` in the
+candidate worktree. The ADR index table-formatting NIT is corrected.
+
+Approval does not convert the native runtime gates above into passes.

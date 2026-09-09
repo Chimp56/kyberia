@@ -29,7 +29,8 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0023](0023-materialized-project-publication.md) | Accepted bounded adapter; product and cross-platform runtime gates open | Explicit baseline registration and transactional, replay-validated project publication |
 | [0024](0024-shared-materialization-budget.md) | Accepted bounded contract; storage transaction adoption reviewed | Caller-owned cumulative work and copy accounting across operation admission, replay, identities and materialization |
 
+| [0025](0025-windows-disk-handle.md) | Accepted bounded boundary; native runtime gates open | Narrow audited Windows disk-handle query before request reads |
+
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 
 Pending durable decisions: native capture viability (A), renderer (B), storage split (C), active integration (D), geometry kernel (E), optimizer (F), licensing/distribution (G), Kismet runtime boundary (H), Sionna adopted worker runtime (I), WASM plugin runtime, predictive tiers, requirements, and deterministic diagnosis.
-| [0025](0025-windows-disk-handle.md) | Proposed; review and native runtime pending | Narrow audited Windows disk-handle query before request reads |

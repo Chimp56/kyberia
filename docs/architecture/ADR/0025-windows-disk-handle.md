@@ -1,6 +1,6 @@
 # ADR-0025: Narrow Windows disk-handle validation
 
-Status: Proposed; independent review and native Windows execution pending.
+Status: Accepted bounded boundary after independent review of `c3dd163`; native Windows execution gates remain open.
 
 ## Context
 
