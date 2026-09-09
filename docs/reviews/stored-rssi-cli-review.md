@@ -1,5 +1,22 @@
 # Stored RSSI CLI pending review
 
+## Final scoped disposition
+
+APPROVED by `/root` for the combined Unix CLI increment through
+`00051e7321657c5b1e16bb948a4c37a6121caf1b` (including `ba52325` and
+`22d3b59`). Root independently reran all 20 CLI tests successfully at the frozen
+final candidate. Static review confirms SIGINT registration is limited to the
+analysis dispatch and post-link sync failures retain a typed committed outcome.
+The injected sync-failure test verifies both artifact links remain intact.
+The real subprocess suite covers numerical point/nearest/IDW outputs, unknown
+synthetic evidence, invalid requests, FIFO rejection and SIGINT cancellation.
+
+The findings below are retained as history and corrected by this series.
+This approval does not establish non-Unix support, crash durability on other
+filesystems, or a usable desktop survey workflow. Signal-dispatch isolation is
+covered by the dispatch predicate test and static call-path inspection; the
+actual subprocess signal test exercises the analysis command.
+
 Disposition: REQUEST_CHANGES on in-progress draft, SHA-256
 `87e3594e09c2f796226b0e1aac0cfeff7f915f7400e353801033fd51aaa585cc`. Reviewer: /root.
 
