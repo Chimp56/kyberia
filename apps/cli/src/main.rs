@@ -3,7 +3,7 @@ mod observation_export;
 mod stored_analysis;
 
 use kyberia_domain::identity::ProjectId;
-use kyberia_project_store::{Bundle, Cancellation, OpenMode};
+use kyberia_project_store::{Bundle, Cancellation, NeverCancel, OpenMode};
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -77,22 +77,43 @@ fn run(
     }
 }
 
+fn uses_process_cancellation(args: &[String]) -> bool {
+    matches!(
+        args,
+        [command, _project, _request, _destination] if command == "analyze-stored-rssi"
+    )
+}
+
 fn main() -> ExitCode {
-    let cancellation = match cancellation::ProcessCancellation::install() {
-        Ok(cancellation) => cancellation,
-        Err(error) => {
-            eprintln!("{}", serde_json::json!({"error": error.to_string()}));
-            return ExitCode::from(2);
+    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    let result = if uses_process_cancellation(&args) {
+        match cancellation::ProcessCancellation::install() {
+            Ok(cancellation) => run(&args, cancellation.token()),
+            Err(error) => Err(error),
         }
+    } else {
+        let cancellation = NeverCancel;
+        run(&args, &cancellation)
     };
-    match run(
-        &std::env::args().skip(1).collect::<Vec<_>>(),
-        cancellation.token(),
-    ) {
+    match result {
         Ok(true) => ExitCode::SUCCESS,
         Ok(false) => ExitCode::from(1),
         Err(error) => {
-            if error.downcast_ref::<cancellation::Cancelled>().is_some() {
+            if error
+                .downcast_ref::<stored_analysis::PublicationDurabilityError>()
+                .is_some()
+            {
+                eprintln!(
+                    "{}",
+                    serde_json::json!({
+                        "error": {
+                            "code": "publication_durability",
+                            "message": error.to_string(),
+                            "committed": true,
+                        }
+                    })
+                );
+            } else if error.downcast_ref::<cancellation::Cancelled>().is_some() {
                 eprintln!(
                     "{}",
                     serde_json::json!({
@@ -107,6 +128,45 @@ fn main() -> ExitCode {
                 eprintln!("{}", serde_json::json!({"error": error.to_string()}));
             }
             ExitCode::from(2)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::uses_process_cancellation;
+
+    fn args(values: &[&str]) -> Vec<String> {
+        values.iter().map(|value| (*value).to_owned()).collect()
+    }
+
+    #[test]
+    fn process_signal_registration_is_limited_to_valid_analysis_invocations() {
+        assert!(uses_process_cancellation(&args(&[
+            "analyze-stored-rssi",
+            "project",
+            "request",
+            "destination",
+        ])));
+        for values in [
+            &[][..],
+            &["--help"][..],
+            &["--version"][..],
+            &["new", "project", "name"][..],
+            &["inspect", "project"][..],
+            &["verify", "project"][..],
+            &["recover-manifest", "project"][..],
+            &["export-observations-parquet", "project", "destination"][..],
+            &["analyze-stored-rssi", "project", "request"][..],
+            &[
+                "analyze-stored-rssi",
+                "project",
+                "request",
+                "destination",
+                "extra",
+            ][..],
+        ] {
+            assert!(!uses_process_cancellation(&args(values)), "args={values:?}");
         }
     }
 }

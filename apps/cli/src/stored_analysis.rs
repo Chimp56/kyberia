@@ -333,6 +333,30 @@ fn sync_directory(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[derive(Debug)]
+pub(crate) struct PublicationDurabilityError {
+    message: String,
+}
+
+impl PublicationDurabilityError {
+    fn new(message: String) -> Self {
+        Self { message }
+    }
+}
+
+impl std::fmt::Display for PublicationDurabilityError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "publication committed but directory durability failed: {}",
+            self.message
+        )
+    }
+}
+
+impl std::error::Error for PublicationDurabilityError {}
+
+#[derive(Debug)]
 enum Publication {
     Committed { cancelled_after_commit: bool },
 }
@@ -360,6 +384,15 @@ fn publish_in_directory(
     bytes: &[u8],
     cancel: &dyn Cancellation,
 ) -> Result<Publication, Box<dyn std::error::Error>> {
+    publish_in_directory_with_sync(destination, bytes, cancel, sync_directory)
+}
+
+fn publish_in_directory_with_sync(
+    destination: &Path,
+    bytes: &[u8],
+    cancel: &dyn Cancellation,
+    sync: impl Fn(&Path) -> Result<(), Box<dyn std::error::Error>>,
+) -> Result<Publication, Box<dyn std::error::Error>> {
     check_cancel(cancel)?;
     let pending = destination.join(".analysis.json.pending");
     let mut file = OpenOptions::new()
@@ -374,7 +407,9 @@ fn publish_in_directory(
     // the destination directory was created. The pending link is retained so
     // an operator can inspect or manually retire the exact committed bytes.
     fs::hard_link(&pending, destination.join(OUTPUT_FILE))?;
-    sync_directory(destination)?;
+    sync(destination).map_err(|error| {
+        Box::new(PublicationDurabilityError::new(error.to_string())) as Box<dyn std::error::Error>
+    })?;
     Ok(Publication::Committed {
         cancelled_after_commit: cancel.is_cancelled(),
     })
@@ -566,6 +601,32 @@ mod tests {
         assert_eq!(
             fs::read(destination.join(OUTPUT_FILE)).unwrap(),
             b"committed"
+        );
+    }
+
+    #[test]
+    fn directory_durability_failure_preserves_committed_outcome() {
+        let root = retained_test_directory();
+        let destination = root.join("output");
+        fs::create_dir(&destination).unwrap();
+        let result = publish_in_directory_with_sync(
+            &destination,
+            b"committed-before-sync-failure",
+            &kyberia_project_store::NeverCancel,
+            |_| Err("injected directory sync failure".into()),
+        );
+        let error = result.unwrap_err();
+        let durability = error
+            .downcast_ref::<PublicationDurabilityError>()
+            .expect("post-commit failures retain their committed error type");
+        assert!(durability.to_string().contains("directory sync failure"));
+        assert_eq!(
+            fs::read(destination.join(OUTPUT_FILE)).unwrap(),
+            b"committed-before-sync-failure"
+        );
+        assert_eq!(
+            fs::read(destination.join(".analysis.json.pending")).unwrap(),
+            b"committed-before-sync-failure"
         );
     }
 }

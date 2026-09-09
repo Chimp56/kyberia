@@ -39,6 +39,13 @@ creation, after pending-file sync, and at the final-link commit point. The
 nearest and IDW subprocess cases assert numeric `-55 dBm` output and the
 interpolated cell class, so method coverage checks values as well as counts.
 
+Dispatch tests verify that SIGINT registration is selected only for a valid
+four-argument analysis invocation; help, project, verification, recovery,
+export, and malformed analysis invocations use the normal command path without
+installing the analysis handler. A fault-injected directory-sync failure after
+the final hard link verifies the structured `publication_durability` error,
+`committed: true`, and preservation of both final and pending bytes.
+
 The artifact's selected observation and snapshot provenance is independently
 validated by `kyberia-stored-analysis` before the CLI report is emitted. The
 CLI does not claim a whole-bundle integrity scan or a durable derived-artifact

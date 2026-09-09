@@ -51,8 +51,9 @@ for a producer. The command returns an explicit unsupported-platform error on
 non-Unix hosts until an equivalent no-follow, nonblocking regular-file adapter
 is provided; it does not risk opening an unbounded named pipe there.
 
-On Unix, the command installs the maintained `signal-hook` 0.4.4 flag adapter
-before dispatch. Its signal handler only sets an atomic flag; the storage and
+On Unix, a syntactically valid four-argument `analyze-stored-rssi` invocation
+installs the maintained `signal-hook` 0.4.4 flag adapter before dispatch. Its
+signal handler only sets an atomic flag; the storage and
 numerical layers poll the existing `Cancellation` port at their documented
 boundaries. The CLI emits an `analysis_started` stderr lifecycle event after
 registration so an orchestrator can establish readiness without a synthetic
@@ -69,6 +70,16 @@ after that link, the CLI retains the complete artifact, prints a report with
 `cancelled_after_commit: true`, and exits nonzero rather than pretending that
 the durable artifact was rolled back. Non-Unix hosts have no signal capability
 in this command and report unsupported request acquisition before work begins.
+
+The directory synchronization after the hard link is a durability check after
+the publication commit point. If that check fails, the CLI returns a structured
+`publication_durability` error with `committed: true`; both the final artifact
+and retained pending bytes remain available for inspection and recovery. It
+never reports that publication did not happen after the final link succeeded.
+
+Only a syntactically valid four-argument `analyze-stored-rssi` invocation gets
+the process SIGINT adapter. Other commands retain the operating system's
+default signal disposition and do not install an analysis cancellation handler.
 
 The command does not persist an analysis result back into the project bundle,
 choose a survey, invent a pose, reinterpret receipt timing, or perform a live
