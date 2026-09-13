@@ -114,7 +114,14 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
           if (status.jobId !== jobId) throw { schema: IPC_SCHEMA, code: "invalid_response", message: "The desktop adapter returned status for a different job.", retryable: false } satisfies IpcErrorPayload;
           if (requestGate.current.isCurrent(request)) {
             setState((current) => current.activeJob?.id === jobId
-              ? { ...current, activeJob: { ...current.activeJob, progress: status.progress, state: status.state } }
+              ? {
+                ...current,
+                activeJob: {
+                  ...current.activeJob,
+                  progress: status.progress,
+                  state: current.activeJob.state === "cancelling" ? "cancelling" : status.state,
+                },
+              }
               : current);
           }
         } catch (value) {
@@ -211,7 +218,14 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
           if (status.jobId !== pickerJobId) throw { schema: IPC_SCHEMA, code: "invalid_response", message: "The desktop adapter returned status for a different job.", retryable: false } satisfies IpcErrorPayload;
           if (requestGate.current.isCurrent(request)) {
             setState((current) => current.activeJob?.id === pickerJobId
-              ? { ...current, activeJob: { ...current.activeJob, progress: status.progress, state: status.state } }
+              ? {
+                ...current,
+                activeJob: {
+                  ...current.activeJob,
+                  progress: status.progress,
+                  state: current.activeJob.state === "cancelling" ? "cancelling" : status.state,
+                },
+              }
               : current);
           }
         } catch (value) {

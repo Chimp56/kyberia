@@ -102423,8 +102423,8 @@
         {
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered Tauri shell lifecycle, progress, cancellation, and session preservation contract",
-          "revision": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
-          "sha256": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
+          "revision": "ef5f954ce5920c5cb73b2fda2e2b5a6faff82aec925a6fbcc2fcb2a4d35539bc",
+          "sha256": "ef5f954ce5920c5cb73b2fda2e2b5a6faff82aec925a6fbcc2fcb2a4d35539bc",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
@@ -102499,16 +102499,16 @@
         {
           "path": "apps/desktop/src/lib/useProjectSession.ts",
           "description": "Renderer operation admission, polling, cancellation, and retry lifecycle",
-          "revision": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8",
-          "sha256": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8"
+          "revision": "0ae9310f74bc5c16c2bd13405eee3875a57e6ebb53529707f88957e0a7bedabc",
+          "sha256": "0ae9310f74bc5c16c2bd13405eee3875a57e6ebb53529707f88957e0a7bedabc"
         }
       ],
       "validation": [
         {
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered React lifecycle, accessibility, progress, cancellation, retry, and responsive usability checks",
-          "revision": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
-          "sha256": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
+          "revision": "ef5f954ce5920c5cb73b2fda2e2b5a6faff82aec925a6fbcc2fcb2a4d35539bc",
+          "sha256": "ef5f954ce5920c5cb73b2fda2e2b5a6faff82aec925a6fbcc2fcb2a4d35539bc",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
@@ -236879,8 +236879,8 @@
         {
           "path": "apps/desktop/src/lib/useProjectSession.ts",
           "description": "Renderer-known job identity, strict polling, cancellation and operation-specific retry",
-          "revision": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8",
-          "sha256": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8"
+          "revision": "0ae9310f74bc5c16c2bd13405eee3875a57e6ebb53529707f88957e0a7bedabc",
+          "sha256": "0ae9310f74bc5c16c2bd13405eee3875a57e6ebb53529707f88957e0a7bedabc"
         },
         {
           "path": "apps/desktop/src-tauri/Cargo.toml",
@@ -236902,8 +236902,8 @@
         {
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered desktop/mobile shell, palette semantics, progress/cancel, session preservation and retry assertions",
-          "revision": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
-          "sha256": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
+          "revision": "ef5f954ce5920c5cb73b2fda2e2b5a6faff82aec925a6fbcc2fcb2a4d35539bc",
+          "sha256": "ef5f954ce5920c5cb73b2fda2e2b5a6faff82aec925a6fbcc2fcb2a4d35539bc",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
