@@ -43060,8 +43060,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "f2052de6814e83954d4d74816e8221297a2256794f9c523232e8c06afc1fb3ef",
-          "sha256": "f2052de6814e83954d4d74816e8221297a2256794f9c523232e8c06afc1fb3ef"
+          "revision": "6d94399d563a11b6ac443a7e2e19a8a15e86263f2fa0978bad95155f72e6957f",
+          "sha256": "6d94399d563a11b6ac443a7e2e19a8a15e86263f2fa0978bad95155f72e6957f"
         },
         {
           "path": "tests/test_active_process.py",
@@ -43083,8 +43083,8 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Cross-platform Windows lifecycle correction contracts and hosted failure analysis",
-          "revision": "d652d4b0eb94899d6455265232d6a0a46b70b2983a92c618b455358187d6a45a",
-          "sha256": "d652d4b0eb94899d6455265232d6a0a46b70b2983a92c618b455358187d6a45a",
+          "revision": "3019f55645c6abd7914db2b1ebe2f7c995a7fd76e65a25faeb675e9ceac9a628",
+          "sha256": "3019f55645c6abd7914db2b1ebe2f7c995a7fd76e65a25faeb675e9ceac9a628",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_active_process.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
           "result": "PASS: 38 tests, 1 skipped"
@@ -177879,15 +177879,21 @@
         },
         {
           "path": "workers/sionna/rfatlas_sionna/client.py",
-          "description": "Bounded Windows pipe transport, cancellation and Job Object containment",
-          "revision": "a9828e90e9619b18a8378807407b77ceb65cf8b9e0a3bf0d913faf6a2c406a3f",
-          "sha256": "a9828e90e9619b18a8378807407b77ceb65cf8b9e0a3bf0d913faf6a2c406a3f"
+          "description": "Bounded Windows pipe transport, per-stream queue ceilings, cancellation and Job Object containment",
+          "revision": "34d85dd69fc4e92422da8f93fa5d0f9f7ba705d22974b692e3d7e0829fa0c6d1",
+          "sha256": "34d85dd69fc4e92422da8f93fa5d0f9f7ba705d22974b692e3d7e0829fa0c6d1"
+        },
+        {
+          "path": "workers/sionna/rfatlas_sionna/engine.py",
+          "description": "Portable deferred POSIX CPU limit and explicit engine absence boundary",
+          "revision": "9a4fecb24117a862e9772d4cd17818eb602e6578aec2a28d4ba25db1b7631345",
+          "sha256": "9a4fecb24117a862e9772d4cd17818eb602e6578aec2a28d4ba25db1b7631345"
         },
         {
           "path": "tests/test_sionna_worker.py",
-          "description": "Windows pipe backpressure, cleanup, cancellation and platform-path contract tests",
-          "revision": "316e3b5aee7216834677dfde2ce4f6387f77cef0a9c5a175d9b2d4ec8dd2c8db",
-          "sha256": "316e3b5aee7216834677dfde2ce4f6387f77cef0a9c5a175d9b2d4ec8dd2c8db"
+          "description": "Windows pipe backpressure, cleanup, cancellation readiness, platform paths and engine portability contract tests",
+          "revision": "ee3aee6335ba004cf48a38f25384f2380d5780b0bd9dd0b31e2ae7f54071b850",
+          "sha256": "ee3aee6335ba004cf48a38f25384f2380d5780b0bd9dd0b31e2ae7f54071b850"
         }
       ],
       "validation": [
@@ -177903,11 +177909,11 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Windows pipe and process-lifecycle correction contracts with hosted failure evidence",
-          "revision": "d652d4b0eb94899d6455265232d6a0a46b70b2983a92c618b455358187d6a45a",
-          "sha256": "d652d4b0eb94899d6455265232d6a0a46b70b2983a92c618b455358187d6a45a",
+          "revision": "3019f55645c6abd7914db2b1ebe2f7c995a7fd76e65a25faeb675e9ceac9a628",
+          "sha256": "3019f55645c6abd7914db2b1ebe2f7c995a7fd76e65a25faeb675e9ceac9a628",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_sionna_worker.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
-          "result": "PASS: 40 tests, 2 skipped"
+          "result": "PASS: 43 tests, 2 skipped"
         }
       ],
       "reviews": [
@@ -240241,8 +240247,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "f2052de6814e83954d4d74816e8221297a2256794f9c523232e8c06afc1fb3ef",
-          "sha256": "f2052de6814e83954d4d74816e8221297a2256794f9c523232e8c06afc1fb3ef"
+          "revision": "6d94399d563a11b6ac443a7e2e19a8a15e86263f2fa0978bad95155f72e6957f",
+          "sha256": "6d94399d563a11b6ac443a7e2e19a8a15e86263f2fa0978bad95155f72e6957f"
         }
       ],
       "validation": [

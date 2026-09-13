@@ -28,14 +28,15 @@ _PROCESS_TERMINATE = 0x0001
 _PROCESS_SET_QUOTA = 0x0100
 _CTRL_BREAK_EVENT = 1
 _WINDOW_PIPE_READ_BYTES = 8192
-# The queue remains bounded, but must be able to hold one capped stdout and
-# stderr stream plus the stdin completion and reader terminal events while the
-# supervisor is being scheduled out. A queue of eight 8 KiB events can take
-# longer than the drain budget to publish the 1 MiB result cap on a loaded
-# hosted runner.
-_WINDOW_PIPE_QUEUE_SIZE = ((MAX_RESULT_BYTES + MAX_LOG_BYTES
-                            + _WINDOW_PIPE_READ_BYTES - 1)
-                           // _WINDOW_PIPE_READ_BYTES + 5)
+# Keep each stream's ceiling explicit: a descheduled supervisor can leave one
+# data event for every capped stdout/stderr chunk plus bounded terminal events.
+_WINDOW_PIPE_STDOUT_EVENTS = ((MAX_RESULT_BYTES + _WINDOW_PIPE_READ_BYTES - 1)
+                               // _WINDOW_PIPE_READ_BYTES)
+_WINDOW_PIPE_STDERR_EVENTS = ((MAX_LOG_BYTES + _WINDOW_PIPE_READ_BYTES - 1)
+                              // _WINDOW_PIPE_READ_BYTES)
+_WINDOW_PIPE_TERMINAL_EVENTS = 7  # two EOFs, stdin completion, and four errors
+_WINDOW_PIPE_QUEUE_SIZE = (_WINDOW_PIPE_STDOUT_EVENTS + _WINDOW_PIPE_STDERR_EVENTS
+                           + _WINDOW_PIPE_TERMINAL_EVENTS)
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
 _WINDOW_CANCEL_GRACE_S = 0.5

@@ -6,7 +6,6 @@ import json
 import os
 from pathlib import Path
 import platform
-import resource
 import sys
 import time
 
@@ -14,6 +13,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from rfatlas_sionna import AUDITED_REVISION, ENGINE_PINS, WORKER_VERSION
 from rfatlas_sionna.contract import (MAX_REQUEST_BYTES, canonical_bytes, decode,
                                      digest, validate)
+
+
+def _apply_cpu_limit(cpu_s):
+    """Apply the POSIX CPU budget without importing its optional stdlib module on Windows."""
+    if os.name != "posix":
+        return
+    try:
+        import resource
+    except ImportError as error:
+        raise RuntimeError("posix_resource_unavailable") from error
+    resource.setrlimit(resource.RLIMIT_CPU, (cpu_s, cpu_s + 1))
 
 
 def execute(request):
@@ -126,7 +136,7 @@ def main():
     try:
         request = validate(decode(sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1)))
         cpu_s = request.get("limits", {}).get("cpu_s", 30)
-        resource.setrlimit(resource.RLIMIT_CPU, (cpu_s, cpu_s + 1))
+        _apply_cpu_limit(cpu_s)
         result.update({"request_id": request["request_id"], "request_sha256": digest(request)})
         result.update(execute(request))
         result["status"] = "completed"

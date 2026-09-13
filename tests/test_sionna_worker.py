@@ -1,12 +1,15 @@
 """Contract/lifecycle tests run without Sionna; real engine proof is separate."""
 
 from copy import deepcopy
+import builtins
 import ctypes
+import importlib.util
 import io
 import json
 import os
 import queue
 import signal
+import socket
 import subprocess
 from pathlib import Path
 import sys
@@ -100,6 +103,59 @@ class ContractTests(unittest.TestCase):
             candidate["solver"][key] = value
             self.assertNotEqual(digest(candidate), digest(baseline))
         self.assertEqual(digest(dict(reversed(list(baseline.items())))), digest(baseline))
+
+
+class EngineRuntimeTests(unittest.TestCase):
+    def test_windows_without_resource_import_skips_cpu_limit(self):
+        original_import = builtins.__import__
+
+        class WindowsOs:
+            name = "nt"
+
+            def __getattr__(self, name):
+                return getattr(os, name)
+
+        def deny_resource(name, *args, **kwargs):
+            if name == "resource":
+                raise AssertionError("Windows engine must not import resource")
+            if name == "os":
+                return WindowsOs()
+            return original_import(name, *args, **kwargs)
+
+        path = ROOT / "workers/sionna/rfatlas_sionna/engine.py"
+        spec = importlib.util.spec_from_file_location("rfatlas_sionna.test_engine_portability", path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        try:
+            with mock.patch.object(builtins, "__import__", side_effect=deny_resource):
+                spec.loader.exec_module(module)
+                self.assertIsNone(module._apply_cpu_limit(3))
+        finally:
+            sys.modules.pop(spec.name, None)
+
+    def test_posix_cpu_limit_is_applied_through_deferred_import(self):
+        from rfatlas_sionna import engine
+
+        posix_resource = mock.Mock(RLIMIT_CPU=9)
+        with mock.patch.object(engine.os, "name", "posix"), \
+                mock.patch.dict(sys.modules, {"resource": posix_resource}):
+            engine._apply_cpu_limit(3)
+        posix_resource.setrlimit.assert_called_once_with(9, (3, 4))
+
+    def test_posix_resource_import_failure_is_explicit(self):
+        from rfatlas_sionna import engine
+
+        original_import = builtins.__import__
+
+        def deny_resource(name, *args, **kwargs):
+            if name == "resource":
+                raise ImportError("resource unavailable in test")
+            return original_import(name, *args, **kwargs)
+
+        with mock.patch.object(engine.os, "name", "posix"), \
+                mock.patch.object(builtins, "__import__", side_effect=deny_resource), \
+                self.assertRaisesRegex(RuntimeError, "posix_resource_unavailable"):
+            engine._apply_cpu_limit(3)
 
 
 class LifecycleTests(unittest.TestCase):
@@ -765,7 +821,7 @@ class LifecycleTests(unittest.TestCase):
             self.assertEqual(len(result["stdout"] if fd == 1 else result["stderr"]), bound)
 
     def test_engine_absence_explicit_no_fallback(self):
-        # A fresh stdlib-only environment guarantees absence on any supported POSIX host.
+        # A fresh stdlib-only environment guarantees absence on any supported host.
         # Preserve its tiny ignored directory; do not recursively clean test artifacts.
         tools_dir = ROOT / ".tools"
         tools_dir.mkdir(exist_ok=True)
@@ -805,21 +861,52 @@ class LifecycleTests(unittest.TestCase):
     @unittest.skipUnless(os.name == "nt", "Windows CTRL_BREAK worker contract")
     def test_windows_supervisor_gets_canonical_cooperative_cancellation(self):
         event = threading.Event()
-        # The child is created suspended while it is attached to its Job
-        # Object. Give the Windows runner enough startup margin for Python to
-        # install SIGBREAK before requesting cooperative cancellation.
-        timer = threading.Timer(0.5, event.set)
+        ready = threading.Event()
+        ready_error = []
+        listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        listener.bind(("127.0.0.1", 0))
+        listener.listen(1)
+        listener.settimeout(2)
+        port = listener.getsockname()[1]
+
+        def wait_for_ready():
+            try:
+                connection, _ = listener.accept()
+                with connection:
+                    received = bytearray()
+                    while len(received) < 5:
+                        chunk = connection.recv(5 - len(received))
+                        if not chunk:
+                            break
+                        received.extend(chunk)
+                    if bytes(received) != b"ready":
+                        ready_error.append("worker readiness marker was incomplete")
+                    else:
+                        ready.set()
+                        event.set()
+            except (OSError, ValueError) as error:
+                ready_error.append(str(error))
+            finally:
+                listener.close()
+
+        waiter = threading.Thread(target=wait_for_ready, daemon=True)
+        waiter.start()
         program = ("import signal,sys,time\n"
                    "def cancel(*_):\n"
                    " sys.stdout.write('{\\\"status\\\":\\\"failed\\\",\\\"error\\\":\\\"cancelled\\\"}\\n'); sys.stdout.flush(); raise SystemExit(2)\n"
                    "signal.signal(signal.SIGBREAK, cancel)\n"
+                   "import socket\n"
+                   "with socket.create_connection(('127.0.0.1',%d),timeout=2) as ready:\n"
+                   " ready.sendall(b'ready')\n"
                    "sys.stdin.buffer.read()\n"
-                   "time.sleep(10)\n")
-        timer.start()
+                   "time.sleep(10)\n") % port
         try:
-            result = supervise([sys.executable, "-c", program], b"{}", 2, event)
+            result = supervise([sys.executable, "-c", program], b"{}", 3, event)
         finally:
-            timer.join()
+            listener.close()
+            waiter.join(timeout=3)
+        self.assertTrue(ready.is_set(), ready_error or "worker did not signal readiness")
         self.assertEqual(result["state"], "cancelled", result)
         self.assertIn(b'"error":"cancelled"', result["stdout"])
 

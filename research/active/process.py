@@ -29,10 +29,15 @@ _THREAD_SUSPEND_RESUME = 0x0002
 _PROCESS_TERMINATE = 0x0001
 _PROCESS_SET_QUOTA = 0x0100
 _WINDOW_PIPE_READ_BYTES = 8192
-# stdout/stderr data can fill the queue while the supervisor is descheduled;
-# reserve terminal events for both readers, stdin completion, and pipe errors.
-_WINDOW_PIPE_QUEUE_SIZE = ((MAX_JSON + MAX_STDERR + _WINDOW_PIPE_READ_BYTES - 1)
-                           // _WINDOW_PIPE_READ_BYTES + 5)
+# Keep each stream's ceiling explicit: a descheduled supervisor can leave one
+# data event for every capped stdout/stderr chunk plus bounded terminal events.
+_WINDOW_PIPE_STDOUT_EVENTS = ((MAX_JSON + _WINDOW_PIPE_READ_BYTES - 1)
+                              // _WINDOW_PIPE_READ_BYTES)
+_WINDOW_PIPE_STDERR_EVENTS = ((MAX_STDERR + _WINDOW_PIPE_READ_BYTES - 1)
+                             // _WINDOW_PIPE_READ_BYTES)
+_WINDOW_PIPE_TERMINAL_EVENTS = 7  # two EOFs, stdin completion, and four errors
+_WINDOW_PIPE_QUEUE_SIZE = (_WINDOW_PIPE_STDOUT_EVENTS + _WINDOW_PIPE_STDERR_EVENTS
+                           + _WINDOW_PIPE_TERMINAL_EVENTS)
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
 _WINDOW_HANDLE_CLOSE_ATTEMPTS = 2

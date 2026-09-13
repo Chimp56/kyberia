@@ -16,12 +16,12 @@ Windows pipes cannot be polled by the POSIX selector path. The previous queue
 held eight 8 KiB events, so a scheduler pause could leave a full 1 MiB result
 or its terminal EOF event blocked past the 0.5 second drain bound.
 
-The queue remains bounded and is sized from the protocol's capped stdout and
-stderr payloads plus bounded reader EOF, stdin completion and pipe-error
-events. The reader chunk size is a named constant used by both the queue
-sizing calculation and the reader. The active-process supervisor applies the
-same bounded terminal-event accounting. No output cap, timeout, cancellation,
-process ownership, or cleanup failure semantics are relaxed.
+The queue remains bounded and names separate stdout and stderr event ceilings
+from the protocol's capped payloads, plus bounded reader EOF, stdin completion
+and pipe-error events. The reader chunk size is a named constant used by both
+the queue sizing calculation and the reader. The active-process supervisor
+applies the same bounded terminal-event accounting. No output cap, timeout,
+cancellation, process ownership, or cleanup failure semantics are relaxed.
 
 ## Validation
 
@@ -41,10 +41,10 @@ The focused early-exit/exact-limit test passed in 100 repetitions before the
 correction. A retained adversarial test that starts both capped readers
 without a consumer fails with the former eight-event queue and passes with
 the corrected queue, proving the backpressure condition independently of
-runner timing. The complete Sionna worker suite passes 40 tests with two
+runner timing. The complete Sionna worker suite passes 43 tests with two
 platform-specific Windows execution tests skipped locally. The active-process
 suite passes 38 tests with one native Windows test skipped. The complete root
-Python suite passes 267 tests with 24 optional tests skipped.
+Python suite passes 270 tests with 24 optional tests skipped.
 
 Native Windows job-object and anonymous-pipe execution remains an external
 runtime gate. It must be rerun on a supported Windows runner, including
@@ -68,20 +68,26 @@ addresses their platform assumptions:
   attached Kyberia job, matching a real `subprocess.Popen` instance;
 * the engine-absence fixture selects `Scripts/python.exe` on Windows and
   `bin/python` on POSIX;
-* the cooperative cancellation test gives the suspended child a bounded
-  startup margin to install its `SIGBREAK` handler before the request.
+* the private engine defers the POSIX-only `resource` import and `setrlimit`
+  call, so an engine-less Windows interpreter reaches the canonical
+  `engine_unavailable` response;
+* the cooperative cancellation test waits for a bounded localhost readiness
+  handshake after the suspended child installs its `SIGBREAK` handler instead
+  of racing a timer.
 
-The focused correction suites pass locally: Sionna 40 tests with two native
+The focused correction suites pass locally: Sionna 43 tests with two native
 Windows tests skipped, and active-process 38 tests with one native Windows test
 skipped. These are contract results on macOS; they do not close the native
 Windows runtime gate. The next hosted run must show the five named tests
-passing and retain the descendant, cancellation, and cleanup assertions.
+passing and retain the descendant, cancellation, engine-absence, and cleanup
+assertions.
 
 The corrected source evidence is content-addressed for review:
 
 | Path | SHA-256 |
 |---|---|
-| `workers/sionna/rfatlas_sionna/client.py` | `a9828e90e9619b18a8378807407b77ceb65cf8b9e0a3bf0d913faf6a2c406a3f` |
-| `tests/test_sionna_worker.py` | `316e3b5aee7216834677dfde2ce4f6387f77cef0a9c5a175d9b2d4ec8dd2c8db` |
-| `research/active/process.py` | `f2052de6814e83954d4d74816e8221297a2256794f9c523232e8c06afc1fb3ef` |
+| `workers/sionna/rfatlas_sionna/engine.py` | `9a4fecb24117a862e9772d4cd17818eb602e6578aec2a28d4ba25db1b7631345` |
+| `workers/sionna/rfatlas_sionna/client.py` | `34d85dd69fc4e92422da8f93fa5d0f9f7ba705d22974b692e3d7e0829fa0c6d1` |
+| `tests/test_sionna_worker.py` | `ee3aee6335ba004cf48a38f25384f2380d5780b0bd9dd0b31e2ae7f54071b850` |
+| `research/active/process.py` | `6d94399d563a11b6ac443a7e2e19a8a15e86263f2fa0978bad95155f72e6957f` |
 | `tests/test_active_process.py` | `b251617b7b3897209352cb9414f89bb96d85466b26332d614e854ad2824b5e71` |
