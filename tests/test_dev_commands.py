@@ -140,6 +140,51 @@ class BootstrapStageDiagnosticTests(unittest.TestCase):
             self.assertNotIn(secret, rendered)
         self.assertEqual(len(rendered.splitlines()), 4)
 
+    def test_actions_bootstrap_start_failure_is_bounded_and_local_start_failure_is_preserved(self):
+        hostile_start_error = OSError(
+            "SECRET startup detail at C:\\Users\\runner\\private-tool.exe"
+        )
+
+        def failing_command(_name):
+            return DEV._run_bootstrap_stage(
+                "bootstrap.lab-pnpm",
+                lambda: DEV.run("private-tool", "--secret", "TOKEN"),
+            )
+
+        output = io.StringIO()
+        with patch.object(DEV.sys, "argv", ["dev.py", "bootstrap"]), patch.object(
+            DEV, "command", side_effect=failing_command
+        ), patch.object(DEV.subprocess, "Popen", side_effect=hostile_start_error), patch.object(
+            DEV, "github_actions_enabled", return_value=True
+        ), contextlib.redirect_stdout(output):
+            with self.assertRaises(SystemExit) as stopped:
+                DEV.main()
+
+        self.assertEqual(stopped.exception.code, 1)
+        rendered = output.getvalue()
+        self.assertIn("Kyberia validation stage bootstrap.lab-pnpm", rendered)
+        self.assertIn("Validation command failed at stage bootstrap.lab-pnpm (exit 1)", rendered)
+        for secret in (
+            "startup detail",
+            "Users\\runner",
+            "private-tool",
+            "--secret",
+            "TOKEN",
+        ):
+            self.assertNotIn(secret, rendered)
+        self.assertEqual(len(rendered.splitlines()), 4)
+
+        local_start_error = OSError("local startup detail")
+        with patch.object(DEV, "github_actions_enabled", return_value=False), patch.object(
+            DEV.subprocess, "run", side_effect=local_start_error
+        ), contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaises(OSError) as raised:
+                DEV._run_bootstrap_stage(
+                    "bootstrap.python-venv",
+                    lambda: DEV.run("private-tool", "--secret", "TOKEN"),
+                )
+        self.assertIs(raised.exception, local_start_error)
+
     def test_root_bootstrap_uses_same_package_relative_store(self):
         with patch.object(DEV, "run"), patch.object(DEV, "python"), patch.object(
             DEV, "lab_pnpm"
