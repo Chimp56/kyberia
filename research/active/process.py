@@ -130,6 +130,7 @@ class _WindowsJobObject:
             self._raise_last_error("CreateJobObjectW")
         self._closed = False
         self._process_assigned = False
+        self._initialization_error = None
         limits = _WindowsExtendedLimitInformation()
         limits.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
         if not self._kernel32.SetInformationJobObject(
@@ -145,10 +146,16 @@ class _WindowsJobObject:
                 self._close_native_handle(self._handle, "CloseHandle(job)")
             except BaseException as error:
                 close_error = error
-            self._handle = None
             if close_error is not None:
-                raise OSError(f"{primary_error}; job handle close failed: {close_error}") from primary_error
-            raise primary_error
+                # Keep the native handle owned by this object.  _attach_windows_job
+                # will route the initialization error through the normal bounded
+                # termination/close retry path.
+                self._initialization_error = OSError(
+                    f"{primary_error}; job handle close failed: {close_error}")
+                return
+            self._handle = None
+            self._closed = True
+            self._initialization_error = primary_error
 
     @staticmethod
     def _raise_last_error(operation):
@@ -275,6 +282,9 @@ def _attach_windows_job(process):
     try:
         job = _WindowsJobObject()
         process._kyberia_windows_job = job
+        initialization_error = getattr(job, "_initialization_error", None)
+        if isinstance(initialization_error, BaseException):
+            raise initialization_error
         job.assign_and_resume(process)
     except BaseException as error:
         primary_error = error
@@ -323,17 +333,24 @@ def _stop(child):
         # released before the readers are joined.
         job = getattr(child, "_kyberia_windows_job", None)
         poll = getattr(child, "poll", None)
+        errors = []
         try:
             if poll is None or poll() is None:
-                try:
-                    if job is not None:
-                        job.terminate()
-                    else:
-                        child.kill()
-                except ProcessLookupError:
-                    pass
-        finally:
+                if job is not None:
+                    job.terminate()
+                else:
+                    child.kill()
+        except ProcessLookupError:
+            pass
+        except BaseException as error:
+            errors.append(error)
+        try:
             child.wait(timeout=2)
+        except BaseException as error:
+            errors.append(error)
+        if errors:
+            raise OSError("Windows process termination/reap failed: "
+                          + "; ".join(str(error) for error in errors)) from errors[0]
         return
     try:
         try:
@@ -488,16 +505,17 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
         output["stderr"] = str(exc).encode()[:MAX_STDERR]
     finally:
         if child:
+            cleanup_errors = []
             try:
                 _stop(child)
-            except (OSError, subprocess.TimeoutExpired) as exc:
-                cleanup_error = str(exc)[:1024]
+            except BaseException as exc:
+                cleanup_errors.append(exc)
                 status = "process_error"
             if getattr(child, "_kyberia_windows_job", None) is not None:
                 try:
                     child._kyberia_windows_job.close()
-                except OSError as exc:
-                    cleanup_error = str(exc)[:1024]
+                except BaseException as exc:
+                    cleanup_errors.append(exc)
                     status = "process_error"
             drain_deadline = time.monotonic() + _WINDOW_PIPE_DRAIN_S
             while eof != {"stdout", "stderr"} and time.monotonic() < drain_deadline:
@@ -510,7 +528,7 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
             if eof != {"stdout", "stderr"}:
                 # Closing the parent pipe handles is the bounded interrupt for
                 # a native read that did not observe process termination.
-                cleanup_errors = _close_pipes(child)
+                cleanup_errors.extend(_close_pipes(child))
                 interrupt_deadline = time.monotonic() + _WINDOW_PIPE_JOIN_S
                 while eof != {"stdout", "stderr"} and time.monotonic() < interrupt_deadline:
                     drained = _consume_pipe_events(events, output, eof, stdout_limit)
@@ -519,10 +537,9 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
                     if eof == {"stdout", "stderr"}:
                         break
                     time.sleep(0.005)
-            else:
-                cleanup_errors = []
             if eof != {"stdout", "stderr"}:
-                cleanup_error = cleanup_error or "pipe readers did not reach EOF before cleanup bound"
+                cleanup_errors.append(
+                    OSError("pipe readers did not reach EOF before cleanup bound"))
                 status = "process_error"
             stop_event.set()
             cleanup_errors.extend(_close_pipes(child))

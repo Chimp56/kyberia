@@ -332,6 +332,42 @@ class LifecycleTests(unittest.TestCase):
         process.kill.assert_called_once_with()
         process.wait.assert_called_once_with(timeout=2)
 
+    def test_windows_supervise_does_not_context_wait_after_cleanup_failure(self):
+        from rfatlas_sionna import client
+
+        class Process:
+            returncode = None
+
+            def __init__(self):
+                self.stdin = io.BytesIO()
+                self.stdout = io.BytesIO()
+                self.stderr = io.BytesIO()
+                self.wait = mock.Mock(side_effect=TimeoutError("bounded wait failed"))
+
+            def __enter__(self):
+                raise AssertionError("Windows supervision must not enter Popen context manager")
+
+            def __exit__(self, *_):
+                raise AssertionError("Windows supervision must not invoke Popen.__exit__")
+
+            def poll(self):
+                return None
+
+        process = Process()
+        job = mock.Mock()
+        job.terminate.side_effect = OSError("job terminate failed")
+        job.close.side_effect = OSError("job close failed")
+        started = time.monotonic()
+        with mock.patch.object(client.os, "name", "nt"), \
+                mock.patch.object(client.subprocess, "Popen", return_value=process), \
+                mock.patch.object(client, "_attach_windows_job", return_value=job):
+            result = client.supervise([sys.executable, "-c", ""], b"{}", .05)
+        self.assertLess(time.monotonic() - started, 1)
+        self.assertEqual(result["state"], "process_error", result)
+        self.assertIn("termination/reap failed", result["cleanup_error"])
+        self.assertIn("job close failed", result["cleanup_error"])
+        process.wait.assert_called_with(timeout=2)
+
     @staticmethod
     def fake_windows_job(kernel):
         from rfatlas_sionna import client
@@ -427,6 +463,27 @@ class LifecycleTests(unittest.TestCase):
             job.close()
         self.assertFalse(job._closed)
         self.assertEqual(job._handle, 99)
+
+    def test_windows_job_constructor_retains_handle_after_close_failure(self):
+        from rfatlas_sionna import client
+        kernel = mock.Mock()
+        kernel.CreateJobObjectW.return_value = 77
+        kernel.SetInformationJobObject.return_value = 0
+        kernel.CloseHandle.return_value = 0
+        with mock.patch.object(client.os, "name", "nt"), \
+                mock.patch.object(client.ctypes, "WinDLL", return_value=kernel, create=True), \
+                mock.patch.object(client.ctypes, "get_last_error", return_value=5, create=True):
+            job = client._WindowsJobObject()
+        self.assertEqual(job._handle, 77)
+        self.assertFalse(job._closed)
+        self.assertIn("SetInformationJobObject", str(job._initialization_error))
+        self.assertIn("job handle close failed", str(job._initialization_error))
+        kernel.CloseHandle.return_value = 1
+        job.close()
+        self.assertTrue(job._closed)
+        self.assertIsNone(job._handle)
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(77), mock.call(77)])
 
     def test_windows_nested_job_assignment_failure_is_reported_after_cleanup(self):
         from rfatlas_sionna import client

@@ -159,6 +159,27 @@ class ContractTests(unittest.TestCase):
         self.assertFalse(job._closed)
         self.assertEqual(job._handle, 99)
 
+    def test_windows_job_constructor_retains_handle_after_close_failure(self):
+        from research.active import process
+        kernel = mock.Mock()
+        kernel.CreateJobObjectW.return_value = 77
+        kernel.SetInformationJobObject.return_value = 0
+        kernel.CloseHandle.return_value = 0
+        with mock.patch.object(process.os, "name", "nt"), \
+                mock.patch.object(process.ctypes, "WinDLL", return_value=kernel, create=True), \
+                mock.patch.object(process.ctypes, "get_last_error", return_value=5, create=True):
+            job = process._WindowsJobObject()
+        self.assertEqual(job._handle, 77)
+        self.assertFalse(job._closed)
+        self.assertIn("SetInformationJobObject", str(job._initialization_error))
+        self.assertIn("job handle close failed", str(job._initialization_error))
+        kernel.CloseHandle.return_value = 1
+        job.close()
+        self.assertTrue(job._closed)
+        self.assertIsNone(job._handle)
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(77), mock.call(77)])
+
     def test_windows_attach_cleanup_failures_are_not_suppressed(self):
         from research.active import process
         child = mock.Mock()

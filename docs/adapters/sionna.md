@@ -86,13 +86,20 @@ samples per transmitter. The wall deadline is 0.1–120 s and CPU limit 1–120 
 Path separation and map-plane vertical separation must be at least 1 m for this
 far-field proof. Solver depth is zero and all interactions except LOS are false.
 
-The supervisor uses nonblocking pipes, drains output under fixed limits, kills
-the dedicated process group on timeout/cancel/overflow, and reaps the worker.
-The CLI maps SIGINT/SIGTERM to cancellation; Python callers may pass a
+The supervisor uses nonblocking pipes on POSIX and bounded reader/writer threads
+for Windows anonymous pipes. Windows launches the worker suspended in a new
+process group, finds the primary thread through the documented Toolhelp APIs,
+assigns a kill-on-close Job Object, and resumes it. On cancellation it sends
+`CTRL_BREAK_EVENT` and waits for the worker's canonical cancellation result
+before using Job Object termination as the bounded fallback. On every terminal
+path it drains output under fixed limits, closes pipe handles, checks every
+reader/writer join, and returns a structured process failure if cleanup cannot
+complete. The CLI maps SIGINT/SIGTERM to cancellation; Python callers may pass a
 `threading.Event` to `run`. SIGKILL of the supervisor itself is not handled.
 Crashes and missing dependencies return explicit failures with no prediction or
 P0/P1 fallback. Each job uses a fresh process, so subsequent jobs can recover.
-The CPU limit uses POSIX `RLIMIT_CPU`; this launcher is not yet a Windows worker.
+The CPU limit uses POSIX `RLIMIT_CPU`; Windows lifecycle support is covered by
+conditional contract tests and still requires hosted Windows runtime validation.
 There is **no hard memory quota or filesystem/network sandbox**. Sampling and
 output are bounded, but full OOM containment and least-privilege grants remain
 open Gate I/SEC-002 work. Dr.Jit uses `~/.drjit`; sandboxed execution can require

@@ -120,6 +120,7 @@ class _WindowsJobObject:
             self._raise_last_error("CreateJobObjectW")
         self._closed = False
         self._process_assigned = False
+        self._initialization_error = None
         limits = _WindowsExtendedLimitInformation()
         limits.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
         if not self._kernel32.SetInformationJobObject(
@@ -135,10 +136,16 @@ class _WindowsJobObject:
                 self._close_native_handle(self._handle, "CloseHandle(job)")
             except BaseException as error:
                 close_error = error
-            self._handle = None
             if close_error is not None:
-                raise OSError(f"{primary_error}; job handle close failed: {close_error}") from primary_error
-            raise primary_error
+                # Keep the native handle owned by this object.  _attach_windows_job
+                # will route the initialization error through the normal bounded
+                # termination/close retry path.
+                self._initialization_error = OSError(
+                    f"{primary_error}; job handle close failed: {close_error}")
+                return
+            self._handle = None
+            self._closed = True
+            self._initialization_error = primary_error
 
     @staticmethod
     def _raise_last_error(operation):
@@ -269,6 +276,9 @@ def _attach_windows_job(process):
     try:
         job = _WindowsJobObject()
         process._kyberia_windows_job = job
+        initialization_error = getattr(job, "_initialization_error", None)
+        if isinstance(initialization_error, BaseException):
+            raise initialization_error
         job.assign_and_resume(process)
     except BaseException as error:
         primary_error = error
@@ -316,17 +326,24 @@ def _stop(process):
     if os.name == "nt":
         job = getattr(process, "_kyberia_windows_job", None)
         poll = getattr(process, "poll", None)
+        errors = []
         try:
             if poll is None or poll() is None:
-                try:
-                    if job is not None:
-                        job.terminate()
-                    else:
-                        process.kill()
-                except ProcessLookupError:
-                    pass
-        finally:
+                if job is not None:
+                    job.terminate()
+                else:
+                    process.kill()
+        except ProcessLookupError:
+            pass
+        except BaseException as error:
+            errors.append(error)
+        try:
             process.wait(timeout=2)
+        except BaseException as error:
+            errors.append(error)
+        if errors:
+            raise OSError("Windows process termination/reap failed: "
+                          + "; ".join(str(error) for error in errors)) from errors[0]
         return
     try:
         os.killpg(process.pid, signal.SIGKILL)
@@ -481,18 +498,19 @@ def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
                 break
             time.sleep(0.01)
     finally:
+        cleanup_errors = []
         try:
             _stop(process)
-        except (OSError, subprocess.TimeoutExpired) as error:
-            cleanup_error = str(error)[:1024]
+        except BaseException as error:
+            cleanup_errors.append(error)
             status = "process_error"
         if job is not None:
             try:
                 # Closing a kill-on-close job also removes descendants that
                 # inherited either output handle after the parent exited.
                 job.close()
-            except OSError as error:
-                cleanup_error = str(error)[:1024]
+            except BaseException as error:
+                cleanup_errors.append(error)
                 status = "process_error"
         drain_deadline = time.monotonic() + _WINDOW_PIPE_DRAIN_S
         while eof != {"stdout", "stderr"} and time.monotonic() < drain_deadline:
@@ -505,7 +523,7 @@ def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
         if eof != {"stdout", "stderr"}:
             # Closing the parent pipe handles is the bounded interrupt for a
             # native read/write that did not observe process termination.
-            cleanup_errors = _close_pipes(process)
+            cleanup_errors.extend(_close_pipes(process))
             interrupt_deadline = time.monotonic() + _WINDOW_PIPE_JOIN_S
             while eof != {"stdout", "stderr"} and time.monotonic() < interrupt_deadline:
                 drained = _consume_pipe_events(events, output, logs, eof)
@@ -514,10 +532,9 @@ def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
                 if eof == {"stdout", "stderr"}:
                     break
                 time.sleep(0.005)
-        else:
-            cleanup_errors = []
         if eof != {"stdout", "stderr"}:
-            cleanup_error = cleanup_error or "pipe readers did not reach EOF before cleanup bound"
+            cleanup_errors.append(
+                OSError("pipe readers did not reach EOF before cleanup bound"))
             status = "process_error"
         stop_event.set()
         cleanup_errors.extend(_close_pipes(process))
@@ -540,11 +557,32 @@ def supervise(command, request_bytes, timeout_s, cancel=None, env=None):
         raise ContractError("request exceeds byte limit")
     start = time.monotonic()
     output, logs = bytearray(), bytearray()
-    with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE, **_popen_options(env)) as process:
-        if os.name == "nt":
+    if os.name == "nt":
+        # Popen.__exit__ waits without a timeout when returncode is still None.
+        # Windows supervision owns the child explicitly so a structured cleanup
+        # failure can return without an unbounded context-manager wait.
+        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, **_popen_options(env))
+        try:
             job = _attach_windows_job(process)
             return _supervise_windows(process, request_bytes, timeout_s, cancel, job)
+        except BaseException as primary_error:
+            cleanup_errors = []
+            try:
+                if process.poll() is None:
+                    _stop(process)
+            except BaseException as error:
+                cleanup_errors.append(error)
+            cleanup_errors.extend(_close_pipes(process))
+            job = getattr(process, "_kyberia_windows_job", None)
+            if job is not None:
+                try:
+                    job.close()
+                except BaseException as error:
+                    cleanup_errors.append(error)
+            _raise_lifecycle_error(primary_error, cleanup_errors)
+    with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, **_popen_options(env)) as process:
         with selectors.DefaultSelector() as selector:
             for stream, label in ((process.stdout, "stdout"), (process.stderr, "stderr")):
                 os.set_blocking(stream.fileno(), False)

@@ -43060,8 +43060,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf",
-          "sha256": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf"
+          "revision": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55",
+          "sha256": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55"
         }
       ],
       "validation": [
@@ -177304,8 +177304,8 @@
         {
           "path": "docs/adapters/sionna.md",
           "description": "Exact audited installation, process boundary, scope and runtime procedure",
-          "revision": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1",
-          "sha256": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1"
+          "revision": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d",
+          "sha256": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d"
         }
       ],
       "validation": [
@@ -177423,8 +177423,8 @@
         {
           "path": "docs/adapters/sionna.md",
           "description": "Exact audited installation, process boundary, scope and runtime procedure",
-          "revision": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1",
-          "sha256": "49ab44e8b58f0ffd3c0d2f1a3e3098d69144db444eb6dcc0a823e75292bbd8f1"
+          "revision": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d",
+          "sha256": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d"
         }
       ],
       "validation": [
@@ -239674,8 +239674,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf",
-          "sha256": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf"
+          "revision": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55",
+          "sha256": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55"
         }
       ],
       "validation": [
