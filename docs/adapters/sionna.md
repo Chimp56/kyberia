@@ -90,7 +90,7 @@ The supervisor uses nonblocking pipes on POSIX and bounded reader/writer threads
 for Windows anonymous pipes. Windows launches the worker suspended in a new
 process group, finds the primary thread through the documented Toolhelp APIs,
 assigns a kill-on-close Job Object, and resumes it. On cancellation it sends
-`CTRL_BREAK_EVENT` and waits for the worker's canonical cancellation result
+`CTRL_BREAK_EVENT` and waits for bounded worker process exit and pipe cleanup
 before using Job Object termination as the bounded fallback. On every terminal
 path it drains output under fixed limits, closes pipe handles, checks every
 reader/writer join, and retries owned Win32 handle closes. If a bounded direct

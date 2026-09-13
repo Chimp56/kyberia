@@ -139,12 +139,16 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertNotIn("containment unknown", str(errors[0]))
 
-        job = mock.Mock(_closed=False)
+        job = mock.Mock(_closed=False, _handle=None, _owned_handles={"thread": 33})
         job.close.side_effect = OSError("persistent close failure")
         errors = []
         process._close_windows_job(job, errors)
         self.assertEqual(job.close.call_count, 2)
-        self.assertTrue(any("containment unknown" in str(error) for error in errors))
+        self.assertTrue(any("auxiliary native handle cleanup unresolved" in str(error)
+                            and "thread" in str(error)
+                            for error in errors))
+        self.assertFalse(any("Job Object handle remains open" in str(error)
+                             for error in errors))
 
     @staticmethod
     def fake_windows_job(kernel):

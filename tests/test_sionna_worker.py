@@ -398,12 +398,16 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertNotIn("containment unknown", str(errors[0]))
 
-        job = mock.Mock(_closed=False)
+        job = mock.Mock(_closed=False, _handle=None, _owned_handles={"thread": 33})
         job.close.side_effect = OSError("persistent close failure")
         errors = []
         client._close_windows_job(job, errors)
         self.assertEqual(job.close.call_count, 2)
-        self.assertTrue(any("containment unknown" in str(error) for error in errors))
+        self.assertTrue(any("auxiliary native handle cleanup unresolved" in str(error)
+                            and "thread" in str(error)
+                            for error in errors))
+        self.assertFalse(any("Job Object handle remains open" in str(error)
+                             for error in errors))
 
     def test_windows_job_attach_failure_reaps_suspended_child(self):
         from rfatlas_sionna import client

@@ -308,7 +308,15 @@ def _close_windows_job(job, cleanup_errors):
             if getattr(job, "_closed", None) is True:
                 return
     if getattr(job, "_closed", None) is not True:
-        cleanup_errors.append(OSError("Windows containment unknown: Job Object handle remains open"))
+        handle = getattr(job, "_handle", None)
+        owned_handles = getattr(job, "_owned_handles", None)
+        if handle is None and isinstance(owned_handles, dict) and owned_handles:
+            labels = ", ".join(sorted(str(label) for label in owned_handles))
+            cleanup_errors.append(OSError(
+                "Windows auxiliary native handle cleanup unresolved after Job Object "
+                f"close ({labels}); retry ownership retained"))
+        else:
+            cleanup_errors.append(OSError("Windows containment unknown: Job Object handle remains open"))
 
 
 def _attach_windows_job(process):
