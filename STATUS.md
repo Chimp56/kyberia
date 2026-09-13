@@ -6,9 +6,9 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 [execution DAG](docs/implementation/execution-dag.json).
 
 - Current phase: **Phase 0 — Research harness and architecture proof**.
-- Current iteration: **4 — Integration audit remediation and architecture proofs**.
+- Current iteration: **5 — Product application, active diagnostics, and reviewed capture integration**.
 - Integration branch: `main`.
-- Latest reviewed feature source: renderer `125133e` plus the independently approved workspace reproducibility correction; [integration evidence](docs/reviews/renderer-wasm-correction-followup.md). Final renderer and product gates remain open.
+- Latest reviewed integrated feature: barrier-aware IDW at `425edfe`; [independent review](docs/reviews/barrier-aware-idw-review.md). Capture-session/spool and application-session reviews are also integrated. Final renderer and product gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -16,7 +16,30 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Product acceptance: **not complete**. There is no complete usable mapper UI;
   Phase 0 exit criteria and Phases 1–8 remain open.
 
-## Latest progress audit — 2026-09-12
+## Current execution checkpoint — 2026-09-12
+
+Main is at `6e0c24a`. Reviewed capture-session and unassociated-spool storage,
+the application-owned project-session boundary, and bounded barrier-aware IDW
+are integrated. The active TCP measurement foundation is in correction after
+independent review found four major admission/cancellation issues. The desktop
+shell is in correction after independent architecture, security, runtime, and
+responsive-UX review. Neither increment counts as complete until its rereview
+passes.
+
+Hosted run `34735966642` validates the refreshed cross-platform Python 3.12.10
+runtime and Cargo source inventory. Ubuntu and macOS have completed successfully;
+Windows remains in progress at this checkpoint. The preceding run proved that
+macOS passes the complete Rust/Python regression step and exposed a stale
+Cargo-lock digest, now corrected. Windows still exposed five concrete process
+lifecycle regressions in Sionna and active-process tests; a Luna xhigh agent is
+correcting those in an isolated worktree.
+
+The generated traceability matrix currently reports **66 VALIDATED, 80
+IN_PROGRESS, and 3,189 NOT_STARTED leaf obligations**, with zero
+BLOCKED_EXTERNAL or DEFERRED_BY_ADR. These are source-coverage records rather
+than a product completion percentage.
+
+## Prior progress audit — 2026-09-12
 
 The [progress review](docs/reviews/plan-progress-2026-09-12.md) inspects `fca5b3f`
 and supersedes pending CI statements in the historical checkpoints below.
@@ -77,9 +100,12 @@ product capability is validated.
 | Neutral planning interchange | Reviewed source `3604e40` | Original schema proof passes 13 focused tests and independent review; external planner bridge, maintainer RFC and runtime round trips remain open |
 | Canonical scene renderer input | Root integration / reviewed source `125133e` | Independent canonical browser probes and 8-workload benchmark pass on a fresh server. Integration rebuild exposed absolute-path-dependent WASM bytes; a shared-workspace build now reproduces identical bytes at three checkout roots. Complete integrated regression and independent build-environment review pass. Final renderer/product gate remains open; [follow-up](docs/reviews/renderer-wasm-correction-followup.md) |
 | Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; timing corrections `73111b0` and `1711f13`; exact identity mapping retention sources `ff70362` + `4c47283` independently approved and integrated, including custom and empty-capture identity regressions |
-| Durable capture session and unassociated acquisition spool | Approved integration candidate / `capture-integration` | Independent reviews approve bounded session closure, allocation preflight, SQLite storage/recovery and cancellation-safe spool publication; product coordinator, streaming journal and UI wiring remain open |
-| Project application boundary | Assigned isolated prerequisite; no source changes at audit | Real create/open/query use cases and atomic canonical snapshot contracts remain to implement; desktop shell, Tauri/WebView and usable mapper acceptance remain open |
-| Hosted validation diagnostics | Reviewed Python sources `4b7fc02` + `d6a00b8`; Luna Windows correction author | Bounded Python unittest identifiers complement Rust diagnostics. Two hosted Windows runs identify active-process and Sionna lifecycle failures while macOS and Ubuntu pass; portable corrections, independent review and hosted rerun remain open |
+| Durable capture session and unassociated acquisition spool | Integrated and independently approved at `cec2efd` | Bounded session closure, allocation preflight, SQLite storage/recovery and cancellation-safe publication are validated; product coordinator, streaming journal and UI wiring remain open |
+| Project application boundary | Integrated and independently approved at `c61afc0` | Typed create/open/current-snapshot use cases are validated; operation-backed mutations and the reviewed desktop product path remain open |
+| Barrier-aware measured interpolation | Integrated and independently approved at `425edfe` | Direct finite-segment path cost, stable weights, unknown support, budgets and cancellation are validated; polygon shortest paths, floors, calibrated uncertainty and publication remain open |
+| Active TCP measurement foundation | Correction worktree `feat/active-measurement` | Run-wide sample limits, interruptible cancellation, mapped-IPv6 safety, and derived-statistics wire validation must pass rereview before integration |
+| Desktop instrument shell | Correction worktree `feat/desktop-shell` | Native file grants, response validation, async cancellation, root tooling, real command-palette semantics, responsive inspector behavior and native smoke validation must pass rereview |
+| Hosted validation diagnostics | Integrated Python identifiers plus isolated Windows lifecycle correction | Cross-platform runtime setup is fixed. Remaining concrete Sionna and active-process lifecycle failures require portable correction, independent review and a successful hosted rerun |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 
 
@@ -88,6 +114,16 @@ The publication review is approved for the bounded increment in
 An active draft or passing author test is not integration approval.
 
 ## Current validation
+
+At integration source `425edfe`, `cargo test --workspace --all-targets -- --test-threads=1`
+passes the complete Rust workspace with zero failures and only
+explicit hardware, benchmark, and golden-regeneration ignores. The locked
+Python environment passes **263 tests with 24 skips**. Ledger and architecture
+checks pass. A parallel all-target Rust run exposed two process-fixture
+interference failures; the required serial rerun passed all 59 executable
+observation-pipeline tests. At `6e0c24a`, the source inventory passes against
+both the established Cargo cache and a newly populated isolated cache with
+**241 locked packages**.
 
 At `b4c4c33`, `.tools/venv/bin/python tools/dev.py check` passes the complete
 integrated check: Rust regression, formatting/lint/typecheck, 215 Python tests
@@ -187,14 +223,18 @@ IDs must remain section-qualified.
 
 ## Next executable work
 
-1. Complete the active isolated increments, independently review them,
-   address findings, integrate and run affected plus workspace regression suites.
-2. Wire verified stored scenes into the renderer workflow and record actual
-   interaction evidence without silently selecting or promoting a renderer.
-3. Connect the reviewed native capture and point-survey boundaries into product
-   commands and UX while preserving explicit identity, privacy and capabilities.
-4. Close remaining Phase 0 architecture gates using measured evidence, then
-   deliver and audit the usable Phase 1 mapper before advancing its delivery gate.
+1. Complete active-measurement and desktop-shell corrections, obtain independent
+   rereviews, integrate them onto current main, and run affected plus workspace
+   regression suites.
+2. Resolve all five hosted Windows process-lifecycle failures, independently
+   review the correction, and repeat the three-host CI gate.
+3. Implement defensive map-asset admission and operation-backed floorplan
+   calibration through application and desktop boundaries, with parser/security
+   review and real UI evidence.
+4. Connect reviewed native capture, point-survey, active diagnostics, measured
+   interpolation, and project persistence into the usable Phase 1 workflow.
+5. Audit Phase 0/1 acceptance against the complete ledger, then continue the
+   remaining roadmap phases in dependency order.
 
 Earlier detailed checkpoints and validation histories are retained in
 [the historical snapshot](docs/implementation/history/status-4a55d35.md) and Git.
