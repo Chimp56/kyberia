@@ -35,7 +35,7 @@ Add an inward-owned planar barrier contract to `kyberia-spatial-analysis`:
   impassable crossing is excluded from support and remains unknown.
 - Exact coordinate lookup precedes barrier policy and remains observed.
 - `path_to_group` and `path_assessments` provide path/barrier diagnostics. Cells
-  retain the minimum effective path cost through their existing
+  retain the minimum reachable total path cost through their existing
   `nearest_distance` field and retain contributor weights without changing the
   cross-crate `Cell` struct shape.
 - Barrier-aware tiles use the distinct algorithm identity
@@ -102,7 +102,8 @@ path-cost extrapolation, measurement-gap behavior inherited from the baseline,
 exact points, translation and input/barrier permutation determinism, malformed
 barriers, canonical barrier serialization, cancellation and barrier-work
 exhaustion.
-The independent oracle is a hand-computed direct path-cost/linear-attenuation
-formula; no competitor code or geometry implementation is used. Run the
+The independent oracle is a hand-computed direct path-cost calculation plus
+stable log-weight normalization for the bounded attenuation prior; no
+competitor code or geometry implementation is used. Run the
 spatial-analysis tests and Clippy with warnings denied before review, then
 run the workspace architecture and ledger-independent checks at integration.

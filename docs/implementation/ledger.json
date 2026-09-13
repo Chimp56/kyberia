@@ -70185,13 +70185,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Closed canonical metric-definition binding and configured coincident aggregation",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Privately constructed tile-v2 aggregation provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         },
         {
           "path": "crates/wifi-semantics/src/lib.rs",
@@ -123506,13 +123506,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Privately constructed tile-v2 aggregation provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         },
         {
           "path": "crates/wifi-semantics/src/lib.rs",
@@ -123727,13 +123727,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Privately constructed tile-v2 aggregation provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         },
         {
           "path": "crates/wifi-semantics/src/lib.rs",
@@ -123933,13 +123933,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Privately constructed tile-v2 aggregation provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         },
         {
           "path": "crates/wifi-semantics/src/lib.rs",
@@ -124101,7 +124101,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -124222,7 +124222,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -124343,7 +124343,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -124459,13 +124459,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Privately constructed tile-v2 aggregation provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         },
         {
           "path": "crates/wifi-semantics/src/lib.rs",
@@ -124627,7 +124627,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -124748,7 +124748,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -124869,7 +124869,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -124990,7 +124990,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -125111,7 +125111,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -125232,7 +125232,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -169271,7 +169271,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -173266,13 +173266,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Pure tile planes with original inputs and grid provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         }
       ],
       "validation": [
@@ -173346,13 +173346,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Pure tile planes with original inputs and grid provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         }
       ],
       "validation": [
@@ -190138,7 +190138,7 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Numerical model validates the current metric's declared spatial method and preserves explicit unknown point-value cells",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/domain/src/analysis.rs",
@@ -237156,13 +237156,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Closed canonical metric-definition binding and configured coincident aggregation",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Privately constructed tile-v2 aggregation provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         },
         {
           "path": "crates/wifi-semantics/src/lib.rs",
@@ -240472,13 +240472,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Pure tile planes with original inputs and grid provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         }
       ],
       "validation": [
@@ -240638,13 +240638,13 @@
           "path": "crates/spatial-analysis/src/model.rs",
           "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
           "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3"
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Pure tile planes with original inputs and grid provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
-          "sha256": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7"
+          "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
         }
       ],
       "validation": [
