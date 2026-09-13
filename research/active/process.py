@@ -521,7 +521,7 @@ def _consume_pipe_events(events, output, eof, stdout_limit):
     # Terminal channels are separate from data channels, so a hostile data
     # stream cannot prevent EOF/error delivery from the other output pipe.
     for pipe in events.values():
-        while True:
+        for _ in range(pipe.terminal.maxsize):
             try:
                 kind, label, _chunk = pipe.terminal.get_nowait()
             except queue.Empty:
@@ -530,13 +530,17 @@ def _consume_pipe_events(events, output, eof, stdout_limit):
                 eof.add(label)
             elif kind == "pipe_error":
                 status = "process_error"
-    for label in ("stdout", "stderr"):
-        pipe = events[label]
-        while True:
+    # Snapshot-independent fixed rounds make this drain bounded even when a
+    # hostile producer continuously refills stdout. Alternation guarantees
+    # stderr receives one consumer turn per round.
+    rounds = max(events[label].data.maxsize for label in ("stdout", "stderr"))
+    for _ in range(rounds):
+        for label in ("stdout", "stderr"):
+            pipe = events[label]
             try:
                 kind, _, chunk = pipe.data.get_nowait()
             except queue.Empty:
-                break
+                continue
             if kind != "data":
                 continue
             bound = stdout_limit if label == "stdout" else MAX_STDERR

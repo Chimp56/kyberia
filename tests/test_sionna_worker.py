@@ -198,6 +198,31 @@ class LifecycleTests(unittest.TestCase):
     def supervise(self, program, timeout=2, cancel=None, payload=b"{}"):
         return supervise([sys.executable, "-I", "-c", program], payload, timeout, cancel)
 
+    def test_zombie_group_permission_error_requires_post_reap_absence(self):
+        from rfatlas_sionna import client
+
+        process = mock.Mock(pid=12345)
+        if os.name == "nt":
+            process.poll.return_value = None
+            process._kyberia_windows_job = None
+            client._stop(process)
+            process.kill.assert_called_once_with()
+            process.wait.assert_called_once_with(timeout=2)
+            return
+        with mock.patch.object(
+                client.os, "killpg",
+                side_effect=[PermissionError("zombie"), ProcessLookupError()]) as kill:
+            client._stop(process)
+        self.assertEqual(kill.call_args_list,
+                         [mock.call(12345, signal.SIGKILL), mock.call(12345, 0)])
+        process.wait.assert_called_with(timeout=2)
+        for probe in (None, PermissionError("still denied")):
+            with mock.patch.object(
+                    client.os, "killpg",
+                    side_effect=[PermissionError("denied"), probe]):
+                with self.assertRaises(PermissionError):
+                    client._stop(process)
+
     def test_actual_subprocess_roundtrip_and_logs(self):
         result = self.supervise("import sys; data=sys.stdin.buffer.read(); sys.stdout.buffer.write(data); print('diagnostic', file=sys.stderr)")
         self.assertEqual(result["state"], "exited")
@@ -359,6 +384,31 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(len(output), MAX_RESULT_BYTES)
         self.assertEqual(len(logs), MAX_LOG_BYTES)
         self.assertIn("stderr", eof)
+
+    def test_windows_pipe_consumer_is_bounded_and_round_robin(self):
+        from rfatlas_sionna import client
+
+        class RefilledQueue:
+            maxsize = 2
+
+            def __init__(self, label):
+                self.label = label
+                self.calls = 0
+
+            def get_nowait(self):
+                self.calls += 1
+                return ("data", self.label, b"x")
+
+        events = {label: client._PipeEvents(2) for label in ("stdout", "stderr")}
+        events["stdin"] = client._PipeEvents(1)
+        stdout = RefilledQueue("stdout")
+        stderr = RefilledQueue("stderr")
+        events["stdout"].data = stdout
+        events["stderr"].data = stderr
+        output, logs = bytearray(), bytearray()
+        self.assertEqual(client._consume_pipe_events(events, output, logs, set()), "exited")
+        self.assertEqual((stdout.calls, stderr.calls), (2, 2))
+        self.assertEqual((output, logs), (b"xx", b"xx"))
 
     def test_windows_cleanup_interrupts_blocked_read_and_write(self):
         from rfatlas_sionna import client

@@ -43059,15 +43059,15 @@
         },
         {
           "path": "research/active/process.py",
-          "description": "Bounded cross-platform research supervisor with per-stream quotas",
-          "revision": "fda7deefd72b357006534e40f36bef17ce843f857d3c6b0ab01721cf05752479",
-          "sha256": "fda7deefd72b357006534e40f36bef17ce843f857d3c6b0ab01721cf05752479"
+          "description": "Bounded cross-platform research supervisor with per-stream quotas and fair fixed drain rounds",
+          "revision": "c04484875d4a7b82d54276e58fd9eb5b831ad95c4f15714c09ffa456c3f1e1d9",
+          "sha256": "c04484875d4a7b82d54276e58fd9eb5b831ad95c4f15714c09ffa456c3f1e1d9"
         },
         {
           "path": "tests/test_active_process.py",
-          "description": "Windows post-exit Job Object containment and portable zombie contract tests",
-          "revision": "50f7f9b52b4f9cf0642f4eb77f13be815b23a6a235a51e9529ec7e5dbe98ca34",
-          "sha256": "50f7f9b52b4f9cf0642f4eb77f13be815b23a6a235a51e9529ec7e5dbe98ca34"
+          "description": "Windows post-exit Job Object containment, bounded fair pipe drain and portable zombie contract tests",
+          "revision": "1822082e9ff8772c4fff300481b0032254163743f9bfbcd4134d19536600e14f",
+          "sha256": "1822082e9ff8772c4fff300481b0032254163743f9bfbcd4134d19536600e14f"
         }
       ],
       "validation": [
@@ -43083,11 +43083,11 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Cross-platform Windows lifecycle correction contracts, CPU provenance and hosted failure analysis",
-          "revision": "afcee9e44a15cafaf813fd701a3841c04dcaf8a88ec593a89dc28ea089e16fb9",
-          "sha256": "afcee9e44a15cafaf813fd701a3841c04dcaf8a88ec593a89dc28ea089e16fb9",
+          "revision": "7223b6d76f83c03127aabcce0b979af084071c86ffa5ae3919adacb0f97cd79e",
+          "sha256": "7223b6d76f83c03127aabcce0b979af084071c86ffa5ae3919adacb0f97cd79e",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_active_process.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
-          "result": "PASS: 38 tests, 1 skipped"
+          "result": "PASS: 39 tests, 1 skipped"
         }
       ],
       "reviews": [
@@ -177879,9 +177879,9 @@
         },
         {
           "path": "workers/sionna/rfatlas_sionna/client.py",
-          "description": "Bounded per-stream Windows pipe transport, CPU-limited Job Object containment and explicit enforcement provenance",
-          "revision": "28aa8d4800660cc7d5ca10fe157769f290cd1ecf4be0770f615bb9c85d7a1154",
-          "sha256": "28aa8d4800660cc7d5ca10fe157769f290cd1ecf4be0770f615bb9c85d7a1154"
+          "description": "Bounded fair per-stream Windows pipe transport, CPU-limited Job Object containment, explicit enforcement provenance and proven POSIX zombie cleanup",
+          "revision": "c47a6bd43ca863b4f12df6c83336f0afb6202d3bd411acb1e55e74cc9528ed46",
+          "sha256": "c47a6bd43ca863b4f12df6c83336f0afb6202d3bd411acb1e55e74cc9528ed46"
         },
         {
           "path": "workers/sionna/rfatlas_sionna/engine.py",
@@ -177891,9 +177891,9 @@
         },
         {
           "path": "tests/test_sionna_worker.py",
-          "description": "Windows per-stream pipe quotas, cleanup, cancellation readiness, CPU Job Object and engine portability contract tests",
-          "revision": "977040da36e694bd434d0ad00a7a116ec49a469034ae22279d554f2906bd420f",
-          "sha256": "977040da36e694bd434d0ad00a7a116ec49a469034ae22279d554f2906bd420f"
+          "description": "Windows per-stream pipe quotas, fair bounded drain, cleanup, cancellation readiness, CPU Job Object, engine portability and POSIX zombie contract tests",
+          "revision": "0b8cfeb76ad4616a9b6c320f8a7eddb810d4dc71a8243d767d483ed8ffa9f634",
+          "sha256": "0b8cfeb76ad4616a9b6c320f8a7eddb810d4dc71a8243d767d483ed8ffa9f634"
         }
       ],
       "validation": [
@@ -177909,11 +177909,11 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Windows per-stream pipe, CPU provenance and process-lifecycle correction contracts with hosted failure evidence",
-          "revision": "afcee9e44a15cafaf813fd701a3841c04dcaf8a88ec593a89dc28ea089e16fb9",
-          "sha256": "afcee9e44a15cafaf813fd701a3841c04dcaf8a88ec593a89dc28ea089e16fb9",
+          "revision": "7223b6d76f83c03127aabcce0b979af084071c86ffa5ae3919adacb0f97cd79e",
+          "sha256": "7223b6d76f83c03127aabcce0b979af084071c86ffa5ae3919adacb0f97cd79e",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_sionna_worker.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
-          "result": "PASS: 47 tests, 2 skipped"
+          "result": "PASS: 49 tests, 2 skipped"
         }
       ],
       "reviews": [
@@ -240246,9 +240246,9 @@
         },
         {
           "path": "research/active/process.py",
-          "description": "Bounded cross-platform research supervisor with per-stream quotas",
-          "revision": "fda7deefd72b357006534e40f36bef17ce843f857d3c6b0ab01721cf05752479",
-          "sha256": "fda7deefd72b357006534e40f36bef17ce843f857d3c6b0ab01721cf05752479"
+          "description": "Bounded cross-platform research supervisor with per-stream quotas and fair fixed drain rounds",
+          "revision": "c04484875d4a7b82d54276e58fd9eb5b831ad95c4f15714c09ffa456c3f1e1d9",
+          "sha256": "c04484875d4a7b82d54276e58fd9eb5b831ad95c4f15714c09ffa456c3f1e1d9"
         }
       ],
       "validation": [

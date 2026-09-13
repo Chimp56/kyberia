@@ -22,6 +22,8 @@ and pipe-error events. A hostile stdout stream can therefore block only its own
 data reader; it cannot consume stderr or terminal capacity. The reader chunk
 size is a named constant used by both queue sizing calculations and readers.
 The active-process supervisor applies the same per-stream terminal accounting.
+Both consumers use fixed round-robin drain budgets, so a producer that refills
+stdout continuously cannot postpone stderr, cancellation or timeout checks.
 No output cap, timeout, cancellation, process ownership, or cleanup failure
 semantics are relaxed.
 
@@ -43,10 +45,15 @@ The focused early-exit/exact-limit test passed in 100 repetitions before the
 correction. A retained adversarial test that starts both capped readers
 without a consumer fails with the former eight-event queue and passes with
 the corrected queue, proving the backpressure condition independently of
-runner timing. The complete Sionna worker suite passes 47 tests with two
+runner timing. The complete Sionna worker suite passes 49 tests with two
 platform-specific Windows execution tests skipped locally. The active-process
-suite passes 38 tests with one native Windows test skipped. The complete root
-Python suite passes 274 tests with 24 optional tests skipped.
+suite passes 39 tests with one native Windows test skipped. An earlier pinned
+environment run of the complete root Python suite passed 274 tests with 24
+optional tests skipped. The current follow-up's system Python 3.9 run reached
+269 tests with 26 skips but could not import `test_source_inventory` because
+that environment lacks both `tomllib` and `tomli`; it is not recorded as a
+complete root-suite pass. The current locked Python environment passes 277
+tests with 24 optional tests skipped.
 
 Native Windows job-object and anonymous-pipe execution remains an external
 runtime gate. It must be rerun on a supported Windows runner, including
@@ -57,7 +64,8 @@ the replacement workflow before the CI validation status is advanced.
 ## Follow-up lifecycle correction
 
 Foundation run
-[34735594226](https://github.com/Chimp56/kyberia/actions/runs/34735594226)
+[34736703085](https://github.com/Chimp56/kyberia/actions/runs/34736703085),
+Windows job `103669296874`,
 identified five Windows lifecycle failures after the earlier pipe correction:
 cooperative Sionna cancellation, Sionna descendant containment, the Sionna
 engine-absence fixture, active-process descendant containment, and the active
@@ -81,20 +89,28 @@ addresses their platform assumptions:
 * the result envelope records requested CPU seconds separately from whether
   enforcement was confirmed, not confirmed, or unsupported. POSIX resource
   import failure is reported as unsupported rather than enforced.
+* the Sionna supervisor handles Darwin's zombie-only process-group `EPERM`
+  only after reaping its direct child and proving the group absent with an
+  `ESRCH` probe, without risking a signal to a reused group ID.
 
-The focused correction suites pass locally: Sionna 47 tests with two native
-Windows tests skipped, and active-process 38 tests with one native Windows test
+The focused correction suites pass locally: Sionna 49 tests with two native
+Windows tests skipped, and active-process 39 tests with one native Windows test
 skipped. These are contract results on macOS; they do not close the native
 Windows runtime gate. The next hosted run must show the five named tests
 passing and retain the descendant, cancellation, engine-absence, CPU-limit,
 pipe-quota and cleanup assertions.
+
+The pipe-starvation and bounded round-robin contracts in both supervisors, the
+exact-limit lifecycle contract and the zombie-group contract passed 600
+repeated executions with zero failures, errors or skips. Independent patch
+review and a hosted Windows rerun remain required before integration.
 
 The corrected source evidence is content-addressed for review:
 
 | Path | SHA-256 |
 |---|---|
 | `workers/sionna/rfatlas_sionna/engine.py` | `9a4fecb24117a862e9772d4cd17818eb602e6578aec2a28d4ba25db1b7631345` |
-| `workers/sionna/rfatlas_sionna/client.py` | `28aa8d4800660cc7d5ca10fe157769f290cd1ecf4be0770f615bb9c85d7a1154` |
-| `tests/test_sionna_worker.py` | `977040da36e694bd434d0ad00a7a116ec49a469034ae22279d554f2906bd420f` |
-| `research/active/process.py` | `fda7deefd72b357006534e40f36bef17ce843f857d3c6b0ab01721cf05752479` |
-| `tests/test_active_process.py` | `50f7f9b52b4f9cf0642f4eb77f13be815b23a6a235a51e9529ec7e5dbe98ca34` |
+| `workers/sionna/rfatlas_sionna/client.py` | `c47a6bd43ca863b4f12df6c83336f0afb6202d3bd411acb1e55e74cc9528ed46` |
+| `tests/test_sionna_worker.py` | `0b8cfeb76ad4616a9b6c320f8a7eddb810d4dc71a8243d767d483ed8ffa9f634` |
+| `research/active/process.py` | `c04484875d4a7b82d54276e58fd9eb5b831ad95c4f15714c09ffa456c3f1e1d9` |
+| `tests/test_active_process.py` | `1822082e9ff8772c4fff300481b0032254163743f9bfbcd4134d19536600e14f` |

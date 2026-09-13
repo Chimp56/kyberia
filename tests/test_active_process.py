@@ -112,6 +112,31 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(len(output["stderr"]), MAX_STDERR)
         self.assertIn("stderr", eof)
 
+    def test_windows_pipe_consumer_is_bounded_and_round_robin(self):
+        from research.active import process
+
+        class RefilledQueue:
+            maxsize = 2
+
+            def __init__(self, label):
+                self.label = label
+                self.calls = 0
+
+            def get_nowait(self):
+                self.calls += 1
+                return ("data", self.label, b"x")
+
+        events = {label: process._PipeEvents(2) for label in ("stdout", "stderr")}
+        stdout = RefilledQueue("stdout")
+        stderr = RefilledQueue("stderr")
+        events["stdout"].data = stdout
+        events["stderr"].data = stderr
+        output = {"stdout": bytearray(), "stderr": bytearray()}
+        self.assertEqual(process._consume_pipe_events(events, output, set(), MAX_JSON),
+                         "completed")
+        self.assertEqual((stdout.calls, stderr.calls), (2, 2))
+        self.assertEqual(output, {"stdout": b"xx", "stderr": b"xx"})
+
     def test_windows_stop_escalates_after_job_and_reap_failures(self):
         from research.active import process
         child = mock.Mock()

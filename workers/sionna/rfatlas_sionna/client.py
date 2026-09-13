@@ -450,10 +450,22 @@ def _stop(process):
                           + "; ".join(str(error) for error in errors)) from errors[0]
         return
     try:
-        os.killpg(process.pid, signal.SIGKILL)
-    except ProcessLookupError:
-        pass
-    process.wait()
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except PermissionError:
+            # Darwin can return EPERM for a zombie-only group. Reap only our
+            # direct child, then require ESRCH from a non-mutating probe. Never
+            # signal after reaping because the process-group ID may be reused.
+            process.wait(timeout=2)
+            try:
+                os.killpg(process.pid, 0)
+            except ProcessLookupError:
+                return
+            raise
+    finally:
+        process.wait(timeout=2)
 
 
 def _popen_options(env):
@@ -517,22 +529,26 @@ def _consume_pipe_events(events, output, logs, eof):
     # Terminal channels are separate from data channels, so a hostile data
     # stream cannot prevent EOF/error delivery from any other pipe.
     for pipe in events.values():
-        while True:
+        for _ in range(pipe.terminal.maxsize):
             try:
-                kind, label, chunk = pipe.terminal.get_nowait()
+                kind, label, _chunk = pipe.terminal.get_nowait()
             except queue.Empty:
                 break
             if kind == "eof":
                 eof.add(label)
             elif kind == "pipe_error":
                 status = "process_error"
-    for label in ("stdout", "stderr"):
-        pipe = events[label]
-        while True:
+    # Fixed rounds keep cancellation/timeout checks reachable even when a
+    # hostile producer continuously refills stdout. Alternating labels gives
+    # stderr one consumer turn in every round.
+    rounds = max(events[label].data.maxsize for label in ("stdout", "stderr"))
+    for _ in range(rounds):
+        for label in ("stdout", "stderr"):
+            pipe = events[label]
             try:
                 kind, _, chunk = pipe.data.get_nowait()
             except queue.Empty:
-                break
+                continue
             if kind != "data":
                 continue
             target = output if label == "stdout" else logs
