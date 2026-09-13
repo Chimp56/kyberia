@@ -9,7 +9,7 @@ Inventory: 3335 leaf obligations; 433 obligation groups; 1624 coverage-only bloc
 
 Source SHA-256: `57b6bb686456a567f882a8e4a1eec7bcdcfafea843dd060f224e76c7122328ea`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 75 | NOT_STARTED: 3196 | VALIDATED: 64
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 76 | NOT_STARTED: 3195 | VALIDATED: 64
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -2245,7 +2245,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 75 | NO
 | `source:list_item:dd47ab471990de9ce922:1` | [L2619](../../plan.md#L2619) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Project:** identity, migrations, assets, versions, collaboration. | obligation | NOT_STARTED |  |
 | `source:list_item:d697407246a09e747f7f:1` | [L2620](../../plan.md#L2620) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Spatial:** coordinate frames, geometry, floor maps, pose. | obligation | NOT_STARTED |  |
 | `source:list_item:7e9c3d4b52646a4578d9:1` | [L2621](../../plan.md#L2621) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Radio identity:** devices, radios, BSSIDs, ESSs, MLD links, grouping evidence. | obligation | NOT_STARTED |  |
-| `source:list_item:00e89b65fbbc627368c5:1` | [L2622](../../plan.md#L2622) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Acquisition:** sensors, capabilities, sessions, channel schedules, raw events. | obligation | NOT_STARTED |  |
+| `source:list_item:00e89b65fbbc627368c5:1` | [L2622](../../plan.md#L2622) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Acquisition:** sensors, capabilities, sessions, channel schedules, raw events. | obligation | IN_PROGRESS | [implementation](../../crates/domain/src/capture_session.rs), [implementation](../../crates/observation-pipeline/src/native_acquisition.rs), [implementation](../../crates/observation-pipeline/src/spool.rs), [implementation](../../crates/project-store/src/capture_sessions.rs), [validation](../../docs/validation/capture-session-record.md), [validation](../../docs/validation/acquisition-spool.md), [reviews](../../docs/reviews/capture-session-spool-integration-review.md), Preserve exact capture-session identity and evidence closure across durable publication ([ADR](../../docs/architecture/ADR/0028-canonical-capture-session-record.md)) |
 | `source:list_item:020a03971cf5321ae13c:1` | [L2623](../../plan.md#L2623) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Active measurement:** agents, endpoints, probes, throughput sessions. | obligation | NOT_STARTED |  |
 | `source:list_item:990c73ac63f3d6399a40:1` | [L2624](../../plan.md#L2624) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Spectrum:** analyzers, sweeps, bins, classification. | obligation | NOT_STARTED |  |
 | `source:list_item:31c2dc065591c887ed96:1` | [L2625](../../plan.md#L2625) RF Atlas / 10. System architecture / 10.5 Domain boundaries — - **Analysis:** metric definitions, aggregation, interpolation, uncertainty, layers. | obligation | NOT_STARTED |  |

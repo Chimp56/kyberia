@@ -31,7 +31,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0025](0025-windows-disk-handle.md) | Accepted bounded boundary; native runtime gates open | Narrow audited Windows disk-handle query before request reads |
 | [0026](0026-renderer-wasm-admission.md) | Proposed bounded renderer correction; final Gate B open | Use the exact Rust rendering-scene validator in a cancellable browser WASM worker before the diagnostic JavaScript mirror |
 | [0027](0027-planning-interchange.md) | Accepted bounded Phase 0 proof; upstream interoperability open | Independent versioned `openrfplan/1` canonical planning interchange with explicit units, unknowns, references, bounds, seeds, and provenance |
-| [0028](0028-canonical-capture-session-record.md) | Proposed bounded increment; independent implementation review pending | Durable canonical acquisition-session identity, mapping, privacy and terminal provenance with additive SQLite storage |
+| [0028](0028-canonical-capture-session-record.md) | Accepted bounded increment; product workflow gates open | Durable canonical acquisition-session identity, mapping, privacy and terminal provenance with additive SQLite storage |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

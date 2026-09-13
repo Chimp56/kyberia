@@ -1,6 +1,8 @@
 # ADR-0028: Canonical acquisition-session provenance record
 
-Status: Proposed bounded increment; review corrections applied and awaiting independent rereview. Native collector runtime, identity-mapping and product workflow gates remain open.
+Status: Accepted bounded increment after independent Luna xhigh re-review of
+`d079761`. Native collector runtime, product coordination and UI gates remain
+open.
 
 Date: 2026-09-09
 
