@@ -15,7 +15,9 @@ import {
   canonical,
   digest,
   publicKeyFromEnv,
+  publicKeyIdentity,
   signObject,
+  sanitize,
   verifyObject,
 } from "../src/security.js";
 import { config } from "./helpers.js";
@@ -83,16 +85,25 @@ class Fake implements Executor {
       finishedAt: new Date(
         Date.parse(request.request.issuedAt) + this.finishedOffsetMs,
       ).toISOString(),
-      stdout:
+      stdout: sanitize(
         "SSID=secret\nAA:BB:CC:DD:EE:FF 192.168.1.2 token=hunter2\n" +
-        "x".repeat(2000),
+          "x".repeat(2000),
+        1024,
+      ).text,
       stderr: "",
+      sanitization: "kyberia-lab-text-v2" as const,
       capabilities: ["wifi", "cuda"],
       toolIdentities: [
-        { role: "git" as const, path: "/usr/bin/git", sha256: "0".repeat(64) },
+        {
+          role: "git" as const,
+          id: "git-test",
+          version: "1",
+          sha256: "0".repeat(64),
+        },
         {
           role: "operation" as const,
-          path: "/fixed/op",
+          id: "operation-test",
+          version: "1",
           sha256: "1".repeat(64),
         },
       ],
@@ -144,6 +155,30 @@ test("configuration forbids forwarding the coordinator private key", () => {
     setup.config.manifestPrivateKeyEnv,
   ];
   assert.throws(() => Config.parse(setup.config), /cannot be forwarded/);
+  const duplicate = config(join(root, "duplicate-config"));
+  duplicate.config.hosts.push({ ...duplicate.config.hosts[0]! });
+  assert.throws(() => Config.parse(duplicate.config));
+  const allowlist = config(join(root, "duplicate-allowlist"));
+  allowlist.config.hosts[0]!.allowedFixtureSets = ["golden-v1", "golden-v1"];
+  assert.throws(() => Config.parse(allowlist.config));
+  const unpinned = config(join(root, "unpinned-argument"));
+  unpinned.config.hosts[0]!.suites.foundation!.arguments = [
+    "/absolute/runner.mjs",
+  ];
+  assert.throws(() => Config.parse(unpinned.config), /digest pinned/);
+});
+
+test("coordinator and host key fingerprints must be distinct and paired", () => {
+  const shared = config(join(root, "shared-key"));
+  shared.config.hosts[0]!.publicKeyEnv = shared.config.manifestPublicKeyEnv;
+  shared.config.hosts[0]!.identity = publicKeyIdentity(
+    publicKeyFromEnv(shared.config.manifestPublicKeyEnv),
+  );
+  assert.throws(() => new LabManager(shared.config), /distinct/);
+  const mismatch = config(join(root, "coordinator-mismatch"));
+  const another = config(join(root, "other-coordinator"));
+  mismatch.config.manifestPrivateKeyEnv = another.config.manifestPrivateKeyEnv;
+  assert.throws(() => new LabManager(mismatch.config), /pair mismatch/);
 });
 
 test("authentication reservations bound concurrent submissions", async () => {
@@ -241,14 +276,24 @@ test(
   async () => {
     const setup = config(join(root, "hard-deadline"));
     const executor = new ProcessExecutor();
+    const script = join(root, "hard-deadline-runner.mjs");
+    await writeFile(
+      script,
+      "process.on('SIGTERM',()=>{});process.stdin.resume();setInterval(()=>{},1000)\n",
+    );
     const spec = {
       executable: process.execPath,
       executableSha256: createHash("sha256")
         .update(readFileSync(process.execPath))
         .digest("hex"),
-      arguments: [
-        "-e",
-        "process.on('SIGTERM',()=>{});process.stdin.resume();setInterval(()=>{},1000)",
+      arguments: [script],
+      argumentFiles: [
+        {
+          argumentIndex: 0,
+          sha256: createHash("sha256")
+            .update(await readFile(script))
+            .digest("hex"),
+        },
       ],
       version: "test-v1",
       environment: { KYBERIA_LAB_RUNNER_CONFIG: "/unused" },
@@ -275,6 +320,43 @@ test(
     assert.ok(Date.now() - started < 3_500);
   },
 );
+
+test("ProcessExecutor rejects a changed code-bearing argument before launch", async () => {
+  const setup = config(join(root, "argument-tamper"));
+  const script = join(root, "argument-tamper", "runner.mjs");
+  await mkdir(join(root, "argument-tamper"), { recursive: true });
+  await writeFile(script, "process.stdout.write('original')\n");
+  const expected = createHash("sha256")
+    .update(await readFile(script))
+    .digest("hex");
+  await writeFile(script, "process.stdout.write('tampered')\n");
+  const executor = new ProcessExecutor();
+  await assert.rejects(
+    executor.authenticate(
+      {
+        executable: process.execPath,
+        executableSha256: createHash("sha256")
+          .update(readFileSync(process.execPath))
+          .digest("hex"),
+        arguments: [script],
+        argumentFiles: [{ argumentIndex: 0, sha256: expected }],
+        version: "test-v1",
+        environment: { KYBERIA_LAB_RUNNER_CONFIG: "/unused" },
+        credentialEnvNames: [setup.config.manifestPublicKeyEnv],
+        inputManifestId: "sha256:" + "0".repeat(64),
+      },
+      {
+        schemaVersion: 1,
+        hostId: "lab-one",
+        nonce: "a".repeat(43),
+        issuedAt: new Date().toISOString(),
+      },
+      1_000,
+      1_024,
+    ),
+    /digest mismatch/,
+  );
+});
 
 test("signed request binds revision and result; output is redacted and bounded", async () => {
   const setup = config(join(root, "signed"));
@@ -318,7 +400,35 @@ test("signed request binds revision and result; output is redacted and bounded",
       "utf8",
     ),
   ) as typeof signed;
+  assert.doesNotMatch(
+    canonical(persisted.manifest),
+    /\/usr\/|\/private\/|\\Users\\/,
+  );
   assert.deepEqual(persisted.manifest.evidence, signed.manifest.evidence);
+  if (persisted.manifest.evidence.origin === "host-signed") {
+    const evidence = persisted.manifest.evidence;
+    assert.equal(
+      evidence.signedPreimage.payloadDigest,
+      digest(canonical(evidence.hostPayload)),
+    );
+    assert.equal(evidence.hostPayload.hostId, persisted.manifest.hostId);
+    assert.equal(
+      evidence.hostPayload.requestDigest,
+      persisted.manifest.requestDigest,
+    );
+    assert.doesNotMatch(
+      evidence.hostPayload.stdout,
+      /secret|hunter2|192\.168\.1\.2/,
+    );
+    for (const artifactMetadata of persisted.manifest.artifacts) {
+      const bytes = await readFile(
+        join(setup.config.stateDirectory, id, artifactMetadata.name),
+      );
+      assert.equal(digest(bytes), artifactMetadata.sha256);
+    }
+  }
+  const reopened = new LabManager(setup.config, fake);
+  assert.equal(reopened.verifyManifest(id, "lab-one"), true);
   signed.manifest.seed = 99;
   assert.equal(manager.verifyManifest(id), false);
 });

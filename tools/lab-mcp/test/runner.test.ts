@@ -97,6 +97,8 @@ function setup(name: string) {
     coordinatorKeyId: "coordinator-1",
     gitExecutable,
     gitExecutableSha256,
+    gitToolId: "git-system",
+    gitVersion: "git-test",
     checkoutDirectory: repository,
     replayDirectory: join(root, name),
     maximumClockSkewSeconds: 60,
@@ -105,6 +107,7 @@ function setup(name: string) {
     limits: { timeoutSeconds: 5, outputBytes: 1024, inputBytes: 64_000_000 },
     operations: {
       foundation: {
+        toolId: "foundation-tool",
         executable: "/usr/bin/printf",
         executableSha256: fileSha256("/usr/bin/printf"),
         arguments: [],
@@ -113,6 +116,7 @@ function setup(name: string) {
         inputManifestId: manifestId,
       },
       "probe-kismet": {
+        toolId: "kismet-tool",
         executable: "/usr/bin/printf",
         executableSha256: fileSha256("/usr/bin/printf"),
         arguments: [],
@@ -215,6 +219,17 @@ executableRunnerTest(
       runOnce(revision.config, revision.signed),
       /revision|checkout verification/,
     );
+    const tree = setup("tree-object");
+    tree.signed.request.gitSha = execFileSync(
+      gitExecutable,
+      ["rev-parse", `${committedSha}^{tree}`],
+      { cwd: repository, encoding: "utf8" },
+    ).trim();
+    tree.signed.signature = signObject(
+      tree.signed.request,
+      tree.coordinator.privateKey,
+    );
+    await assert.rejects(runOnce(tree.config, tree.signed), /not a commit/);
   },
 );
 executableRunnerTest(
@@ -336,6 +351,21 @@ test("host proof rejects stale challenges", () => {
         issuedAt: "2020-01-01T00:00:00.000Z",
       }),
     /challenge/,
+  );
+});
+
+test("runner rejects shared coordinator and host key material", () => {
+  const s = setup("shared-runner-key");
+  s.config.coordinatorPublicKeyEnv = s.host.publicName;
+  assert.throws(
+    () =>
+      proveHost(s.config, {
+        schemaVersion: 1,
+        hostId: "lab-one",
+        nonce: "a".repeat(43),
+        issuedAt: new Date().toISOString(),
+      }),
+    /key roles/,
   );
 });
 

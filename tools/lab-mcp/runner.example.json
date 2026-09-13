@@ -7,6 +7,8 @@
   "coordinatorKeyId": "coordinator-dev-1",
   "gitExecutable": "/usr/bin/git",
   "gitExecutableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "gitToolId": "git-system",
+  "gitVersion": "git-2.x",
   "checkoutDirectory": "/absolute/kyberia",
   "replayDirectory": "/absolute/kyberia/.trash/lab-runner-replay",
   "maximumClockSkewSeconds": 60,
@@ -27,9 +29,10 @@
   },
   "operations": {
     "foundation": {
-      "executable": "/usr/bin/python3",
+      "toolId": "foundation-probe",
+      "executable": "/usr/bin/true",
       "executableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
-      "arguments": ["tools/dev.py", "check"],
+      "arguments": [],
       "version": "foundation-v1",
       "parameters": { "default": [] },
       "inputManifestId": "sha256:460ef3876a4623cee3e5ae9bb655a3bf7cd499386c9400000d48af5c8d746b50"

@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, createPublicKey } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 import { RunnerConfig, type LabRunnerConfig } from "./schema.js";
@@ -14,6 +14,8 @@ import {
   digest,
   privateKeyFromEnv,
   publicKeyFromEnv,
+  publicKeyIdentity,
+  sanitize,
   signObject,
   verifyExecutable,
   verifyObject,
@@ -96,6 +98,10 @@ async function completeTree(
   config: LabRunnerConfig,
   revision: string,
 ): Promise<Array<InputEntry & { object: string; bytes: Buffer }>> {
+  const objectType = (await gitBuffer(config, ["cat-file", "-t", revision], 32))
+    .toString("utf8")
+    .trim();
+  if (objectType !== "commit") throw new Error("revision is not a commit");
   const listing = await gitBuffer(
     config,
     ["ls-tree", "-rz", "--full-tree", revision],
@@ -269,6 +275,19 @@ async function execute(config: LabRunnerConfig, request: JobRequest) {
     });
   });
 }
+function validateRunnerKeys(config: LabRunnerConfig) {
+  const hostPrivate = privateKeyFromEnv(config.hostPrivateKeyEnv);
+  const hostIdentity = publicKeyIdentity(createPublicKey(hostPrivate));
+  const coordinatorIdentity = publicKeyIdentity(
+    publicKeyFromEnv(config.coordinatorPublicKeyEnv),
+  );
+  if (
+    hostIdentity !== config.hostIdentity ||
+    hostIdentity === coordinatorIdentity ||
+    config.hostPrivateKeyEnv === config.coordinatorPublicKeyEnv
+  )
+    throw new Error("runner key roles or host identity rejected");
+}
 export async function runOnce(
   config: LabRunnerConfig,
   signed: SignedJobRequest,
@@ -277,6 +296,7 @@ export async function runOnce(
     throw new Error(
       "Windows runner requires approved native Job Object containment",
     );
+  validateRunnerKeys(config);
   await verifyExecutable(config.gitExecutable, config.gitExecutableSha256);
   if (
     signed.algorithm !== "Ed25519" ||
@@ -310,18 +330,21 @@ export async function runOnce(
     status: result.status,
     startedAt,
     finishedAt: new Date().toISOString(),
-    stdout: result.stdout,
-    stderr: result.stderr,
+    stdout: sanitize(result.stdout, config.limits.outputBytes).text,
+    stderr: sanitize(result.stderr, config.limits.outputBytes).text,
+    sanitization: "kyberia-lab-text-v2",
     capabilities: [...config.capabilities].sort(),
     toolIdentities: [
       {
         role: "git" as const,
-        path: config.gitExecutable,
+        id: config.gitToolId,
+        version: config.gitVersion,
         sha256: config.gitExecutableSha256,
       },
       {
         role: "operation" as const,
-        path: operation.executable,
+        id: operation.toolId,
+        version: operation.version,
         sha256: operation.executableSha256,
       },
     ],
@@ -341,6 +364,7 @@ export async function runOnce(
   };
 }
 export function proveHost(config: LabRunnerConfig, challenge: HostChallenge) {
+  validateRunnerKeys(config);
   const issuedAt = Date.parse(challenge.issuedAt);
   if (
     challenge.schemaVersion !== 1 ||

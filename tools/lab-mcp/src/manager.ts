@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createPublicKey, randomBytes, randomUUID } from "node:crypto";
 import { lstat, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import {
   existsSync,
@@ -18,9 +18,11 @@ import {
   digest,
   privateKeyFromEnv,
   publicKeyFromEnv,
+  publicKeyIdentity,
   sanitize,
   signObject,
   verifyExecutable,
+  verifyInvocationArguments,
   verifyObject,
 } from "./security.js";
 
@@ -43,6 +45,7 @@ type Spec = {
   executable: string;
   executableSha256: string;
   arguments: string[];
+  argumentFiles: Array<{ argumentIndex: number; sha256: string }>;
   version: string;
   environment: { KYBERIA_LAB_RUNNER_CONFIG: string };
   credentialEnvNames: string[];
@@ -85,13 +88,15 @@ const RunnerPayloadSchema = z
     finishedAt: z.string().datetime(),
     stdout: z.string(),
     stderr: z.string(),
+    sanitization: z.literal("kyberia-lab-text-v2"),
     capabilities: z.array(ID).max(64),
     toolIdentities: z
       .array(
         z
           .object({
             role: z.enum(["git", "operation"]),
-            path: z.string().min(1).max(1024),
+            id: ID,
+            version: z.string().min(1).max(64),
             sha256: z.string().regex(/^[0-9a-f]{64}$/),
           })
           .strict(),
@@ -139,7 +144,8 @@ export interface Manifest {
   requestDigest: string;
   toolIdentities: Array<{
     role: "git" | "operation";
-    path: string;
+    id: string;
+    version: string;
     sha256: string;
   }>;
   evidence:
@@ -147,6 +153,7 @@ export interface Manifest {
         origin: "host-signed";
         signedPreimage: { schemaVersion: 1; payloadDigest: string };
         hostSignature: string;
+        hostPayload: RunnerPayload;
       }
     | { origin: "coordinator-terminal"; reason: string };
   artifacts: Artifact[];
@@ -190,6 +197,7 @@ const ManifestSchema: z.ZodType<Manifest> = z
             })
             .strict(),
           hostSignature: z.string().base64().max(256),
+          hostPayload: RunnerPayloadSchema,
         })
         .strict(),
       z
@@ -287,6 +295,7 @@ export class ProcessExecutor implements Executor {
     maxOutput: number,
   ): Promise<string> {
     await verifyExecutable(spec.executable, spec.executableSha256);
+    await verifyInvocationArguments(spec.arguments, spec.argumentFiles);
     return await new Promise<string>((resolvePromise, reject) => {
       const child = spawn(spec.executable, spec.arguments, {
         shell: false,
@@ -385,7 +394,36 @@ export class LabManager {
     private readonly executor: Executor = new ProcessExecutor(),
     private readonly now = () => new Date(),
   ) {
+    this.validateKeyRoles();
     this.recover();
+  }
+  private validateKeyRoles() {
+    const coordinatorPrivate = privateKeyFromEnv(
+      this.config.manifestPrivateKeyEnv,
+    );
+    const coordinatorPublic = publicKeyFromEnv(
+      this.config.manifestPublicKeyEnv,
+    );
+    const coordinatorIdentity = publicKeyIdentity(coordinatorPublic);
+    if (
+      publicKeyIdentity(createPublicKey(coordinatorPrivate)) !==
+      coordinatorIdentity
+    )
+      throw new Error("coordinator signing key pair mismatch");
+    const hostIds = new Set<string>();
+    const hostIdentities = new Set<string>();
+    for (const host of this.config.hosts) {
+      const identity = publicKeyIdentity(publicKeyFromEnv(host.publicKeyEnv));
+      if (
+        hostIds.has(host.id) ||
+        hostIdentities.has(identity) ||
+        identity === coordinatorIdentity ||
+        identity !== host.identity
+      )
+        throw new Error("coordinator and host key identities must be distinct");
+      hostIds.add(host.id);
+      hostIdentities.add(identity);
+    }
   }
   private recover() {
     const root = resolve(this.config.stateDirectory);
@@ -409,7 +447,8 @@ export class LabManager {
               raw.manifest,
               raw.signature,
               publicKeyFromEnv(this.config.manifestPublicKeyEnv),
-            ))
+            ) ||
+            !this.verifyEvidence(raw.manifest))
         )
           throw new Error("persisted manifest signature invalid");
         const status: Status = ["queued", "running", "cancelling"].includes(
@@ -759,12 +798,82 @@ export class LabManager {
     return (
       signed.manifest.runId === id &&
       (!expectedHost || signed.manifest.hostId === expectedHost) &&
+      this.verifyEvidence(signed.manifest) &&
       verifyObject(
         signed.manifest,
         signed.signature,
         publicKeyFromEnv(this.config.manifestPublicKeyEnv),
       )
     );
+  }
+  private verifyEvidence(manifest: Manifest): boolean {
+    try {
+      if (manifest.evidence.origin === "coordinator-terminal")
+        return manifest.toolIdentities.length === 0;
+      const payload = manifest.evidence.hostPayload;
+      const host = this.config.hosts.find(
+        (item) => item.id === manifest.hostId,
+      );
+      if (!host) return false;
+      if (
+        manifest.evidence.signedPreimage.payloadDigest !==
+          digest(canonical(payload)) ||
+        !verifyObject(
+          manifest.evidence.signedPreimage,
+          manifest.evidence.hostSignature,
+          publicKeyFromEnv(host.publicKeyEnv),
+        ) ||
+        payload.hostId !== manifest.hostId ||
+        payload.requestDigest !== manifest.requestDigest ||
+        payload.startedAt !== manifest.startedAt ||
+        payload.finishedAt !== manifest.finishedAt ||
+        payload.status !== manifest.status ||
+        canonical([...payload.capabilities].sort()) !==
+          canonical(manifest.capabilities) ||
+        canonical(payload.toolIdentities) !== canonical(manifest.toolIdentities)
+      )
+        return false;
+      if (
+        sanitize(payload.stdout, this.config.limits.outputBytes).text !==
+          payload.stdout ||
+        sanitize(payload.stderr, this.config.limits.outputBytes).text !==
+          payload.stderr
+      )
+        return false;
+      const outputs = [
+        ["stdout.txt", payload.stdout],
+        ["stderr.txt", payload.stderr],
+      ] as const;
+      const expectedOutputs = outputs.slice(
+        0,
+        this.config.limits.artifactCount,
+      );
+      if (manifest.artifacts.length !== expectedOutputs.length) return false;
+      for (const [name, raw] of expectedOutputs) {
+        const metadata = manifest.artifacts.find((item) => item.name === name);
+        if (!metadata) return false;
+        const cleaned = sanitize(
+          raw,
+          Math.min(
+            this.config.limits.outputBytes,
+            this.config.limits.artifactBytes,
+          ),
+        );
+        const bytes = Buffer.from(cleaned.text);
+        if (
+          metadata.sha256 !== digest(bytes) ||
+          metadata.bytes !== bytes.length ||
+          metadata.sanitization !== cleaned.policy ||
+          metadata.truncated !== cleaned.truncated ||
+          digest(readFileSync(this.artifactPath(manifest.runId, name))) !==
+            metadata.sha256
+        )
+          return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
   }
   artifacts(id: string) {
     return this.manifest(id).manifest.artifacts;
@@ -823,6 +932,7 @@ export class LabManager {
         finishedAt: timestamp,
         stdout: "",
         stderr: "",
+        sanitization: "kyberia-lab-text-v2",
         capabilities: host.capabilities,
         toolIdentities: [],
       },
@@ -896,9 +1006,7 @@ export class LabManager {
         finishedAt > this.now().getTime() + 5_000
       )
         throw new Error("host result timing rejected");
-      const finalStatus = run.controller.signal.aborted
-        ? "cancelled"
-        : response.payload.status;
+      const finalStatus = response.payload.status;
       await this.writeManifest(
         run,
         host,
@@ -907,6 +1015,7 @@ export class LabManager {
           origin: "host-signed",
           signedPreimage: response.signedPreimage,
           hostSignature: response.signature,
+          hostPayload: response.payload,
         },
         finalStatus,
       );
@@ -931,6 +1040,7 @@ export class LabManager {
             finishedAt: timestamp,
             stdout: "",
             stderr: run.error,
+            sanitization: "kyberia-lab-text-v2",
             capabilities: host.capabilities,
             toolIdentities: [],
           },

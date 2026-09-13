@@ -23,6 +23,16 @@ const command = z
       .regex(/^(?:\/|[A-Za-z]:\\)/),
     executableSha256: z.string().regex(/^[0-9a-f]{64}$/),
     arguments: z.array(z.string().max(256)).max(32),
+    argumentFiles: z
+      .array(
+        z
+          .object({
+            argumentIndex: z.number().int().min(0).max(31),
+            sha256: z.string().regex(/^[0-9a-f]{64}$/),
+          })
+          .strict(),
+      )
+      .max(16),
     version: z.string().min(1).max(64),
     environment: z
       .object({ KYBERIA_LAB_RUNNER_CONFIG: z.string().min(1).max(1024) })
@@ -44,6 +54,38 @@ const command = z
         code: "custom",
         message: "credential environment names must be unique",
       });
+    const pinned = new Set(
+      value.argumentFiles.map((item) => item.argumentIndex),
+    );
+    if (pinned.size !== value.argumentFiles.length)
+      context.addIssue({
+        code: "custom",
+        message: "argument file indices must be unique",
+      });
+    for (const [index, argument] of value.arguments.entries())
+      if (["-e", "--eval", "-c", "--command"].includes(argument))
+        context.addIssue({
+          code: "custom",
+          message: "inline runner code arguments are forbidden",
+        });
+      else if (
+        (/^(?:\/|[A-Za-z]:\\)/.test(argument) ||
+          /\.(?:[cm]?js|tsx?|py|sh|bash|zsh|ps1)$/i.test(argument)) &&
+        !pinned.has(index)
+      )
+        context.addIssue({
+          code: "custom",
+          message: "absolute runner arguments must be digest pinned",
+        });
+    for (const index of pinned)
+      if (
+        !value.arguments[index] ||
+        !/^(?:\/|[A-Za-z]:\\)/.test(value.arguments[index]!)
+      )
+        context.addIssue({
+          code: "custom",
+          message: "pinned argument must be an absolute path",
+        });
   });
 
 const host = z
@@ -63,9 +105,16 @@ const host = z
           .regex(/^\d+\.\d+(?:\.\d+)?$/)
           .max(32),
       )
-      .max(32),
-    allowedFixtureSets: z.array(ID).max(64),
-    allowedSceneSets: z.array(ID).max(64),
+      .max(32)
+      .refine((v) => new Set(v).size === v.length),
+    allowedFixtureSets: z
+      .array(ID)
+      .max(64)
+      .refine((v) => new Set(v).size === v.length),
+    allowedSceneSets: z
+      .array(ID)
+      .max(64)
+      .refine((v) => new Set(v).size === v.length),
     suites: z.partialRecord(Suite, command),
     probes: z.partialRecord(Probe, command),
   })
@@ -87,7 +136,12 @@ export const Config = z
       .min(1)
       .max(1024)
       .refine((v) => new Set(v).size === v.length),
-    hosts: z.array(host).min(1).max(64),
+    hosts: z
+      .array(host)
+      .min(1)
+      .max(64)
+      .refine((v) => new Set(v.map((item) => item.id)).size === v.length)
+      .refine((v) => new Set(v.map((item) => item.identity)).size === v.length),
     limits: z
       .object({
         concurrency: z.number().int().min(1).max(16),
@@ -102,6 +156,11 @@ export const Config = z
   })
   .strict()
   .superRefine((value, context) => {
+    if (value.manifestPrivateKeyEnv === value.manifestPublicKeyEnv)
+      context.addIssue({
+        code: "custom",
+        message: "coordinator key roles must use distinct names",
+      });
     for (const hostValue of value.hosts)
       for (const spec of [
         ...Object.values(hostValue.suites),
@@ -112,6 +171,15 @@ export const Config = z
             code: "custom",
             message: "coordinator private signing key cannot be forwarded",
           });
+    for (const hostValue of value.hosts)
+      if (
+        hostValue.publicKeyEnv === value.manifestPublicKeyEnv ||
+        hostValue.publicKeyEnv === value.manifestPrivateKeyEnv
+      )
+        context.addIssue({
+          code: "custom",
+          message: "host and coordinator key roles must be distinct",
+        });
   });
 
 export type LabConfig = z.infer<typeof Config>;
@@ -120,6 +188,7 @@ export type ProbeId = z.infer<typeof Probe>;
 
 const runnerCommand = z
   .object({
+    toolId: ID,
     executable: z
       .string()
       .min(1)
@@ -151,6 +220,8 @@ export const RunnerConfig = z
       .max(1024)
       .regex(/^(?:\/|[A-Za-z]:\\)/),
     gitExecutableSha256: z.string().regex(/^[0-9a-f]{64}$/),
+    gitToolId: ID,
+    gitVersion: z.string().min(1).max(64),
     checkoutDirectory: z.string().min(1).max(1024),
     replayDirectory: z.string().min(1).max(1024),
     maximumClockSkewSeconds: z.number().int().min(1).max(300),
@@ -189,7 +260,23 @@ export const RunnerConfig = z
       runnerCommand,
     ),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (value.hostPrivateKeyEnv === value.coordinatorPublicKeyEnv)
+      context.addIssue({
+        code: "custom",
+        message: "runner key roles must use distinct names",
+      });
+    const toolIds = [
+      value.gitToolId,
+      ...Object.values(value.operations).map((operation) => operation.toolId),
+    ];
+    if (new Set(toolIds).size !== toolIds.length)
+      context.addIssue({
+        code: "custom",
+        message: "runner tool IDs must be unique",
+      });
+  });
 export type LabRunnerConfig = z.infer<typeof RunnerConfig>;
 
 export const validationInput = z

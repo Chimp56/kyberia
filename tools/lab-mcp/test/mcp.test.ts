@@ -47,16 +47,19 @@ test("real MCP client enumerates exact tools and resource templates", async () =
         finishedAt: request.request.issuedAt,
         stdout: "ok",
         stderr: "",
+        sanitization: "kyberia-lab-text-v2" as const,
         capabilities: ["wifi", "cuda"],
         toolIdentities: [
           {
             role: "git" as const,
-            path: "/usr/bin/git",
+            id: "git-test",
+            version: "1",
             sha256: "0".repeat(64),
           },
           {
             role: "operation" as const,
-            path: "/fixed/op",
+            id: "operation-test",
+            version: "1",
             sha256: "1".repeat(64),
           },
         ],

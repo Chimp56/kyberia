@@ -47,6 +47,32 @@ export async function verifyExecutable(
     throw new Error("trusted executable digest mismatch");
 }
 
+export async function verifyInvocationArguments(
+  arguments_: string[],
+  pinnedFiles: Array<{ argumentIndex: number; sha256: string }>,
+): Promise<void> {
+  const pinned = new Map(
+    pinnedFiles.map((item) => [item.argumentIndex, item.sha256]),
+  );
+  if (pinned.size !== pinnedFiles.length)
+    throw new Error("argument file indices must be unique");
+  for (const [index, argument] of arguments_.entries()) {
+    if (["-e", "--eval", "-c", "--command"].includes(argument))
+      throw new Error("inline code-bearing runner arguments are forbidden");
+    const fileLike =
+      /^(?:\/|[A-Za-z]:\\)/.test(argument) ||
+      /\.(?:[cm]?js|tsx?|py|sh|bash|zsh|ps1)$/i.test(argument);
+    if (fileLike && !pinned.has(index))
+      throw new Error("code-bearing runner argument is not digest pinned");
+  }
+  for (const [index, sha256] of pinned) {
+    const path = arguments_[index];
+    if (!path || !/^(?:\/|[A-Za-z]:\\)/.test(path))
+      throw new Error("pinned runner argument must be an absolute path");
+    await verifyExecutable(path, sha256);
+  }
+}
+
 export function privateKeyFromEnv(name: string): KeyObject {
   const encoded = process.env[name];
   if (!encoded)
@@ -67,6 +93,12 @@ export function publicKeyFromEnv(name: string): KeyObject {
     format: "der",
     type: "spki",
   });
+}
+
+export function publicKeyIdentity(key: KeyObject): string {
+  return `sha256:${createHash("sha256")
+    .update(key.export({ format: "der", type: "spki" }))
+    .digest("base64")}`;
 }
 
 export function signObject(payload: object, key: KeyObject): string {
@@ -96,9 +128,7 @@ export function authenticateHostResponse(
   publicKey: KeyObject,
   expectedIdentity: string,
 ): void {
-  const actual = `sha256:${createHash("sha256")
-    .update(publicKey.export({ format: "der", type: "spki" }))
-    .digest("base64")}`;
+  const actual = publicKeyIdentity(publicKey);
   if (actual !== expectedIdentity)
     throw new Error("host identity does not match its pinned identity");
   if (!verifyObject(payload, signature, publicKey))

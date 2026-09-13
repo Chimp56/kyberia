@@ -18,11 +18,22 @@ for (const forbidden of ["node_modules/", ".tools/", ".trash/", "test/"])
     `package contains ${forbidden}`,
   );
 assert.ok(inventory.includes("dist/src/main.js"));
+for (const required of [
+  "README.md",
+  "config.example.json",
+  "config.remote.example.json",
+  "runner.example.json",
+  "CYCLONEDX-SCHEMA-LICENSE",
+])
+  assert.ok(inventory.includes(required), `package is missing ${required}`);
 assert.ok(
   inventory.every(
     (path) =>
       path === "package.json" ||
       path === "README.md" ||
+      path === "CYCLONEDX-SCHEMA-LICENSE" ||
+      path.endsWith(".example.json") ||
+      path.endsWith(".schema.json") ||
       path.startsWith("dist/src/"),
   ),
 );

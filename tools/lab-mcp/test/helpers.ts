@@ -20,8 +20,13 @@ export function config(state: string): {
   config: LabConfig;
   hostKeys: ReturnType<typeof keys>;
 } {
-  const coordinator = keys("TEST_COORDINATOR"),
-    hostKeys = keys("TEST_HOST");
+  const suffix = createHash("sha256")
+    .update(state)
+    .digest("hex")
+    .slice(0, 12)
+    .toUpperCase();
+  const coordinator = keys(`TEST_COORDINATOR_${suffix}`),
+    hostKeys = keys(`TEST_HOST_${suffix}`);
   const input = [
     {
       path: "README.md",
@@ -36,6 +41,7 @@ export function config(state: string): {
     executable: "/fixed/runner",
     executableSha256: "0".repeat(64),
     arguments: ["--stdio"],
+    argumentFiles: [],
     version,
     environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
     credentialEnvNames: [hostKeys.privateName],

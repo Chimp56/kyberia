@@ -30,6 +30,12 @@ export async function generateInputManifest(
 ) {
   if (!/^[0-9a-f]{40}$/.test(revision)) throw new Error("exact SHA required");
   await verifyExecutable(executable, executableSha256);
+  const objectType = (
+    await git(executable, repository, ["cat-file", "-t", revision], 4_096)
+  )
+    .toString("utf8")
+    .trim();
+  if (objectType !== "commit") throw new Error("revision is not a commit");
   const listing = await git(
     executable,
     repository,

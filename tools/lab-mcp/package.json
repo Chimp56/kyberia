@@ -3,7 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "files": [
-    "dist/src/**"
+    "dist/src/**",
+    "README.md",
+    "config*.example.json",
+    "runner.example.json",
+    "cyclonedx-bom-1.6.schema.json",
+    "jsf-0.82.schema.json",
+    "spdx.schema.json",
+    "CYCLONEDX-SCHEMA-LICENSE"
   ],
   "type": "module",
   "engines": {
@@ -11,9 +18,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
-    "lint": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
-    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md' && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts && tsc -p tsconfig.json && node test/package-inventory.mjs && node test/supply-chain.mjs",
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' package.json pnpm-lock.yaml pnpm-workspace.yaml README.md 'config*.example.json' runner.example.json dependency-sbom.cdx.json tsconfig.json",
+    "lint": "prettier --check 'src/**/*.ts' 'test/**/*.ts' package.json pnpm-lock.yaml pnpm-workspace.yaml README.md 'config*.example.json' runner.example.json dependency-sbom.cdx.json tsconfig.json",
+    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' package.json pnpm-lock.yaml pnpm-workspace.yaml README.md 'config*.example.json' runner.example.json dependency-sbom.cdx.json tsconfig.json && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts && tsc -p tsconfig.json && node test/package-inventory.mjs && node test/supply-chain.mjs",
     "sbom": "node test/supply-chain.mjs --write",
     "input-manifest": "node dist/src/input-manifest.js",
     "start": "node dist/src/main.js"
@@ -24,8 +31,11 @@
   },
   "devDependencies": {
     "@types/node": "24.10.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "prettier": "3.6.2",
     "tsx": "4.20.6",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "yaml": "2.8.1"
   }
 }

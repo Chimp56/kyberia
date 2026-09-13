@@ -79,6 +79,8 @@ test(
         coordinatorKeyId: "stdio-coordinator",
         gitExecutable,
         gitExecutableSha256: await fileSha256(gitExecutable),
+        gitToolId: "git-system",
+        gitVersion: "git-test",
         checkoutDirectory: repository,
         replayDirectory: join(state, "replay"),
         maximumClockSkewSeconds: 60,
@@ -91,6 +93,7 @@ test(
         },
         operations: {
           foundation: {
+            toolId: "printenv",
             executable: "/usr/bin/printenv",
             executableSha256: await fileSha256("/usr/bin/printenv"),
             arguments: ["KYBERIA_LAB_SEED"],
@@ -105,6 +108,13 @@ test(
       executable: process.execPath,
       executableSha256: await fileSha256(process.execPath),
       arguments: ["--import", tsx, resolve("src/runner.ts")],
+      argumentFiles: [
+        { argumentIndex: 1, sha256: await fileSha256(tsx) },
+        {
+          argumentIndex: 2,
+          sha256: await fileSha256(resolve("src/runner.ts")),
+        },
+      ],
       version: "foundation-v1",
       environment: { KYBERIA_LAB_RUNNER_CONFIG: runnerPath },
       credentialEnvNames: [host.privateName, coordinator.publicName],
