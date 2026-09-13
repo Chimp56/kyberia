@@ -58,7 +58,9 @@ success and refusal tests so the next hosted annotation identifies which
 production path fails; the original bind-then-drop refusal check remains.
 The process regression is likewise split into timeout/cancellation,
 descendant-pipe-drain, and escaped-descendant-pipe-drain tests for the next
-hosted annotation. Local macOS focused tests, the 16-test active suite, the
+hosted annotation. A separate mixed loopback regression restores a success
+followed by refusal through one `StdTcpConnector`, with canonical endpoint
+ordering assertions. Local macOS focused tests, the 17-test active suite, the
 full offline workspace suite, and the Windows-target Cargo check pass; native
 Windows hosted verification and the independent review remain pending.
 

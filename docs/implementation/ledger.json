@@ -172615,20 +172615,20 @@
         },
         {
           "path": "crates/active-measurement/tests/active.rs",
-          "description": "Separately named bounded loopback success/refusal and repeated immediate-peer-close regressions",
-          "revision": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7",
-          "sha256": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7"
+          "description": "Separately named bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
+          "revision": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b",
+          "sha256": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
           "description": "Focused active-measurement suite, split hosted diagnostics, Windows failure analysis, and pending native gate",
-          "revision": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
-          "sha256": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
+          "revision": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
+          "sha256": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
           "scope": "macOS runtime and Windows-target compilation; hosted Windows active and hosted macOS process diagnostics remain open",
-          "result": "PASS: macOS active suite 16/16, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
+          "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
         }
       ],
       "reviews": [],
@@ -172683,20 +172683,20 @@
         },
         {
           "path": "crates/active-measurement/tests/active.rs",
-          "description": "Separately named bounded loopback success/refusal and repeated immediate-peer-close regressions",
-          "revision": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7",
-          "sha256": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7"
+          "description": "Separately named bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
+          "revision": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b",
+          "sha256": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
           "description": "Focused active-measurement suite, split hosted diagnostics, Windows failure analysis, and pending native gate",
-          "revision": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
-          "sha256": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
+          "revision": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
+          "sha256": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
           "scope": "macOS runtime and Windows-target compilation; hosted Windows active and hosted macOS process diagnostics remain open",
-          "result": "PASS: macOS active suite 16/16, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
+          "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
         }
       ],
       "reviews": [],

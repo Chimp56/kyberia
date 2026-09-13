@@ -1367,6 +1367,64 @@ fn real_loopback_adapter_records_refusal_without_external_network() {
 }
 
 #[test]
+fn real_loopback_adapter_records_mixed_success_then_refusal_with_one_connector() {
+    let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {
+        eprintln!(
+            "SKIP: active loopback mixed integration requires local listener permission; no runtime pass recorded"
+        );
+        return;
+    };
+    let success_port = listener.local_addr().unwrap().port();
+    let Ok(refused_listener) = TcpListener::bind(("127.0.0.1", 0)) else {
+        eprintln!(
+            "SKIP: active loopback mixed integration requires a second local listener; no runtime pass recorded"
+        );
+        return;
+    };
+    let refused_port = refused_listener.local_addr().unwrap().port();
+    drop(refused_listener);
+
+    let (ready_tx, ready_rx) = mpsc::channel();
+    let server = thread::spawn(move || {
+        ready_tx.send(()).unwrap();
+        let _ = listener.accept();
+    });
+    ready_rx.recv().unwrap();
+
+    // Supply the endpoints in reverse order so canonical scheduling must put
+    // the successful connection before the refusal on one connector instance.
+    let endpoints = vec![
+        endpoint(2, refused_port, ActiveEndpointTier::LanReference),
+        endpoint(1, success_port, ActiveEndpointTier::LanReference),
+    ];
+    let (run, interval) = make_run(endpoints, 2.0, 1);
+    let schedule = build_schedule(&run, &interval).unwrap();
+    let mut clock = StdMonotonicClock::new();
+    let mut connector = StdTcpConnector::new();
+    let report = execute(
+        &run,
+        &interval,
+        &schedule,
+        &mut clock,
+        &mut connector,
+        &NeverCancelled,
+    )
+    .unwrap();
+    assert_eq!(report.results().len(), 2);
+    assert_eq!(report.results()[0].endpoint_id(), id(1));
+    assert_eq!(
+        report.results()[0].samples()[0].outcome(),
+        ActiveSampleOutcome::Success
+    );
+    assert_eq!(report.results()[1].endpoint_id(), id(2));
+    assert_eq!(
+        report.results()[1].samples()[0].outcome(),
+        ActiveSampleOutcome::ConnectionRefused
+    );
+    server.join().unwrap();
+}
+
+#[test]
 fn real_loopback_connector_accepts_immediate_peer_close_after_writable_completion() {
     const ATTEMPTS: usize = 32;
     let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {

@@ -18,7 +18,7 @@ python3 tools/architecture.py check
 git diff --check
 ```
 
-On 2026-09-13 the focused suite passed 16/16 tests, affected-package Clippy
+On 2026-09-13 the focused suite passed 17/17 tests, affected-package Clippy
 passed with warnings denied, and the complete workspace suite passed with all
 non-ignored tests green. The initial sandboxed workspace run reached five
 unrelated Kismet loopback fixtures and failed because listener creation was
@@ -41,8 +41,10 @@ not-connected state. The repeated loopback regression exercises successful
 connects whose peer is closed immediately after acceptance. The production
 loopback integration is now split into separately named success and refusal
 tests, retaining the bind-then-drop refused-port check, so the next public
-annotation identifies the failing active stage. The process regression is
-similarly split into timeout/cancellation, descendant-pipe-drain, and
+annotation identifies the failing active stage. A separate mixed integration
+also executes success followed by refusal through one `StdTcpConnector` and
+asserts canonical endpoint ordering and typed outcomes. The process regression
+is similarly split into timeout/cancellation, descendant-pipe-drain, and
 escaped-descendant-pipe-drain tests. These changes preserve literal target
 admission, typed refusal/error outcomes, cancellation polling, and bounded
 timeouts.
@@ -82,11 +84,12 @@ The focused Rust suite covers:
   prior misleading TCP-connect method version, with exact small-count timing
   and failure-burst feasibility regressions;
 - separately named real std TCP connector success and refusal integrations
-  against a bounded loopback listener and a local refused port. A
-  repeated-connect regression closes each accepted peer immediately to
-  exercise writable completion and readiness rearming. The integration cases
-  exit early when the host sandbox denies listener creation; no test contacts
-  an external address.
+  against a bounded loopback listener and a local refused port, plus a mixed
+  success-then-refusal sequence through one connector with canonical result
+  ordering assertions. A repeated-connect regression closes each accepted
+  peer immediately to exercise writable completion and readiness rearming. The
+  integration cases exit early when the host sandbox denies listener creation;
+  no test contacts an external address.
 
 The canonical sample retains an outcome for every scheduled item. Successful
 samples contain measured TCP connect duration; failed and cancelled samples
