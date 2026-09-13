@@ -69,6 +69,77 @@ class LabPackageManagerTests(unittest.TestCase):
             "install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store"
         )
 
+
+class BootstrapStageDiagnosticTests(unittest.TestCase):
+    def test_bootstrap_wraps_each_subcommand_with_a_closed_logical_stage_id(self):
+        stages = []
+
+        def record(stage, operation):
+            stages.append(stage)
+            return operation()
+
+        with patch.object(DEV, "_run_bootstrap_stage", side_effect=record), patch.object(
+            DEV, "run"
+        ), patch.object(DEV, "python"), patch.object(DEV, "lab_pnpm"):
+            DEV.command("bootstrap")
+
+        self.assertEqual(stages, list(DEV.BOOTSTRAP_STAGE_IDS))
+
+    def test_each_stage_keeps_only_its_allowlisted_id_on_failure(self):
+        for stage in DEV.BOOTSTRAP_STAGE_IDS:
+            with self.subTest(stage=stage):
+                error = subprocess.CalledProcessError(
+                    29,
+                    ["hostile-tool", "--token", "SECRET"],
+                    output="PRIVATE_CHILD_OUTPUT",
+                    stderr="PRIVATE_STDERR",
+                )
+                with self.assertRaises(subprocess.CalledProcessError) as raised:
+                    DEV._run_bootstrap_stage(stage, lambda: (_ for _ in ()).throw(error))
+                self.assertIs(raised.exception, error)
+                self.assertEqual(error.kyberia_stage, stage)
+
+    def test_actions_bootstrap_diagnostic_hides_command_and_child_text(self):
+        class FakeProcess:
+            stdout = io.BytesIO(
+                b"::error title=spoof::SECRET_CHILD\n"
+                b"private path C:\\Users\\runner\\token.txt\n"
+            )
+            returncode = 23
+
+            def wait(self):
+                return self.returncode
+
+        def failing_command(_name):
+            return DEV._run_bootstrap_stage(
+                "bootstrap.cargo-fetch",
+                lambda: DEV.run("cargo", "fetch", "--token", "SECRET"),
+            )
+
+        output = io.StringIO()
+        with patch.object(DEV.sys, "argv", ["dev.py", "bootstrap"]), patch.object(
+            DEV, "command", side_effect=failing_command
+        ), patch.object(DEV.subprocess, "Popen", return_value=FakeProcess()), patch.object(
+            DEV, "github_actions_enabled", return_value=True
+        ), contextlib.redirect_stdout(output):
+            with self.assertRaises(SystemExit) as stopped:
+                DEV.main()
+
+        self.assertEqual(stopped.exception.code, 23)
+        rendered = output.getvalue()
+        self.assertIn("Kyberia validation stage bootstrap.cargo-fetch", rendered)
+        self.assertIn("Validation command failed at stage bootstrap.cargo-fetch", rendered)
+        for secret in (
+            "--token",
+            "SECRET",
+            "SECRET_CHILD",
+            "private path",
+            "Users\\runner",
+            "spoof",
+        ):
+            self.assertNotIn(secret, rendered)
+        self.assertEqual(len(rendered.splitlines()), 4)
+
     def test_root_bootstrap_uses_same_package_relative_store(self):
         with patch.object(DEV, "run"), patch.object(DEV, "python"), patch.object(
             DEV, "lab_pnpm"

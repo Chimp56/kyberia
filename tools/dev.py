@@ -17,6 +17,37 @@ if str(TOOLS) not in sys.path:
 from rust_diagnostics import github_actions_enabled, parser_for
 
 
+# These identifiers are part of the public CI failure contract.  Keep the
+# set closed so an exception can never cause arbitrary command metadata to be
+# copied into a workflow annotation.
+BOOTSTRAP_STAGE_IDS = (
+    "bootstrap.python-venv",
+    "bootstrap.python-dependencies",
+    "bootstrap.rust-toolchain",
+    "bootstrap.cargo-fetch",
+    "bootstrap.lab-pnpm",
+)
+_ACTIVE_BOOTSTRAP_STAGE = None
+
+
+def _run_bootstrap_stage(stage, operation):
+    """Run one bootstrap operation while retaining only its safe stage ID."""
+    if stage not in BOOTSTRAP_STAGE_IDS:
+        raise ValueError("unknown bootstrap stage")
+    global _ACTIVE_BOOTSTRAP_STAGE
+    previous = _ACTIVE_BOOTSTRAP_STAGE
+    _ACTIVE_BOOTSTRAP_STAGE = stage
+    try:
+        return operation()
+    except (subprocess.CalledProcessError, OSError) as error:
+        # These exceptions retain command/path details. The main handler must
+        # use only this allowlisted attribute when reporting hosted failures.
+        error.kyberia_stage = stage
+        raise
+    finally:
+        _ACTIVE_BOOTSTRAP_STAGE = previous
+
+
 def _cargo_json_command(command):
     """Add Cargo's bounded machine-readable diagnostics before `--` args."""
     if any(str(value).startswith("--message-format") for value in command):
@@ -40,18 +71,19 @@ def _write_raw(chunk):
         sys.stdout.flush()
 
 
-def _run_streamed(command, diagnostic_kind=None, env=None):
+def _run_streamed(command, diagnostic_kind=None, env=None, emit_child_output=True):
     parser = parser_for(diagnostic_kind, ROOT) if diagnostic_kind is not None else None
     command_guard = None
     if github_actions_enabled():
-        # Child output is still retained verbatim in the Actions log, but the
-        # guard prevents a compiler/test message from becoming a workflow
-        # command or an untrusted annotation.
-        guard_prefix = (
-            "kyberia-python-diagnostics-"
-            if diagnostic_kind == "python-unittest"
-            else "kyberia-rust-diagnostics-"
-        )
+        # The guard prevents child text from becoming a workflow command or
+        # an untrusted annotation. Bootstrap stages additionally suppress the
+        # child stream entirely.
+        if diagnostic_kind == "python-unittest":
+            guard_prefix = "kyberia-python-diagnostics-"
+        elif diagnostic_kind in ("cargo", "libtest"):
+            guard_prefix = "kyberia-rust-diagnostics-"
+        else:
+            guard_prefix = "kyberia-command-output-"
         command_guard = guard_prefix + secrets.token_hex(16)
         print("::stop-commands::" + command_guard, flush=True)
     process = None
@@ -70,7 +102,8 @@ def _run_streamed(command, diagnostic_kind=None, env=None):
             chunk = process.stdout.read(8192)
             if not chunk:
                 break
-            _write_raw(chunk)
+            if emit_child_output:
+                _write_raw(chunk)
             if parser is not None:
                 parser.feed(chunk)
             last_byte = chunk[-1]
@@ -104,9 +137,20 @@ def run(*args, diagnostics=None, env=None):
     actions = github_actions_enabled()
     if actions and diagnostics == "cargo":
         command = _cargo_json_command(command)
-    print("+ " + " ".join(command), flush=True)
+    if actions and _ACTIVE_BOOTSTRAP_STAGE is not None:
+        # Bootstrap diagnostics expose only a fixed logical stage.  In
+        # particular, do not echo executable paths, arguments, or child text
+        # into the hosted workflow log.
+        print("+ Kyberia validation stage " + _ACTIVE_BOOTSTRAP_STAGE, flush=True)
+    else:
+        print("+ " + " ".join(command), flush=True)
     if actions:
-        _run_streamed(command, diagnostics, env)
+        _run_streamed(
+            command,
+            diagnostics,
+            env,
+            emit_child_output=_ACTIVE_BOOTSTRAP_STAGE is None,
+        )
     elif env is None:
         subprocess.run(command, cwd=ROOT, check=True)
     else:
@@ -148,11 +192,37 @@ def lab_pnpm(*args):
 
 def command(name):
     if name == "bootstrap":
-        run(sys.executable, "-m", "venv", ROOT / ".tools/venv")
-        python("-m", "pip", "install", "--require-hashes", "--only-binary=:all:", "--no-cache-dir", "-r", "tools/requirements.txt")
-        run("rustup", "show", "active-toolchain")
-        run("cargo", "fetch", "--locked")
-        lab_pnpm("install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store")
+        _run_bootstrap_stage(
+            "bootstrap.python-venv",
+            lambda: run(sys.executable, "-m", "venv", ROOT / ".tools/venv"),
+        )
+        _run_bootstrap_stage(
+            "bootstrap.python-dependencies",
+            lambda: python(
+                "-m",
+                "pip",
+                "install",
+                "--require-hashes",
+                "--only-binary=:all:",
+                "--no-cache-dir",
+                "-r",
+                "tools/requirements.txt",
+            ),
+        )
+        _run_bootstrap_stage(
+            "bootstrap.rust-toolchain",
+            lambda: run("rustup", "show", "active-toolchain"),
+        )
+        _run_bootstrap_stage(
+            "bootstrap.cargo-fetch",
+            lambda: run("cargo", "fetch", "--locked"),
+        )
+        _run_bootstrap_stage(
+            "bootstrap.lab-pnpm",
+            lambda: lab_pnpm(
+                "install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store"
+            ),
+        )
     elif name == "clean":
         # The clean helper is stdlib-only and deliberately runs with the
         # invoking interpreter, so it remains available before bootstrap.
@@ -229,15 +299,28 @@ def main():
     args = parser.parse_args()
     try:
         command(args.command)
-    except subprocess.CalledProcessError as error:
+    except (subprocess.CalledProcessError, OSError) as error:
         if github_actions_enabled():
             # Only identify repository-defined developer commands. Never emit
             # child output or environment values into public annotations.
-            returncode = error.returncode if isinstance(error.returncode, int) and not isinstance(error.returncode, bool) else 1
-            message = f"Validation command failed (exit {returncode})"
+            returncode = (
+                error.returncode
+                if isinstance(error, subprocess.CalledProcessError)
+                and isinstance(error.returncode, int)
+                and not isinstance(error.returncode, bool)
+                else 1
+            )
+            stage = getattr(error, "kyberia_stage", None)
+            if stage not in BOOTSTRAP_STAGE_IDS:
+                stage = None
+            stage_text = f" at stage {stage}" if stage is not None else ""
+            message = f"Validation command failed{stage_text} (exit {returncode})"
             message = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
             print("::error title=Validation command failed::" + message, flush=True)
-        raise SystemExit(error.returncode)
+            raise SystemExit(returncode)
+        if isinstance(error, subprocess.CalledProcessError):
+            raise SystemExit(error.returncode)
+        raise
 
 
 if __name__ == "__main__":
