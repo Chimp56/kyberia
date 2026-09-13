@@ -8,7 +8,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; and the Windows loopback fixture correction through `f019928`. Final renderer and product gates remain open.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; and safe bootstrap-stage diagnostics through `c4a1219`. Final renderer and product gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -18,7 +18,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 
 ## Current execution checkpoint — 2026-09-13
 
-Main is at `f019928`. The complete reviewed Lab MCP is integrated with exact
+Main is at `c4a1219`. The complete reviewed Lab MCP is integrated with exact
 resources and ten allowlisted tools, immutable Git revisions, authenticated
 hosts, signed requests/results, bounded execution and sanitized text artifacts.
 Its fresh package-local bootstrap passes 32 Node tests with one explicit
@@ -27,14 +27,14 @@ independent no-findings review. The reviewed Tauri/React desktop shell is also
 integrated; deterministic cancellation handling, the exact Vitest 4.1.11 fix,
 native Rust tests, Clippy, Playwright and a no-bundle release build all pass.
 
-Hosted run `34770478017` validates the diagnostic split: Ubuntu and macOS pass.
-Windows now isolates failure to refusal handling in
-`real_loopback_adapter_records_refusal_without_external_network` and the
-same-connector mixed success/refusal regression; success-only loopback passes.
-The independently reviewed test correction is integrated and preserves real
-refusal plus mixed same-connector coverage. A new native Windows hosted run is
-still required. CUDA, physical-radio, Kismet and spectrum executions remain
-runtime gates rather than simulated evidence.
+Hosted run `34772736694` at `a482ac6` passes the entire expanded suite on Ubuntu
+and macOS, including Lab and desktop gates. Windows fails in the combined
+bootstrap step before runtime tests execute. Independently reviewed diagnostics
+now emit only one of five fixed bootstrap stage IDs and a bounded numeric exit,
+while suppressing command text, paths, environment and child output. A new
+hosted run must identify and correct that stage before the reviewed refusal
+fixtures receive native Windows execution. CUDA, physical-radio, Kismet and
+spectrum executions remain runtime gates rather than simulated evidence.
 
 The generated traceability matrix currently reports **66 VALIDATED, 83
 IN_PROGRESS, and 3,186 NOT_STARTED leaf obligations**, with zero
@@ -121,7 +121,7 @@ product capability is validated.
 | Active TCP measurement foundation | Integrated through `e4eec6d`; reviewed Windows fixture correction `f019928` | Reviewed scheduling, attribution, budgets, cancellation and statistics are integrated. Native Windows hosted validation of refusal completion remains |
 | Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
 | Kyberia Lab MCP | Integrated through `964a5ae`; merge correction `eb3574d` | Exact requested MCP surface and hardened coordinator/runner pass local checks and independent review. Provisioned authenticated hosts plus physical Windows/Kismet/CUDA/spectrum executions remain |
-| Hosted validation diagnostics | Correction integrated through `f019928` | Ubuntu/macOS pass run `34770478017`; Windows isolated active refusal fixture races. Reviewed serialization/address isolation is integrated; hosted rerun remains |
+| Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 
 
@@ -131,7 +131,7 @@ An active draft or passing author test is not integration approval.
 
 ## Current validation
 
-At combined integration `f019928`, the locked Python environment passes **284 tests with 22 skips**;
+At combined integration `c4a1219`, the locked Python environment passes **288 tests with 22 skips**;
 the Lab MCP passes **32 Node tests with one explicit Windows skip** plus three
 Windows helper parser tests; and the merged developer-command regressions pass
 19/19. Ledger and architecture checks pass, and source inventory covers **522
