@@ -880,6 +880,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-application"
+version = "0.1.0"
+dependencies = [
+ "kyberia-causal-materializer",
+ "kyberia-domain",
+ "kyberia-operation-log",
+ "kyberia-project-store",
+ "kyberia-resource-budget",
+ "rusqlite",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
 name = "kyberia-capture-adapter"
 version = "0.1.0"
 dependencies = [
