@@ -6,6 +6,8 @@ export interface WorkspaceState {
   phase: WorkspacePhase;
   projectState: ProjectState;
   projectName: string;
+  hasFloorPlan: boolean;
+  calibrated: boolean;
   error: IpcErrorPayload | null;
   selectedTool: string;
   commandPaletteOpen: boolean;
@@ -16,6 +18,8 @@ export const initialWorkspaceState: WorkspaceState = {
   phase: "idle",
   projectState: "no_project",
   projectName: "Untitled project",
+  hasFloorPlan: false,
+  calibrated: false,
   error: null,
   selectedTool: "select",
   commandPaletteOpen: false,
@@ -27,10 +31,21 @@ export const initialWorkspaceState: WorkspaceState = {
   },
 };
 
-export function stateForError(error: IpcErrorPayload): WorkspaceState {
+export function stateForError(error: IpcErrorPayload, previous: WorkspaceState = initialWorkspaceState): WorkspaceState {
   return {
-    ...initialWorkspaceState,
+    ...previous,
     phase: error.code === "capability_unavailable" ? "unsupported" : "error",
     error,
+  };
+}
+
+export function createRequestGate() {
+  let latest = 0;
+  return {
+    begin: () => {
+      latest += 1;
+      return latest;
+    },
+    isCurrent: (request: number) => request === latest,
   };
 }

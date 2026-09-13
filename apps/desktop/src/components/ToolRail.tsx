@@ -8,7 +8,7 @@ const tools: Array<{ id: ToolId; label: string; shortcut: string; icon: "arrow" 
   { id: "access-point", label: "Add AP", shortcut: "A", icon: "plus" },
   { id: "note", label: "Add Note", shortcut: "N", icon: "document" },
   { id: "survey", label: "Survey Path", shortcut: "P", icon: "layers" },
-  { id: "zone", label: "Zone", shortcut: "Z", icon: "triangle" },
+  { id: "zone", label: "Zone", shortcut: "Q", icon: "triangle" },
   { id: "text", label: "Text", shortcut: "T", icon: "menu" },
   { id: "pan", label: "Pan", shortcut: "H", icon: "pin" },
   { id: "zoom", label: "Zoom", shortcut: "Z", icon: "search" },

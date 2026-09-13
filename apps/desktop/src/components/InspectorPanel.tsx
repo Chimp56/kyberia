@@ -1,13 +1,15 @@
 import { Icon } from "./Icons";
+import { commandPaletteShortcut } from "../lib/shortcuts";
 
 interface InspectorPanelProps {
   projectName: string;
   projectReady: boolean;
+  isMobileOpen: boolean;
 }
 
-export function InspectorPanel({ projectName, projectReady }: InspectorPanelProps) {
+export function InspectorPanel({ projectName, projectReady, isMobileOpen }: InspectorPanelProps) {
   return (
-    <aside className="inspector-panel" aria-label="Inspector">
+    <aside className={`inspector-panel ${isMobileOpen ? "is-open" : ""}`} aria-label="Inspector">
       <div className="panel-title-row inspector-title"><h2>Inspector</h2><div className="inspector-actions"><button className="icon-button" type="button" disabled aria-label="Pin inspector" title="Inspector pinning is not available yet"><Icon name="pin" size={18} /></button><button className="icon-button" type="button" disabled aria-label="Close inspector" title="Inspector is required for the empty workspace"><Icon name="close" size={19} /></button></div></div>
       <div className="inspector-content">
         <div className="inspector-empty-icon"><Icon name="document" size={48} strokeWidth={1.25} /></div>
@@ -41,6 +43,6 @@ function CapabilityNotice() {
 }
 
 function ShortcutList() {
-  const shortcuts = [["Command palette", "⌘K"], ["Select tool", "V"], ["Measure tool", "M"], ["Add access point", "A"], ["Add note", "N"], ["Survey path", "P"], ["Zoom", "Z"], ["Pan", "H"]];
+  const shortcuts = [["Command palette", commandPaletteShortcut], ["Select tool", "V"], ["Measure tool", "M"], ["Add access point", "A"], ["Add note", "N"], ["Survey path", "P"], ["Zone", "Q"], ["Zoom", "Z"], ["Pan", "H"]];
   return <div className="shortcut-list"><div className="shortcut-heading"><h4>Keyboard shortcuts</h4><Icon name="question" size={17} /></div>{shortcuts.map(([label, key]) => <div className="shortcut-row" key={label}><span>{label}</span><kbd>{key}</kbd></div>)}</div>;
 }

@@ -147216,9 +147216,9 @@
         },
         {
           "path": "tools/dev.py",
-          "description": "Discoverable validation commands with guarded subprocess diagnostics",
-          "revision": "6310af90c28fc85409e1bded551dd95592055dfaf301e8741863a8441faeec2d",
-          "sha256": "6310af90c28fc85409e1bded551dd95592055dfaf301e8741863a8441faeec2d"
+          "description": "Discoverable validation commands with guarded subprocess diagnostics and desktop checks",
+          "revision": "7f48daf470fb89a36c5ccef55dd1a78d8b7c758c83a65b7e200ae33566563b22",
+          "sha256": "7f48daf470fb89a36c5ccef55dd1a78d8b7c758c83a65b7e200ae33566563b22"
         }
       ],
       "validation": [

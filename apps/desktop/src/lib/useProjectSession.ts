@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getDesktopIpc } from "./ipc";
-import { normalizeIpcError, IPC_SCHEMA, type CurrentProjectResponse, type DesktopIpc, type IpcErrorPayload } from "./contracts";
-import { initialWorkspaceState, stateForError, type WorkspaceState } from "./ui-state";
+import { assertOpenProjectSelectionResponse, assertResponse, normalizeIpcError, IPC_SCHEMA, type CurrentProjectResponse, type DesktopIpc, type IpcErrorPayload } from "./contracts";
+import { createRequestGate, initialWorkspaceState, stateForError, type WorkspaceState } from "./ui-state";
 
 export interface ProjectSessionController {
   state: WorkspaceState;
   createBlankProject: () => Promise<void>;
+  openProject: () => Promise<void>;
   importFloorPlan: () => void;
   retry: () => Promise<void>;
   selectTool: (tool: string) => void;
@@ -13,12 +14,14 @@ export interface ProjectSessionController {
   setPaletteOpen: (open: boolean) => void;
 }
 
-function responseToState(response: CurrentProjectResponse, previous: WorkspaceState): WorkspaceState {
+export function responseToState(response: CurrentProjectResponse, previous: WorkspaceState): WorkspaceState {
   return {
     ...previous,
     phase: "ready",
     projectState: response.state,
     projectName: response.project?.name ?? previous.projectName,
+    hasFloorPlan: response.project?.hasFloorPlan ?? false,
+    calibrated: response.project?.calibrated ?? false,
     error: null,
   };
 }
@@ -26,19 +29,26 @@ function responseToState(response: CurrentProjectResponse, previous: WorkspaceSt
 export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSessionController {
   const [state, setState] = useState<WorkspaceState>(initialWorkspaceState);
   const [lastError, setLastError] = useState<IpcErrorPayload | null>(null);
+  const requestGate = useRef(createRequestGate());
+
+  const applyError = useCallback((error: IpcErrorPayload) => {
+    setLastError(error);
+    setState((current) => stateForError(error, current));
+  }, []);
 
   const runCurrent = useCallback(async () => {
+    const request = requestGate.current.begin();
     setState((current) => ({ ...current, phase: "loading", error: null }));
     try {
-      const response = await ipc.currentProject();
+      const response = assertResponse(await ipc.currentProject());
+      if (!requestGate.current.isCurrent(request)) return;
       setState((current) => responseToState(response, current));
       setLastError(null);
     } catch (value) {
       const error = normalizeIpcError(value);
-      setLastError(error);
-      setState((current) => ({ ...stateForError(error), projectName: current.projectName, selectedTool: current.selectedTool, layerVisibility: current.layerVisibility }));
+      if (requestGate.current.isCurrent(request)) applyError(error);
     }
-  }, [ipc]);
+  }, [applyError, ipc]);
 
   useEffect(() => {
     // Browser preview deliberately stays local and empty. A Tauri window can
@@ -47,17 +57,42 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
   }, [runCurrent]);
 
   const createBlankProject = useCallback(async () => {
+    const request = requestGate.current.begin();
     setState((current) => ({ ...current, phase: "loading", error: null }));
     try {
-      const response = await ipc.createBlankProject({ schema: IPC_SCHEMA, name: "Untitled project" });
+      const response = assertResponse(await ipc.createBlankProject({ schema: IPC_SCHEMA, name: "Untitled project" }));
+      if (!requestGate.current.isCurrent(request)) return;
       setState((current) => responseToState(response, current));
       setLastError(null);
     } catch (value) {
       const error = normalizeIpcError(value);
-      setLastError(error);
-      setState((current) => ({ ...stateForError(error), projectName: current.projectName, selectedTool: current.selectedTool, layerVisibility: current.layerVisibility }));
+      if (requestGate.current.isCurrent(request)) applyError(error);
     }
-  }, [ipc]);
+  }, [applyError, ipc]);
+
+  const openProject = useCallback(async () => {
+    const request = requestGate.current.begin();
+    setState((current) => ({ ...current, phase: "loading", error: null }));
+    try {
+      const selection = assertOpenProjectSelectionResponse(await ipc.selectOpenProject());
+      if (!requestGate.current.isCurrent(request) || selection.selection === null) {
+        if (requestGate.current.isCurrent(request)) setState((current) => ({ ...current, phase: "idle", error: null }));
+        return;
+      }
+      const response = assertResponse(await ipc.openProject({
+        schema: IPC_SCHEMA,
+        grantId: selection.selection.grantId,
+        mode: "read_write",
+        expectedName: selection.selection.displayName,
+      }));
+      if (!requestGate.current.isCurrent(request)) return;
+      setState((current) => responseToState(response, { ...current, projectName: selection.selection?.displayName ?? current.projectName }));
+      setLastError(null);
+    } catch (value) {
+      const error = normalizeIpcError(value);
+      if (requestGate.current.isCurrent(request)) applyError(error);
+    }
+  }, [applyError, ipc]);
 
   const importFloorPlan = useCallback(() => {
     const error: IpcErrorPayload = {
@@ -67,17 +102,27 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
       remediation: "Create a blank project now, or use a build with the ImportFloorPlan command enabled.",
       retryable: false,
     };
-    setLastError(error);
-    setState((current) => ({ ...stateForError(error), projectName: current.projectName, selectedTool: current.selectedTool, layerVisibility: current.layerVisibility }));
+    applyError(error);
+  }, [applyError]);
+
+  const selectTool = useCallback((selectedTool: string) => {
+    setState((current) => ({ ...current, selectedTool }));
+  }, []);
+  const toggleLayer = useCallback((layer: string) => {
+    setState((current) => ({ ...current, layerVisibility: { ...current.layerVisibility, [layer]: !current.layerVisibility[layer] } }));
+  }, []);
+  const setPaletteOpen = useCallback((commandPaletteOpen: boolean) => {
+    setState((current) => ({ ...current, commandPaletteOpen }));
   }, []);
 
   return {
     state,
     createBlankProject,
+    openProject,
     importFloorPlan,
     retry: lastError?.retryable ? runCurrent : createBlankProject,
-    selectTool: (selectedTool) => setState((current) => ({ ...current, selectedTool })),
-    toggleLayer: (layer) => setState((current) => ({ ...current, layerVisibility: { ...current.layerVisibility, [layer]: !current.layerVisibility[layer] } })),
-    setPaletteOpen: (commandPaletteOpen) => setState((current) => ({ ...current, commandPaletteOpen })),
+    selectTool,
+    toggleLayer,
+    setPaletteOpen,
   };
 }

@@ -110,6 +110,12 @@ def run(*args, diagnostics=None, env=None):
         subprocess.run(command, cwd=ROOT, check=True, env=env)
 
 
+def run_in(directory, *args):
+    command = list(map(str, args))
+    print("+ (cd {} && {})".format(directory, " ".join(command)), flush=True)
+    subprocess.run(command, cwd=directory, check=True)
+
+
 def python(*args, diagnostics=None):
     if not PYTHON.is_file():
         raise SystemExit("Run python3 tools/dev.py bootstrap to create the local tooling environment")
@@ -176,6 +182,17 @@ def command(name):
     elif name == "evidence-check":
         python("tools/ledger.py", "check")
         python("tools/validation/fixtures.py", "check")
+    elif name == "desktop":
+        desktop = ROOT / "apps/desktop"
+        run_in(desktop, "npm", "run", "typecheck")
+        run_in(desktop, "npm", "run", "build")
+        run_in(desktop, "npm", "test", "--", "--run")
+        run("cargo", "fmt", "--manifest-path", desktop / "src-tauri/Cargo.toml", "--", "--check")
+        run("cargo", "test", "-p", "kyberia-desktop", "--locked", "--offline")
+        run("cargo", "clippy", "-p", "kyberia-desktop", "--all-targets", "--locked", "--offline", "--", "-D", "warnings", diagnostics="cargo")
+        python("tools/architecture.py")
+        python("tools/source_inventory.py", "check")
+        python("tools/ledger.py", "check")
     elif name == "benchmark":
         run("cargo", "run", "--release", "--locked", "--offline", "-p", "kyberia-domain", "--example", "project_benchmark")
     elif name == "sbom":
@@ -195,13 +212,13 @@ def command(name):
         lab_pnpm("run", "check")
         run(sys.executable, "-m", "unittest", "-v", "tools/lab-mcp/test/test_windows_process.py")
     elif name == "check":
-        for step in ["lint", "typecheck", "test", "lab-mcp-check", "source-check", "evidence-check"]:
+        for step in ["lint", "typecheck", "test", "lab-mcp-check", "source-check", "evidence-check", "desktop"]:
             command(step)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "evidence-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "lab-mcp-bootstrap", "lab-mcp-build", "lab-mcp-check", "check"])
+    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "evidence-check", "desktop", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "lab-mcp-bootstrap", "lab-mcp-build", "lab-mcp-check", "check"])
     args = parser.parse_args()
     try:
         command(args.command)

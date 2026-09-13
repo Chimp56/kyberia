@@ -2,8 +2,16 @@ use kyberia_application::{
     Application, ApplicationError, CreateProject, OpenProject, ProjectQuery, ProjectQueryResult,
     ProjectSession, ProjectState, SessionMode,
 };
+use kyberia_resource_budget::CancellationHook;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, AtomicU8, Ordering},
+    },
+};
 
 pub const IPC_SCHEMA: &str = "kyberia.desktop-ipc/1";
 
@@ -16,24 +24,29 @@ pub struct CreateBlankProjectRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateProjectRequest {
+pub struct SelectOpenProjectRequest {
     pub schema: String,
-    pub path: String,
-    pub name: String,
-    pub created_utc_ms: i64,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct OpenProjectRequest {
+pub struct OpenProjectGrantRequest {
     pub schema: String,
-    pub path: String,
+    pub grant_id: String,
     pub mode: String,
+    pub expected_name: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct SchemaRequest {
     pub schema: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JobRequest {
+    pub schema: String,
+    pub job_id: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -68,6 +81,7 @@ pub struct ProjectSummary {
     pub revision: u64,
     pub logical_time: u64,
     pub has_floor_plan: bool,
+    pub calibrated: bool,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -79,9 +93,108 @@ pub struct CurrentProjectResponse {
     pub capabilities: Vec<CapabilitySummary>,
 }
 
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenProjectSelection {
+    pub grant_id: String,
+    pub display_name: String,
+    pub kind: &'static str,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenProjectSelectionResponse {
+    pub schema: &'static str,
+    pub selection: Option<OpenProjectSelection>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JobStatusResponse {
+    pub schema: &'static str,
+    pub job_id: String,
+    pub state: &'static str,
+    pub progress: u8,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum GrantKind {
+    Open,
+}
+
+#[derive(Debug)]
+struct NativeProjectGrant {
+    path: PathBuf,
+    display_name: String,
+    kind: GrantKind,
+}
+
+#[derive(Debug)]
+pub struct JobControl {
+    cancelled: AtomicBool,
+    progress: AtomicU8,
+}
+
+impl JobControl {
+    pub fn new() -> Self {
+        Self {
+            cancelled: AtomicBool::new(false),
+            progress: AtomicU8::new(0),
+        }
+    }
+
+    pub fn cancel(&self) {
+        self.cancelled.store(true, Ordering::Release);
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::Acquire)
+    }
+
+    pub fn progress(&self) -> u8 {
+        self.progress.load(Ordering::Acquire)
+    }
+
+    pub fn set_progress(&self, progress: u8) {
+        self.progress.store(progress.min(100), Ordering::Release);
+    }
+}
+
+impl Default for JobControl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub struct JobCancellation {
+    control: Arc<JobControl>,
+}
+
+impl JobCancellation {
+    pub fn new(control: Arc<JobControl>) -> Self {
+        Self { control }
+    }
+
+    pub fn control(&self) -> &Arc<JobControl> {
+        &self.control
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        self.control.is_cancelled()
+    }
+}
+
+impl CancellationHook for JobCancellation {
+    fn is_cancelled(&mut self) -> bool {
+        self.control.is_cancelled()
+    }
+}
+
 pub struct DesktopState {
     application: Application,
     session: Option<ProjectSession>,
+    grants: HashMap<String, NativeProjectGrant>,
+    pub(crate) jobs: HashMap<String, Arc<JobControl>>,
 }
 
 impl Default for DesktopState {
@@ -89,7 +202,23 @@ impl Default for DesktopState {
         Self {
             application: Application,
             session: None,
+            grants: HashMap::new(),
+            jobs: HashMap::new(),
         }
+    }
+}
+
+impl DesktopState {
+    pub fn application(&self) -> Application {
+        self.application
+    }
+
+    pub fn take_session(&mut self) -> Option<ProjectSession> {
+        self.session.take()
+    }
+
+    pub fn set_session(&mut self, session: ProjectSession) {
+        self.session = Some(session);
     }
 }
 
@@ -102,10 +231,39 @@ pub fn error(
     DesktopIpcError {
         schema: IPC_SCHEMA,
         code: code.into(),
-        message: message.into(),
+        message: scrub_user_message(&message.into()),
         remediation: remediation.map(str::to_owned),
         retryable,
     }
+}
+
+fn scrub_user_message(message: &str) -> String {
+    if message.split_whitespace().any(is_absolute_path) {
+        message
+            .split_whitespace()
+            .map(|word| {
+                if is_absolute_path(word) {
+                    "[local path]"
+                } else {
+                    word
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    } else {
+        message.to_owned()
+    }
+}
+
+fn is_absolute_path(value: &str) -> bool {
+    let value = value.trim_matches(|character: char| ",.;:()[]{}\"'".contains(character));
+    value.starts_with('/')
+        || value.starts_with('\\')
+        || (value.as_bytes().get(1) == Some(&b':')
+            && value
+                .as_bytes()
+                .get(2)
+                .is_some_and(|byte| *byte == b'\\' || *byte == b'/'))
 }
 
 pub fn require_schema(schema: &str) -> Result<(), DesktopIpcError> {
@@ -186,23 +344,16 @@ fn capabilities() -> Vec<CapabilitySummary> {
     ]
 }
 
-fn response_for(
-    session: Option<&ProjectSession>,
-) -> Result<CurrentProjectResponse, DesktopIpcError> {
-    let Some(session) = session else {
-        return Ok(CurrentProjectResponse {
-            schema: IPC_SCHEMA,
-            state: "no_project",
-            project: None,
-            capabilities: capabilities(),
-        });
-    };
-    let ProjectQueryResult::CurrentSnapshot(view) = session.query(ProjectQuery::CurrentSnapshot)?;
-    let state = match view.state() {
+fn state_name(state: ProjectState) -> &'static str {
+    match state {
         ProjectState::MaterializedCurrent => "materialized_current",
         ProjectState::BaselineOnly => "baseline_only",
         ProjectState::LegacyAbsent => "legacy_absent",
-    };
+    }
+}
+
+fn response_for_view(view: kyberia_application::CurrentProjectView) -> CurrentProjectResponse {
+    let state = state_name(view.state());
     let project = view.project().map(|project| ProjectSummary {
         project_id: String::from(view.project_id()),
         name: project.name().as_str().to_owned(),
@@ -214,13 +365,48 @@ fn response_for(
         revision: project.revision(),
         logical_time: project.logical_time(),
         has_floor_plan: project.floors().next().is_some(),
+        // The current application query exposes floor entities but no map
+        // calibration projection. Keep scale unavailable until that evidence
+        // crosses the versioned boundary explicitly.
+        calibrated: false,
     });
-    Ok(CurrentProjectResponse {
+    CurrentProjectResponse {
         schema: IPC_SCHEMA,
         state,
         project,
         capabilities: capabilities(),
-    })
+    }
+}
+
+pub fn response_for_with_cancel(
+    session: &ProjectSession,
+    cancel: &mut impl CancellationHook,
+) -> Result<CurrentProjectResponse, DesktopIpcError> {
+    let ProjectQueryResult::CurrentSnapshot(view) =
+        session.query_with_cancel(ProjectQuery::CurrentSnapshot, cancel)?;
+    Ok(response_for_view(view))
+}
+
+pub fn current_project(state: &DesktopState) -> Result<CurrentProjectResponse, DesktopIpcError> {
+    let Some(session) = state.session.as_ref() else {
+        return Ok(CurrentProjectResponse {
+            schema: IPC_SCHEMA,
+            state: "no_project",
+            project: None,
+            capabilities: capabilities(),
+        });
+    };
+    let control = Arc::new(JobControl::new());
+    response_for_with_cancel(session, &mut JobCancellation::new(control))
+}
+
+pub fn no_project_response() -> CurrentProjectResponse {
+    CurrentProjectResponse {
+        schema: IPC_SCHEMA,
+        state: "no_project",
+        project: None,
+        capabilities: capabilities(),
+    }
 }
 
 pub fn create_project_at(
@@ -243,7 +429,7 @@ pub fn create_project_at(
         created_utc_ms,
     })?;
     state.session = Some(session);
-    response_for(state.session.as_ref())
+    current_project(state)
 }
 
 pub fn open_project_at(
@@ -253,11 +439,7 @@ pub fn open_project_at(
 ) -> Result<CurrentProjectResponse, DesktopIpcError> {
     let session = state.application.open(OpenProject { path, mode })?;
     state.session = Some(session);
-    response_for(state.session.as_ref())
-}
-
-pub fn current_project(state: &DesktopState) -> Result<CurrentProjectResponse, DesktopIpcError> {
-    response_for(state.session.as_ref())
+    current_project(state)
 }
 
 pub fn blank_project_path(app_data_dir: PathBuf) -> Result<PathBuf, DesktopIpcError> {
@@ -269,7 +451,142 @@ pub fn blank_project_path(app_data_dir: PathBuf) -> Result<PathBuf, DesktopIpcEr
             true,
         )
     })?;
-    Ok(app_data_dir.join(format!("rf-atlas-{}.rfatlas", uuid::Uuid::new_v4())))
+    let root = std::fs::canonicalize(&app_data_dir).map_err(|value| {
+        error(
+            "storage",
+            format!("Could not verify the local project directory: {value}"),
+            Some("Choose a writable application data directory."),
+            true,
+        )
+    })?;
+    Ok(root.join(format!("rf-atlas-{}.rfatlas", uuid::Uuid::new_v4())))
+}
+
+pub fn issue_open_grant(
+    state: &mut DesktopState,
+    selected: PathBuf,
+) -> Result<OpenProjectSelectionResponse, DesktopIpcError> {
+    let metadata = std::fs::symlink_metadata(&selected).map_err(|_| {
+        error(
+            "missing_project",
+            "The selected project directory could not be found.",
+            Some("Choose an existing .rfatlas directory."),
+            false,
+        )
+    })?;
+    if metadata.file_type().is_symlink() {
+        return Err(error(
+            "invalid_request",
+            "Symbolic-link project roots are not accepted.",
+            Some("Choose the canonical .rfatlas directory."),
+            false,
+        ));
+    }
+    let canonical = std::fs::canonicalize(&selected).map_err(|_| {
+        error(
+            "invalid_request",
+            "The selected project directory could not be canonicalized.",
+            Some("Choose an existing .rfatlas directory."),
+            false,
+        )
+    })?;
+    if !canonical.is_dir()
+        || canonical.extension().and_then(|value| value.to_str()) != Some("rfatlas")
+    {
+        return Err(error(
+            "invalid_request",
+            "Choose a canonical .rfatlas project directory.",
+            Some("Select a directory whose name ends in .rfatlas."),
+            false,
+        ));
+    }
+    let display_name = canonical
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("Project")
+        .to_owned();
+    let grant_id = uuid::Uuid::new_v4().to_string();
+    state.grants.insert(
+        grant_id.clone(),
+        NativeProjectGrant {
+            path: canonical,
+            display_name: display_name.clone(),
+            kind: GrantKind::Open,
+        },
+    );
+    Ok(OpenProjectSelectionResponse {
+        schema: IPC_SCHEMA,
+        selection: Some(OpenProjectSelection {
+            grant_id,
+            display_name,
+            kind: "open",
+        }),
+    })
+}
+
+pub fn consume_open_grant(
+    state: &mut DesktopState,
+    grant_id: &str,
+    expected_name: Option<&str>,
+) -> Result<PathBuf, DesktopIpcError> {
+    let Some(grant) = state.grants.get(grant_id) else {
+        return Err(error(
+            "invalid_grant",
+            "The project selection is invalid or has expired.",
+            Some("Choose the project again."),
+            false,
+        ));
+    };
+    if grant.kind != GrantKind::Open || expected_name.is_some_and(|name| name != grant.display_name)
+    {
+        return Err(error(
+            "invalid_grant",
+            "The project selection does not match this open request.",
+            Some("Choose the project again."),
+            false,
+        ));
+    }
+    let path = grant.path.clone();
+    state.grants.remove(grant_id);
+    Ok(path)
+}
+
+pub fn begin_job(state: &mut DesktopState) -> Result<(String, Arc<JobControl>), DesktopIpcError> {
+    if !state.jobs.is_empty() {
+        return Err(error(
+            "resource_limit",
+            "Another project operation is already running.",
+            Some("Wait for the current project operation to finish."),
+            true,
+        ));
+    }
+    let id = uuid::Uuid::new_v4().to_string();
+    let control = Arc::new(JobControl::new());
+    state.jobs.insert(id.clone(), Arc::clone(&control));
+    Ok((id, control))
+}
+
+pub fn finish_job(state: &mut DesktopState, job_id: &str) {
+    state.jobs.remove(job_id);
+}
+
+pub fn cancel_job(state: &DesktopState, job_id: &str) -> Result<(), DesktopIpcError> {
+    state
+        .jobs
+        .get(job_id)
+        .map(|control| control.cancel())
+        .ok_or_else(|| {
+            error(
+                "invalid_request",
+                "That project operation is no longer running.",
+                Some("Refresh the project state."),
+                false,
+            )
+        })
+}
+
+pub fn job_control(state: &DesktopState, job_id: &str) -> Option<Arc<JobControl>> {
+    state.jobs.get(job_id).cloned()
 }
 
 #[cfg(test)]
@@ -284,9 +601,10 @@ mod tests {
 
     #[test]
     fn command_schema_is_checked_before_application_work() {
-        let result = require_schema("kyberia.desktop-ipc/0");
         assert_eq!(
-            result.expect_err("version must be rejected").code,
+            require_schema("kyberia.desktop-ipc/0")
+                .expect_err("version must be rejected")
+                .code,
             "unsupported_version"
         );
     }
@@ -311,8 +629,8 @@ mod tests {
             Some(false)
         );
         assert_eq!(
-            response.project.as_ref().map(|project| project.revision),
-            Some(0)
+            response.project.as_ref().map(|project| project.calibrated),
+            Some(false)
         );
     }
 
@@ -325,7 +643,7 @@ mod tests {
     }
 
     #[test]
-    fn blank_paths_are_unique_and_scoped_to_app_data() {
+    fn blank_paths_are_unique_and_canonicalized_under_app_data() {
         let root = retained_path("app-data")
             .parent()
             .expect("parent")
@@ -333,6 +651,89 @@ mod tests {
         let first = blank_project_path(root.clone()).expect("first path");
         let second = blank_project_path(root).expect("second path");
         assert_ne!(first, second);
-        assert!(first.starts_with(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.trash")));
+        assert!(
+            first.starts_with(
+                std::fs::canonicalize(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.trash"))
+                    .unwrap()
+            )
+        );
+    }
+
+    #[test]
+    fn forged_reused_and_mismatched_grants_are_rejected() {
+        let mut state = DesktopState::default();
+        assert_eq!(
+            consume_open_grant(&mut state, "forged", None)
+                .expect_err("forged grant")
+                .code,
+            "invalid_grant"
+        );
+        let root = retained_path("grant");
+        std::fs::create_dir_all(&root).expect("project root");
+        let selected = issue_open_grant(&mut state, root.clone()).expect("grant");
+        let grant_id = selected
+            .selection
+            .as_ref()
+            .expect("selection")
+            .grant_id
+            .clone();
+        assert_eq!(
+            consume_open_grant(&mut state, &grant_id, Some("wrong.rfatlas"))
+                .expect_err("mismatch")
+                .code,
+            "invalid_grant"
+        );
+        let expected = root.file_name().unwrap().to_str().unwrap();
+        assert_eq!(
+            consume_open_grant(&mut state, &grant_id, Some(expected)).expect("consume"),
+            std::fs::canonicalize(root).unwrap()
+        );
+        assert_eq!(
+            consume_open_grant(&mut state, &grant_id, None)
+                .expect_err("single use")
+                .code,
+            "invalid_grant"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlink_project_roots_are_rejected() {
+        let target = retained_path("missing-target");
+        let link = retained_path("symlink");
+        std::os::unix::fs::symlink(target, &link).expect("symlink");
+        let mut state = DesktopState::default();
+        assert_eq!(
+            issue_open_grant(&mut state, link)
+                .expect_err("symlink")
+                .code,
+            "invalid_request"
+        );
+    }
+
+    #[test]
+    fn job_admission_is_bounded_and_cancellation_is_observable() {
+        let mut state = DesktopState::default();
+        let (job_id, control) = begin_job(&mut state).expect("first job");
+        assert_eq!(
+            begin_job(&mut state).expect_err("second job").code,
+            "resource_limit"
+        );
+        cancel_job(&state, &job_id).expect("cancel job");
+        assert!(control.is_cancelled());
+        finish_job(&mut state, &job_id);
+        assert!(begin_job(&mut state).is_ok());
+    }
+
+    #[test]
+    fn renderer_errors_scrub_absolute_paths() {
+        let value = error(
+            "storage",
+            "could not open /private/user/secret.rfatlas",
+            None,
+            true,
+        );
+        assert!(!value.message.contains("/private/user"));
+        assert!(value.message.contains("[local path]"));
     }
 }

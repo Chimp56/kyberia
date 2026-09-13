@@ -7,9 +7,10 @@ interface CanvasStageProps {
   onImport: () => void;
   onNewBlank: () => void;
   onRetry: () => void;
+  calibrated: boolean;
 }
 
-export function CanvasStage({ phase, errorMessage, onImport, onNewBlank, onRetry }: CanvasStageProps) {
+export function CanvasStage({ phase, errorMessage, onImport, onNewBlank, onRetry, calibrated }: CanvasStageProps) {
   const [zoom, setZoom] = useState(100);
   return (
     <section className="canvas-stage" aria-label="Floor plan canvas">
@@ -17,14 +18,14 @@ export function CanvasStage({ phase, errorMessage, onImport, onNewBlank, onRetry
       <div className="axis axis-left" aria-hidden="true"><span>30</span><span>20</span><span>10</span><span>0</span><span>-10</span><span>-20</span><span>-30</span></div>
       {phase === "loading" ? <LoadingState /> : phase === "error" ? <ErrorState message={errorMessage} onRetry={onRetry} /> : phase === "unsupported" ? <UnsupportedState message={errorMessage} /> : <EmptyCanvas onImport={onImport} onNewBlank={onNewBlank} />}
       <CanvasControls zoom={zoom} onZoomChange={setZoom} />
-      <div className="scale-bar" aria-label="Scale is unavailable until a floor plan is loaded"><span /><small>10 m</small></div>
+      <div className={`scale-bar ${calibrated ? "" : "is-unavailable"}`} aria-label={calibrated ? "10 metre scale" : "Scale unavailable until a floor plan is calibrated"}><span />{calibrated ? <small>10 m</small> : <small>Scale unavailable</small>}</div>
     </section>
   );
 }
 
 function EmptyCanvas({ onImport, onNewBlank }: { onImport: () => void; onNewBlank: () => void }) {
   return (
-    <div className="empty-canvas-card">
+    <div className="empty-canvas-card" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); onImport(); }}>
       <div className="empty-file-icon"><Icon name="document" size={40} strokeWidth={1.4} /></div>
       <h1>Import floor plan</h1>
       <p>Drag and drop an image or PDF here<br />or choose a file to get started.</p>

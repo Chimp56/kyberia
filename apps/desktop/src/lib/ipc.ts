@@ -1,12 +1,13 @@
 import { invoke } from "@tauri-apps/api/core";
 import {
   assertResponse,
+  assertOpenProjectSelectionResponse,
   type CreateBlankProjectRequest,
-  type CreateProjectRequest,
   type CurrentProjectResponse,
   IPC_SCHEMA,
   type DesktopIpc,
-  type OpenProjectRequest,
+  type OpenProjectGrantRequest,
+  type OpenProjectSelectionResponse,
 } from "./contracts";
 
 declare global {
@@ -20,7 +21,7 @@ export function isTauriRuntime(): boolean {
   return typeof window !== "undefined" && window.__TAURI_INTERNALS__ !== undefined;
 }
 
-async function invokeProject(command: string, payload?: unknown): Promise<CurrentProjectResponse> {
+async function invokeProject<T>(command: string, payload: unknown, validate: (value: unknown) => T): Promise<T> {
   if (!isTauriRuntime()) {
     throw {
       schema: IPC_SCHEMA,
@@ -30,14 +31,14 @@ async function invokeProject(command: string, payload?: unknown): Promise<Curren
       retryable: false,
     };
   }
-  return assertResponse(await invoke<unknown>(command, payload as Record<string, unknown> | undefined));
+  return validate(await invoke<unknown>(command, payload as Record<string, unknown> | undefined));
 }
 
 const tauriIpc: DesktopIpc = {
-  createBlankProject: (request: CreateBlankProjectRequest) => invokeProject("project_create_blank", request),
-  createProject: (request: CreateProjectRequest) => invokeProject("project_create", request),
-  openProject: (request: OpenProjectRequest) => invokeProject("project_open", request),
-  currentProject: () => invokeProject("project_current", { schema: IPC_SCHEMA }),
+  createBlankProject: (request: CreateBlankProjectRequest) => invokeProject("project_create_blank", request, assertResponse),
+  selectOpenProject: () => invokeProject<OpenProjectSelectionResponse>("project_select_open", { schema: IPC_SCHEMA }, assertOpenProjectSelectionResponse),
+  openProject: (request: OpenProjectGrantRequest) => invokeProject("project_open_grant", request, assertResponse),
+  currentProject: () => invokeProject("project_current", { schema: IPC_SCHEMA }, assertResponse),
 };
 
 export function getDesktopIpc(): DesktopIpc {
