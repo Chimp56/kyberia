@@ -27,12 +27,12 @@ responsive-UX review. Neither increment counts as complete until its rereview
 passes.
 
 Hosted run `34735966642` validates the refreshed cross-platform Python 3.12.10
-runtime and Cargo source inventory. Ubuntu and macOS have completed successfully;
-Windows remains in progress at this checkpoint. The preceding run proved that
-macOS passes the complete Rust/Python regression step and exposed a stale
-Cargo-lock digest, now corrected. Windows still exposed five concrete process
-lifecycle regressions in Sionna and active-process tests; a Luna xhigh agent is
-correcting those in an isolated worktree.
+runtime and Cargo source inventory. Ubuntu and macOS completed successfully.
+Windows passed setup, build, lint, and typecheck, then repeated five concrete
+process-lifecycle regressions in Sionna and active-process tests; a Luna xhigh
+agent is correcting those in an isolated worktree. The preceding run proved
+that macOS passes the complete Rust/Python regression step and exposed a stale
+Cargo-lock digest, now corrected.
 
 The generated traceability matrix currently reports **66 VALIDATED, 80
 IN_PROGRESS, and 3,189 NOT_STARTED leaf obligations**, with zero
