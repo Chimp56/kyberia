@@ -1045,6 +1045,66 @@
         "apps/cli/src/capture_session.rs"
       ],
       "acceptance": "Strict versioned trusted collector request, explicit identity allocation and mapping provenance, privacy, source clock binding, cancellation, bounded request admission and recoverable durable reports. No fabricated survey completion. Native authorized scan and downstream UI remain separate acceptance gates."
+    },
+    {
+      "id": "iteration-5-application-project-session",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-4-canonical-project-cli",
+        "iteration-4-materialized-project-publication"
+      ],
+      "owner": "architecture/application",
+      "requirements": [
+        "source:heading:71710d3043aaa590f581:1",
+        "audit:FND-001:1",
+        "audit:FND-006:1"
+      ],
+      "owned_paths": [
+        "crates/application/src/command.rs",
+        "crates/application/src/query.rs",
+        "crates/application/src/session.rs",
+        "crates/application/src/port.rs"
+      ],
+      "acceptance": "Typed create/open lifecycle and immutable single-snapshot current-project query cross an application-owned port with cumulative resource bounds, explicit legacy absence and no storage types in public interfaces. Mutation commands and cancellable jobs remain separate gates."
+    },
+    {
+      "id": "iteration-5-desktop-shell",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-5-application-project-session",
+        "iteration-4-renderer-canonical-input"
+      ],
+      "owner": "UI/visualization",
+      "requirements": [
+        "audit:UX-001:1",
+        "adr-proposal:ADR-006:1",
+        "audit:FND-001:1"
+      ],
+      "owned_paths": [
+        "apps/desktop"
+      ],
+      "acceptance": "A real Tauri/React map-dominant shell composes the application boundary and presents usable empty, loading, error and unsupported states with keyboard, responsive and numeric inspection evidence. Floorplan calibration and native capture remain separate gates."
+    },
+    {
+      "id": "iteration-5-barrier-aware-idw",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "iteration-3-spatial-numerics",
+        "iteration-4-planar-geometry"
+      ],
+      "owner": "spatial analysis",
+      "requirements": [
+        "source:list_item:8ae6e66523f29b58e53e:1",
+        "backlog:ANA-003:1",
+        "audit:SPA-004:1",
+        "audit:SPA-005:1"
+      ],
+      "owned_paths": [
+        "crates/spatial-analysis/src/barrier.rs",
+        "crates/spatial-analysis/src/model.rs",
+        "crates/spatial-analysis/src/tile.rs"
+      ],
+      "acceptance": "Bounded direct finite-vector barrier crossings modify deterministic IDW path cost and support with stable extreme-attenuation numerics, unknown gaps, diagnostics, cancellation, budgets and independent numerical review. Polygon shortest paths, floors, calibrated uncertainty, cross-validation and product publication remain open."
     }
   ]
 }

@@ -77841,17 +77841,82 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "measurement/science",
+      "status": "VALIDATED",
+      "owner": "spatial analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Bounded direct-segment wall/path cost changes IDW support and weights; polygon shortest paths remain a separate method"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/barrier.rs",
+          "description": "Validated inward-owned finite barrier set and adaptive closed-segment intersection contract",
+          "revision": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011",
+          "sha256": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Deterministic barrier-aware direct-path cost, impassable support, stable log-weight IDW, budgets, cancellation, and diagnostics",
+          "revision": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6",
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/baselines.rs",
+          "description": "One/two-wall, material, unknown gap, extreme attenuation, robust intersection, determinism, cancellation, and budget numerical fixtures",
+          "revision": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "sha256": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "command": "cargo test -p kyberia-spatial-analysis",
+          "scope": "bounded_direct_segment_barrier_idw_numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/barrier-aware-idw-review.md",
+          "description": "Independent multi-round RF/scientific, numerical robustness, architecture, budget, and test review",
+          "revision": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "sha256": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "reviewer": "/root/barrier_aware_idw_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Fixed absolute orientation tolerance missed shallow or translated crossings",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Linear attenuation weights underflowed and could erase admitted support",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Diagnostic path accounting overcharged work and missed cancellation boundaries",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Layered barrier and closed endpoint/collinear semantics required explicit contracts and tests",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0030-barrier-aware-idw.md",
+        "description": "Bounded barrier-aware direct-segment IDW path-cost decision",
+        "revision": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "sha256": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent spatial numerical review",
+        "reason": "Use deterministic vector barrier crossings and explicit path cost while preserving unknown support",
+        "preserved_product_intent": "Improves wall/corridor interpolation without claiming physical ray propagation, calibrated uncertainty, or evidence outside support"
+      },
       "parent_id": "source:heading:79306b37ce50407b4c90:1",
       "children": []
     },
@@ -160087,17 +160152,82 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration/release",
+      "status": "IN_PROGRESS",
+      "owner": "spatial analysis",
       "phase": 1,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Barrier-aware IDW and numerical nearest diagnostics exist; product nearest-neighbor debug UI and publication remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/barrier.rs",
+          "description": "Validated inward-owned finite barrier set and adaptive closed-segment intersection contract",
+          "revision": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011",
+          "sha256": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Deterministic barrier-aware direct-path cost, impassable support, stable log-weight IDW, budgets, cancellation, and diagnostics",
+          "revision": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6",
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/baselines.rs",
+          "description": "One/two-wall, material, unknown gap, extreme attenuation, robust intersection, determinism, cancellation, and budget numerical fixtures",
+          "revision": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "sha256": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "command": "cargo test -p kyberia-spatial-analysis",
+          "scope": "bounded_direct_segment_barrier_idw_numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/barrier-aware-idw-review.md",
+          "description": "Independent multi-round RF/scientific, numerical robustness, architecture, budget, and test review",
+          "revision": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "sha256": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "reviewer": "/root/barrier_aware_idw_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Fixed absolute orientation tolerance missed shallow or translated crossings",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Linear attenuation weights underflowed and could erase admitted support",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Diagnostic path accounting overcharged work and missed cancellation boundaries",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Layered barrier and closed endpoint/collinear semantics required explicit contracts and tests",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0030-barrier-aware-idw.md",
+        "description": "Bounded barrier-aware direct-segment IDW path-cost decision",
+        "revision": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "sha256": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent spatial numerical review",
+        "reason": "Use deterministic vector barrier crossings and explicit path cost while preserving unknown support",
+        "preserved_product_intent": "Improves wall/corridor interpolation without claiming physical ray propagation, calibrated uncertainty, or evidence outside support"
+      },
       "parent_id": "source:heading:7a5888525836ebc85df4:1",
       "children": []
     },
@@ -173411,17 +173541,82 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "VALIDATED",
       "owner": "spatial analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Canonical one-wall, two-wall, same-distance material, corridor-like impassable support, and extreme attenuation fixtures pass independent review"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/barrier.rs",
+          "description": "Validated inward-owned finite barrier set and adaptive closed-segment intersection contract",
+          "revision": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011",
+          "sha256": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Deterministic barrier-aware direct-path cost, impassable support, stable log-weight IDW, budgets, cancellation, and diagnostics",
+          "revision": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6",
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/baselines.rs",
+          "description": "One/two-wall, material, unknown gap, extreme attenuation, robust intersection, determinism, cancellation, and budget numerical fixtures",
+          "revision": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "sha256": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "command": "cargo test -p kyberia-spatial-analysis",
+          "scope": "bounded_direct_segment_barrier_idw_numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/barrier-aware-idw-review.md",
+          "description": "Independent multi-round RF/scientific, numerical robustness, architecture, budget, and test review",
+          "revision": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "sha256": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "reviewer": "/root/barrier_aware_idw_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Fixed absolute orientation tolerance missed shallow or translated crossings",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Linear attenuation weights underflowed and could erase admitted support",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Diagnostic path accounting overcharged work and missed cancellation boundaries",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Layered barrier and closed endpoint/collinear semantics required explicit contracts and tests",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0030-barrier-aware-idw.md",
+        "description": "Bounded barrier-aware direct-segment IDW path-cost decision",
+        "revision": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "sha256": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent spatial numerical review",
+        "reason": "Use deterministic vector barrier crossings and explicit path cost while preserving unknown support",
+        "preserved_product_intent": "Improves wall/corridor interpolation without claiming physical ray propagation, calibrated uncertainty, or evidence outside support"
+      },
       "parent_id": "source:heading:715a4a51da0e83b78896:1",
       "children": []
     },
@@ -240580,17 +240775,82 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spatial analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Finite vector barrier crossings are validated; general interior topology, openings, and polygon shortest paths remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spatial-analysis/src/barrier.rs",
+          "description": "Validated inward-owned finite barrier set and adaptive closed-segment intersection contract",
+          "revision": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011",
+          "sha256": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Deterministic barrier-aware direct-path cost, impassable support, stable log-weight IDW, budgets, cancellation, and diagnostics",
+          "revision": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6",
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spatial-analysis/tests/baselines.rs",
+          "description": "One/two-wall, material, unknown gap, extreme attenuation, robust intersection, determinism, cancellation, and budget numerical fixtures",
+          "revision": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "sha256": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "command": "cargo test -p kyberia-spatial-analysis",
+          "scope": "bounded_direct_segment_barrier_idw_numerical",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/barrier-aware-idw-review.md",
+          "description": "Independent multi-round RF/scientific, numerical robustness, architecture, budget, and test review",
+          "revision": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "sha256": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "reviewer": "/root/barrier_aware_idw_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Fixed absolute orientation tolerance missed shallow or translated crossings",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Linear attenuation weights underflowed and could erase admitted support",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Diagnostic path accounting overcharged work and missed cancellation boundaries",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Layered barrier and closed endpoint/collinear semantics required explicit contracts and tests",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0030-barrier-aware-idw.md",
+        "description": "Bounded barrier-aware direct-segment IDW path-cost decision",
+        "revision": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "sha256": "c0ffd1279477ae624f7e35594eeab4edb6b20b13fbccca9ac4ea44c257e48d89",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent spatial numerical review",
+        "reason": "Use deterministic vector barrier crossings and explicit path cost while preserving unknown support",
+        "preserved_product_intent": "Improves wall/corridor interpolation without claiming physical ray propagation, calibrated uncertainty, or evidence outside support"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
@@ -240624,27 +240884,34 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "/root/spatial_analysis",
+      "owner": "spatial analysis",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
         "Nearest and IDW independent synthetic weighted-value baseline",
         "Permutation/translation/convex-bound properties; duplicate locations and unknown support",
-        "Explicit cancellation, bounded work, deterministic tiles and numerical inspection"
+        "Explicit cancellation, bounded work, deterministic tiles and numerical inspection",
+        "Barrier-aware support preserves impassable and radius gaps as unknown; hull/interior publication policies remain open"
       ],
       "implementation": [
-        {
-          "path": "crates/spatial-analysis/src/model.rs",
-          "description": "Bounded deterministic nearest/IDW with explicit radius support and unknown uncertainty",
-          "revision": "cf7ec46cb7c753b0cde88afcdafd7cbf77dc2cc6417b1c623dc6520b27c706c3",
-          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
-        },
         {
           "path": "crates/spatial-analysis/src/tile.rs",
           "description": "Pure tile planes with original inputs and grid provenance",
           "revision": "5c833052892d3f3001b65d5dc874591732d2168ae1740861b816b128fe65dca7",
           "sha256": "caa08840a24ae8f747b044aed1056e8e16bc1feac459946da7af1320c330a69a"
+        },
+        {
+          "path": "crates/spatial-analysis/src/barrier.rs",
+          "description": "Validated inward-owned finite barrier set and adaptive closed-segment intersection contract",
+          "revision": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011",
+          "sha256": "1a4a45926f6dbfc24e7f4bd16890c618179cc619cc0a095033829de2c0a99011"
+        },
+        {
+          "path": "crates/spatial-analysis/src/model.rs",
+          "description": "Deterministic barrier-aware direct-path cost, impassable support, stable log-weight IDW, budgets, cancellation, and diagnostics",
+          "revision": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6",
+          "sha256": "34b4751c0701629ca8f0bedd641e1adbb83e2d441999af6f616d866c5e3093b6"
         }
       ],
       "validation": [
@@ -240655,6 +240922,15 @@
           "sha256": "4dc5ef453c09aa45eee4820f2b3d4cd3872a78a62ce13192846580c93f20fffb",
           "command": "cargo test --locked -p kyberia-spatial-analysis",
           "scope": "numerical",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/spatial-analysis/tests/baselines.rs",
+          "description": "One/two-wall, material, unknown gap, extreme attenuation, robust intersection, determinism, cancellation, and budget numerical fixtures",
+          "revision": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "sha256": "be98579a5c9f4f37011a01ad7dd18ccff1c608cceaeb389631ef7ce96f73d7c1",
+          "command": "cargo test -p kyberia-spatial-analysis",
+          "scope": "bounded_direct_segment_barrier_idw_numerical",
           "result": "PASS"
         }
       ],
@@ -240667,6 +240943,36 @@
           "reviewer": "/root/rf_numerical_review",
           "disposition": "APPROVED",
           "findings": []
+        },
+        {
+          "path": "docs/reviews/barrier-aware-idw-review.md",
+          "description": "Independent multi-round RF/scientific, numerical robustness, architecture, budget, and test review",
+          "revision": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "sha256": "37f009f05615869c7966709ed7dc014eed6e76cb605e01597558a2df5b8f9cc7",
+          "reviewer": "/root/barrier_aware_idw_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Fixed absolute orientation tolerance missed shallow or translated crossings",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Linear attenuation weights underflowed and could erase admitted support",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Diagnostic path accounting overcharged work and missed cancellation boundaries",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Layered barrier and closed endpoint/collinear semantics required explicit contracts and tests",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,

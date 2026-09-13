@@ -1,6 +1,6 @@
 # ADR 0030: Bounded barrier-aware IDW path cost
 
-Status: Proposed bounded numerical increment; independent review required
+Status: Accepted bounded numerical increment; polygon paths and publication remain open
 
 ## Context
 
