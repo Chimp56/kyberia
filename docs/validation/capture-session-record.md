@@ -1,7 +1,8 @@
 # Canonical acquisition-session record validation
 
-Status: terminal and size corrections in `59ca394` are awaiting independent
-rereview; this document describes a bounded domain/storage increment. It
+Status: the terminal and size corrections, including their integrated form in
+`6e5ab75`, passed independent rereview; this document describes a bounded
+domain/storage increment. It
 does not claim a real native scan, production identity registry, durable spool
 workflow, UI command, or Phase 0/Phase 1 completion.
 
@@ -203,9 +204,9 @@ collector runtime claim is made here.
 
 ## Review and remaining gates
 
-The domain and store corrections are separate so the root composition layer can
-consume the contract before wiring durable registration. Russell's independent
-rereview of the corrected implementation is still required before integration.
+The domain and store corrections remain separate so the composition layer can
+consume the contract before wiring durable registration. Independent rereview
+and the combined integration review approved the corrected implementation.
 The adapter, domain completion constructor and composition now use the source
 contract's exact partial rule: non-`Ok` with observations is partial, while a
 zero-observation non-`Ok` terminal is not. Mismatched flags are rejected at

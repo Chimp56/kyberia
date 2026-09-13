@@ -104406,8 +104406,8 @@
         {
           "path": "docs/validation/capture-session-record.md",
           "description": "Capture-session closure, limits, storage, cancellation and recovery validation",
-          "revision": "57ce63564cab6694b65f73daeeb46be8b6df102d562ba137c584696d6132dc3f",
-          "sha256": "57ce63564cab6694b65f73daeeb46be8b6df102d562ba137c584696d6132dc3f",
+          "revision": "2cb6518d8099d1c0a203ba5fd53a1db41adeb08ba0e8817f38b450bf46d8d625",
+          "sha256": "2cb6518d8099d1c0a203ba5fd53a1db41adeb08ba0e8817f38b450bf46d8d625",
           "command": "cargo test -p kyberia-domain -p kyberia-project-store -p kyberia-observation-pipeline --locked --offline -- --test-threads=1",
           "scope": "contract",
           "result": "PASS"
