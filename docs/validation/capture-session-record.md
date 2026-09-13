@@ -1,6 +1,6 @@
 # Canonical acquisition-session record validation
 
-Status: corrections in `32ce777` and `27ca746` are awaiting independent
+Status: terminal and size corrections in `59ca394` are awaiting independent
 rereview; this document describes a bounded domain/storage increment. It
 does not claim a real native scan, production identity registry, durable spool
 workflow, UI command, or Phase 0/Phase 1 completion.
@@ -16,8 +16,10 @@ validated `MappingContext`. It then supplies an explicit registry-version
 The application builds `MappingEvidenceV1` from the context's source and
 observation maps. The constructors sort rows by their foreign keys, reject
 duplicate keys or canonical IDs, and reject known transmitter IDs without
-known identity evidence. Source rows may include capability-only receivers;
-observation rows must close exactly over the manifest's envelope IDs.
+known identity evidence. Source rows may include capability-only receivers as
+source inventory evidence; those rows are not silently counted as observed
+membership. Observation rows must close exactly over the manifest's envelope
+IDs.
 
 The production composition entry point is
 `kyberia_observation_pipeline::NativeAcquisitionBatch::from_session`. It accepts
@@ -26,7 +28,14 @@ it takes the normalized capture and immutable mapping context from that same
 session, builds the batch and record, and validates the record against the
 batch's manifest and envelope order before exposing either view. The current
 bounded implementation clones the normalized capture and envelope references
-for composition; it is not a durable spool or a streaming memory claim.
+for composition; it is not a durable spool or a streaming memory claim. Before
+that normalized-capture clone, it walks borrowed mapping keys and variable
+evidence with checked byte accounting, rejects invalid mapping text and
+resource counts, and uses the fixed-width manifest-hash field to reject a
+record above the 1 MiB canonical bound. It then checks the exact serialized
+record again after the real manifest hash is known. This composition step is
+synchronous and has no cancellation hook, so it makes no cancellation-during-
+clone claim.
 
 The session record is constructed only after the caller has the canonical
 manifest hash:
@@ -97,8 +106,9 @@ The domain contract rejects or preserves the following conditions:
 - canonical session, collector and clock IDs remain distinct from foreign UUIDs;
 - foreign process/source-clock UUIDs are retained exactly and lowercase;
 - terminal status and exit code use the closed native mapping (`0`, `2`, `77`,
-  `69`, `70`, `124`, `130`/`143`), and `partial=true` is accepted only with
-  `Partial` terminal status;
+  `69`, `70`, `124`, `130`/`143`), and `partial=true` is accepted exactly when
+  the terminal is non-`Ok` and at least one observation is present. A zero
+  observation non-`Ok` terminal retains `partial=false`, including `Partial`;
 - observation count is bounded and must match both manifest completion and the
   envelope list during closure validation;
 - source and observation mapping vectors are bounded and deterministic;
@@ -118,9 +128,15 @@ The domain contract rejects or preserves the following conditions:
 - canonical bytes are limited to 1 MiB and strict decode rejects noncanonical
   bytes and unknown fields.
 
-The store rehashes the canonical BLOB and compares every indexed projection on
-each read. It checks the manifest artifact kind/media type/hash, publication
-row, chunk linkage, chunk observation IDs, and the full domain closure again.
+The Rust read path obtains the SQLite canonical value by `ValueRef`, checks its
+length before copying it into an owned `Vec<u8>`, and reports an oversized row
+as corruption. SQLite's admitted table constraint is also `length(canonical_bytes)
+<= 1,048,576`; the connection's broader `SQLITE_LIMIT_LENGTH` is 4 MiB and
+the metadata database plus sidecars remains bounded by the project store's
+64 MiB read budget. The store rehashes the canonical BLOB and compares every
+indexed projection on each read. It checks the manifest artifact kind/media
+type/hash, publication row, chunk linkage, chunk observation IDs, and the full
+domain closure again.
 `Bundle::verify` walks every capture-session row through this read path and
 reports a failure for any unreadable or contradictory row. V1 rows have the
 fixed indexed revision marker `1`; an unsupported positive revision is corrupt
@@ -142,28 +158,27 @@ graph and no network access:
 
 ```text
 cargo test -p kyberia-domain --lib --locked --offline
-PASS — 11 tests
+PASS — 12 tests
+
+cargo test -p kyberia-capture-adapter --test normalization --locked --offline
+PASS — 11 tests, 2 ignored
 
 cargo test -p kyberia-project-store --lib --locked --offline
-PASS — 33 tests
+PASS — 35 tests
 
 cargo test -p kyberia-project-store --test schema_guard --locked --offline
 PASS — 14 tests
 
 cargo test --workspace --exclude kyberia-kismet-adapter --locked --offline
-FAIL — the existing descendant-drain timing assertion exceeded its 3 s
-per-case bound under the full workspace run (`3.261677250 s`); see the retained
-`workspace-exclude-kismet-final3.log`. The same test passed in isolation once
-(`descendant-drain-repro-final2.log`, 1 passed), so this is a flaky sandbox
-timing gate and not evidence against the session record.
+PASS — the reviewed descendant-drain timing correction derives a bounded test
+budget from its typed timeout and cleanup windows; see the retained
+`workspace-exclude-kismet-after-timing-final1.log`.
 
 cargo test -p kyberia-observation-pipeline --lib --locked --offline
-FOCUSED COMPOSITION PASS — 7 tests (see the retained composition log). The
-full 42-test invocation is timing-sensitive in this sandbox: one run passed
-and a later full-workspace-load run failed the pre-existing descendant-drain
-3 s assertion; see the retained `observation-pipeline-lib-final2.log`.
+FOCUSED COMPOSITION PASS — 12 native-composition tests. Full
+observation-pipeline library PASS — 47 tests, 1 ignored.
 
-cargo clippy -p kyberia-domain -p kyberia-project-store -p kyberia-observation-pipeline --all-targets --locked --offline -- -D warnings
+cargo clippy -p kyberia-domain -p kyberia-capture-adapter -p kyberia-project-store -p kyberia-observation-pipeline --all-targets --locked --offline -- -D warnings
 PASS
 
 cargo fmt --all -- --check
@@ -191,6 +206,12 @@ collector runtime claim is made here.
 The domain and store corrections are separate so the root composition layer can
 consume the contract before wiring durable registration. Russell's independent
 rereview of the corrected implementation is still required before integration.
+The adapter, domain completion constructor and composition now use the source
+contract's exact partial rule: non-`Ok` with observations is partial, while a
+zero-observation non-`Ok` terminal is not. Mismatched flags are rejected at
+every boundary. The preflight record check is conservative because the
+manifest hash occupies a fixed-width canonical field; the final record is
+still checked after the actual hash is known.
 Root must add glue tests that use the real opaque session object and the exact
 immutable mapping context for both an empty terminal capture and a nonempty
 capture. Those tests must prove the explicit registry version is recorded and

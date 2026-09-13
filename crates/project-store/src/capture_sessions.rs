@@ -16,7 +16,7 @@ use kyberia_domain::{
     identity::{ClockEpochId, CollectorId, ContentHash, SessionId},
     observation::ObservationEnvelope,
 };
-use rusqlite::{OptionalExtension, Transaction, TransactionBehavior, params};
+use rusqlite::{OptionalExtension, Transaction, TransactionBehavior, params, types::ValueRef};
 use std::collections::BTreeMap;
 
 pub const MAX_CAPTURE_SESSIONS_PER_PAGE: u16 = 128;
@@ -91,7 +91,17 @@ struct StoredSessionRow {
     privacy_hash: String,
     published_utc_ms: i64,
     revision: i64,
-    canonical_bytes: Vec<u8>,
+    canonical_bytes: StoredCanonicalBytes,
+}
+
+/// Keep the SQLite value borrowed until its length has been checked. An
+/// oversized hostile row is represented without copying its BLOB into a Rust
+/// allocation; valid rows are copied only after the bound is known.
+#[derive(Debug)]
+enum StoredCanonicalBytes {
+    Bounded(Vec<u8>),
+    Oversized(usize),
+    InvalidType,
 }
 
 fn row_from_sql(row: &rusqlite::Row<'_>) -> rusqlite::Result<StoredSessionRow> {
@@ -115,7 +125,15 @@ fn row_from_sql(row: &rusqlite::Row<'_>) -> rusqlite::Result<StoredSessionRow> {
         privacy_hash: row.get(16)?,
         published_utc_ms: row.get(17)?,
         revision: row.get(18)?,
-        canonical_bytes: row.get(19)?,
+        canonical_bytes: match row.get_ref(19)? {
+            ValueRef::Blob(bytes) if bytes.len() <= MAX_CAPTURE_SESSION_BYTES => {
+                StoredCanonicalBytes::Bounded(bytes.to_vec())
+            }
+            ValueRef::Blob(bytes) => StoredCanonicalBytes::Oversized(bytes.len()),
+            ValueRef::Null | ValueRef::Integer(_) | ValueRef::Real(_) | ValueRef::Text(_) => {
+                StoredCanonicalBytes::InvalidType
+            }
+        },
     })
 }
 
@@ -205,9 +223,20 @@ fn validate_projection(row: &StoredSessionRow) -> Result<CaptureSessionRecordV1>
     {
         return Err(invalid_row("schema or partial flag is invalid"));
     }
+    let canonical_bytes = match &row.canonical_bytes {
+        StoredCanonicalBytes::Bounded(bytes) => bytes,
+        StoredCanonicalBytes::Oversized(bytes) => {
+            return Err(invalid_row(format!(
+                "canonical record is {bytes} bytes; exceeds resource limit"
+            )));
+        }
+        StoredCanonicalBytes::InvalidType => {
+            return Err(invalid_row("canonical record is not a SQLite BLOB"));
+        }
+    };
     let record =
-        CaptureSessionRecordV1::from_canonical_bytes(&row.canonical_bytes).map_err(invalid_row)?;
-    if content_hash(&row.canonical_bytes) != row.record_hash {
+        CaptureSessionRecordV1::from_canonical_bytes(canonical_bytes).map_err(invalid_row)?;
+    if content_hash(canonical_bytes) != row.record_hash {
         return Err(invalid_row("canonical record hash differs from bytes"));
     }
     let session_id = String::from(record.session_id());
@@ -1006,6 +1035,51 @@ mod tests {
                 .to_string()
                 .contains("indexed projection")
         );
+    }
+
+    #[test]
+    fn oversized_stored_canonical_blob_is_rejected_before_copy_and_verify_inventory() {
+        let (path, mut bundle) = new_bundle();
+        let manifest = new_manifest();
+        let record = make_record(&manifest, 77, "registry/v1");
+        publish_manifest(&mut bundle, manifest.clone());
+        bundle
+            .register_capture_session(
+                CaptureSessionRegistration::new(record.clone(), manifest, &[], 1).unwrap(),
+            )
+            .unwrap();
+        drop(bundle);
+
+        // Bypass the table CHECK only in this corruption fixture. The normal
+        // write path and SQLite schema still reject rows above the bound.
+        let database = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+        database
+            .execute_batch("PRAGMA ignore_check_constraints=ON")
+            .unwrap();
+        database
+            .execute(
+                "UPDATE capture_sessions SET canonical_bytes=zeroblob(?1) WHERE session_id=?2",
+                rusqlite::params![
+                    i64::try_from(MAX_CAPTURE_SESSION_BYTES + 1).unwrap(),
+                    String::from(record.session_id())
+                ],
+            )
+            .unwrap();
+        drop(database);
+
+        let reopened = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+        let error = reopened
+            .read_capture_session(record.session_id())
+            .unwrap_err();
+        assert!(matches!(
+            error,
+            StoreError::Corrupt(message) if message.contains("canonical record is")
+                && message.contains("exceeds resource limit")
+        ));
+        let verification = reopened.verify().unwrap();
+        assert!(verification.failures.iter().any(|failure| {
+            failure.contains("canonical record is") && failure.contains("exceeds resource limit")
+        }));
     }
 
     #[test]

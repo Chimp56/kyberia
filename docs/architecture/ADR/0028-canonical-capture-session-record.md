@@ -40,8 +40,12 @@ canonical IDs. The domain module has no adapter or storage dependency.
 The record constructor rejects an unsupported schema, malformed or zero native
 UUID, duplicate mapping key or canonical ID, an unproved known transmitter,
 oversized mapping, an invalid terminal/partial/exit combination, or an
-observation count above the capture bound. Canonical decoding rejects unknown
-fields, noncanonical JSON bytes and invalid mapping evidence. A separate
+observation count above the capture bound. `partial` is true exactly when the
+terminal is non-`Ok` and at least one observation is present; a zero-observation
+non-`Ok` terminal retains `partial=false`. This same rule is enforced by the
+adapter, domain completion constructor and outward composition guard. Canonical
+decoding rejects unknown fields, noncanonical JSON bytes and invalid mapping
+evidence. A separate
 `validate_against_manifest` step binds the record to the exact manifest hash,
 completion fields, privacy disposition, collector capability identity and
 observation envelopes. When an envelope provides a monotonic timestamp or clock
@@ -50,8 +54,9 @@ mapping must match the envelope's sensor and adapter evidence, and every
 observation mapping must match its radio, BSS and grouping-artifact evidence.
 Known raw-source references must equal a complete manifest source-record
 reference (hash, media type and byte length). Extra source mappings are allowed
-because a capability listing can contain sources that produced no observations;
-observation mappings must exactly match the envelopes.
+only as capability/source inventory evidence for sources that produced no
+observations; they are not treated as observed source membership. Observation
+mappings must exactly match the envelopes.
 
 The store accepts a `CaptureSessionRegistration` only after the caller has
 published the manifest and, when nonempty, the observation chunk through their
@@ -157,19 +162,23 @@ The implementation is split for review:
 
 - `b3b8124` adds the domain contract; `32ce777` closes terminal and
   manifest/envelope evidence after independent review findings.
+- `59ca394` adds the terminal closure and bounded preflight corrections. The
+  adapter, domain and composition use the source contract's
+  non-`Ok`/nonempty-observation partial rule, and composition rejects an
+  oversized canonical session record before cloning the normalized capture.
+  The focused adapter normalization suite has 11 passing tests and native
+  composition has 12 passing tests.
 - `ed28ba2` adds the store table, migration and APIs; `27ca746` pins the V1
   row revision and makes `Bundle::verify` inventory every session row. The
-  project-store suite has 34 passing tests covering corruption, retry, empty,
-  cancellation, migration, read-only, concurrent-writer and
-  verification-inventory cases. The domain suite has 11 passing tests.
+  project-store suite has 35 passing tests covering corruption, retry, empty,
+  cancellation, migration, read-only, concurrent-writer, verification-
+  inventory and oversized-row cases. The domain suite has 12 passing tests.
 - The project-store schema guard has 14 passing tests after adding the new
   table to the current schema inventory.
-- The focused domain, project-store, schema-guard and native-composition
-  checks pass. A full workspace-excluding-Kismet run remains timing-sensitive:
-  the existing descendant-drain test exceeded its 3 s per-case bound once
-  under full-workspace load (`3.261677250 s`) but passed in isolation. This
-  retained sandbox timing issue is open and is not evidence against this
-  session-record increment.
+- The focused domain, project-store, schema-guard, adapter and
+  native-composition checks pass. Reviewed timing correction `3dbde2d` derives
+  the descendant-drain test bound from its typed timeout and cleanup windows;
+  the full workspace-excluding-Kismet command passes with that correction.
 - Affected-package Clippy with warnings denied, `cargo fmt --all -- --check`,
   the architecture dependency check and the 241-entry source-inventory check
   pass.
@@ -191,9 +200,15 @@ wrong publication kind, missing chunk, reordered/duplicate observation or
 manifest/envelope mismatch before returning a record. `Bundle::verify` reports
 the same failures for every stored session row, including rows not discovered
 through a caller's cursor. Resource bounds are explicit: one record is at most
-1 MiB, verification loads one row at a time, mapping vectors are bounded, a
-public list page is at most 128 rows, and SQLite schema/read limits remain in
-force.
+1 MiB, and the outward composition layer performs checked borrowed-input byte
+and count preflight with a fixed-width-hash lower bound before cloning the
+normalized capture; it repeats the bound on the final canonical bytes. Store
+reads inspect the SQLite value reference length before copying a canonical BLOB
+into Rust memory. The table constraint is `length(canonical_bytes) <=
+1,048,576`, while the connection's SQLite value limit is 4 MiB and the
+metadata database plus sidecars has the existing 64 MiB read budget.
+Verification loads one row at a time, mapping vectors are bounded, a public
+list page is at most 128 rows, and SQLite schema/read limits remain in force.
 
 The store row is immutable and uses a fixed positive revision marker (`1`) for
 the V1 row. The stable list cursor is canonical `SessionId`; this revision is
@@ -223,9 +238,14 @@ increment.
 Before integration, an independent reviewer must inspect both commits and
 exercise the domain and store tests, including malformed canonical input,
 oversized mapping evidence, lowercase UUID policy, terminal/exit consistency,
-empty capability-only mappings, missing/corrupt manifest and row data, exact
-retry/conflict, read-only/reopen, keyset cursors, cancellation and concurrent
-writers. Root integration must then test the real glue against an opaque
+partial-flag closure across non-`Ok` terminals, preflight record-byte
+rejection, borrowed preflight overflow and boundary arithmetic, empty
+capability-only mappings, missing/corrupt manifest and row data, oversized
+stored-row reads, `Bundle::verify` inventory, exact retry/conflict,
+read-only/reopen, keyset cursors, cancellation and concurrent writers. The
+composition clone remains a bounded synchronous step without a cancellation
+hook; it makes no streaming or cancellation-during-clone claim.
+Root integration must then test the real glue against an opaque
 `NativeCaptureSession`, including an empty terminal capture and a nonempty
 capture whose observation and source mappings are bound to one context.
 

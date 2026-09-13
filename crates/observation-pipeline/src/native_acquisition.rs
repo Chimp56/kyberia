@@ -7,15 +7,17 @@
 //! mapping context or record to combine accidentally.
 
 use crate::{BatchError, ReceivedObservationBatch, process::NativeCaptureSession};
-use kyberia_capture_adapter::macos::TerminalStatus;
+use kyberia_capture_adapter::macos::{Completion, MappingContext, TerminalStatus};
 use kyberia_domain::{
     ValidationError,
     capture_session::{
-        CaptureSessionRecordV1, MAX_CAPTURE_SESSION_BYTES, MappingEvidenceV1, NativeUuid,
-        ObservationMappingEvidenceV1, SourceMappingEvidenceV1,
+        CaptureSessionRecordV1, MAX_CAPTURE_SESSION_BYTES, MAX_SESSION_OBSERVATION_MAPPINGS,
+        MAX_SESSION_SOURCE_MAPPINGS, MappingEvidenceV1, NativeUuid, ObservationMappingEvidenceV1,
+        SourceMappingEvidenceV1,
     },
+    evidence::Evidence,
     identity::{ContentHash, Text},
-    observation::ObservationEnvelope,
+    observation::{ObservationEnvelope, PayloadRetention},
 };
 use sha2::{Digest, Sha256};
 use std::fmt;
@@ -66,6 +68,88 @@ impl From<ValidationError> for NativeAcquisitionBatchError {
     }
 }
 
+fn add_record_byte_floor(total: &mut usize, bytes: usize) -> bool {
+    match total.checked_add(bytes) {
+        Some(next) if next <= MAX_CAPTURE_SESSION_BYTES => {
+            *total = next;
+            true
+        }
+        _ => false,
+    }
+}
+
+// This is deliberately below the actual fixed-field/punctuation overhead of
+// a valid record. It makes the borrowed lower bound useful at the boundary
+// while leaving the exact serializer as the authority for acceptance.
+const MIN_RECORD_FIXED_BYTES: usize = 512;
+
+fn preflight_text(value: &str) -> Result<(), NativeAcquisitionBatchError> {
+    if value.trim().is_empty() || value.len() > 1024 || value.chars().any(char::is_control) {
+        return Err(NativeAcquisitionBatchError::Domain(
+            ValidationError::InvalidText,
+        ));
+    }
+    Ok(())
+}
+
+/// Reject obviously oversized mapping metadata before converting borrowed
+/// context keys/evidence into owned domain rows. The floor counts raw UTF-8
+/// bytes only; canonical JSON escaping and fixed-field overhead are covered
+/// by the exact bounded serialization checks below.
+fn preflight_record_size(
+    context: &MappingContext,
+    registry_version: &Text,
+    session: &NativeCaptureSession,
+    completion: &Completion,
+) -> Result<(), NativeAcquisitionBatchError> {
+    if context.sources.len() > MAX_SESSION_SOURCE_MAPPINGS
+        || context.observations.len() > MAX_SESSION_OBSERVATION_MAPPINGS
+    {
+        return Err(NativeAcquisitionBatchError::Domain(
+            ValidationError::ResourceLimit("session mappings"),
+        ));
+    }
+    let mut floor = MIN_RECORD_FIXED_BYTES;
+    let text_fields = [
+        registry_version.as_str(),
+        session.process_session(),
+        session.clock_epoch(),
+        completion.reason.as_str(),
+        context.privacy.policy_version.as_str(),
+    ];
+    for text in text_fields {
+        if !add_record_byte_floor(&mut floor, text.len()) {
+            return Err(NativeAcquisitionBatchError::RecordCanonicalBytes);
+        }
+    }
+    for source_key in context.sources.keys() {
+        preflight_text(source_key)?;
+        if !add_record_byte_floor(&mut floor, source_key.len()) {
+            return Err(NativeAcquisitionBatchError::RecordCanonicalBytes);
+        }
+    }
+    for (observation_key, observation) in &context.observations {
+        preflight_text(observation_key)?;
+        if !add_record_byte_floor(&mut floor, observation_key.len()) {
+            return Err(NativeAcquisitionBatchError::RecordCanonicalBytes);
+        }
+        if let Evidence::Known(reference) = &observation.identity_evidence
+            && !add_record_byte_floor(&mut floor, reference.media_type.as_str().len())
+        {
+            return Err(NativeAcquisitionBatchError::RecordCanonicalBytes);
+        }
+    }
+    if let PayloadRetention::Retained {
+        authorization_reference,
+        ..
+    } = &context.privacy.payload
+        && !add_record_byte_floor(&mut floor, authorization_reference.as_str().len())
+    {
+        return Err(NativeAcquisitionBatchError::RecordCanonicalBytes);
+    }
+    Ok(())
+}
+
 /// A batch and durable provenance record derived from one opaque native
 /// session. Both views are immutable, and the record is validated against the
 /// batch's exact canonical manifest and envelope order before construction.
@@ -91,12 +175,13 @@ impl NativeAcquisitionBatch {
         let completion = &session.normalized().completion;
         if completion.status != session.terminal()
             || usize::from(completion.observation_count) != session.normalized().observations.len()
-            || completion.partial != (completion.status == TerminalStatus::Partial)
-            || (completion.status == TerminalStatus::Partial
-                && session.normalized().observations.is_empty())
+            || completion.partial
+                != (completion.status != TerminalStatus::Ok
+                    && !session.normalized().observations.is_empty())
         {
             return Err(NativeAcquisitionBatchError::CompletionMismatch);
         }
+        preflight_record_size(context, &registry_version, session, completion)?;
         let source_mappings = context
             .sources
             .iter()
@@ -135,7 +220,7 @@ impl NativeAcquisitionBatch {
             NativeUuid::new(session.process_session().to_owned())?,
             NativeUuid::new(session.clock_epoch().to_owned())?,
             ContentHash::from_sha256([0; 32]),
-            mapping.clone(),
+            mapping,
             context.privacy.clone(),
             completion.status.into(),
             completion.reason.clone(),
@@ -162,21 +247,7 @@ impl NativeAcquisitionBatch {
             .canonical_bytes()
             .map_err(|_| NativeAcquisitionBatchError::ManifestCanonicalBytes)?;
         let manifest_hash = ContentHash::from_sha256(Sha256::digest(manifest_bytes).into());
-        let record = CaptureSessionRecordV1::new(
-            context.session_id,
-            context.collector_id,
-            context.clock_epoch,
-            NativeUuid::new(session.process_session().to_owned())?,
-            NativeUuid::new(session.clock_epoch().to_owned())?,
-            manifest_hash,
-            mapping,
-            context.privacy.clone(),
-            session.terminal().into(),
-            completion.reason.clone(),
-            completion.partial,
-            completion.observation_count,
-            session.exit_code(),
-        )?;
+        let record = preflight.with_manifest_hash(manifest_hash);
         if record
             .canonical_bytes()
             .map_or(true, |bytes| bytes.len() > MAX_CAPTURE_SESSION_BYTES)
@@ -247,6 +318,10 @@ mod tests {
     }
 
     fn collector(fixture: &[u8]) -> (PathBuf, TrustedCollector) {
+        collector_with_exit(fixture, if fixture == PARTIAL { 2 } else { 0 })
+    }
+
+    fn collector_with_exit(fixture: &[u8], exit_code: i32) -> (PathBuf, TrustedCollector) {
         let directory = retained_test_directory();
         let fixture_path = directory.join("capture.ndjson");
         fs::write(&fixture_path, fixture).unwrap();
@@ -256,7 +331,7 @@ mod tests {
             format!(
                 "#!/bin/sh\n/bin/cat '{}'\nexit {}\n",
                 fixture_path.display(),
-                if fixture == PARTIAL { 2 } else { 0 }
+                exit_code
             ),
         )
         .unwrap();
@@ -441,7 +516,81 @@ mod tests {
     }
 
     #[test]
-    fn oversized_session_record_is_rejected_before_capture_clone() {
+    fn empty_partial_terminal_preserves_source_completion_rule() {
+        let mut records: Vec<serde_json::Value> = std::str::from_utf8(EMPTY)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+        let complete = records.last_mut().unwrap();
+        complete["status"] = serde_json::json!("partial");
+        complete["partial"] = serde_json::json!(false);
+        let fixture = records
+            .iter()
+            .flat_map(|record| {
+                let mut bytes = serde_json::to_vec(record).unwrap();
+                bytes.push(b'\n');
+                bytes
+            })
+            .collect::<Vec<_>>();
+        let (_directory, collector) = collector_with_exit(&fixture, 2);
+        let session = run_and_normalize(
+            &collector,
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            |stream| Ok(context(stream, true, false)),
+            &NeverCancel,
+        )
+        .unwrap();
+        let composed = NativeAcquisitionBatch::from_session(
+            &session,
+            Text::new("registry/native-test-v1").unwrap(),
+        )
+        .unwrap();
+        assert_eq!(composed.record().terminal(), CaptureTerminalStatus::Partial);
+        assert!(!composed.record().partial());
+        assert_eq!(composed.record().observation_count(), 0);
+    }
+
+    #[test]
+    fn oversized_session_record_is_rejected_by_mapping_byte_preflight() {
+        let (_directory, collector) = collector(EMPTY);
+        let session = run_and_normalize(
+            &collector,
+            CollectorCommand::Scan(ScanOptions::new(None, 1, 20, false).unwrap()),
+            |stream| {
+                let mut context = context(stream, true, false);
+                let remaining = kyberia_domain::capture_session::MAX_SESSION_SOURCE_MAPPINGS
+                    .saturating_sub(context.sources.len());
+                for index in 0..remaining {
+                    let mut id = [0; 16];
+                    id[..4].copy_from_slice(&u32::try_from(index).unwrap().to_le_bytes());
+                    id[4] = 1;
+                    context.sources.insert(
+                        format!("extra-{index:04}-{}", "x".repeat(300)),
+                        SourceMapping {
+                            source_id: SourceId::from_bytes(id).unwrap(),
+                            sensor_id: unknown(),
+                            adapter_id: unknown(),
+                        },
+                    );
+                }
+                Ok(context)
+            },
+            &NeverCancel,
+        )
+        .unwrap();
+        let result = NativeAcquisitionBatch::from_session(
+            &session,
+            Text::new("registry/native-test-v1").unwrap(),
+        );
+        assert!(matches!(
+            result,
+            Err(NativeAcquisitionBatchError::RecordCanonicalBytes)
+        ));
+    }
+
+    #[test]
+    fn canonical_overhead_rejects_after_mapping_byte_preflight() {
         let (_directory, collector) = collector(EMPTY);
         let session = run_and_normalize(
             &collector,
@@ -479,6 +628,18 @@ mod tests {
     }
 
     #[test]
+    fn mapping_byte_floor_rejects_boundary_and_checked_add_overflow() {
+        let mut exact = MAX_CAPTURE_SESSION_BYTES - 1;
+        assert!(add_record_byte_floor(&mut exact, 1));
+        assert_eq!(exact, MAX_CAPTURE_SESSION_BYTES);
+        assert!(!add_record_byte_floor(&mut exact, 1));
+
+        let mut overflow = usize::MAX;
+        assert!(!add_record_byte_floor(&mut overflow, 1));
+        assert_eq!(overflow, usize::MAX);
+    }
+
+    #[test]
     fn partial_session_retains_terminal_and_partial_evidence() {
         let (_directory, session) = session(PARTIAL, true, false);
         let composed = NativeAcquisitionBatch::from_session(
@@ -490,6 +651,57 @@ mod tests {
         assert!(composed.record().partial());
         assert_eq!(composed.record().exit_code(), 2);
         assert_eq!(composed.record().observation_count(), 1);
+    }
+
+    #[test]
+    fn non_ok_observations_preserve_source_partial_rule() {
+        let cases = [
+            ("partial", "partial", 2),
+            ("permission_required", "permission required", 77),
+            ("unsupported", "unsupported", 69),
+            ("unavailable", "unavailable", 69),
+            ("timeout", "timed out", 124),
+            ("cancelled", "cancelled", 130),
+            ("error", "collector error", 70),
+        ];
+        for (status, reason, exit_code) in cases {
+            let mut records: Vec<serde_json::Value> = std::str::from_utf8(VALID)
+                .unwrap()
+                .lines()
+                .map(|line| serde_json::from_str(line).unwrap())
+                .collect();
+            let complete = records.last_mut().unwrap();
+            complete["status"] = serde_json::json!(status);
+            complete["reason"] = serde_json::json!(reason);
+            complete["partial"] = serde_json::json!(true);
+            if status == "error" {
+                complete["native_error_domain"] = serde_json::json!("native-test");
+                complete["native_error_code"] = serde_json::json!(1);
+            }
+            let fixture = records
+                .iter()
+                .flat_map(|record| {
+                    let mut bytes = serde_json::to_vec(record).unwrap();
+                    bytes.push(b'\n');
+                    bytes
+                })
+                .collect::<Vec<_>>();
+            let (_directory, collector) = collector_with_exit(&fixture, exit_code);
+            let session = run_and_normalize(
+                &collector,
+                CollectorCommand::Scan(ScanOptions::new(None, 4, 20, true).unwrap()),
+                |stream| Ok(context(stream, false, false)),
+                &NeverCancel,
+            )
+            .unwrap();
+            let composed = NativeAcquisitionBatch::from_session(
+                &session,
+                Text::new("registry/native-test-v1").unwrap(),
+            )
+            .unwrap();
+            assert!(composed.record().partial());
+            assert_eq!(composed.record().observation_count(), 1);
+        }
     }
 
     #[test]

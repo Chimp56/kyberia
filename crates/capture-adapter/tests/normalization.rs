@@ -59,7 +59,7 @@ fn decoded_stream_exposes_only_its_validated_source_clock_epoch_and_terminal() {
 }
 
 #[test]
-fn partial_terminal_requires_nonempty_partial_evidence() {
+fn partial_flag_matches_non_ok_observation_rule() {
     let mut records: Vec<Value> = std::str::from_utf8(include_bytes!(
         "../../../collectors/macos/fixtures/empty.ndjson"
     ))
@@ -68,9 +68,12 @@ fn partial_terminal_requires_nonempty_partial_evidence() {
     .map(|line| serde_json::from_str(line).unwrap())
     .collect();
     records.last_mut().unwrap()["status"] = json!("partial");
-    assert!(decode(&encode(&records)).is_err());
+    assert!(decode(&encode(&records)).is_ok());
 
     records.last_mut().unwrap()["partial"] = json!(true);
+    assert!(decode(&encode(&records)).is_err());
+
+    records.last_mut().unwrap()["status"] = json!("ok");
     assert!(decode(&encode(&records)).is_err());
 }
 

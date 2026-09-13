@@ -379,6 +379,7 @@ impl<'de> Deserialize<'de> for CaptureSessionRecordV1 {
 fn validate_terminal_exit(
     terminal: CaptureTerminalStatus,
     partial: bool,
+    observation_count: u16,
     exit_code: i32,
 ) -> Result<(), ValidationError> {
     let exit_matches = match terminal {
@@ -395,7 +396,7 @@ fn validate_terminal_exit(
             "capture session terminal and exit code",
         ));
     }
-    if partial != (terminal == CaptureTerminalStatus::Partial) {
+    if partial != (terminal != CaptureTerminalStatus::Ok && observation_count > 0) {
         return Err(ValidationError::Inconsistent(
             "capture session partial terminal flag",
         ));
@@ -461,12 +462,7 @@ impl CaptureSessionRecordV1 {
         if usize::from(observation_count) > MAX_CAPTURE_OBSERVATIONS {
             return Err(ValidationError::ResourceLimit("session observations"));
         }
-        validate_terminal_exit(terminal, partial, exit_code)?;
-        if terminal == CaptureTerminalStatus::Partial && observation_count == 0 {
-            return Err(ValidationError::Inconsistent(
-                "partial terminal requires observations",
-            ));
-        }
+        validate_terminal_exit(terminal, partial, observation_count, exit_code)?;
         mapping.validate_shape()?;
         Ok(Self {
             schema_version,
@@ -705,6 +701,15 @@ impl CaptureSessionRecordV1 {
         self.manifest_hash
     }
 
+    /// Replace the manifest hash after the record has been checked with a
+    /// fixed-width placeholder. Content hashes always have the same
+    /// canonical representation, so this lets an outer composition boundary
+    /// perform its bounded serialization check without cloning the mapping.
+    pub fn with_manifest_hash(mut self, manifest_hash: ContentHash) -> Self {
+        self.manifest_hash = manifest_hash;
+        self
+    }
+
     pub const fn mapping(&self) -> &MappingEvidenceV1 {
         &self.mapping
     }
@@ -840,7 +845,7 @@ mod tests {
         let completion = CaptureCompletion::new(
             CaptureTerminalStatus::PermissionRequired,
             Text::new("permission required").unwrap(),
-            false,
+            true,
             1,
         )
         .unwrap();
@@ -886,7 +891,7 @@ mod tests {
             data.privacy.clone(),
             CaptureTerminalStatus::PermissionRequired,
             Text::new("permission required").unwrap(),
-            false,
+            true,
             1,
             77,
         )
@@ -1008,11 +1013,11 @@ mod tests {
             privacy(),
             CaptureTerminalStatus::Partial,
             Text::new("partial").unwrap(),
-            true,
+            false,
             0,
             2,
         );
-        assert!(partial_empty.is_err());
+        assert!(partial_empty.is_ok());
     }
 
     #[test]

@@ -53,14 +53,9 @@ impl CaptureCompletion {
         if usize::from(observation_count) > MAX_CAPTURE_OBSERVATIONS {
             return Err(ValidationError::ResourceLimit("capture observations"));
         }
-        if partial != (status == CaptureTerminalStatus::Partial) {
+        if partial != (status != CaptureTerminalStatus::Ok && observation_count > 0) {
             return Err(ValidationError::Inconsistent(
                 "capture completion partial terminal flag",
-            ));
-        }
-        if status == CaptureTerminalStatus::Partial && observation_count == 0 {
-            return Err(ValidationError::Inconsistent(
-                "partial terminal requires observations",
             ));
         }
         Ok(Self {
@@ -376,7 +371,7 @@ mod tests {
     }
 
     #[test]
-    fn completion_rejects_partial_flag_and_empty_partial_terminal() {
+    fn completion_rejects_mismatched_partial_flag() {
         let reason = Text::new("partial").unwrap();
         assert!(
             CaptureCompletion::new(
@@ -392,9 +387,9 @@ mod tests {
                 .is_err()
         );
         assert!(
-            CaptureCompletion::new(CaptureTerminalStatus::Partial, reason.clone(), true, 0,)
-                .is_err()
+            CaptureCompletion::new(CaptureTerminalStatus::Partial, reason.clone(), false, 0,)
+                .is_ok()
         );
-        assert!(CaptureCompletion::new(CaptureTerminalStatus::Partial, reason, true, 1,).is_ok());
+        assert!(CaptureCompletion::new(CaptureTerminalStatus::Error, reason, true, 1,).is_ok());
     }
 }

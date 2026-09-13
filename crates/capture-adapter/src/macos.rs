@@ -593,8 +593,8 @@ fn validate(s: &DecodedStream) -> Result<()> {
                     text(&c.reason)?;
                     check(
                         usize::from(c.observation_count) == observations.len()
-                            && c.partial == (c.status == TerminalStatus::Partial)
-                            && (c.status != TerminalStatus::Partial || !observations.is_empty()),
+                            && c.partial
+                                == (c.status != TerminalStatus::Ok && !observations.is_empty()),
                         K::Sequence,
                     )?;
                     if let Some(d) = &c.native_error_domain {
