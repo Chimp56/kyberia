@@ -45,10 +45,17 @@ retries to one chunk with the same manifest hash and native completion. This
 is a batch recovery check, not an in-flight process journal or completed
 durable session identity gate.
 
+Materialization cancellation is polled before every envelope clone. The
+two-observation regression cancels after one clone, verifies that the local
+partial vector is discarded without publishing a manifest artifact or chunk,
+then reopens the bundle and retries the exact batch successfully.
+This cancellation addition requires a separate independent review before
+integration.
+
 ## Additional independent failure regressions
 
 The unexpected-trigger test invokes the production spool against an injected SQLite trigger, verifies Corrupt with no receipt and zero chunk/publication rows, removes only that injected trigger, then reopens and retries the exact batch.
 
 The link-corruption test changes a published manifest row count at a cancellation checkpoint that returns false. Chunk publication succeeds but linkage rejects the mismatch. The error preserves the committed chunk receipt and leaves the publication unlinked. Repairing only the injected count and reopening allows retry with identical manifest/chunk hashes and no duplicate chunk. This is explicit test repair, not automatic production recovery.
 
-Independent reviewer Laplace approved both additions without findings. All 11 spool tests, affected all-target Clippy with warnings denied, formatting and whitespace checks pass. Durable session integration and session-commit cancellation gates remain open.
+Independent reviewer Laplace approved both additions without findings. All 12 spool tests, affected all-target Clippy with warnings denied, formatting and whitespace checks pass. Durable session integration and session-commit cancellation gates remain open.

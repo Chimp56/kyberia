@@ -84,7 +84,7 @@ fn spool_cancellation_reports_durable_manifest_and_retry_finishes() {
     let calls = Cell::new(0);
     let cancel = || {
         calls.set(calls.get() + 1);
-        calls.get() >= 3
+        calls.get() >= 3 + batch.observations().len()
     };
     let error = bundle
         .persist_acquisition(
@@ -226,8 +226,8 @@ fn retained_spool_cancel_after_raw_publication_reopens_and_retries_exactly() {
     let path = directory.path().join("retained-cancel-spool");
     let mut bundle = project(&path);
     let calls = Cell::new(0);
-    // Request admission, manifest admission, each raw record, then chunk admission.
-    let stop_at = 3 + batch.raw_records.len();
+    // Request admission, each envelope clone, manifest admission, raw records, then chunk.
+    let stop_at = 3 + batch.observations().len() + batch.raw_records.len();
     let cancel = || {
         calls.set(calls.get() + 1);
         calls.get() >= stop_at
@@ -420,6 +420,61 @@ fn spool_link_corruption_reports_committed_chunk_and_retry_reuses_it() {
         progress.manifest().hash()
     );
     assert_eq!(outcome.publication().chunk().unwrap().hash(), chunk_hash);
+    assert_eq!(reopened.list_observation_chunks().unwrap().len(), 1);
+    assert!(reopened.verify().unwrap().failures.is_empty());
+}
+
+#[test]
+fn spool_cancel_during_materialization_publishes_nothing_and_retry_succeeds() {
+    let mut capture = normalized_capture(VALID, false);
+    let (envelope, source_response) = capture.observations[0].clone().into_parts();
+    let mut envelope_data = envelope.into_data();
+    envelope_data.id = ObservationId::from_bytes([9; 16]).unwrap();
+    capture.observations.push(
+        ReceivedObservation::new(
+            ObservationEnvelope::new(envelope_data).unwrap(),
+            source_response,
+        )
+        .unwrap(),
+    );
+    capture.completion.observation_count = 2;
+    let batch = ReceivedObservationBatch::from_normalized_capture(capture).unwrap();
+    assert_eq!(batch.observations().len(), 2);
+    let directory = retained_tempdir();
+    let path = directory.path().join("materialization-cancel");
+    let mut bundle = project(&path);
+    let calls = Cell::new(0);
+    let cancel = || {
+        calls.set(calls.get() + 1);
+        calls.get() >= 3
+    };
+    let error = bundle
+        .persist_acquisition(
+            AcquisitionSpoolRequest::new(&batch, &text("materialization-cancel/v1"), 2, &cancel)
+                .unwrap(),
+        )
+        .unwrap_err();
+    assert_eq!(error.kind(), PortErrorKind::Cancelled);
+    assert!(error.progress().is_none());
+    assert_eq!(calls.get(), 3, "cancelled after one local envelope clone");
+    drop(bundle);
+    let mut reopened = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    assert!(reopened.list_observation_chunks().unwrap().is_empty());
+    let manifest_hash =
+        kyberia_project_store::content_hash(&batch.manifest().canonical_bytes().unwrap());
+    assert!(reopened.read_artifact(&manifest_hash).is_err());
+    let receipt = reopened
+        .persist_acquisition(
+            AcquisitionSpoolRequest::new(
+                &batch,
+                &text("materialization-cancel/v1"),
+                2,
+                &NeverCancel,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+    assert_eq!(receipt.completion(), batch.manifest().completion());
     assert_eq!(reopened.list_observation_chunks().unwrap().len(), 1);
     assert!(reopened.verify().unwrap().failures.is_empty());
 }

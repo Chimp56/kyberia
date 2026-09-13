@@ -133,8 +133,16 @@ impl AcquisitionSpoolPort for Bundle {
             .batch
             .observations
             .iter()
-            .map(|observation| observation.envelope().clone())
-            .collect::<Vec<_>>();
+            .map(|observation| {
+                if request.is_cancelled() {
+                    return Err(PortError::new(
+                        PortErrorKind::Cancelled,
+                        "cancelled during acquisition batch materialization",
+                    ));
+                }
+                Ok(observation.envelope().clone())
+            })
+            .collect::<Result<Vec<_>, PortError>>()?;
         let publication = crate::bundle::persist_evidence(
             self,
             &request.batch.manifest,
