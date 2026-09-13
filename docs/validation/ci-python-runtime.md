@@ -7,9 +7,11 @@ current GitHub-hosted Linux, macOS and Windows matrix. `actions/setup-python`
 could not resolve that patch release on either the macOS ARM64 or Windows x64
 runner, so both jobs failed before repository bootstrap or tests began.
 
-The official `actions/python-versions` release manifest retrieved on
-2026-09-12 lists CPython 3.12.10 packages for Linux ARM64/x64, macOS ARM64/x64,
-and Windows ARM64/x64/x86. It lists 3.12.12 only for Linux ARM64/x64.
+The official [`actions/python-versions` release manifest](https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json)
+retrieved on 2026-09-12 has SHA-256
+`fbfbfe5d1edb027242bbbfa2ca9601e3a63144e986bdcc0477c0ea2e2ad95d16`.
+It lists CPython 3.12.10 packages for Linux ARM64/x64, macOS ARM64/x64, and
+Windows ARM64/x64/x86. It lists 3.12.12 only for Linux ARM64/x64.
 
 ## Decision
 
