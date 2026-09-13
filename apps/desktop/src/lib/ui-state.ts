@@ -9,6 +9,24 @@ export interface ActiveProjectJob {
   state: "running" | "cancelling";
 }
 
+export interface ActiveProjectJobStatus {
+  jobId: string;
+  progress: number;
+  state: ActiveProjectJob["state"];
+}
+
+export function mergeActiveProjectJobStatus(
+  current: ActiveProjectJob | null,
+  status: ActiveProjectJobStatus,
+): ActiveProjectJob | null {
+  if (current === null || current.id !== status.jobId) return current;
+  return {
+    ...current,
+    progress: status.progress,
+    state: current.state === "cancelling" ? "cancelling" : status.state,
+  };
+}
+
 export interface WorkspaceState {
   phase: WorkspacePhase;
   projectState: ProjectState;

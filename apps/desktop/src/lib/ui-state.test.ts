@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRequestGate, initialWorkspaceState, stateForError } from "./ui-state";
+import { createRequestGate, initialWorkspaceState, mergeActiveProjectJobStatus, stateForError } from "./ui-state";
 
 describe("workspace state semantics", () => {
   it("starts without inventing a project or measurements", () => {
@@ -56,5 +56,24 @@ describe("workspace state semantics", () => {
     }, current);
     expect(next.projectState).toBe("baseline_only");
     expect(next.projectName).toBe("Office");
+  });
+
+  it("keeps cancellation visible when a late running status arrives", () => {
+    const cancelling = {
+      id: "job-1",
+      label: "Choosing project",
+      progress: 18,
+      state: "cancelling" as const,
+    };
+    expect(mergeActiveProjectJobStatus(cancelling, {
+      jobId: "job-1",
+      progress: 18,
+      state: "running",
+    })).toEqual(cancelling);
+    expect(mergeActiveProjectJobStatus({ ...cancelling, state: "running" }, {
+      jobId: "job-1",
+      progress: 42,
+      state: "running",
+    })).toEqual({ ...cancelling, progress: 42, state: "running" });
   });
 });

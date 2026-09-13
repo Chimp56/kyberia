@@ -95,6 +95,11 @@ test("native selector exposes progress and cancellation while it is open", async
     let cancelCalls = 0;
     let releaseCancel: (() => void) | null = null;
     let finishSelection: (() => void) | null = null;
+    let statusCalls = 0;
+    let staleStatusPending = false;
+    let staleStatusReleased = false;
+    let releaseStaleStatus: (() => void) | null = null;
+    const runningStatus = (jobId: string) => ({ schema: "kyberia.desktop-ipc/1" as const, jobId, state: "running" as const, progress: 18 });
     window.__RF_ATLAS_IPC__ = {
       currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: async () => response,
@@ -106,7 +111,20 @@ test("native selector exposes progress and cancellation while it is open", async
         });
       },
       openProject: async () => response,
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 18 }),
+      jobStatus: async ({ jobId }) => {
+        statusCalls += 1;
+        if (statusCalls === 1) return runningStatus(jobId);
+        if (statusCalls === 2) {
+          staleStatusPending = true;
+          return new Promise((resolve) => {
+            releaseStaleStatus = () => {
+              staleStatusReleased = true;
+              resolve(runningStatus(jobId));
+            };
+          });
+        }
+        return runningStatus(jobId);
+      },
       cancelJob: async ({ jobId }) => {
         if (jobId !== pickerJobId) throw new Error("wrong picker job");
         cancelCalls += 1;
@@ -117,14 +135,21 @@ test("native selector exposes progress and cancellation while it is open", async
     (window as unknown as { __CANCEL_CALLS__?: () => number }).__CANCEL_CALLS__ = () => cancelCalls;
     (window as unknown as { __RELEASE_CANCEL__?: () => void }).__RELEASE_CANCEL__ = () => releaseCancel?.();
     (window as unknown as { __FINISH_SELECTION__?: () => void }).__FINISH_SELECTION__ = () => finishSelection?.();
+    (window as unknown as { __STATUS_PENDING__?: () => boolean }).__STATUS_PENDING__ = () => staleStatusPending;
+    (window as unknown as { __RELEASE_STALE_STATUS__?: () => void }).__RELEASE_STALE_STATUS__ = () => releaseStaleStatus?.();
+    (window as unknown as { __STALE_STATUS_RELEASED__?: () => boolean }).__STALE_STATUS_RELEASED__ = () => staleStatusReleased;
   }, baselineResponse);
   await page.goto("/");
   await page.getByRole("button", { name: "Open project" }).click();
   await expect(page.getByRole("heading", { name: "Choosing project" })).toBeVisible();
   await expect(page.getByText("Working — 18%")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __STATUS_PENDING__: () => boolean }).__STATUS_PENDING__())).toBe(true);
   await page.getByRole("button", { name: "Cancel" }).click();
   await expect(page.getByText("Cancelling — 18%")).toBeVisible();
   await expect(page.getByRole("button", { name: "Cancelling…" })).toBeDisabled();
+  await page.evaluate(() => (window as unknown as { __RELEASE_STALE_STATUS__: () => void }).__RELEASE_STALE_STATUS__());
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __STALE_STATUS_RELEASED__: () => boolean }).__STALE_STATUS_RELEASED__())).toBe(true);
+  await expect(page.getByText("Cancelling — 18%")).toBeVisible();
   await page.evaluate(() => (window as unknown as { __RELEASE_CANCEL__: () => void }).__RELEASE_CANCEL__());
   await page.evaluate(() => (window as unknown as { __FINISH_SELECTION__: () => void }).__FINISH_SELECTION__());
   await expect(page.getByRole("heading", { name: "Operation cancelled" })).toBeVisible();
