@@ -363,10 +363,14 @@ where
     let joined = tauri::async_runtime::spawn_blocking(move || picker(task_control)).await;
     let mut guard = lock_state_ref(state)?;
     let selected = finish_joined_job(&mut guard, &job_id, joined)?;
+    let selected = match selected {
+        Ok(selected) => selected,
+        Err(value) => return Err(value),
+    };
     if control.is_cancelled() {
         return Err(cancelled_error());
     }
-    match selected? {
+    match selected {
         Some(selected) => {
             if control.is_cancelled() {
                 Err(cancelled_error())
@@ -658,6 +662,39 @@ mod tests {
         assert!(
             kyberia_desktop_lib::job_control(&state.lock().expect("state after picker"), &job_id,)
                 .is_none()
+        );
+    }
+
+    #[test]
+    fn picker_storage_failure_wins_over_cancellation_arbitration() {
+        let state = Mutex::new(DesktopState::default());
+        let job_id = uuid::Uuid::new_v4().to_string();
+        let request = SelectOpenProjectRequest {
+            schema: kyberia_desktop_lib::IPC_SCHEMA.to_owned(),
+            job_id: job_id.clone(),
+        };
+        let result = tauri::async_runtime::block_on(project_select_open_with_picker(
+            &state,
+            request,
+            |control| {
+                control.cancel();
+                Err(error(
+                    "storage",
+                    "The native project selector could not be reaped safely.",
+                    Some("Restart RF Atlas before choosing a project again."),
+                    true,
+                ))
+            },
+        ))
+        .expect_err("picker storage failure");
+        assert_eq!(result.code, "storage");
+        assert!(result.retryable);
+        assert!(
+            kyberia_desktop_lib::job_control(
+                &state.lock().expect("state after picker failure"),
+                &job_id
+            )
+            .is_none()
         );
     }
 

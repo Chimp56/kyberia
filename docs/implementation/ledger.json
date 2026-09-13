@@ -102415,8 +102415,8 @@
         {
           "path": "apps/desktop/src-tauri/src/main.rs",
           "description": "Async Tauri command boundary and owned native picker lifecycle",
-          "revision": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142",
-          "sha256": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142"
+          "revision": "19614ea915ea7ba448ca3ae0f099c227f6b1ae1f5328fe4f7b703190991aab0f",
+          "sha256": "19614ea915ea7ba448ca3ae0f099c227f6b1ae1f5328fe4f7b703190991aab0f"
         }
       ],
       "validation": [
@@ -236873,8 +236873,8 @@
         {
           "path": "apps/desktop/src-tauri/src/main.rs",
           "description": "Tauri command progress, cancellation and session-publication boundary",
-          "revision": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142",
-          "sha256": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142"
+          "revision": "19614ea915ea7ba448ca3ae0f099c227f6b1ae1f5328fe4f7b703190991aab0f",
+          "sha256": "19614ea915ea7ba448ca3ae0f099c227f6b1ae1f5328fe4f7b703190991aab0f"
         },
         {
           "path": "apps/desktop/src/lib/useProjectSession.ts",
