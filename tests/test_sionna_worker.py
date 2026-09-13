@@ -322,6 +322,89 @@ class LifecycleTests(unittest.TestCase):
         process.wait.assert_called_once_with(timeout=2)
         process.kill.assert_not_called()
 
+    def test_windows_stop_escalates_after_job_and_reap_failures(self):
+        from rfatlas_sionna import client
+
+        process = mock.Mock()
+        process.poll.side_effect = [None, None, None]
+        process.wait.side_effect = [TimeoutError("initial wait failed"),
+                                    TimeoutError("retry wait failed")]
+        process.kill.side_effect = OSError("direct kill failed")
+        job = mock.Mock()
+        job.terminate.side_effect = OSError("job terminate failed")
+        process._kyberia_windows_job = job
+        with mock.patch.object(client.os, "name", "nt"), \
+                self.assertRaisesRegex(OSError, "containment unknown"):
+            client._stop(process)
+        job.terminate.assert_called_once_with()
+        process.kill.assert_called_once_with()
+        self.assertEqual(process.wait.call_args_list,
+                         [mock.call(timeout=2), mock.call(timeout=2)])
+
+    def test_windows_stop_retries_direct_kill_and_reports_prior_failure(self):
+        from rfatlas_sionna import client
+        process = mock.Mock()
+        order = []
+        polls = iter((None, None, 0))
+        waits = iter((TimeoutError("initial wait failed"), None))
+
+        def poll():
+            order.append("poll")
+            return next(polls)
+
+        def wait(timeout=None):
+            order.append("wait")
+            result = next(waits)
+            if isinstance(result, BaseException):
+                raise result
+
+        def kill():
+            order.append("kill")
+
+        process.poll.side_effect = poll
+        process.wait.side_effect = wait
+        process.kill.side_effect = kill
+        job = mock.Mock()
+        def terminate():
+            order.append("job.terminate")
+            raise OSError("job terminate failed")
+        job.terminate.side_effect = terminate
+        process._kyberia_windows_job = job
+        with mock.patch.object(client.os, "name", "nt"), \
+                self.assertRaisesRegex(OSError, "termination/reap failed") as raised:
+            client._stop(process)
+        job.terminate.assert_called_once_with()
+        process.kill.assert_called_once_with()
+        self.assertEqual(process.wait.call_args_list,
+                         [mock.call(timeout=2), mock.call(timeout=2)])
+        self.assertEqual(order, ["poll", "job.terminate", "wait", "poll", "kill", "wait", "poll"])
+        self.assertNotIn("containment unknown", str(raised.exception))
+
+    def test_windows_job_close_retry_distinguishes_proven_containment(self):
+        from rfatlas_sionna import client
+        job = mock.Mock(_closed=False)
+        calls = [0]
+
+        def close_once():
+            calls[0] += 1
+            if calls[0] == 1:
+                raise OSError("transient close failure")
+            job._closed = True
+
+        job.close.side_effect = close_once
+        errors = []
+        client._close_windows_job(job, errors)
+        self.assertEqual(job.close.call_count, 2)
+        self.assertEqual(len(errors), 1)
+        self.assertNotIn("containment unknown", str(errors[0]))
+
+        job = mock.Mock(_closed=False)
+        job.close.side_effect = OSError("persistent close failure")
+        errors = []
+        client._close_windows_job(job, errors)
+        self.assertEqual(job.close.call_count, 2)
+        self.assertTrue(any("containment unknown" in str(error) for error in errors))
+
     def test_windows_job_attach_failure_reaps_suspended_child(self):
         from rfatlas_sionna import client
 
@@ -376,6 +459,7 @@ class LifecycleTests(unittest.TestCase):
         job._handle = 99
         job._closed = False
         job._process_assigned = False
+        job._owned_handles = {}
         return job
 
     @staticmethod
@@ -417,6 +501,62 @@ class LifecycleTests(unittest.TestCase):
                 with self.assertRaisesRegex(OSError, expected_error):
                     job._open_suspended_thread(700)
             kernel.CloseHandle.assert_called_once_with(10)
+
+    def test_windows_auxiliary_handle_close_failures_retry_without_reuse(self):
+        from rfatlas_sionna import client
+
+        kernel = mock.Mock()
+        kernel.CreateToolhelp32Snapshot.return_value = 10
+        kernel.Thread32First.side_effect = self.fake_thread_entry(client, 22, 700)
+        kernel.Thread32Next.return_value = 0
+        kernel.CloseHandle.side_effect = [0, 1, 1]
+        job = self.fake_windows_job(kernel)
+        with mock.patch.object(client.ctypes, "get_last_error", return_value=18, create=True), \
+                self.assertRaisesRegex(OSError, "CloseHandle\\(thread snapshot\\)"):
+            job._open_suspended_thread(700)
+        self.assertEqual(job._owned_handles, {"thread snapshot": 10})
+        job.close()
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(10), mock.call(10), mock.call(99)])
+        self.assertFalse(job._owned_handles)
+        call_count = kernel.CloseHandle.call_count
+        job.close()
+        self.assertEqual(kernel.CloseHandle.call_count, call_count)
+
+        kernel = mock.Mock()
+        kernel.OpenProcess.return_value = 44
+        kernel.AssignProcessToJobObject.return_value = 1
+        kernel.ResumeThread.return_value = 1
+        kernel.CloseHandle.side_effect = [0, 1]
+        job = self.fake_windows_job(kernel)
+        job._own_handle("thread", 33)
+        process = mock.Mock(pid=700)
+        with mock.patch.object(job, "_open_suspended_thread", return_value=33), \
+                self.assertRaisesRegex(OSError, "handle close"):
+            job.assign_and_resume(process)
+        self.assertEqual(job._owned_handles, {"process": 44})
+        kernel.CloseHandle.side_effect = None
+        kernel.CloseHandle.return_value = 1
+        job.close()
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(44), mock.call(33), mock.call(44), mock.call(99)])
+        self.assertFalse(job._owned_handles)
+
+        kernel = mock.Mock()
+        kernel.OpenProcess.return_value = 44
+        kernel.AssignProcessToJobObject.return_value = 1
+        kernel.ResumeThread.return_value = 1
+        kernel.CloseHandle.side_effect = [1, 0, 1, 1]
+        job = self.fake_windows_job(kernel)
+        job._own_handle("thread", 33)
+        with mock.patch.object(job, "_open_suspended_thread", return_value=33), \
+                self.assertRaisesRegex(OSError, "handle close"):
+            job.assign_and_resume(mock.Mock(pid=700))
+        self.assertEqual(job._owned_handles, {"thread": 33})
+        job.close()
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(44), mock.call(33), mock.call(33), mock.call(99)])
+        self.assertFalse(job._owned_handles)
 
     def test_windows_resume_failure_and_thread_handle_close_are_structured(self):
         from rfatlas_sionna import client
@@ -511,7 +651,7 @@ class LifecycleTests(unittest.TestCase):
                 self.assertRaisesRegex(OSError, "resume setup failed.*cleanup failures"):
             client._attach_windows_job(process)
         job.terminate.assert_called_once_with()
-        job.close.assert_called_once_with()
+        self.assertEqual(job.close.call_count, 2)
         self.assertEqual(process.kill.call_count, 2)
         self.assertEqual(process.wait.call_count, 2)
 

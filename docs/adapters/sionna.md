@@ -93,8 +93,9 @@ assigns a kill-on-close Job Object, and resumes it. On cancellation it sends
 `CTRL_BREAK_EVENT` and waits for the worker's canonical cancellation result
 before using Job Object termination as the bounded fallback. On every terminal
 path it drains output under fixed limits, closes pipe handles, checks every
-reader/writer join, and returns a structured process failure if cleanup cannot
-complete. The CLI maps SIGINT/SIGTERM to cancellation; Python callers may pass a
+reader/writer join, and retries owned Win32 handle closes. If a bounded direct
+kill or handle retry cannot prove containment, it returns a structured failure
+with containment unknown. The CLI maps SIGINT/SIGTERM to cancellation; Python callers may pass a
 `threading.Event` to `run`. SIGKILL of the supervisor itself is not handled.
 Crashes and missing dependencies return explicit failures with no prediction or
 P0/P1 fallback. Each job uses a fresh process, so subsequent jobs can recover.

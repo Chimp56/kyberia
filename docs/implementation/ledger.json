@@ -43060,8 +43060,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55",
-          "sha256": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55"
+          "revision": "f84febe00e665816a162c493308dd19e2e5ac6c76a9ae510a0da74e2d6b01ef0",
+          "sha256": "f84febe00e665816a162c493308dd19e2e5ac6c76a9ae510a0da74e2d6b01ef0"
         }
       ],
       "validation": [
@@ -177304,8 +177304,8 @@
         {
           "path": "docs/adapters/sionna.md",
           "description": "Exact audited installation, process boundary, scope and runtime procedure",
-          "revision": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d",
-          "sha256": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d"
+          "revision": "f952d1c56e3ed23a695780cff279dcd040299db3ec76180f39506d9b5b964727",
+          "sha256": "f952d1c56e3ed23a695780cff279dcd040299db3ec76180f39506d9b5b964727"
         }
       ],
       "validation": [
@@ -177423,8 +177423,8 @@
         {
           "path": "docs/adapters/sionna.md",
           "description": "Exact audited installation, process boundary, scope and runtime procedure",
-          "revision": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d",
-          "sha256": "36911b5420e20bcc80d4b98303720e2eafd346200e76cad1687c8ada5c13058d"
+          "revision": "f952d1c56e3ed23a695780cff279dcd040299db3ec76180f39506d9b5b964727",
+          "sha256": "f952d1c56e3ed23a695780cff279dcd040299db3ec76180f39506d9b5b964727"
         }
       ],
       "validation": [
@@ -239674,8 +239674,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55",
-          "sha256": "ac1b8138ee5bf5dc8929e449332d2511478286f982a64cabbe64b67ca75d1a55"
+          "revision": "f84febe00e665816a162c493308dd19e2e5ac6c76a9ae510a0da74e2d6b01ef0",
+          "sha256": "f84febe00e665816a162c493308dd19e2e5ac6c76a9ae510a0da74e2d6b01ef0"
         }
       ],
       "validation": [

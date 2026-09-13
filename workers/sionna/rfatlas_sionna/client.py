@@ -31,6 +31,7 @@ _WINDOW_PIPE_QUEUE_SIZE = 8
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
 _WINDOW_CANCEL_GRACE_S = 0.5
+_WINDOW_HANDLE_CLOSE_ATTEMPTS = 2
 
 
 class _WindowsIoCounters(ctypes.Structure):
@@ -121,6 +122,7 @@ class _WindowsJobObject:
         self._closed = False
         self._process_assigned = False
         self._initialization_error = None
+        self._owned_handles = {}
         limits = _WindowsExtendedLimitInformation()
         limits.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
         if not self._kernel32.SetInformationJobObject(
@@ -153,15 +155,32 @@ class _WindowsJobObject:
         detail = ctypes.FormatError(code) if hasattr(ctypes, "FormatError") else os.strerror(code)
         raise OSError(code, f"{operation} failed: {detail}")
 
-    def _close_native_handle(self, handle, operation):
+    def _own_handle(self, label, handle):
+        if handle:
+            self._owned_handles[label] = handle
+        return handle
+
+    def _close_native_handle(self, handle, operation, label=None):
         if handle and not self._kernel32.CloseHandle(handle):
             self._raise_last_error(operation)
+        if label is not None:
+            self._owned_handles.pop(label, None)
+
+    def _close_owned_handles(self):
+        errors = []
+        for label, handle in list(self._owned_handles.items()):
+            try:
+                self._close_native_handle(handle, f"CloseHandle({label})", label)
+            except BaseException as error:
+                errors.append(error)
+        return errors
 
     def _open_suspended_thread(self, process_id):
         snapshot = self._kernel32.CreateToolhelp32Snapshot(_TH32CS_SNAPTHREAD, 0)
         invalid = ctypes.c_void_p(-1).value
         if not snapshot or int(snapshot) == invalid:
             self._raise_last_error("CreateToolhelp32Snapshot")
+        self._own_handle("thread snapshot", snapshot)
         thread_ids = []
         primary_error = None
         try:
@@ -185,7 +204,7 @@ class _WindowsJobObject:
             primary_error = error
         close_error = None
         try:
-            self._close_native_handle(snapshot, "CloseHandle(thread snapshot)")
+            self._close_native_handle(snapshot, "CloseHandle(thread snapshot)", "thread snapshot")
         except BaseException as error:
             close_error = error
         if primary_error is not None:
@@ -201,7 +220,7 @@ class _WindowsJobObject:
         thread = self._kernel32.OpenThread(_THREAD_SUSPEND_RESUME, 0, thread_ids[0])
         if not thread:
             self._raise_last_error("OpenThread")
-        return thread
+        return self._own_handle("thread", thread)
 
     def assign_and_resume(self, process):
         thread = self._open_suspended_thread(process.pid)
@@ -212,6 +231,7 @@ class _WindowsJobObject:
                 _PROCESS_TERMINATE | _PROCESS_SET_QUOTA, 0, process.pid)
             if not process_handle:
                 self._raise_last_error("OpenProcess")
+            self._own_handle("process", process_handle)
             if not self._kernel32.AssignProcessToJobObject(self._handle,
                                                             _windows_handle(process_handle)):
                 self._raise_last_error("AssignProcessToJobObject")
@@ -223,11 +243,11 @@ class _WindowsJobObject:
         close_errors = []
         if process_handle:
             try:
-                self._close_native_handle(process_handle, "CloseHandle(process)")
+                self._close_native_handle(process_handle, "CloseHandle(process)", "process")
             except BaseException as error:
                 close_errors.append(error)
         try:
-            self._close_native_handle(thread, "CloseHandle(thread)")
+            self._close_native_handle(thread, "CloseHandle(thread)", "thread")
         except BaseException as error:
             close_errors.append(error)
         if primary_error is not None:
@@ -252,10 +272,18 @@ class _WindowsJobObject:
     def close(self):
         if self._closed:
             return
+        close_errors = self._close_owned_handles()
         handle = self._handle
-        if handle and not self._kernel32.CloseHandle(handle):
-            self._raise_last_error("CloseHandle")
-        self._handle = None
+        if handle:
+            try:
+                self._close_native_handle(handle, "CloseHandle(job)")
+            except BaseException as error:
+                close_errors.append(error)
+            else:
+                self._handle = None
+        if close_errors:
+            raise OSError("Windows handle close failures: "
+                          + "; ".join(str(error) for error in close_errors)) from close_errors[0]
         self._closed = True
 
 
@@ -268,6 +296,19 @@ def _raise_lifecycle_error(primary, cleanup_errors):
     if primary is None:
         raise OSError(f"Windows worker cleanup failed: {detail}")
     raise OSError(f"{primary}; cleanup failures: {detail}") from primary
+
+
+def _close_windows_job(job, cleanup_errors):
+    for _ in range(_WINDOW_HANDLE_CLOSE_ATTEMPTS):
+        try:
+            job.close()
+            return
+        except BaseException as error:
+            cleanup_errors.append(error)
+            if getattr(job, "_closed", None) is True:
+                return
+    if getattr(job, "_closed", None) is not True:
+        cleanup_errors.append(OSError("Windows containment unknown: Job Object handle remains open"))
 
 
 def _attach_windows_job(process):
@@ -312,11 +353,14 @@ def _attach_windows_job(process):
             process.wait(timeout=2)
         except BaseException as reap_error:
             cleanup_errors.append(reap_error)
+    try:
+        if process.poll() is None:
+            cleanup_errors.append(OSError(
+                "Windows containment unknown: child remains live after attach cleanup"))
+    except BaseException as error:
+        cleanup_errors.append(error)
     if job is not None:
-        try:
-            job.close()
-        except BaseException as error:
-            cleanup_errors.append(error)
+        _close_windows_job(job, cleanup_errors)
     _raise_lifecycle_error(primary_error, cleanup_errors)
 
 
@@ -341,6 +385,31 @@ def _stop(process):
             process.wait(timeout=2)
         except BaseException as error:
             errors.append(error)
+        if errors:
+            still_live = True
+            try:
+                still_live = process.poll() is None
+            except BaseException as error:
+                errors.append(error)
+            if still_live:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+                except BaseException as error:
+                    errors.append(error)
+                try:
+                    process.wait(timeout=2)
+                except BaseException as error:
+                    errors.append(error)
+                try:
+                    still_live = process.poll() is None
+                except BaseException as error:
+                    errors.append(error)
+                    still_live = True
+                if still_live:
+                    errors.append(OSError(
+                        "Windows containment unknown: child remains live after direct kill"))
         if errors:
             raise OSError("Windows process termination/reap failed: "
                           + "; ".join(str(error) for error in errors)) from errors[0]
@@ -505,12 +574,10 @@ def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
             cleanup_errors.append(error)
             status = "process_error"
         if job is not None:
-            try:
-                # Closing a kill-on-close job also removes descendants that
-                # inherited either output handle after the parent exited.
-                job.close()
-            except BaseException as error:
-                cleanup_errors.append(error)
+            # Closing a kill-on-close job also removes descendants that
+            # inherited either output handle after the parent exited.
+            _close_windows_job(job, cleanup_errors)
+            if cleanup_errors:
                 status = "process_error"
         drain_deadline = time.monotonic() + _WINDOW_PIPE_DRAIN_S
         while eof != {"stdout", "stderr"} and time.monotonic() < drain_deadline:
@@ -576,10 +643,7 @@ def supervise(command, request_bytes, timeout_s, cancel=None, env=None):
             cleanup_errors.extend(_close_pipes(process))
             job = getattr(process, "_kyberia_windows_job", None)
             if job is not None:
-                try:
-                    job.close()
-                except BaseException as error:
-                    cleanup_errors.append(error)
+                _close_windows_job(job, cleanup_errors)
             _raise_lifecycle_error(primary_error, cleanup_errors)
     with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE, **_popen_options(env)) as process:
