@@ -41,20 +41,26 @@ than a product completion percentage.
 
 ## Windows active loopback correction — 2026-09-13
 
-Hosted run `34765174889` at `c11ff5857cd6a7299ea6845a175e45e5786314e7` passes
-Ubuntu and macOS and fails Windows only in
-`real_loopback_adapter_records_success_and_refusal_without_external_network`.
-The public annotations provide no diagnostic detail, and hosted logs require
+Hosted run `34768828271` at integrated `1d4d62f` passes Ubuntu and fails
+Windows in the combined
+`real_loopback_adapter_records_success_and_refusal_without_external_network`
+test. macOS fails separately in the combined
+`supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain`
+test. The public annotations provide no stage detail, and hosted logs require
 administrator authentication. Code/contract analysis identifies the
 Windows-portability defect as relying on combined readable/writable interest
 for nonblocking TCP connect completion: Mio's Windows AFD backend also reports
 receive/close events as readable. The isolated correction registers writable
 interest only and rearms it after a transient `NotConnected`/`WouldBlock` peer
 query. A repeated bounded loopback regression covers immediate peer close
-after acceptance. Authorized macOS focused tests and the Windows-target Cargo
-check pass; native Windows hosted verification remains pending until this
-correction is pushed and rerun. The active foundation remains in correction
-pending independent review and hosted confirmation.
+after acceptance. The active integration is now split into independently named
+success and refusal tests so the next hosted annotation identifies which
+production path fails; the original bind-then-drop refusal check remains.
+The process regression is likewise split into timeout/cancellation,
+descendant-pipe-drain, and escaped-descendant-pipe-drain tests for the next
+hosted annotation. Local macOS focused tests, the 16-test active suite, the
+full offline workspace suite, and the Windows-target Cargo check pass; native
+Windows hosted verification and the independent review remain pending.
 
 ## Prior progress audit — 2026-09-12
 

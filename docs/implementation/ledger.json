@@ -39371,9 +39371,9 @@
         },
         {
           "path": "crates/observation-pipeline/src/tests.rs",
-          "description": "Recoverable native persistence, exact raw and observation closure, hostile snapshot readback",
-          "revision": "6ebc90f6f7c0c102baaf46f0df5609bb3d6c0508e27c3da803134b09c0589e63",
-          "sha256": "6ebc90f6f7c0c102baaf46f0df5609bb3d6c0508e27c3da803134b09c0589e63",
+          "description": "Recoverable native persistence, exact raw and observation closure, hostile snapshot readback, and bounded process-drain stages",
+          "revision": "73f182c2b3078babd01556f6fdfa4a38827ab6fd0d769bd0bd2e54782082916a",
+          "sha256": "73f182c2b3078babd01556f6fdfa4a38827ab6fd0d769bd0bd2e54782082916a",
           "command": "cargo test -p kyberia-observation-pipeline --locked --offline",
           "scope": "native_persistence_contract",
           "result": "PASS"
@@ -172615,20 +172615,20 @@
         },
         {
           "path": "crates/active-measurement/tests/active.rs",
-          "description": "Bounded loopback/refusal and repeated immediate-peer-close regression",
-          "revision": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c",
-          "sha256": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c"
+          "description": "Separately named bounded loopback success/refusal and repeated immediate-peer-close regressions",
+          "revision": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7",
+          "sha256": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
-          "description": "Focused active-measurement suite, Windows failure analysis, and pending native gate",
-          "revision": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
-          "sha256": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
+          "description": "Focused active-measurement suite, split hosted diagnostics, Windows failure analysis, and pending native gate",
+          "revision": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
+          "sha256": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
-          "scope": "macOS runtime and Windows-target compilation; native Windows hosted run remains open",
-          "result": "PASS: macOS active suite 15/15 and Windows-target check; native Windows pending"
+          "scope": "macOS runtime and Windows-target compilation; hosted Windows active and hosted macOS process diagnostics remain open",
+          "result": "PASS: macOS active suite 16/16, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
         }
       ],
       "reviews": [],
@@ -172683,20 +172683,20 @@
         },
         {
           "path": "crates/active-measurement/tests/active.rs",
-          "description": "Bounded loopback/refusal and repeated immediate-peer-close regression",
-          "revision": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c",
-          "sha256": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c"
+          "description": "Separately named bounded loopback success/refusal and repeated immediate-peer-close regressions",
+          "revision": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7",
+          "sha256": "44baa112f58183898c1a8d4dfa68f8ecea4cbf57499245189c33177973bb06c7"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
-          "description": "Focused active-measurement suite, Windows failure analysis, and pending native gate",
-          "revision": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
-          "sha256": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
+          "description": "Focused active-measurement suite, split hosted diagnostics, Windows failure analysis, and pending native gate",
+          "revision": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
+          "sha256": "dd0d549cee1cf3e3d2190af78a356e4b3157b81499318a1138dd6f610f3ee351",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
-          "scope": "macOS runtime and Windows-target compilation; native Windows hosted run remains open",
-          "result": "PASS: macOS active suite 15/15 and Windows-target check; native Windows pending"
+          "scope": "macOS runtime and Windows-target compilation; hosted Windows active and hosted macOS process diagnostics remain open",
+          "result": "PASS: macOS active suite 16/16, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
         }
       ],
       "reviews": [],

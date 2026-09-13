@@ -133,13 +133,13 @@ The focused suite in
 checks malformed ports and units, target/tier and authorization mismatch,
 unknown attribution, deterministic ordering and identities, bounded sample
 limits, typed success/refusal/timeout/cancellation outcomes, deadline
-completion, connect-timing/failure-burst invariants, and a loopback integration path
-when the sandbox permits listener creation. The integration tests use only
-127.0.0.1 and include repeated immediate-peer-close connects to exercise the
-writable completion path; they skip when the host denies local listener
-creation. Fake clock and connector ports cover all lifecycle branches without
-external network access. Native Windows execution of the correction remains a
-hosted validation gate.
+completion, connect-timing/failure-burst invariants, and separately named
+loopback success and refusal integrations when the sandbox permits listener
+creation. The integration tests use only 127.0.0.1 and include repeated
+immediate-peer-close connects to exercise the writable completion path; they
+skip when the host denies local listener creation. Fake clock and connector
+ports cover all lifecycle branches without external network access. Native
+Windows execution of the correction remains a hosted validation gate.
 
 The domain crate contains no adapter or storage dependency.  The architecture
 policy records the active crate as an adapter depending on the canonical

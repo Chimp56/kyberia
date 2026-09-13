@@ -18,7 +18,7 @@ python3 tools/architecture.py check
 git diff --check
 ```
 
-On 2026-09-13 the focused suite passed 15/15 tests, affected-package Clippy
+On 2026-09-13 the focused suite passed 16/16 tests, affected-package Clippy
 passed with warnings denied, and the complete workspace suite passed with all
 non-ignored tests green. The initial sandboxed workspace run reached five
 unrelated Kismet loopback fixtures and failed because listener creation was
@@ -26,18 +26,26 @@ denied; the authorized loopback rerun passed. Architecture, the 241-package
 source inventory, the 5,392-block traceability ledger, formatting, and diff
 checks passed.
 
-Hosted run `34765174889` at `c11ff5857cd6a7299ea6845a175e45e5786314e7` then
-passed Ubuntu and macOS but failed Windows in
-`real_loopback_adapter_records_success_and_refusal_without_external_network`.
-The public annotations expose no more detail, and the hosted log is not
-available without administrator authentication. Mio's cross-platform TCP
-contract requires writable readiness before checking `take_error` and
-`peer_addr`; its Windows AFD adapter also reports receive/close events through
-readable readiness. The connector now registers writable interest only and
-rearms it when the peer query observes a transient not-connected state. The
-new repeated loopback regression exercises successful connects whose peer is
-closed immediately after acceptance. This preserves literal target admission,
-typed refusal/error outcomes, cancellation polling, and bounded timeouts.
+Hosted run `34768828271` at integrated `1d4d62f` passed Ubuntu but failed
+Windows in the then-combined
+`real_loopback_adapter_records_success_and_refusal_without_external_network`
+test. macOS failed separately in the then-combined
+`supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain`
+test. Public annotations expose only those test names and exit status; the
+hosted log is not available without administrator authentication. Mio's
+cross-platform TCP contract requires writable readiness before checking
+`take_error` and `peer_addr`; its Windows AFD adapter also reports
+receive/close events through readable readiness. The connector now registers
+writable interest only and rearms it when the peer query observes a transient
+not-connected state. The repeated loopback regression exercises successful
+connects whose peer is closed immediately after acceptance. The production
+loopback integration is now split into separately named success and refusal
+tests, retaining the bind-then-drop refused-port check, so the next public
+annotation identifies the failing active stage. The process regression is
+similarly split into timeout/cancellation, descendant-pipe-drain, and
+escaped-descendant-pipe-drain tests. These changes preserve literal target
+admission, typed refusal/error outcomes, cancellation polling, and bounded
+timeouts.
 
 The correction passes the authorized macOS loopback checks and
 `cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu
@@ -73,11 +81,12 @@ The focused Rust suite covers:
   percentage, resource-ceiling, packet-loss-not-measured, and rejection of the
   prior misleading TCP-connect method version, with exact small-count timing
   and failure-burst feasibility regressions;
-- a real std TCP connector against a bounded loopback listener and a local
-  refused port. A repeated-connect regression closes each accepted peer
-  immediately to exercise writable completion and readiness rearming. The
-  integration cases exit early when the host sandbox denies listener creation;
-  no test contacts an external address.
+- separately named real std TCP connector success and refusal integrations
+  against a bounded loopback listener and a local refused port. A
+  repeated-connect regression closes each accepted peer immediately to
+  exercise writable completion and readiness rearming. The integration cases
+  exit early when the host sandbox denies listener creation; no test contacts
+  an external address.
 
 The canonical sample retains an outcome for every scheduled item. Successful
 samples contain measured TCP connect duration; failed and cancelled samples

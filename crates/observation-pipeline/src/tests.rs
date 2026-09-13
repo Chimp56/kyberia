@@ -1607,43 +1607,18 @@ fn empty_native_session_preserves_application_identity_and_source_mapping() {
 
 #[cfg(unix)]
 #[test]
-fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain() {
-    const DRAIN_COMMAND_TIMEOUT_SECONDS: u8 = 5;
-    const DRAIN_RECEIVE_WINDOW_MILLIS: u64 = 250;
-    const DRAIN_RECEIVE_WINDOW_COUNT: u64 = 8;
-    const DRAIN_SCHEDULING_MARGIN: Duration = Duration::from_secs(1);
-
-    // The process deadline is followed by at most eight sequential 250 ms
-    // reader receives: initial, forced, final and finish windows for stdout
-    // and stderr. Keep one explicit second for scheduler/fixture startup
-    // contention. This bound tests the supervisor's actual budgets rather
-    // than assuming a lightly loaded host.
-    let drain_elapsed_budget = || {
-        Duration::from_secs(u64::from(DRAIN_COMMAND_TIMEOUT_SECONDS))
-            .saturating_add(Duration::from_millis(
-                DRAIN_RECEIVE_WINDOW_MILLIS * DRAIN_RECEIVE_WINDOW_COUNT,
-            ))
-            .saturating_add(DRAIN_SCHEDULING_MARGIN)
-    };
-
+fn supervised_process_enforces_timeout_and_cancellation() {
     let directory = retained_tempdir();
     let path = directory.path().join("project");
     let mut bundle = project(&path);
     let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
-    let command = || CollectorCommand::Probe(ProbeOptions::new(1).unwrap());
-    // Keep the direct timeout/cancellation contract at one second. The
-    // descendant fixtures exercise post-exit pipe draining, so give the
-    // direct collector process enough wall-clock margin to start and exit
-    // before classifying the inherited-pipe condition as ProcessIo.
-    let drain_command =
-        || CollectorCommand::Probe(ProbeOptions::new(DRAIN_COMMAND_TIMEOUT_SECONDS).unwrap());
 
     let (_script, hanging) = synthetic_collector(VALID, SyntheticCollectorBehavior::Hang);
     let start = Instant::now();
     let timeout_result = run_and_persist(
         &mut bundle,
         &hanging,
-        command(),
+        CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
         |stream| Ok(mapping_context(stream, false)),
         &survey,
         &request(122),
@@ -1663,7 +1638,7 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
     let cancelled_result = run_and_persist(
         &mut bundle,
         &cancellable,
-        ProbeOptions::new(1).map(CollectorCommand::Probe).unwrap(),
+        CollectorCommand::Probe(ProbeOptions::new(1).unwrap()),
         |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
         &survey,
         &request(123),
@@ -1673,57 +1648,91 @@ fn supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain
         matches!(&cancelled_result, Err(NativeCaptureSessionError::Cancelled)),
         "cancelled collector result: {cancelled_result:?}"
     );
+}
 
-    if std::path::Path::new("/usr/bin/python3").exists() {
-        let (_script, descendant) =
-            synthetic_collector(VALID, SyntheticCollectorBehavior::DescendantHoldingPipe);
-        let start = Instant::now();
-        let descendant_result = run_and_persist(
-            &mut bundle,
-            &descendant,
-            drain_command(),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
-            &survey,
-            &request(124),
-            &NeverCancel,
-        );
-        assert!(
-            matches!(
-                &descendant_result,
-                Err(NativeCaptureSessionError::ProcessIo)
-            ),
-            "descendant collector result: {descendant_result:?}"
-        );
-        let elapsed = start.elapsed();
-        assert!(
-            elapsed < drain_elapsed_budget(),
-            "descendant collector elapsed: {elapsed:?} (budget {:?})",
-            drain_elapsed_budget()
-        );
+#[cfg(unix)]
+fn drain_elapsed_budget() -> Duration {
+    const DRAIN_COMMAND_TIMEOUT_SECONDS: u8 = 5;
+    const DRAIN_RECEIVE_WINDOW_MILLIS: u64 = 250;
+    const DRAIN_RECEIVE_WINDOW_COUNT: u64 = 8;
+    const DRAIN_SCHEDULING_MARGIN: Duration = Duration::from_secs(1);
 
-        let (_script, escaped) =
-            synthetic_collector(VALID, SyntheticCollectorBehavior::EscapedDescendant);
-        let start = Instant::now();
-        let escaped_result = run_and_persist(
-            &mut bundle,
-            &escaped,
-            drain_command(),
-            |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
-            &survey,
-            &request(125),
-            &NeverCancel,
-        );
-        assert!(
-            matches!(&escaped_result, Err(NativeCaptureSessionError::ProcessIo)),
-            "escaped descendant collector result: {escaped_result:?}"
-        );
-        let elapsed = start.elapsed();
-        assert!(
-            elapsed < drain_elapsed_budget(),
-            "escaped descendant collector elapsed: {elapsed:?} (budget {:?})",
-            drain_elapsed_budget()
-        );
+    // The process deadline is followed by at most eight sequential 250 ms
+    // reader receives: initial, forced, final and finish windows for stdout
+    // and stderr. Keep one explicit second for scheduler/fixture startup
+    // contention. This bound tests the supervisor's actual budgets rather
+    // than assuming a lightly loaded host.
+    Duration::from_secs(u64::from(DRAIN_COMMAND_TIMEOUT_SECONDS))
+        .saturating_add(Duration::from_millis(
+            DRAIN_RECEIVE_WINDOW_MILLIS * DRAIN_RECEIVE_WINDOW_COUNT,
+        ))
+        .saturating_add(DRAIN_SCHEDULING_MARGIN)
+}
+
+#[cfg(unix)]
+fn run_descendant_drain_case(
+    behavior: SyntheticCollectorBehavior,
+    request_id: u8,
+) -> (NativeCaptureSessionError, Duration) {
+    const DRAIN_COMMAND_TIMEOUT_SECONDS: u8 = 5;
+
+    let directory = retained_tempdir();
+    let path = directory.path().join("project");
+    let mut bundle = project(&path);
+    let survey = PointSurvey::start(config(true), stamp(100)).unwrap();
+    let (_script, collector) = synthetic_collector(VALID, behavior);
+    let start = Instant::now();
+    let result = run_and_persist(
+        &mut bundle,
+        &collector,
+        CollectorCommand::Probe(ProbeOptions::new(DRAIN_COMMAND_TIMEOUT_SECONDS).unwrap()),
+        |_| Ok(mapping_context(&decode(VALID).unwrap(), false)),
+        &survey,
+        &request(request_id),
+        &NeverCancel,
+    )
+    .expect_err("descendant fixture must keep a pipe open after collector exit");
+    (result, start.elapsed())
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_enforces_bounded_descendant_pipe_drain() {
+    if !std::path::Path::new("/usr/bin/python3").exists() {
+        return;
     }
+
+    let (result, elapsed) =
+        run_descendant_drain_case(SyntheticCollectorBehavior::DescendantHoldingPipe, 124);
+    assert!(
+        matches!(result, NativeCaptureSessionError::ProcessIo),
+        "descendant collector result: {result:?}"
+    );
+    assert!(
+        elapsed < drain_elapsed_budget(),
+        "descendant collector elapsed: {elapsed:?} (budget {:?})",
+        drain_elapsed_budget()
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn supervised_process_enforces_bounded_escaped_descendant_pipe_drain() {
+    if !std::path::Path::new("/usr/bin/python3").exists() {
+        return;
+    }
+
+    let (result, elapsed) =
+        run_descendant_drain_case(SyntheticCollectorBehavior::EscapedDescendant, 125);
+    assert!(
+        matches!(result, NativeCaptureSessionError::ProcessIo),
+        "escaped descendant collector result: {result:?}"
+    );
+    assert!(
+        elapsed < drain_elapsed_budget(),
+        "escaped descendant collector elapsed: {elapsed:?} (budget {:?})",
+        drain_elapsed_budget()
+    );
 }
 
 #[cfg(unix)]

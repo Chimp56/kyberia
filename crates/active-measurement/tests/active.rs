@@ -1297,7 +1297,7 @@ proptest! {
 }
 
 #[test]
-fn real_loopback_adapter_records_success_and_refusal_without_external_network() {
+fn real_loopback_adapter_records_success_without_external_network() {
     let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {
         eprintln!(
             "SKIP: active loopback integration requires local listener permission; no runtime pass recorded"
@@ -1311,13 +1311,7 @@ fn real_loopback_adapter_records_success_and_refusal_without_external_network() 
         let _ = listener.accept();
     });
     ready_rx.recv().unwrap();
-    let refused_listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
-    let refused_port = refused_listener.local_addr().unwrap().port();
-    drop(refused_listener);
-    let endpoints = vec![
-        endpoint(2, refused_port, ActiveEndpointTier::LanReference),
-        endpoint(1, success_port, ActiveEndpointTier::LanReference),
-    ];
+    let endpoints = vec![endpoint(1, success_port, ActiveEndpointTier::LanReference)];
     let (run, interval) = make_run(endpoints, 2.0, 1);
     let schedule = build_schedule(&run, &interval).unwrap();
     let mut clock = StdMonotonicClock::new();
@@ -1331,18 +1325,45 @@ fn real_loopback_adapter_records_success_and_refusal_without_external_network() 
         &NeverCancelled,
     )
     .unwrap();
-    assert_eq!(report.results().len(), 2);
+    assert_eq!(report.results().len(), 1);
     assert_eq!(report.results()[0].endpoint_id(), id(1));
     assert_eq!(
         report.results()[0].samples()[0].outcome(),
         ActiveSampleOutcome::Success
     );
-    assert_eq!(report.results()[1].endpoint_id(), id(2));
+    server.join().unwrap();
+}
+
+#[test]
+fn real_loopback_adapter_records_refusal_without_external_network() {
+    let Ok(refused_listener) = TcpListener::bind(("127.0.0.1", 0)) else {
+        eprintln!(
+            "SKIP: active loopback refusal integration requires local listener permission; no runtime pass recorded"
+        );
+        return;
+    };
+    let refused_port = refused_listener.local_addr().unwrap().port();
+    drop(refused_listener);
+    let endpoints = vec![endpoint(2, refused_port, ActiveEndpointTier::LanReference)];
+    let (run, interval) = make_run(endpoints, 2.0, 1);
+    let schedule = build_schedule(&run, &interval).unwrap();
+    let mut clock = StdMonotonicClock::new();
+    let mut connector = StdTcpConnector::new();
+    let report = execute(
+        &run,
+        &interval,
+        &schedule,
+        &mut clock,
+        &mut connector,
+        &NeverCancelled,
+    )
+    .unwrap();
+    assert_eq!(report.results().len(), 1);
+    assert_eq!(report.results()[0].endpoint_id(), id(2));
     assert_eq!(
-        report.results()[1].samples()[0].outcome(),
+        report.results()[0].samples()[0].outcome(),
         ActiveSampleOutcome::ConnectionRefused
     );
-    server.join().unwrap();
 }
 
 #[test]
