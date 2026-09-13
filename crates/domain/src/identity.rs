@@ -69,9 +69,23 @@ identifier!(
     OperationId,
     ChannelScheduleId,
     EndpointId,
+    ActiveEndpointId,
+    ActiveTestRunId,
+    ActiveIntervalId,
+    ActiveSampleId,
+    ActiveResultId,
     MapAssetId,
     ActorDeviceId
 );
+
+/// The pre-existing generic endpoint identity can be adapted at the
+/// application boundary, while active endpoints use their own type so a
+/// capture/session identity cannot be passed accidentally.
+impl From<EndpointId> for ActiveEndpointId {
+    fn from(value: EndpointId) -> Self {
+        Self::from_bytes(value.bytes()).expect("a valid endpoint identity is nonzero")
+    }
+}
 
 /// A content reference identifies bytes, never a filesystem path or URL.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

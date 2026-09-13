@@ -34,6 +34,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0028](0028-canonical-capture-session-record.md) | Accepted bounded increment; product workflow gates open | Durable canonical acquisition-session identity, mapping, privacy and terminal provenance with additive SQLite storage |
 | [0029](0029-application-project-session.md) | Accepted bounded application increment; mutation and job surfaces remain open | Typed create/open project sessions and immutable single-snapshot canonical queries behind an application-owned port |
 | [0030](0030-barrier-aware-idw.md) | Accepted bounded numerical increment; polygon paths and publication remain open | Inward-owned finite planar barriers add deterministic path cost, attenuation and impassable support boundaries to IDW |
+| [0031](0031-active-measurement-foundation.md) | Proposed bounded foundation; independent review and product wiring remain open | Versioned, consented TCP-connect timing records with literal-target safety, deterministic scheduling, typed outcomes and recomputable statistics |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

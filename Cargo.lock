@@ -880,6 +880,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-active-measurement"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "proptest",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "kyberia-application"
 version = "0.1.0"
 dependencies = [
