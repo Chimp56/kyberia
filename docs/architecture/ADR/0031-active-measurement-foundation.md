@@ -137,10 +137,11 @@ completion, connect-timing/failure-burst invariants, and separately named
 loopback success and refusal integrations when the sandbox permits listener
 creation. The integration tests use only 127.0.0.1, include a mixed
 success-then-refusal sequence on one connector, and include repeated
-immediate-peer-close connects to exercise the writable completion path. A
-test-only mutex serializes the real loopback fixtures so a Windows ephemeral
-port released by the refusal fixture cannot be reused by a sibling test; they
-skip when the host denies local listener creation. Fake clock and connector
+immediate-peer-close connects to exercise the writable completion path. The
+refusal fixtures use the distinct loopback alias 127.0.0.2, and a test-only
+mutex serializes the real loopback fixtures so a Windows ephemeral port
+released by either refusal fixture cannot be reused by a sibling active test;
+they skip when the host denies local listener creation. Fake clock and connector
 ports cover all lifecycle branches without external network access. Native
 Windows execution of the correction remains a hosted validation gate.
 

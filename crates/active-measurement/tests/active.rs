@@ -31,9 +31,9 @@ use std::{
 };
 
 // Windows can reuse a just-released ephemeral loopback port while a sibling
-// real integration is still starting. Keep bind/drop refusal fixtures isolated
-// from the other loopback listeners so a refusal cannot become a later test's
-// successful listener.
+// real integration is still starting. The refusal fixtures use 127.0.0.2 so
+// workspace tests bound to 127.0.0.1 cannot claim their released ports, and
+// this mutex isolates the two refusal fixtures in this test binary.
 static LOOPBACK_TEST_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
 fn loopback_test_lock() -> MutexGuard<'static, ()> {
@@ -99,10 +99,14 @@ fn provenance(epoch: ClockEpochId) -> ActiveMeasurementProvenance {
 }
 
 fn endpoint(value: u8, port: u16, tier: ActiveEndpointTier) -> ActiveEndpoint {
+    endpoint_at([127, 0, 0, 1], value, port, tier)
+}
+
+fn endpoint_at(address: [u8; 4], value: u8, port: u16, tier: ActiveEndpointTier) -> ActiveEndpoint {
     let target = ActiveTarget::new(
         text("loopback-test"),
         tier,
-        ActiveSocketAddr::new(ActiveIpAddress::v4([127, 0, 0, 1]), port).unwrap(),
+        ActiveSocketAddr::new(ActiveIpAddress::v4(address), port).unwrap(),
     )
     .unwrap();
     ActiveEndpoint::new(
@@ -1357,7 +1361,7 @@ fn real_loopback_adapter_records_success_without_external_network() {
 #[test]
 fn real_loopback_adapter_records_refusal_without_external_network() {
     let _loopback_test_guard = loopback_test_lock();
-    let Ok(refused_listener) = TcpListener::bind(("127.0.0.1", 0)) else {
+    let Ok(refused_listener) = TcpListener::bind(("127.0.0.2", 0)) else {
         eprintln!(
             "SKIP: active loopback refusal integration requires local listener permission; no runtime pass recorded"
         );
@@ -1365,7 +1369,12 @@ fn real_loopback_adapter_records_refusal_without_external_network() {
     };
     let refused_port = refused_listener.local_addr().unwrap().port();
     drop(refused_listener);
-    let endpoints = vec![endpoint(2, refused_port, ActiveEndpointTier::LanReference)];
+    let endpoints = vec![endpoint_at(
+        [127, 0, 0, 2],
+        2,
+        refused_port,
+        ActiveEndpointTier::LanReference,
+    )];
     let (run, interval) = make_run(endpoints, 2.0, 1);
     let schedule = build_schedule(&run, &interval).unwrap();
     let mut clock = StdMonotonicClock::new();
@@ -1397,7 +1406,7 @@ fn real_loopback_adapter_records_mixed_success_then_refusal_with_one_connector()
         return;
     };
     let success_port = listener.local_addr().unwrap().port();
-    let Ok(refused_listener) = TcpListener::bind(("127.0.0.1", 0)) else {
+    let Ok(refused_listener) = TcpListener::bind(("127.0.0.2", 0)) else {
         eprintln!(
             "SKIP: active loopback mixed integration requires a second local listener; no runtime pass recorded"
         );
@@ -1416,7 +1425,12 @@ fn real_loopback_adapter_records_mixed_success_then_refusal_with_one_connector()
     // Supply the endpoints in reverse order so canonical scheduling must put
     // the successful connection before the refusal on one connector instance.
     let endpoints = vec![
-        endpoint(2, refused_port, ActiveEndpointTier::LanReference),
+        endpoint_at(
+            [127, 0, 0, 2],
+            2,
+            refused_port,
+            ActiveEndpointTier::LanReference,
+        ),
         endpoint(1, success_port, ActiveEndpointTier::LanReference),
     ];
     let (run, interval) = make_run(endpoints, 2.0, 1);

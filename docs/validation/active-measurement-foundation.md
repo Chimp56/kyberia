@@ -37,7 +37,8 @@ registers writable interest only and rearms it when the peer query observes a
 transient not-connected state. Because the remaining failures are limited to
 bind-then-drop refusal fixtures while success passes, the current evidence
 points to Windows reusing a released ephemeral port while a sibling loopback
-test is starting. The four real loopback tests now share a test-only mutex,
+test is starting. The refusal fixtures now use the distinct loopback alias
+`127.0.0.2`, and the four real loopback tests share a test-only mutex,
 retaining the true bind-then-drop refusal and the mixed success-then-refusal
 sequence through one `StdTcpConnector` while isolating their ports. The
 repeated loopback regression still exercises successful connects whose peer is
@@ -83,11 +84,12 @@ The focused Rust suite covers:
   against a bounded loopback listener and a local refused port, plus a mixed
   success-then-refusal sequence through one connector with canonical result
   ordering assertions. A test-only mutex serializes these four real loopback
-  fixtures so Windows cannot reuse a just-released refusal port in a sibling
-  test. A repeated-connect regression closes each accepted peer immediately
-  to exercise writable completion and readiness rearming. The integration
-  cases exit early when the host sandbox denies listener creation; no test
-  contacts an external address.
+  fixtures. Refusal listeners use `127.0.0.2` so workspace tests on
+  `127.0.0.1` cannot reuse a just-released refusal port. A repeated-connect
+  regression closes each accepted peer immediately to exercise writable
+  completion and readiness rearming. The integration cases exit early when
+  the host sandbox denies listener creation; no test contacts an external
+  address.
 
 The canonical sample retains an outcome for every scheduled item. Successful
 samples contain measured TCP connect duration; failed and cancelled samples

@@ -172730,16 +172730,16 @@
         {
           "path": "crates/active-measurement/tests/active.rs",
           "description": "Serialized Windows-safe bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
-          "revision": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df",
-          "sha256": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df"
+          "revision": "c148d02fcd876b2377f1ddfbe56b570d583aac43fa3b43faf1a6f066722f0056",
+          "sha256": "c148d02fcd876b2377f1ddfbe56b570d583aac43fa3b43faf1a6f066722f0056"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
           "description": "Focused active suite, hosted refusal-stage diagnosis, serialized Windows loopback fixtures, and pending native rerun",
-          "revision": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
-          "sha256": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
+          "revision": "b80f7fda4dcbbffe48700e128e2d374f0a626bd0d80cc3aa006a1b7739792978",
+          "sha256": "b80f7fda4dcbbffe48700e128e2d374f0a626bd0d80cc3aa006a1b7739792978",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
           "scope": "macOS runtime and Windows-target compilation; hosted Windows refusal-stage rerun remains open",
           "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted run 34770478017 passed Ubuntu/macOS and failed only Windows refusal-stage fixtures; native rerun pending"
@@ -172798,16 +172798,16 @@
         {
           "path": "crates/active-measurement/tests/active.rs",
           "description": "Serialized Windows-safe bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
-          "revision": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df",
-          "sha256": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df"
+          "revision": "c148d02fcd876b2377f1ddfbe56b570d583aac43fa3b43faf1a6f066722f0056",
+          "sha256": "c148d02fcd876b2377f1ddfbe56b570d583aac43fa3b43faf1a6f066722f0056"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
           "description": "Focused active suite, hosted refusal-stage diagnosis, serialized Windows loopback fixtures, and pending native rerun",
-          "revision": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
-          "sha256": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
+          "revision": "b80f7fda4dcbbffe48700e128e2d374f0a626bd0d80cc3aa006a1b7739792978",
+          "sha256": "b80f7fda4dcbbffe48700e128e2d374f0a626bd0d80cc3aa006a1b7739792978",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
           "scope": "macOS runtime and Windows-target compilation; hosted Windows refusal-stage rerun remains open",
           "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted run 34770478017 passed Ubuntu/macOS and failed only Windows refusal-stage fixtures; native rerun pending"
