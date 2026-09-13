@@ -199,15 +199,15 @@ impl Model {
         location_group: usize,
         cancelled: &mut impl FnMut() -> bool,
     ) -> Result<PathAssessment, Error> {
+        if cancelled() {
+            return Err(Error::Cancelled);
+        }
         if location_group >= self.groups.len() {
             return Err(Error::InvalidConfiguration("location group index"));
         }
-        if !self.barriers.is_empty()
-            && self
-                .groups
-                .len()
-                .checked_mul(self.barriers.len())
-                .is_none_or(|work| work > MAX_BARRIER_EVALUATIONS)
+        if 1usize
+            .checked_mul(self.barriers.len())
+            .is_none_or(|work| work > MAX_BARRIER_EVALUATIONS)
         {
             return Err(Error::ResourceLimit("barrier evaluations"));
         }
@@ -229,6 +229,9 @@ impl Model {
         point: Point2,
         cancelled: &mut impl FnMut() -> bool,
     ) -> Result<Vec<PathAssessment>, Error> {
+        if cancelled() {
+            return Err(Error::Cancelled);
+        }
         if self
             .groups
             .len()
@@ -451,8 +454,11 @@ impl Model {
             if distance.is_finite() && distance <= limit {
                 let selection_score = match self.config.method {
                     Method::Idw { power } => {
-                        let attenuation_factor = 10.0_f64.powf(-path.attenuation_db.get() / 10.0);
-                        distance / attenuation_factor.powf(1.0 / power)
+                        // Compare the monotonic log form of the effective
+                        // score so large admitted attenuation cannot collapse
+                        // every candidate to an infinite raw quotient.
+                        distance.ln()
+                            + path.attenuation_db.get() * std::f64::consts::LN_10 / (10.0 * power)
                     }
                     Method::Nearest | Method::PointValue => distance,
                 };
@@ -527,34 +533,42 @@ impl Model {
         if matches!(self.config.method, Method::Nearest) {
             neighbors.truncate(1);
         }
-        let d0 = neighbors[0].distance;
         let mut weighted: Vec<_> = neighbors
             .iter()
-            .map(|neighbor| match self.config.method {
-                Method::PointValue => unreachable!("point-value returned before interpolation"),
-                Method::Nearest => 1.0,
-                Method::Idw { power } => {
-                    // Path length affects spatial proximity; material loss is
-                    // applied independently in linear power so a high-loss
-                    // wall cannot retain the influence of an open path at the
-                    // same geometric distance.
-                    let distance_weight = (d0 / neighbor.distance).powf(power);
-                    let attenuation_weight =
-                        10.0_f64.powf(-neighbor.path.attenuation_db.get() / 10.0);
-                    distance_weight * attenuation_weight
-                }
+            .map(|neighbor| {
+                let log_weight = match self.config.method {
+                    Method::PointValue => unreachable!("point-value returned before interpolation"),
+                    Method::Nearest => 0.0,
+                    Method::Idw { power } => {
+                        if neighbor.distance <= 0.0 || !neighbor.distance.is_finite() {
+                            return Err(Error::NumericalFailure("barrier IDW distance"));
+                        }
+                        // Keep the distance and material prior in log space. The
+                        // common normalizing factor is subtracted below, so a
+                        // valid 3,300 dB path remains representable instead of
+                        // making every raw weight zero.
+                        -power * neighbor.distance.ln()
+                            - neighbor.path.attenuation_db.get() * std::f64::consts::LN_10 / 10.0
+                    }
+                };
+                Ok((log_weight, neighbor))
             })
-            .zip(neighbors.iter())
-            .collect();
+            .collect::<Result<Vec<_>, Error>>()?;
+        let maximum_log_weight = weighted
+            .iter()
+            .map(|(log_weight, _)| *log_weight)
+            .fold(f64::NEG_INFINITY, f64::max);
+        if !maximum_log_weight.is_finite() {
+            return Err(Error::NumericalFailure("barrier IDW weights"));
+        }
         // Surface the strongest effective contributors first. For an
         // unattenuated model this remains nearest-first; with a wall, the
         // lower-loss path can outrank a geometrically closer sample.
-        weighted.sort_by(|(left, _), (right, _)| {
-            right
-                .total_cmp(left)
-                .then_with(|| std::cmp::Ordering::Equal)
-        });
-        let weights: Vec<_> = weighted.iter().map(|(weight, _)| *weight).collect();
+        weighted.sort_by(|(left, _), (right, _)| right.total_cmp(left));
+        let weights: Vec<_> = weighted
+            .iter()
+            .map(|(log_weight, _)| (*log_weight - maximum_log_weight).exp())
+            .collect();
         let neighbors: Vec<_> = weighted.into_iter().map(|(_, neighbor)| neighbor).collect();
         let sum: f64 = weights.iter().sum();
         if !sum.is_finite() || sum <= 0.0 {
@@ -623,7 +637,7 @@ impl Model {
             if index.is_multiple_of(64) && cancelled() {
                 return Err(Error::Cancelled);
             }
-            if !segments_intersect(from, to, barrier.start, barrier.end) {
+            if !segments_intersect(from, to, barrier.start, barrier.end)? {
                 continue;
             }
             crossed_barriers.push(barrier.id);

@@ -254,9 +254,12 @@ The barrier-aware constructor (`Model::new_with_barriers`) adds an inward-owned
 `BarrierSet` of finite planar segments. It does not import `geo`, CAD, or any
 foreign geometry object. Each segment has a stable nonzero `BarrierId` and a
 typed `BarrierMaterial`: a nonnegative `traversal_cost` in meters, a
-nonnegative `attenuation_db` loss, and either `Passable` or `Impassable`
-policy. Sets are bounded, reject duplicate IDs, reject degenerate/out-of-range
-segments, and sort by ID before any path calculation or serialization.
+nonnegative `attenuation_db` heuristic IDW influence prior, and either
+`Passable` or `Impassable` policy. Sets are bounded, reject duplicate IDs,
+reject degenerate/out-of-range segments, and sort by ID before any path
+calculation or serialization. Distinct IDs with identical geometry are
+intentionally additive layered materials: each layer contributes its own
+cost, prior and policy.
 
 For a query and a location group, the core tests the direct segment against
 each barrier. A reachable path retains:
@@ -265,18 +268,22 @@ each barrier. A reachable path retains:
 geometric_distance + sum(traversal_cost)
 ```
 
-as its total path cost and retains all crossed IDs plus summed attenuation.
-IDW neighbor selection minimizes an attenuation-adjusted path score, while its
-weight is:
+as its total path cost and retains all crossed IDs plus the summed influence
+prior. IDW neighbor selection minimizes the attenuation-adjusted path score
+`total_cost / attenuation_factor^(1 / power)`. For retained neighbors, the
+unnormalized influence is computed stably as:
 
 ```text
-(minimum_total_cost / total_cost)^power * 10^(-attenuation_db / 10)
+log_weight = -power * ln(total_cost) - attenuation_db * ln(10) / 10
+weight = exp(log_weight - max(log_weight over retained neighbors))
 ```
 
-The first term makes corridor/wall traversal cost affect proximity. The second
-term applies material loss in linear power, so equal-distance samples behind
-different materials have different influence. No-barrier models continue to
-use the original Euclidean implementation and retain the existing tile bytes.
+The maximum-log subtraction is a numerical normalizer; it does not claim that
+one globally minimum path exists or that the prior is a physical per-path
+signal attenuation model. The traversal term makes corridor/wall cost affect
+proximity, and the bounded dB prior changes influence monotonically in linear
+power. No-barrier models continue to use the original Euclidean implementation
+and retain the existing tile bytes.
 
 An impassable crossed barrier removes that source from support and leaves the
 cell `Unknown(OutsideEvidenceSupport)`. `path_to_group` and
@@ -284,8 +291,8 @@ cell `Unknown(OutsideEvidenceSupport)`. `path_to_group` and
 an evidence drawer can explain an unknown result. Exact coordinates remain
 `Observed` before barrier policy is applied. Normal support and explicit
 `WithinRadius` extrapolation use total path cost, and extrapolated cells retain
-their `Extrapolated` class. `nearest_distance` is the minimum effective path
-cost for a barrier-aware model; it remains Euclidean for the legacy model.
+their `Extrapolated` class. `nearest_distance` is the minimum reachable total
+path cost for a barrier-aware model; it remains Euclidean for the legacy model.
 
 Barrier work is bounded by `MAX_BARRIER_EVALUATIONS` in addition to the
 existing cell/location limit. Cancellation is checked during both group and

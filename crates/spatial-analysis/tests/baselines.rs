@@ -152,6 +152,169 @@ fn one_wall_changes_neighbor_ranking_and_value() {
 }
 
 #[test]
+fn robust_barrier_intersections_retain_shallow_touch_and_overlap_cases() {
+    let shallow = barrier_model(
+        vec![sample(1, 1.0e9, 0.0, -40.0)],
+        vec![barrier(
+            1,
+            (5.0e8, -1.0e-5),
+            (5.0e8, 1.0e-5),
+            material(0.0, 1.0, BarrierPolicy::Passable),
+        )],
+    );
+    let shallow_path = shallow
+        .path_to_group(point(0.0, 0.0), 0, &mut || false)
+        .unwrap();
+    assert_eq!(
+        shallow_path.crossed_barriers,
+        vec![BarrierId::new(1).unwrap()]
+    );
+
+    let shifted = barrier_model(
+        vec![sample(2, 1.2e9, 3.0e8, -40.0)],
+        vec![barrier(
+            2,
+            (7.0e8, 3.0e8 - 1.0e-5),
+            (7.0e8, 3.0e8 + 1.0e-5),
+            material(0.0, 1.0, BarrierPolicy::Passable),
+        )],
+    );
+    let shifted_path = shifted
+        .path_to_group(point(2.0e8, 3.0e8), 0, &mut || false)
+        .unwrap();
+    assert_eq!(
+        shifted_path.crossed_barriers,
+        vec![BarrierId::new(2).unwrap()]
+    );
+
+    let touch_and_collinear = barrier_model(
+        vec![sample(3, 2.0, 0.0, -40.0)],
+        vec![
+            barrier(
+                3,
+                (2.0, 0.0),
+                (2.0, 1.0),
+                material(0.0, 1.0, BarrierPolicy::Passable),
+            ),
+            barrier(
+                4,
+                (1.0, 0.0),
+                (3.0, 0.0),
+                material(0.0, 1.0, BarrierPolicy::Passable),
+            ),
+            barrier(
+                5,
+                (3.0, 0.0),
+                (4.0, 0.0),
+                material(0.0, 1.0, BarrierPolicy::Passable),
+            ),
+        ],
+    );
+    let touch_path = touch_and_collinear
+        .path_to_group(point(0.0, 0.0), 0, &mut || false)
+        .unwrap();
+    assert_eq!(
+        touch_path.crossed_barriers,
+        vec![BarrierId::new(3).unwrap(), BarrierId::new(4).unwrap()]
+    );
+
+    let diagonal = barrier_model(
+        vec![sample(7, 2.0, 2.0, -40.0)],
+        vec![
+            barrier(
+                7,
+                (1.0, 1.0),
+                (3.0, 3.0),
+                material(0.0, 1.0, BarrierPolicy::Passable),
+            ),
+            barrier(
+                8,
+                (3.0, 3.0),
+                (4.0, 4.0),
+                material(0.0, 1.0, BarrierPolicy::Passable),
+            ),
+        ],
+    );
+    let diagonal_path = diagonal
+        .path_to_group(point(0.0, 0.0), 0, &mut || false)
+        .unwrap();
+    assert_eq!(
+        diagonal_path.crossed_barriers,
+        vec![BarrierId::new(7).unwrap()]
+    );
+
+    let unresolved = barrier_model(
+        vec![sample(6, 1.0e9, 1.0e9, -40.0)],
+        vec![barrier(
+            6,
+            (5.0e8, 1.0e-315),
+            (5.0e8, 2.0e-315),
+            material(0.0, 1.0, BarrierPolicy::Passable),
+        )],
+    );
+    assert_eq!(
+        unresolved.path_to_group(point(0.0, 0.0), 0, &mut || false),
+        Err(Error::NumericalFailure("barrier intersection unresolved"))
+    );
+}
+
+#[test]
+fn extreme_admitted_attenuation_uses_stable_log_weights() {
+    let barriers = (0..11)
+        .map(|index| {
+            barrier(
+                index + 1,
+                (0.05 * f64::from(index), -1.0),
+                (0.05 * f64::from(index), 1.0),
+                material(300.0, 0.0, BarrierPolicy::Passable),
+            )
+        })
+        .collect();
+    let m = barrier_model(
+        vec![sample(1, 1.0, 0.0, -40.0), sample(2, 1.2, 0.0, -80.0)],
+        barriers,
+    );
+    let path = m.path_to_group(point(0.0, 0.0), 0, &mut || false).unwrap();
+    assert_eq!(
+        path.path_cost.as_known().unwrap().attenuation_db.get(),
+        3300.0
+    );
+
+    let cell = estimate(&m, 0.0, 0.0);
+    let ratio = (1.0_f64 / 1.2).powi(2);
+    let oracle = (-40.0 + ratio * -80.0) / (1.0 + ratio);
+    assert!((value(&cell) - oracle).abs() < 1.0e-12);
+    assert_eq!(cell.contributors.len(), 2);
+}
+
+#[test]
+fn identical_geometry_with_distinct_ids_is_additive_layered_material() {
+    let same_geometry = barrier(
+        1,
+        (1.0, -2.0),
+        (1.0, 2.0),
+        material(4.0, 2.0, BarrierPolicy::Passable),
+    );
+    let second_layer = BarrierSegment::new(
+        BarrierId::new(2).unwrap(),
+        same_geometry.start,
+        same_geometry.end,
+        material(6.0, 3.0, BarrierPolicy::Passable),
+    )
+    .unwrap();
+    let m = barrier_model(
+        vec![sample(1, 2.0, 0.0, -40.0)],
+        vec![same_geometry, second_layer],
+    );
+    let path = m.path_to_group(point(0.0, 0.0), 0, &mut || false).unwrap();
+    let cost = path.path_cost.as_known().unwrap();
+    assert_eq!(path.crossed_barriers.len(), 2);
+    assert_eq!(cost.crossed_barriers.len(), 2);
+    assert_eq!(cost.traversal_cost.get(), 5.0);
+    assert_eq!(cost.attenuation_db.get(), 10.0);
+}
+
+#[test]
 fn two_wall_path_cost_is_retained_and_affects_support() {
     let m = barrier_model(
         vec![sample(1, 4.0, 0.0, -40.0)],
@@ -426,6 +589,9 @@ fn barrier_work_and_cancellation_are_bounded() {
         m.estimate(point(0.0, 0.0), &mut || false),
         Err(Error::ResourceLimit("barrier evaluations"))
     );
+    // A single path only charges one group by the 4,096 barriers. It remains
+    // admissible even though evaluating every group would exceed the bound.
+    assert!(m.path_to_group(point(0.0, -1.0), 0, &mut || false).is_ok());
     let small = barrier_model(
         vec![sample(1, 1.0, 0.0, -40.0)],
         vec![barrier(
@@ -437,6 +603,10 @@ fn barrier_work_and_cancellation_are_bounded() {
     );
     assert_eq!(
         small.estimate(point(0.0, 0.0), &mut || true),
+        Err(Error::Cancelled)
+    );
+    assert_eq!(
+        small.path_to_group(point(1.0, 0.0), 0, &mut || true),
         Err(Error::Cancelled)
     );
 }

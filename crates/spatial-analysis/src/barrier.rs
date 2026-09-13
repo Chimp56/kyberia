@@ -14,8 +14,8 @@ pub const MAX_BARRIERS: usize = 4_096;
 pub const MAX_BARRIER_COORDINATE: f64 = 1.0e9;
 /// A bounded upper limit for a material's path-cost surcharge.
 pub const MAX_BARRIER_TRAVERSAL_COST_M: f64 = 1.0e6;
-/// A bounded nonnegative attenuation loss. Keeping this finite also bounds
-/// the linear-power influence factor used by barrier-aware IDW.
+/// A bounded nonnegative heuristic influence prior. Keeping this finite also
+/// bounds the linear-power factor used by barrier-aware IDW.
 pub const MAX_BARRIER_ATTENUATION_DB: f64 = 300.0;
 /// A model may not perform more barrier tests than this in one query.
 pub const MAX_BARRIER_EVALUATIONS: usize = 100_000_000;
@@ -57,7 +57,8 @@ pub enum BarrierPolicy {
 }
 
 /// Material semantics are deliberately finite and typed. Traversal cost is a
-/// geometric surcharge in meters; attenuation is a nonnegative RF loss in dB.
+/// geometric surcharge in meters; attenuation is a nonnegative heuristic IDW
+/// influence prior in dB, not a physical per-path signal attenuation model.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BarrierMaterial {
@@ -240,8 +241,9 @@ fn coordinate_in_range(point: Point2) -> bool {
 }
 
 /// Effective direct path evidence for one source/query pair. The geometric
-/// distance is retained separately from material traversal cost and RF loss;
-/// callers can audit exactly why a contributor was ranked lower.
+/// distance is retained separately from material traversal cost and the
+/// heuristic influence prior; callers can audit exactly why a contributor was
+/// ranked lower.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PathCost {
@@ -291,7 +293,12 @@ impl PathCost {
     }
 }
 
-pub(crate) fn segments_intersect(a: Point2, b: Point2, c: Point2, d: Point2) -> bool {
+pub(crate) fn segments_intersect(
+    a: Point2,
+    b: Point2,
+    c: Point2,
+    d: Point2,
+) -> Result<bool, Error> {
     if ![
         a.x.get(),
         a.y.get(),
@@ -305,43 +312,79 @@ pub(crate) fn segments_intersect(a: Point2, b: Point2, c: Point2, d: Point2) -> 
     .iter()
     .all(|value| value.is_finite())
     {
-        return false;
+        return Err(Error::NumericalFailure("barrier intersection unresolved"));
     }
-    let first = orientation_sign(a, b, c);
-    let second = orientation_sign(a, b, d);
-    let third = orientation_sign(c, d, a);
-    let fourth = orientation_sign(c, d, b);
+    let first = orientation_sign(a, b, c)?;
+    let second = orientation_sign(a, b, d)?;
+    let third = orientation_sign(c, d, a)?;
+    let fourth = orientation_sign(c, d, b)?;
     if first == 0 && on_segment(a, b, c)
         || second == 0 && on_segment(a, b, d)
         || third == 0 && on_segment(c, d, a)
         || fourth == 0 && on_segment(c, d, b)
     {
-        return true;
+        return Ok(true);
     }
-    first != second && third != fourth
+    Ok(first != second && third != fourth)
 }
 
-/// Return a scale-free orientation sign. Relative coordinates are divided by
-/// the largest difference, so translations do not affect a crossing and large
-/// raw coordinates do not overflow the determinant.
-fn orientation_sign(a: Point2, b: Point2, c: Point2) -> i8 {
+/// Return an adaptive orientation sign. Relative coordinates are scaled before
+/// multiplication, and the determinant gets a data-dependent roundoff bound.
+/// A determinant inside that bound is an explicit numerical failure; it must
+/// never be silently interpreted as a disjoint segment.
+fn orientation_sign(a: Point2, b: Point2, c: Point2) -> Result<i8, Error> {
     let ux = b.x.get() - a.x.get();
     let uy = b.y.get() - a.y.get();
     let vx = c.x.get() - a.x.get();
     let vy = c.y.get() - a.y.get();
     let scale = ux.abs().max(uy.abs()).max(vx.abs()).max(vy.abs());
-    if !scale.is_finite() || scale == 0.0 {
-        return 0;
+    if !scale.is_finite() {
+        return Err(Error::NumericalFailure("barrier intersection unresolved"));
     }
-    let cross = (ux / scale) * (vy / scale) - (uy / scale) * (vx / scale);
-    let tolerance = 64.0 * f64::EPSILON;
-    if cross > tolerance {
-        1
-    } else if cross < -tolerance {
-        -1
-    } else {
-        0
+    if scale == 0.0 {
+        return Ok(0);
     }
+    let ux_scaled = ux / scale;
+    let uy_scaled = uy / scale;
+    let vx_scaled = vx / scale;
+    let vy_scaled = vy / scale;
+    if (ux != 0.0 && ux_scaled == 0.0)
+        || (uy != 0.0 && uy_scaled == 0.0)
+        || (vx != 0.0 && vx_scaled == 0.0)
+        || (vy != 0.0 && vy_scaled == 0.0)
+    {
+        return Err(Error::NumericalFailure("barrier intersection unresolved"));
+    }
+    let left = ux_scaled * vy_scaled;
+    let right = uy_scaled * vx_scaled;
+    if (ux_scaled != 0.0 && vy_scaled != 0.0 && left == 0.0)
+        || (uy_scaled != 0.0 && vx_scaled != 0.0 && right == 0.0)
+        || (left != 0.0 && left.abs() < f64::MIN_POSITIVE)
+        || (right != 0.0 && right.abs() < f64::MIN_POSITIVE)
+    {
+        return Err(Error::NumericalFailure("barrier intersection unresolved"));
+    }
+    let determinant = ux_scaled.mul_add(vy_scaled, -right);
+    let error_bound = 8.0 * f64::EPSILON * (left.abs() + right.abs());
+    if !determinant.is_finite() || !error_bound.is_finite() {
+        return Err(Error::NumericalFailure("barrier intersection unresolved"));
+    }
+    if determinant.abs() > error_bound {
+        return Ok(if determinant > 0.0 { 1 } else { -1 });
+    }
+
+    // A rounded determinant inside its error bound gets an exact expansion of
+    // the two normalized products. This resolves true diagonal collinearity
+    // while preserving an explicit error for products that underflowed.
+    let (left_hi, left_lo) = two_product(ux_scaled, vy_scaled);
+    let (right_hi, right_lo) = two_product(uy_scaled, vx_scaled);
+    let (x3, x2, x1, x0) = two_two_diff(left_hi, left_lo, right_hi, right_lo);
+    for component in [x3, x2, x1, x0] {
+        if component != 0.0 {
+            return Ok(if component > 0.0 { 1 } else { -1 });
+        }
+    }
+    Ok(0)
 }
 
 fn on_segment(a: Point2, b: Point2, point: Point2) -> bool {
@@ -349,6 +392,62 @@ fn on_segment(a: Point2, b: Point2, point: Point2) -> bool {
         && point.x.get() <= a.x.get().max(b.x.get())
         && point.y.get() >= a.y.get().min(b.y.get())
         && point.y.get() <= a.y.get().max(b.y.get())
+}
+
+const SPLITTER: f64 = 134_217_729.0;
+
+#[inline]
+fn two_product(a: f64, b: f64) -> (f64, f64) {
+    let product = a * b;
+    let (ahi, alo) = split(a);
+    let (bhi, blo) = split(b);
+    let err1 = product - ahi * bhi;
+    let err2 = err1 - alo * bhi;
+    let err3 = err2 - ahi * blo;
+    (product, alo * blo - err3)
+}
+
+#[inline]
+fn split(value: f64) -> (f64, f64) {
+    let scaled = SPLITTER * value;
+    let high = scaled - value;
+    let high = scaled - high;
+    (high, value - high)
+}
+
+#[inline]
+fn two_two_diff(a1: f64, a0: f64, b1: f64, b0: f64) -> (f64, f64, f64, f64) {
+    let (intermediate, remainder, x0) = two_one_diff(a1, a0, b0);
+    let (x3, x2, low) = two_one_diff(intermediate, remainder, b1);
+    let (x1, x0) = two_sum(low, x0);
+    (x3, x2, x1, x0)
+}
+
+#[inline]
+fn two_one_diff(a1: f64, a0: f64, b: f64) -> (f64, f64, f64) {
+    let (intermediate, x0) = two_diff(a0, b);
+    let (x2, x1) = two_sum(a1, intermediate);
+    (x2, x1, x0)
+}
+
+#[inline]
+fn two_diff(a: f64, b: f64) -> (f64, f64) {
+    let difference = a - b;
+    let bvirt = a - difference;
+    let avirt = difference + bvirt;
+    let bround = bvirt - b;
+    let around = a - avirt;
+    (difference, around + bround)
+}
+
+#[inline]
+fn two_sum(a: f64, b: f64) -> (f64, f64) {
+    let sum = a + b;
+    let bvirt = sum - a;
+    let avirt = sum - bvirt;
+    let bround = b - bvirt;
+    let around = a - avirt;
+    (sum, around + bround)
 }
 
 fn deserialize_point<'de, D>(deserializer: D) -> Result<Point2, D::Error>
