@@ -16,6 +16,22 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Product acceptance: **not complete**. There is no complete usable mapper UI;
   Phase 0 exit criteria and Phases 1–8 remain open.
 
+## Latest progress audit — 2026-09-12
+
+The [progress review](docs/reviews/plan-progress-2026-09-12.md) inspects `fca5b3f`
+and supersedes pending CI statements in the historical checkpoints below.
+Hosted run `34350467190` at `966f92a` completed: Ubuntu and macOS passed;
+Windows regression failed. Public annotations identify Sionna lifecycle,
+active-process and SBOM portability tests; full failure causes remain to be
+established. Fresh ledger, architecture and source inventory checks pass.
+The newer hosted run `34726569253` at `fca5b3f` was still in progress at the
+final audit metadata check and does not yet supersede that failure evidence.
+
+The application worktree contains no implementation changes yet. Capture
+session, acquisition spool and active-process test corrections remain isolated
+and unfinished. The ledger reports 64 validated, 75 in-progress and 3,196
+not-started leaf records; these counts are not a product completion percentage.
+
 ## Completed and reviewed foundation increments
 
 These are implemented prerequisites, not claims that the surrounding complete
@@ -60,8 +76,8 @@ product capability is validated.
 | Canonical scene renderer input | Root integration / reviewed source `125133e` | Independent canonical browser probes and 8-workload benchmark pass on a fresh server. Integration rebuild exposed absolute-path-dependent WASM bytes; a shared-workspace build now reproduces identical bytes at three checkout roots. Complete integrated regression and independent build-environment review pass. Final renderer/product gate remains open; [follow-up](docs/reviews/renderer-wasm-correction-followup.md) |
 | Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; timing corrections `73111b0` and `1711f13`; exact identity mapping retention sources `ff70362` + `4c47283` independently approved and integrated, including custom and empty-capture identity regressions |
 | Unassociated acquisition spool | Root / `acquisition-spool`; Beauvoir / `capture-session-record` | Explicit terminal receipts and retained identity mappings implemented in candidates; canonical durable session record, SQLite closure and fault-injection gates remain in progress |
-| Project application boundary | Laplace / isolated prerequisite | Real create/open/query use cases and atomic canonical snapshot contracts are being implemented; desktop shell, Tauri/WebView and usable mapper acceptance remain open |
-| Hosted validation diagnostics | Reviewed Python sources `4b7fc02` + `d6a00b8`; Rust sources integrated | Bounded Python unittest identifiers complement Rust diagnostics. Independent 25-test contract suite passes; broader Python rerun passes after an unchanged active-process fixture timeout. Hosted Windows confirmation remains open |
+| Project application boundary | Assigned isolated prerequisite; no source changes at audit | Real create/open/query use cases and atomic canonical snapshot contracts remain to implement; desktop shell, Tauri/WebView and usable mapper acceptance remain open |
+| Hosted validation diagnostics | Reviewed Python sources `4b7fc02` + `d6a00b8`; Rust sources integrated | Bounded Python unittest identifiers complement Rust diagnostics. Independent 25-test contract suite passes; broader Python rerun passes after an unchanged active-process fixture timeout. Hosted Windows annotations now identify failing tests; corrections and rerun remain open |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 
 
