@@ -26,30 +26,26 @@ denied; the authorized loopback rerun passed. Architecture, the 241-package
 source inventory, the 5,392-block traceability ledger, formatting, and diff
 checks passed.
 
-Hosted run `34768828271` at integrated `1d4d62f` passed Ubuntu but failed
-Windows in the then-combined
-`real_loopback_adapter_records_success_and_refusal_without_external_network`
-test. macOS failed separately in the then-combined
-`supervised_process_enforces_timeout_cancellation_and_bounded_descendant_drain`
-test. Public annotations expose only those test names and exit status; the
-hosted log is not available without administrator authentication. Mio's
-cross-platform TCP contract requires writable readiness before checking
-`take_error` and `peer_addr`; its Windows AFD adapter also reports
-receive/close events through readable readiness. The connector now registers
-writable interest only and rearms it when the peer query observes a transient
-not-connected state. The repeated loopback regression exercises successful
-connects whose peer is closed immediately after acceptance. The production
-loopback integration is now split into separately named success and refusal
-tests, retaining the bind-then-drop refused-port check, so the next public
-annotation identifies the failing active stage. A separate mixed integration
-also executes success followed by refusal through one `StdTcpConnector` and
-asserts canonical endpoint ordering and typed outcomes. The process regression
-is similarly split into timeout/cancellation, descendant-pipe-drain, and
-escaped-descendant-pipe-drain tests. These changes preserve literal target
+Hosted follow-up run `34770478017` at `86fe0e2` passed Ubuntu and macOS. The
+Windows success-only loopback test passed, while the refusal-only and mixed
+success-then-refusal tests failed. Public annotations expose only those test
+names and exit status; the hosted log is not available without administrator
+authentication. Mio's cross-platform TCP contract requires writable readiness
+before checking `take_error` and `peer_addr`; its Windows AFD adapter also
+reports receive/close events through readable readiness. The connector
+registers writable interest only and rearms it when the peer query observes a
+transient not-connected state. Because the remaining failures are limited to
+bind-then-drop refusal fixtures while success passes, the current evidence
+points to Windows reusing a released ephemeral port while a sibling loopback
+test is starting. The four real loopback tests now share a test-only mutex,
+retaining the true bind-then-drop refusal and the mixed success-then-refusal
+sequence through one `StdTcpConnector` while isolating their ports. The
+repeated loopback regression still exercises successful connects whose peer is
+closed immediately after acceptance. These changes preserve literal target
 admission, typed refusal/error outcomes, cancellation polling, and bounded
 timeouts.
 
-The correction passes the authorized macOS loopback checks and
+The test isolation correction passes the authorized macOS loopback checks and
 `cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu
 --locked --offline`. Native Windows execution remains pending until the
 corrected source is pushed to hosted CI; no Windows pass is claimed here.
@@ -86,10 +82,12 @@ The focused Rust suite covers:
 - separately named real std TCP connector success and refusal integrations
   against a bounded loopback listener and a local refused port, plus a mixed
   success-then-refusal sequence through one connector with canonical result
-  ordering assertions. A repeated-connect regression closes each accepted
-  peer immediately to exercise writable completion and readiness rearming. The
-  integration cases exit early when the host sandbox denies listener creation;
-  no test contacts an external address.
+  ordering assertions. A test-only mutex serializes these four real loopback
+  fixtures so Windows cannot reuse a just-released refusal port in a sibling
+  test. A repeated-connect regression closes each accepted peer immediately
+  to exercise writable completion and readiness rearming. The integration
+  cases exit early when the host sandbox denies listener creation; no test
+  contacts an external address.
 
 The canonical sample retains an outcome for every scheduled item. Successful
 samples contain measured TCP connect duration; failed and cancelled samples

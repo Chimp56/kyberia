@@ -21,8 +21,27 @@ use kyberia_domain::{
 use proptest::prelude::*;
 use serde_json::json;
 use std::{
-    cell::Cell, collections::VecDeque, net::TcpListener, rc::Rc, sync::mpsc, thread, time::Duration,
+    cell::Cell,
+    collections::VecDeque,
+    net::TcpListener,
+    rc::Rc,
+    sync::{Mutex, MutexGuard, OnceLock, mpsc},
+    thread,
+    time::Duration,
 };
+
+// Windows can reuse a just-released ephemeral loopback port while a sibling
+// real integration is still starting. Keep bind/drop refusal fixtures isolated
+// from the other loopback listeners so a refusal cannot become a later test's
+// successful listener.
+static LOOPBACK_TEST_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+fn loopback_test_lock() -> MutexGuard<'static, ()> {
+    LOOPBACK_TEST_LOCK
+        .get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
 
 fn id<T>(value: u8) -> T
 where
@@ -1298,6 +1317,7 @@ proptest! {
 
 #[test]
 fn real_loopback_adapter_records_success_without_external_network() {
+    let _loopback_test_guard = loopback_test_lock();
     let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {
         eprintln!(
             "SKIP: active loopback integration requires local listener permission; no runtime pass recorded"
@@ -1336,6 +1356,7 @@ fn real_loopback_adapter_records_success_without_external_network() {
 
 #[test]
 fn real_loopback_adapter_records_refusal_without_external_network() {
+    let _loopback_test_guard = loopback_test_lock();
     let Ok(refused_listener) = TcpListener::bind(("127.0.0.1", 0)) else {
         eprintln!(
             "SKIP: active loopback refusal integration requires local listener permission; no runtime pass recorded"
@@ -1368,6 +1389,7 @@ fn real_loopback_adapter_records_refusal_without_external_network() {
 
 #[test]
 fn real_loopback_adapter_records_mixed_success_then_refusal_with_one_connector() {
+    let _loopback_test_guard = loopback_test_lock();
     let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {
         eprintln!(
             "SKIP: active loopback mixed integration requires local listener permission; no runtime pass recorded"
@@ -1426,6 +1448,7 @@ fn real_loopback_adapter_records_mixed_success_then_refusal_with_one_connector()
 
 #[test]
 fn real_loopback_connector_accepts_immediate_peer_close_after_writable_completion() {
+    let _loopback_test_guard = loopback_test_lock();
     const ATTEMPTS: usize = 32;
     let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {
         eprintln!(

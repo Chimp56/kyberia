@@ -172729,20 +172729,20 @@
         },
         {
           "path": "crates/active-measurement/tests/active.rs",
-          "description": "Separately named bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
-          "revision": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b",
-          "sha256": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b"
+          "description": "Serialized Windows-safe bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
+          "revision": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df",
+          "sha256": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
-          "description": "Focused active-measurement suite, split hosted diagnostics, Windows failure analysis, and pending native gate",
-          "revision": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
-          "sha256": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
+          "description": "Focused active suite, hosted refusal-stage diagnosis, serialized Windows loopback fixtures, and pending native rerun",
+          "revision": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
+          "sha256": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
-          "scope": "macOS runtime and Windows-target compilation; hosted Windows active and hosted macOS process diagnostics remain open",
-          "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
+          "scope": "macOS runtime and Windows-target compilation; hosted Windows refusal-stage rerun remains open",
+          "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted run 34770478017 passed Ubuntu/macOS and failed only Windows refusal-stage fixtures; native rerun pending"
         }
       ],
       "reviews": [],
@@ -172797,20 +172797,20 @@
         },
         {
           "path": "crates/active-measurement/tests/active.rs",
-          "description": "Separately named bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
-          "revision": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b",
-          "sha256": "e891121fb430d9f3e89eb6570cef797cbff95521ee95b4a59fba3c7c5db0035b"
+          "description": "Serialized Windows-safe bounded loopback success/refusal, mixed same-connector, and repeated immediate-peer-close regressions",
+          "revision": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df",
+          "sha256": "0ff3a66ddd87ca6f4034e3f97579a2646a76b42e1012c5fed85a3587456429df"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/active-measurement-foundation.md",
-          "description": "Focused active-measurement suite, split hosted diagnostics, Windows failure analysis, and pending native gate",
-          "revision": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
-          "sha256": "57bc919afc288abfe88040e2489da499a42e1e58356a60f67260d3c6dc8540b7",
+          "description": "Focused active suite, hosted refusal-stage diagnosis, serialized Windows loopback fixtures, and pending native rerun",
+          "revision": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
+          "sha256": "034977edd8caf4fece1a90a73eb2ad4399edb342c04a3490b8a3aaf4fee6cc54",
           "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
-          "scope": "macOS runtime and Windows-target compilation; hosted Windows active and hosted macOS process diagnostics remain open",
-          "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted Windows active and hosted macOS process verification pending"
+          "scope": "macOS runtime and Windows-target compilation; hosted Windows refusal-stage rerun remains open",
+          "result": "PASS: macOS active suite 17/17, full offline workspace suite, and Windows-target check; hosted run 34770478017 passed Ubuntu/macOS and failed only Windows refusal-stage fixtures; native rerun pending"
         }
       ],
       "reviews": [],
