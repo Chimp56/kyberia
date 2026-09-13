@@ -20,17 +20,18 @@ RF Atlas owns a versioned active domain contract in
 contract includes distinct endpoint, run, interval, sample, and result
 identities; endpoint tiers (`gateway`, `lan_reference`, `internet_control`,
 and `application`); literal IPv4/IPv6 socket targets; TCP plus the explicit
-`TcpConnectRtt` method; and endpoint attribution for interface, route, and
+`TcpConnectTiming` method; and endpoint attribution for interface, route, and
 BSSID.  Attribution uses `Evidence<T>` and remains unknown when the source
 cannot provide it.
 
 An active run requires explicit user consent and a tier allow-list.  Target
 validation rejects unspecified, multicast, and broadcast addresses.  Loopback
-and link-local targets require both the corresponding authorization flag and a
-local gateway/LAN tier.  Gateway/LAN targets must be local-only addresses;
+Loopback targets require both the corresponding authorization flag and a local
+gateway/LAN tier.  IPv4 link-local targets are likewise tier- and
+authorization-gated.  Gateway/LAN targets must be local-only addresses;
 Internet-control targets must not be local-only.  The literal address contract
-rejects unscoped IPv6 link-local addresses because it has no zone/interface
-identifier; IPv4 link-local remains tier- and authorization-gated.  Endpoint
+rejects IPv6 link-local addresses because this version has no zone/interface
+identifier or scoped socket representation.  Endpoint
 and target tiers must match, IPv4-mapped IPv6 addresses are rejected, and the
 only accepted protocol/method pair is TCP connect timing.  The target port is
 an explicit numeric TCP port in `1..=65535`.
@@ -43,6 +44,13 @@ an explicit numeric TCP port in `1..=65535`.
    The schedule carries the authorization, sample-limit, and provenance
    contract used to build it.  Canonical result admission also rejects a
    repeated sample identity, even when ordinals differ.
+   The canonical run registers every interval and admits their cumulative
+   endpoint-by-sample count against one run-wide budget. Duplicate interval
+   identities and cumulative overflow are rejected during both construction
+   and deserialization. A schedule is valid only for an interval present in
+   that registry, and carries the complete registry in its execution contract.
+   Older v1 run JSON without the additive registry field decodes to an empty
+   registry and therefore cannot execute a detached interval accidentally.
 2. `executor` is generic over monotonic clock, cancellation, and TCP connector
    ports.  It re-derives and compares the complete run/interval schedule
    contract before executing, so a same-ID schedule with a different target,
@@ -60,14 +68,22 @@ an explicit numeric TCP port in `1..=65535`.
    resolves names, spawns a process, accepts command fragments, or contacts a
    target outside the endpoint contract.
 
-Successful attempts record monotonic TCP connect timing in milliseconds.
-Refusal, timeout, unreachable, permission, generic error, and cancellation
-are typed outcomes with unknown RTT evidence.  Statistics are computed from
-successful RTTs using linear interpolation at `q * (n - 1)` for median, p90,
-p95, and p99, with max as the largest successful sample.  Loss percentage
-uses non-cancelled attempts; consecutive non-cancelled failures are retained
-as burst lengths, while a run with no loss has `NotApplicable` burst
-percentiles.  No failure contributes a zero RTT.
+Successful attempts record monotonic TCP connect duration/timing in
+milliseconds.  Refusal, timeout, unreachable, permission, generic error, and
+cancellation are typed outcomes with unknown TCP connect duration evidence.
+Statistics are computed from successful connect timings using linear
+interpolation at `q * (n - 1)` for median, p90, p95, and p99, with max as the
+largest successful sample.  TCP attempt failure percentage uses non-cancelled
+attempts; consecutive non-cancelled failures are retained as burst lengths,
+while a run with no failed attempt has `NotApplicable` burst percentiles.
+Packet-loss percentage remains `Unknown(NotMeasured)` because TCP connection
+outcomes do not measure packet loss.  No failure contributes a zero duration.
+Known connect duration must equal the sample's monotonic window. Standalone
+wire admission rechecks the sample ceiling, evidence reasons, ordered
+percentile shape, one-sample and one-burst feasibility, success/failure and
+cancellation counts, the exact attempt-failure percentage, and the rule that
+TCP connect supplies no packet-loss evidence. A complete result additionally
+recomputes its statistics from retained samples.
 
 Hard limits in this increment are 32 endpoints, 4,096 total samples, eight
 concurrent operations (the shipped executor uses one), 60 seconds per
@@ -86,8 +102,9 @@ Internet claims are outside this module.
    identity and timing could change with DNS, search domains, or resolver
    policy.  A future resolver adapter must have its own bounded contract.
 3. **Represent failures as zero-valued metrics.** Rejected because zero ms is
-   a valid-looking measurement and zero throughput is not a TCP-connect
-   outcome.  Failed samples retain typed outcomes and `Evidence::Unknown` RTT.
+   a valid-looking measurement.  Failed samples retain typed outcomes and
+   `Evidence::Unknown` TCP connect duration; packet loss remains explicitly
+   unmeasured.
 4. **Put socket I/O in the domain crate.** Rejected because clocks, network
    APIs, and cancellation are side effects that must remain behind ports and
    adapters.
@@ -103,7 +120,7 @@ The focused suite in
 checks malformed ports and units, target/tier and authorization mismatch,
 unknown attribution, deterministic ordering and identities, bounded sample
 limits, typed success/refusal/timeout/cancellation outcomes, deadline
-completion, percentile and burst invariants, and a loopback integration path
+completion, connect-timing/failure-burst invariants, and a loopback integration path
 when the sandbox permits listener creation.  The integration test uses only
 127.0.0.1 and skips when the host denies local listener creation.  Fake clock
 and connector ports cover all lifecycle branches without external network
@@ -116,12 +133,17 @@ adapter.  Active timestamp and window wire wrappers deny unknown nested fields
 so permissive global monotonic-time decoding cannot widen this record schema.
 The contract is a foundation and does not claim completion of ACT-001/ACT-005,
 Phase 1, iPerf, multi-tier probes, or the product definition of done.
+No persisted independent review packet exists for this Rust foundation. The
+semantic correction and acceptance assertions are explicit inferences from
+the related plan sections and current `STATUS.md`; independent review remains
+required before integration.
 
 ## Consequences
 
 Each result can be interpreted without guessing protocol, target tier,
-endpoint identity, or interface/route/BSSID attribution.  RTT distributions
-and loss bursts remain independently recomputable from retained samples.
+endpoint identity, or interface/route/BSSID attribution.  Connect-timing
+distributions and TCP attempt failure bursts remain independently recomputable
+from retained samples, while packet loss stays explicitly unmeasured.
 Explicit target safety and consent reduce accidental scans of unsafe address
 classes.  A serial connector limits test-induced load and makes schedule
 ordering reproducible, at the cost of lower throughput for multi-endpoint
@@ -143,7 +165,7 @@ project/session retention policy before exposing remote targets.
 The std connector and generic ports can be replaced without changing the
 canonical records.  A future UDP/ICMP/application protocol requires a new
 method/version and its own failure/units contract rather than reusing
-`TcpConnectRtt`.  Follow-up work must add authenticated LAN agents, gateway
+`TcpConnectTiming`.  Follow-up work must add authenticated LAN agents, gateway
 and LAN/application attribution views, iPerf Gate D evidence, persistent
 active-test storage, and independent review before making broader product
 claims.

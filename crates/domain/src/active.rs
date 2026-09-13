@@ -105,7 +105,7 @@ pub enum ActiveTransportProtocol {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ActiveMeasurementMethod {
-    TcpConnectRtt,
+    TcpConnectTiming,
 }
 
 impl ActiveMeasurementMethod {
@@ -114,7 +114,7 @@ impl ActiveMeasurementMethod {
     }
 
     pub const fn semantic_name(self) -> &'static str {
-        "TCP connect RTT"
+        "TCP connect timing"
     }
 }
 
@@ -883,6 +883,7 @@ pub struct ActiveTestRun {
     started: MonotonicTimestamp,
     deadline: MonotonicTimestamp,
     endpoints: Vec<ActiveEndpoint>,
+    intervals: Vec<ActiveInterval>,
     authorization: ActiveAuthorization,
     limits: ActiveTestLimits,
     provenance: ActiveMeasurementProvenance,
@@ -931,6 +932,7 @@ impl ActiveTestRun {
             started,
             deadline,
             endpoints,
+            intervals: Vec::new(),
             authorization,
             limits,
             provenance,
@@ -953,6 +955,10 @@ impl ActiveTestRun {
         &self.endpoints
     }
 
+    pub fn intervals(&self) -> &[ActiveInterval] {
+        &self.intervals
+    }
+
     pub const fn authorization(&self) -> &ActiveAuthorization {
         &self.authorization
     }
@@ -966,11 +972,16 @@ impl ActiveTestRun {
     }
 
     pub fn create_interval(
-        &self,
+        &mut self,
         id: ActiveIntervalId,
         duration: Seconds,
         samples_per_endpoint: u32,
     ) -> Result<ActiveInterval, ActiveValidationError> {
+        if self.intervals.iter().any(|interval| interval.id() == id) {
+            return Err(ActiveValidationError::Domain(
+                ValidationError::Inconsistent("duplicate active interval"),
+            ));
+        }
         let duration_nanos = seconds_to_nanos(duration)?;
         let run_duration = self
             .deadline
@@ -991,9 +1002,21 @@ impl ActiveTestRun {
             .ok_or(ActiveValidationError::Domain(
                 ValidationError::ResourceLimit("active interval sample count"),
             ))?;
-        if total > self.limits.max_samples_total {
+        let scheduled_before = self.intervals.iter().try_fold(0u32, |total, interval| {
+            interval
+                .samples_per_endpoint()
+                .checked_mul(self.endpoints.len() as u32)
+                .and_then(|samples| total.checked_add(samples))
+                .ok_or(ActiveValidationError::Domain(
+                    ValidationError::ResourceLimit("active run sample count"),
+                ))
+        })?;
+        if scheduled_before
+            .checked_add(total)
+            .is_none_or(|scheduled| scheduled > self.limits.max_samples_total)
+        {
             return Err(ActiveValidationError::Domain(
-                ValidationError::ResourceLimit("active interval sample count"),
+                ValidationError::ResourceLimit("active run sample count"),
             ));
         }
         let spacing_nanos = seconds_to_nanos(self.limits.minimum_spacing)?;
@@ -1017,14 +1040,16 @@ impl ActiveTestRun {
             epoch: self.started.epoch,
             nanoseconds: end_nanos,
         };
-        Ok(ActiveInterval {
+        let interval = ActiveInterval {
             schema_version: ActiveSchemaVersion::V1,
             id,
             run_id: self.id,
             window: MonotonicWindow::new(self.started, end)?,
             samples_per_endpoint,
             provenance: self.provenance.clone(),
-        })
+        };
+        self.intervals.push(interval.clone());
+        Ok(interval)
     }
 }
 
@@ -1036,6 +1061,8 @@ struct ActiveTestRunWire {
     started: ActiveTimestampWire,
     deadline: ActiveTimestampWire,
     endpoints: Vec<ActiveEndpoint>,
+    #[serde(default)]
+    intervals: Vec<ActiveInterval>,
     authorization: ActiveAuthorization,
     limits: ActiveTestLimits,
     provenance: ActiveMeasurementProvenance,
@@ -1050,7 +1077,7 @@ impl TryFrom<ActiveTestRunWire> for ActiveTestRun {
                 ValidationError::UnsupportedSchema,
             ));
         }
-        Self::new(
+        let mut run = Self::new(
             value.id,
             value.started.into_timestamp(),
             value.deadline.into_timestamp(),
@@ -1058,7 +1085,34 @@ impl TryFrom<ActiveTestRunWire> for ActiveTestRun {
             value.authorization,
             value.limits,
             value.provenance,
-        )
+        )?;
+        let mut interval_ids = BTreeSet::new();
+        let mut scheduled_samples = 0u32;
+        for interval in value.intervals {
+            let interval_samples = interval
+                .samples_per_endpoint()
+                .checked_mul(run.endpoints.len() as u32)
+                .ok_or(ActiveValidationError::Domain(
+                    ValidationError::ResourceLimit("active run sample count"),
+                ))?;
+            if interval.run_id() != run.id
+                || interval.window().start().epoch != run.started.epoch
+                || interval.window().start().nanoseconds < run.started.nanoseconds
+                || interval.window().end().nanoseconds > run.deadline.nanoseconds
+                || interval.provenance() != &run.provenance
+                || !interval_ids.insert(interval.id())
+                || scheduled_samples
+                    .checked_add(interval_samples)
+                    .is_none_or(|total| total > run.limits.max_samples_total())
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active run interval contract"),
+                ));
+            }
+            scheduled_samples += interval_samples;
+            run.intervals.push(interval);
+        }
+        Ok(run)
     }
 }
 
@@ -1070,6 +1124,7 @@ impl From<ActiveTestRun> for ActiveTestRunWire {
             started: value.started.into(),
             deadline: value.deadline.into(),
             endpoints: value.endpoints,
+            intervals: value.intervals,
             authorization: value.authorization,
             limits: value.limits,
             provenance: value.provenance,
@@ -1185,7 +1240,7 @@ impl ActiveSampleOutcome {
         matches!(self, Self::Cancelled)
     }
 
-    pub const fn is_loss(self) -> bool {
+    pub const fn is_attempt_failure(self) -> bool {
         matches!(
             self,
             Self::ConnectionRefused
@@ -1211,7 +1266,7 @@ pub struct ActiveSample {
     started: MonotonicTimestamp,
     finished: MonotonicTimestamp,
     outcome: ActiveSampleOutcome,
-    tcp_connect_rtt: Evidence<Milliseconds>,
+    tcp_connect_duration: Evidence<Milliseconds>,
     provenance: ActiveMeasurementProvenance,
 }
 
@@ -1228,7 +1283,7 @@ impl ActiveSample {
         started: MonotonicTimestamp,
         finished: MonotonicTimestamp,
         outcome: ActiveSampleOutcome,
-        tcp_connect_rtt: Evidence<Milliseconds>,
+        tcp_connect_duration: Evidence<Milliseconds>,
         provenance: ActiveMeasurementProvenance,
     ) -> Result<Self, ActiveValidationError> {
         finished.elapsed_since(started)?;
@@ -1237,19 +1292,54 @@ impl ActiveSample {
                 ValidationError::ClockEpochMismatch,
             ));
         }
-        match (outcome, &tcp_connect_rtt) {
-            (ActiveSampleOutcome::Success, Evidence::Known(_)) => {}
+        let elapsed_nanos = finished
+            .nanoseconds
+            .checked_sub(started.nanoseconds)
+            .ok_or(ActiveValidationError::Domain(ValidationError::ReversedTime))?;
+        match (outcome, &tcp_connect_duration) {
+            (ActiveSampleOutcome::Success, Evidence::Known(duration))
+                if duration.get() == elapsed_nanos as f64 / 1e6 => {}
+            (ActiveSampleOutcome::Success, Evidence::Known(_)) => {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "TCP connect duration differs from monotonic sample window",
+                    ),
+                ));
+            }
             (ActiveSampleOutcome::Success, Evidence::Unknown(_)) => {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("successful TCP connect missing RTT"),
+                    ValidationError::Inconsistent("successful TCP connect missing duration"),
+                ));
+            }
+            (ActiveSampleOutcome::Cancelled, Evidence::Unknown(UnknownReason::NotMeasured)) => {}
+            (ActiveSampleOutcome::Cancelled, Evidence::Unknown(_)) => {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "cancelled TCP attempt must have not-measured duration",
+                    ),
+                ));
+            }
+            (outcome, Evidence::Unknown(UnknownReason::FailedTest))
+                if outcome.is_attempt_failure() => {}
+            (outcome, Evidence::Unknown(_)) if outcome.is_attempt_failure() => {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "failed TCP attempt must have failed-test duration",
+                    ),
                 ));
             }
             (_, Evidence::Known(_)) => {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("failed TCP connect has RTT"),
+                    ValidationError::Inconsistent("failed TCP attempt has duration"),
                 ));
             }
-            (_, Evidence::Unknown(_)) => {}
+            (_, Evidence::Unknown(_)) => {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "TCP attempt duration has an incompatible unknown reason",
+                    ),
+                ));
+            }
         }
         Ok(Self {
             schema_version: ActiveSchemaVersion::V1,
@@ -1263,7 +1353,7 @@ impl ActiveSample {
             started,
             finished,
             outcome,
-            tcp_connect_rtt,
+            tcp_connect_duration,
             provenance,
         })
     }
@@ -1308,8 +1398,8 @@ impl ActiveSample {
         self.outcome
     }
 
-    pub const fn tcp_connect_rtt(&self) -> &Evidence<Milliseconds> {
-        &self.tcp_connect_rtt
+    pub const fn tcp_connect_duration(&self) -> &Evidence<Milliseconds> {
+        &self.tcp_connect_duration
     }
 
     pub const fn provenance(&self) -> &ActiveMeasurementProvenance {
@@ -1331,7 +1421,7 @@ struct ActiveSampleWire {
     started: ActiveTimestampWire,
     finished: ActiveTimestampWire,
     outcome: ActiveSampleOutcome,
-    tcp_connect_rtt: Evidence<Milliseconds>,
+    tcp_connect_duration: Evidence<Milliseconds>,
     provenance: ActiveMeasurementProvenance,
 }
 
@@ -1355,7 +1445,7 @@ impl TryFrom<ActiveSampleWire> for ActiveSample {
             value.started.into_timestamp(),
             value.finished.into_timestamp(),
             value.outcome,
-            value.tcp_connect_rtt,
+            value.tcp_connect_duration,
             value.provenance,
         )
     }
@@ -1375,15 +1465,18 @@ impl From<ActiveSample> for ActiveSampleWire {
             started: value.started.into(),
             finished: value.finished.into(),
             outcome: value.outcome,
-            tcp_connect_rtt: value.tcp_connect_rtt,
+            tcp_connect_duration: value.tcp_connect_duration,
             provenance: value.provenance,
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "RttDistributionWire", into = "RttDistributionWire")]
-pub struct RttDistribution {
+#[serde(
+    try_from = "ConnectTimingDistributionWire",
+    into = "ConnectTimingDistributionWire"
+)]
+pub struct ConnectTimingDistribution {
     successful_samples: u32,
     median: Evidence<Milliseconds>,
     p90: Evidence<Milliseconds>,
@@ -1392,7 +1485,7 @@ pub struct RttDistribution {
     max: Evidence<Milliseconds>,
 }
 
-impl RttDistribution {
+impl ConnectTimingDistribution {
     pub const fn successful_samples(&self) -> u32 {
         self.successful_samples
     }
@@ -1420,7 +1513,7 @@ impl RttDistribution {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct RttDistributionWire {
+struct ConnectTimingDistributionWire {
     successful_samples: u32,
     median: Evidence<Milliseconds>,
     p90: Evidence<Milliseconds>,
@@ -1429,10 +1522,15 @@ struct RttDistributionWire {
     max: Evidence<Milliseconds>,
 }
 
-impl TryFrom<RttDistributionWire> for RttDistribution {
+impl TryFrom<ConnectTimingDistributionWire> for ConnectTimingDistribution {
     type Error = ActiveValidationError;
 
-    fn try_from(value: RttDistributionWire) -> Result<Self, Self::Error> {
+    fn try_from(value: ConnectTimingDistributionWire) -> Result<Self, Self::Error> {
+        if value.successful_samples > MAX_ACTIVE_SAMPLES {
+            return Err(ActiveValidationError::Domain(
+                ValidationError::ResourceLimit("active connect timing samples"),
+            ));
+        }
         let values = [
             &value.median,
             &value.p90,
@@ -1446,7 +1544,28 @@ impl TryFrom<RttDistributionWire> for RttDistribution {
                 .any(|value| matches!(value, Evidence::Known(_)))
             {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("active RTT distribution without successes"),
+                    ValidationError::Inconsistent(
+                        "active connect timing distribution without successes",
+                    ),
+                ));
+            }
+            let first_reason = values.first().and_then(|value| match value {
+                Evidence::Unknown(reason) => Some(reason),
+                Evidence::Known(_) => None,
+            });
+            if !matches!(
+                first_reason,
+                Some(UnknownReason::NotMeasured | UnknownReason::FailedTest)
+            ) || values.iter().any(|value| {
+                !matches!(
+                    value,
+                    Evidence::Unknown(reason) if Some(reason) == first_reason
+                )
+            }) {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "active connect timing zero-success unknown reason",
+                    ),
                 ));
             }
         } else {
@@ -1454,15 +1573,30 @@ impl TryFrom<RttDistributionWire> for RttDistribution {
             for value in values {
                 let Evidence::Known(value) = value else {
                     return Err(ActiveValidationError::Domain(
-                        ValidationError::Inconsistent("active RTT distribution missing percentile"),
+                        ValidationError::Inconsistent(
+                            "active connect timing distribution missing percentile",
+                        ),
                     ));
                 };
                 if value.get() < previous {
                     return Err(ActiveValidationError::Domain(
-                        ValidationError::Inconsistent("active RTT percentiles are unordered"),
+                        ValidationError::Inconsistent(
+                            "active connect timing percentiles are unordered",
+                        ),
                     ));
                 }
                 previous = value.get();
+            }
+            if value.successful_samples == 1
+                && values
+                    .windows(2)
+                    .any(|pair| pair[0].as_known() != pair[1].as_known())
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "one-success connect timing percentiles must be identical",
+                    ),
+                ));
             }
         }
         Ok(Self {
@@ -1476,8 +1610,8 @@ impl TryFrom<RttDistributionWire> for RttDistribution {
     }
 }
 
-impl From<RttDistribution> for RttDistributionWire {
-    fn from(value: RttDistribution) -> Self {
+impl From<ConnectTimingDistribution> for ConnectTimingDistributionWire {
+    fn from(value: ConnectTimingDistribution) -> Self {
         Self {
             successful_samples: value.successful_samples,
             median: value.median,
@@ -1491,12 +1625,12 @@ impl From<RttDistribution> for RttDistributionWire {
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(
-    try_from = "LossBurstDistributionWire",
-    into = "LossBurstDistributionWire"
+    try_from = "TcpAttemptFailureBurstDistributionWire",
+    into = "TcpAttemptFailureBurstDistributionWire"
 )]
-pub struct LossBurstDistribution {
+pub struct TcpAttemptFailureBurstDistribution {
     burst_count: u32,
-    lost_samples: u32,
+    failed_samples: u32,
     median: Evidence<u32>,
     p90: Evidence<u32>,
     p95: Evidence<u32>,
@@ -1504,13 +1638,13 @@ pub struct LossBurstDistribution {
     max: Evidence<u32>,
 }
 
-impl LossBurstDistribution {
+impl TcpAttemptFailureBurstDistribution {
     pub const fn burst_count(&self) -> u32 {
         self.burst_count
     }
 
-    pub const fn lost_samples(&self) -> u32 {
-        self.lost_samples
+    pub const fn failed_samples(&self) -> u32 {
+        self.failed_samples
     }
 
     pub const fn median(&self) -> &Evidence<u32> {
@@ -1536,9 +1670,9 @@ impl LossBurstDistribution {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct LossBurstDistributionWire {
+struct TcpAttemptFailureBurstDistributionWire {
     burst_count: u32,
-    lost_samples: u32,
+    failed_samples: u32,
     median: Evidence<u32>,
     p90: Evidence<u32>,
     p95: Evidence<u32>,
@@ -1546,11 +1680,16 @@ struct LossBurstDistributionWire {
     max: Evidence<u32>,
 }
 
-impl TryFrom<LossBurstDistributionWire> for LossBurstDistribution {
+impl TryFrom<TcpAttemptFailureBurstDistributionWire> for TcpAttemptFailureBurstDistribution {
     type Error = ActiveValidationError;
 
-    fn try_from(value: LossBurstDistributionWire) -> Result<Self, Self::Error> {
-        let values = [
+    fn try_from(value: TcpAttemptFailureBurstDistributionWire) -> Result<Self, Self::Error> {
+        if value.burst_count > MAX_ACTIVE_SAMPLES || value.failed_samples > MAX_ACTIVE_SAMPLES {
+            return Err(ActiveValidationError::Domain(
+                ValidationError::ResourceLimit("active TCP attempt failure samples"),
+            ));
+        }
+        let percentiles = [
             &value.median,
             &value.p90,
             &value.p95,
@@ -1558,41 +1697,69 @@ impl TryFrom<LossBurstDistributionWire> for LossBurstDistribution {
             &value.max,
         ];
         if value.burst_count == 0 {
-            if value.lost_samples != 0
-                || values
+            if value.failed_samples != 0
+                || percentiles
                     .iter()
                     .any(|value| !matches!(value, Evidence::Unknown(UnknownReason::NotApplicable)))
             {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("active loss burst distribution without bursts"),
+                    ValidationError::Inconsistent(
+                        "active TCP attempt failure burst distribution without bursts",
+                    ),
                 ));
             }
         } else {
-            if value.lost_samples < value.burst_count {
+            if value.failed_samples < value.burst_count {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("active loss burst count exceeds losses"),
+                    ValidationError::Inconsistent(
+                        "active failure burst count exceeds failed attempts",
+                    ),
                 ));
             }
             let mut previous = 0;
-            for value in values {
-                let Evidence::Known(value) = value else {
+            for percentile in percentiles {
+                let Evidence::Known(percentile) = percentile else {
                     return Err(ActiveValidationError::Domain(
                         ValidationError::Inconsistent(
-                            "active loss burst distribution missing percentile",
+                            "active failure burst distribution missing percentile",
                         ),
                     ));
                 };
-                if *value == 0 || *value < previous {
+                if *percentile == 0 || *percentile < previous || *percentile > value.failed_samples
+                {
                     return Err(ActiveValidationError::Domain(
-                        ValidationError::Inconsistent("active loss burst percentiles are invalid"),
+                        ValidationError::Inconsistent(
+                            "active failure burst percentiles are invalid",
+                        ),
                     ));
                 }
-                previous = *value;
+                previous = *percentile;
+            }
+            let minimum_possible_max = value.failed_samples / value.burst_count
+                + u32::from(!value.failed_samples.is_multiple_of(value.burst_count));
+            let Evidence::Known(maximum) = &value.max else {
+                unreachable!("validated failure burst maximum is known")
+            };
+            if *maximum < minimum_possible_max
+                || (value.burst_count == 1
+                    && percentiles
+                        .iter()
+                        .any(|value| value != &&Evidence::Known(*maximum)))
+                || (value.failed_samples == value.burst_count
+                    && percentiles
+                        .iter()
+                        .any(|value| value != &&Evidence::Known(1)))
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "active failure burst count and percentiles are inconsistent",
+                    ),
+                ));
             }
         }
         Ok(Self {
             burst_count: value.burst_count,
-            lost_samples: value.lost_samples,
+            failed_samples: value.failed_samples,
             median: value.median,
             p90: value.p90,
             p95: value.p95,
@@ -1602,11 +1769,11 @@ impl TryFrom<LossBurstDistributionWire> for LossBurstDistribution {
     }
 }
 
-impl From<LossBurstDistribution> for LossBurstDistributionWire {
-    fn from(value: LossBurstDistribution) -> Self {
+impl From<TcpAttemptFailureBurstDistribution> for TcpAttemptFailureBurstDistributionWire {
+    fn from(value: TcpAttemptFailureBurstDistribution) -> Self {
         Self {
             burst_count: value.burst_count,
-            lost_samples: value.lost_samples,
+            failed_samples: value.failed_samples,
             median: value.median,
             p90: value.p90,
             p95: value.p95,
@@ -1622,9 +1789,10 @@ pub struct ActiveStatistics {
     scheduled_samples: u32,
     eligible_samples: u32,
     cancelled_samples: u32,
-    loss_percent: Evidence<Percentage>,
-    rtt: RttDistribution,
-    loss_bursts: LossBurstDistribution,
+    tcp_attempt_failure_percent: Evidence<Percentage>,
+    packet_loss_percent: Evidence<Percentage>,
+    connect_timing: ConnectTimingDistribution,
+    tcp_attempt_failure_bursts: TcpAttemptFailureBurstDistribution,
 }
 
 impl ActiveStatistics {
@@ -1635,80 +1803,85 @@ impl ActiveStatistics {
             ));
         }
         let scheduled_samples = samples.len() as u32;
-        let mut rtts = Vec::new();
+        let mut timings = Vec::new();
         let mut cancelled_samples = 0;
-        let mut loss_bursts = Vec::new();
+        let mut tcp_attempt_failure_bursts = Vec::new();
         let mut current_burst = 0u32;
-        let mut lost_samples = 0u32;
+        let mut failed_samples = 0u32;
         for sample in samples {
             match sample.outcome() {
                 ActiveSampleOutcome::Success => {
-                    if let Evidence::Known(rtt) = sample.tcp_connect_rtt() {
-                        rtts.push(rtt.get());
+                    if let Evidence::Known(timing) = sample.tcp_connect_duration() {
+                        timings.push(timing.get());
                     }
                     if current_burst > 0 {
-                        loss_bursts.push(current_burst);
+                        tcp_attempt_failure_bursts.push(current_burst);
                         current_burst = 0;
                     }
                 }
                 ActiveSampleOutcome::Cancelled => {
                     cancelled_samples += 1;
                     if current_burst > 0 {
-                        loss_bursts.push(current_burst);
+                        tcp_attempt_failure_bursts.push(current_burst);
                         current_burst = 0;
                     }
                 }
-                outcome if outcome.is_loss() => {
-                    lost_samples += 1;
+                outcome if outcome.is_attempt_failure() => {
+                    failed_samples += 1;
                     current_burst += 1;
                 }
                 _ => unreachable!("all active outcomes are covered"),
             }
         }
         if current_burst > 0 {
-            loss_bursts.push(current_burst);
+            tcp_attempt_failure_bursts.push(current_burst);
         }
-        rtts.sort_by(f64::total_cmp);
-        loss_bursts.sort_unstable();
+        timings.sort_by(f64::total_cmp);
+        tcp_attempt_failure_bursts.sort_unstable();
         let eligible_samples = scheduled_samples.saturating_sub(cancelled_samples);
-        let loss_percent = if eligible_samples == 0 {
+        let tcp_attempt_failure_percent = if eligible_samples == 0 {
             Evidence::Unknown(UnknownReason::NotMeasured)
         } else {
             Evidence::Known(Percentage::new(
-                f64::from(lost_samples) * 100.0 / f64::from(eligible_samples),
+                f64::from(failed_samples) * 100.0 / f64::from(eligible_samples),
             )?)
         };
-        let no_rtt_reason = if eligible_samples == 0 {
+        let no_timing_reason = if eligible_samples == 0 {
             UnknownReason::NotMeasured
         } else {
             UnknownReason::FailedTest
         };
-        let no_burst_reason = if loss_bursts.is_empty() {
+        let no_burst_reason = if tcp_attempt_failure_bursts.is_empty() {
             UnknownReason::NotApplicable
         } else {
-            no_rtt_reason.clone()
+            no_timing_reason.clone()
         };
         Ok(Self {
             scheduled_samples,
             eligible_samples,
             cancelled_samples,
-            loss_percent,
-            rtt: RttDistribution {
-                successful_samples: rtts.len() as u32,
-                median: percentile_millis(&rtts, 0.50, no_rtt_reason.clone())?,
-                p90: percentile_millis(&rtts, 0.90, no_rtt_reason.clone())?,
-                p95: percentile_millis(&rtts, 0.95, no_rtt_reason.clone())?,
-                p99: percentile_millis(&rtts, 0.99, no_rtt_reason.clone())?,
-                max: max_millis(&rtts, no_rtt_reason.clone())?,
+            tcp_attempt_failure_percent,
+            packet_loss_percent: Evidence::Unknown(UnknownReason::NotMeasured),
+            connect_timing: ConnectTimingDistribution {
+                successful_samples: timings.len() as u32,
+                median: percentile_millis(&timings, 0.50, no_timing_reason.clone())?,
+                p90: percentile_millis(&timings, 0.90, no_timing_reason.clone())?,
+                p95: percentile_millis(&timings, 0.95, no_timing_reason.clone())?,
+                p99: percentile_millis(&timings, 0.99, no_timing_reason.clone())?,
+                max: max_millis(&timings, no_timing_reason.clone())?,
             },
-            loss_bursts: LossBurstDistribution {
-                burst_count: loss_bursts.len() as u32,
-                lost_samples,
-                median: percentile_count(&loss_bursts, 0.50, no_burst_reason.clone()),
-                p90: percentile_count(&loss_bursts, 0.90, no_burst_reason.clone()),
-                p95: percentile_count(&loss_bursts, 0.95, no_burst_reason.clone()),
-                p99: percentile_count(&loss_bursts, 0.99, no_burst_reason.clone()),
-                max: max_count(&loss_bursts, no_burst_reason),
+            tcp_attempt_failure_bursts: TcpAttemptFailureBurstDistribution {
+                burst_count: tcp_attempt_failure_bursts.len() as u32,
+                failed_samples,
+                median: percentile_count(
+                    &tcp_attempt_failure_bursts,
+                    0.50,
+                    no_burst_reason.clone(),
+                ),
+                p90: percentile_count(&tcp_attempt_failure_bursts, 0.90, no_burst_reason.clone()),
+                p95: percentile_count(&tcp_attempt_failure_bursts, 0.95, no_burst_reason.clone()),
+                p99: percentile_count(&tcp_attempt_failure_bursts, 0.99, no_burst_reason.clone()),
+                max: max_count(&tcp_attempt_failure_bursts, no_burst_reason),
             },
         })
     }
@@ -1725,16 +1898,20 @@ impl ActiveStatistics {
         self.cancelled_samples
     }
 
-    pub const fn loss_percent(&self) -> &Evidence<Percentage> {
-        &self.loss_percent
+    pub const fn tcp_attempt_failure_percent(&self) -> &Evidence<Percentage> {
+        &self.tcp_attempt_failure_percent
     }
 
-    pub const fn rtt(&self) -> &RttDistribution {
-        &self.rtt
+    pub const fn packet_loss_percent(&self) -> &Evidence<Percentage> {
+        &self.packet_loss_percent
     }
 
-    pub const fn loss_bursts(&self) -> &LossBurstDistribution {
-        &self.loss_bursts
+    pub const fn connect_timing(&self) -> &ConnectTimingDistribution {
+        &self.connect_timing
+    }
+
+    pub const fn tcp_attempt_failure_bursts(&self) -> &TcpAttemptFailureBurstDistribution {
+        &self.tcp_attempt_failure_bursts
     }
 }
 
@@ -1744,15 +1921,21 @@ struct ActiveStatisticsWire {
     scheduled_samples: u32,
     eligible_samples: u32,
     cancelled_samples: u32,
-    loss_percent: Evidence<Percentage>,
-    rtt: RttDistribution,
-    loss_bursts: LossBurstDistribution,
+    tcp_attempt_failure_percent: Evidence<Percentage>,
+    packet_loss_percent: Evidence<Percentage>,
+    connect_timing: ConnectTimingDistribution,
+    tcp_attempt_failure_bursts: TcpAttemptFailureBurstDistribution,
 }
 
 impl TryFrom<ActiveStatisticsWire> for ActiveStatistics {
     type Error = ActiveValidationError;
 
     fn try_from(value: ActiveStatisticsWire) -> Result<Self, Self::Error> {
+        if value.scheduled_samples > MAX_ACTIVE_SAMPLES {
+            return Err(ActiveValidationError::Domain(
+                ValidationError::ResourceLimit("active statistics samples"),
+            ));
+        }
         if value.cancelled_samples > value.scheduled_samples
             || value.eligible_samples
                 != value
@@ -1763,11 +1946,19 @@ impl TryFrom<ActiveStatisticsWire> for ActiveStatistics {
                 ValidationError::Inconsistent("active sample eligibility counts"),
             ));
         }
+        if !matches!(
+            &value.packet_loss_percent,
+            Evidence::Unknown(UnknownReason::NotMeasured)
+        ) {
+            return Err(ActiveValidationError::Domain(
+                ValidationError::Inconsistent("packet loss is not measured by TCP connect timing"),
+            ));
+        }
         if value.eligible_samples == 0 {
-            if matches!(value.loss_percent, Evidence::Known(_))
-                || value.rtt.successful_samples != 0
-                || value.loss_bursts.lost_samples != 0
-                || value.loss_bursts.burst_count != 0
+            if matches!(&value.tcp_attempt_failure_percent, Evidence::Known(_))
+                || value.connect_timing.successful_samples != 0
+                || value.tcp_attempt_failure_bursts.failed_samples != 0
+                || value.tcp_attempt_failure_bursts.burst_count != 0
             {
                 return Err(ActiveValidationError::Domain(
                     ValidationError::Inconsistent(
@@ -1775,26 +1966,55 @@ impl TryFrom<ActiveStatisticsWire> for ActiveStatistics {
                     ),
                 ));
             }
-        } else {
-            let Evidence::Known(loss_percent) = value.loss_percent else {
+            if !matches!(
+                &value.tcp_attempt_failure_percent,
+                Evidence::Unknown(UnknownReason::NotMeasured)
+            ) || !matches!(
+                value.connect_timing.median(),
+                Evidence::Unknown(UnknownReason::NotMeasured)
+            ) {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("active loss percentage missing"),
+                    ValidationError::Inconsistent(
+                        "active statistics without eligible samples are not measured",
+                    ),
+                ));
+            }
+        } else {
+            let Evidence::Known(tcp_attempt_failure_percent) = &value.tcp_attempt_failure_percent
+            else {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active attempt failure percentage missing"),
                 ));
             };
-            let successful = value.rtt.successful_samples;
-            let lost = value.loss_bursts.lost_samples;
+            let successful = value.connect_timing.successful_samples;
+            let failed = value.tcp_attempt_failure_bursts.failed_samples;
             if successful
-                .checked_add(lost)
+                .checked_add(failed)
                 .is_none_or(|measured| measured != value.eligible_samples)
             {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("active success and loss counts"),
+                    ValidationError::Inconsistent("active success and failure counts"),
                 ));
             }
-            let expected_loss_percent = f64::from(lost) * 100.0 / f64::from(value.eligible_samples);
-            if loss_percent.get() != expected_loss_percent {
+            if successful == 0
+                && !matches!(
+                    value.connect_timing.median(),
+                    Evidence::Unknown(UnknownReason::FailedTest)
+                )
+            {
                 return Err(ActiveValidationError::Domain(
-                    ValidationError::Inconsistent("active loss percentage does not match samples"),
+                    ValidationError::Inconsistent(
+                        "zero-success connect timing must be failed-test unknown",
+                    ),
+                ));
+            }
+            let expected_tcp_attempt_failure_percent =
+                f64::from(failed) * 100.0 / f64::from(value.eligible_samples);
+            if tcp_attempt_failure_percent.get() != expected_tcp_attempt_failure_percent {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "active attempt failure percentage does not match samples",
+                    ),
                 ));
             }
         }
@@ -1802,9 +2022,10 @@ impl TryFrom<ActiveStatisticsWire> for ActiveStatistics {
             scheduled_samples: value.scheduled_samples,
             eligible_samples: value.eligible_samples,
             cancelled_samples: value.cancelled_samples,
-            loss_percent: value.loss_percent,
-            rtt: value.rtt,
-            loss_bursts: value.loss_bursts,
+            tcp_attempt_failure_percent: value.tcp_attempt_failure_percent,
+            packet_loss_percent: value.packet_loss_percent,
+            connect_timing: value.connect_timing,
+            tcp_attempt_failure_bursts: value.tcp_attempt_failure_bursts,
         })
     }
 }
@@ -1815,9 +2036,10 @@ impl From<ActiveStatistics> for ActiveStatisticsWire {
             scheduled_samples: value.scheduled_samples,
             eligible_samples: value.eligible_samples,
             cancelled_samples: value.cancelled_samples,
-            loss_percent: value.loss_percent,
-            rtt: value.rtt,
-            loss_bursts: value.loss_bursts,
+            tcp_attempt_failure_percent: value.tcp_attempt_failure_percent,
+            packet_loss_percent: value.packet_loss_percent,
+            connect_timing: value.connect_timing,
+            tcp_attempt_failure_bursts: value.tcp_attempt_failure_bursts,
         }
     }
 }
@@ -2011,7 +2233,7 @@ impl TryFrom<ActiveResultWire> for ActiveResult {
 
     fn try_from(mut value: ActiveResultWire) -> Result<Self, Self::Error> {
         if value.schema_version != ActiveSchemaVersion::V1
-            || value.method != ActiveMeasurementMethod::TcpConnectRtt
+            || value.method != ActiveMeasurementMethod::TcpConnectTiming
             || value.samples.is_empty()
             || value.samples.len() > MAX_ACTIVE_SAMPLES as usize
         {

@@ -26,7 +26,7 @@ pub enum ConnectResult {
     PermissionDenied,
     Error,
     /// The connector observed cancellation before the bounded attempt ended.
-    /// This is distinct from a network timeout and carries no RTT evidence.
+    /// This is distinct from a network timeout and carries no timing evidence.
     Cancelled,
 }
 
@@ -154,7 +154,7 @@ fn stamp(
     })
 }
 
-fn outcome_and_rtt(
+fn outcome_and_timing(
     result: ConnectResult,
     elapsed_nanos: u64,
     overall_deadline_reached: bool,
@@ -286,7 +286,7 @@ fn execute_one<C: MonotonicClock, T: TcpConnector, X: Cancellation>(
         result
     };
     let elapsed = after - attempt_started;
-    let (outcome, rtt) = outcome_and_rtt(result, elapsed, after > deadline_nanos);
+    let (outcome, timing) = outcome_and_timing(result, elapsed, after >= deadline_nanos);
     ActiveSample::new(
         scheduled.id(),
         run.id(),
@@ -298,7 +298,7 @@ fn execute_one<C: MonotonicClock, T: TcpConnector, X: Cancellation>(
         stamp(schedule.start(), execution_start, attempt_started)?,
         finished,
         outcome,
-        rtt,
+        timing,
         run.provenance().clone(),
     )
     .map_err(ActiveMeasurementError::InvalidSample)

@@ -91,7 +91,7 @@ fn endpoint(value: u8, port: u16, tier: ActiveEndpointTier) -> ActiveEndpoint {
         tier,
         target,
         ActiveTransportProtocol::Tcp,
-        ActiveMeasurementMethod::TcpConnectRtt,
+        ActiveMeasurementMethod::TcpConnectTiming,
         unknown_attribution(),
     )
     .unwrap()
@@ -142,7 +142,7 @@ fn make_run_with_spacing(
         epoch,
         nanoseconds: 10_000 + (run_duration * 1e9) as u64,
     };
-    let run = ActiveTestRun::new(
+    let mut run = ActiveTestRun::new(
         id(201),
         started,
         deadline,
@@ -171,6 +171,7 @@ fn target_and_units_fail_closed() {
     for octets in [
         [127, 0, 0, 1],
         [10, 0, 0, 1],
+        [192, 0, 2, 1],
         [224, 0, 0, 1],
         [255, 255, 255, 255],
     ] {
@@ -237,6 +238,10 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     assert!(serde_json::from_value::<ActiveTestLimits>(bad_limits).is_err());
 
     let (run, interval) = make_run(vec![value], 1.0, 1);
+    let mut legacy_run = serde_json::to_value(&run).unwrap();
+    legacy_run.as_object_mut().unwrap().remove("intervals");
+    let legacy_run: ActiveTestRun = serde_json::from_value(legacy_run).unwrap();
+    assert!(legacy_run.intervals().is_empty());
     let mut bad_interval = serde_json::to_value(&interval).unwrap();
     bad_interval["samples_per_endpoint"] = json!(0);
     assert!(
@@ -269,6 +274,9 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     let mut unknown_sample_time = serde_json::to_value(&sample).unwrap();
     unknown_sample_time["started"]["extra"] = json!(true);
     assert!(serde_json::from_value::<ActiveSample>(unknown_sample_time).is_err());
+    let mut inconsistent_duration = serde_json::to_value(&sample).unwrap();
+    inconsistent_duration["tcp_connect_duration"]["detail"] = json!(2.0);
+    assert!(serde_json::from_value::<ActiveSample>(inconsistent_duration).is_err());
     let duplicate_id_sample = ActiveSample::new(
         sample.id(),
         run.id(),
@@ -299,35 +307,154 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     );
     let stats = kyberia_domain::active::ActiveStatistics::from_samples(&[sample]).unwrap();
     assert_eq!(
-        stats.loss_bursts().median(),
+        stats.packet_loss_percent(),
+        &Evidence::Unknown(UnknownReason::NotMeasured)
+    );
+    assert_eq!(
+        stats.tcp_attempt_failure_bursts().median(),
         &Evidence::Unknown(UnknownReason::NotApplicable)
     );
-    let mut bad_rtt = serde_json::to_value(stats.rtt()).unwrap();
-    bad_rtt["successful_samples"] = json!(0);
-    assert!(serde_json::from_value::<kyberia_domain::active::RttDistribution>(bad_rtt).is_err());
-    let mut bad_bursts = serde_json::to_value(stats.loss_bursts()).unwrap();
-    bad_bursts["lost_samples"] = json!(1);
+    let mut bad_timing = serde_json::to_value(stats.connect_timing()).unwrap();
+    bad_timing["successful_samples"] = json!(0);
     assert!(
-        serde_json::from_value::<kyberia_domain::active::LossBurstDistribution>(bad_bursts)
+        serde_json::from_value::<kyberia_domain::active::ConnectTimingDistribution>(bad_timing)
             .is_err()
     );
-    let mut wrong_no_loss_reason = serde_json::to_value(stats.loss_bursts()).unwrap();
-    wrong_no_loss_reason["median"]["detail"] = json!("failed_test");
+    let mut excessive_timing_count = serde_json::to_value(stats.connect_timing()).unwrap();
+    excessive_timing_count["successful_samples"] = json!(4_097);
     assert!(
-        serde_json::from_value::<kyberia_domain::active::LossBurstDistribution>(
-            wrong_no_loss_reason
+        serde_json::from_value::<kyberia_domain::active::ConnectTimingDistribution>(
+            excessive_timing_count
         )
         .is_err()
+    );
+    let mut zero_success_wrong_reason = serde_json::to_value(stats.connect_timing()).unwrap();
+    zero_success_wrong_reason["successful_samples"] = json!(0);
+    for field in ["median", "p90", "p95", "p99", "max"] {
+        zero_success_wrong_reason[field] = json!({"state": "unknown", "detail": "not_applicable"});
+    }
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ConnectTimingDistribution>(
+            zero_success_wrong_reason
+        )
+        .is_err()
+    );
+    let mut impossible_one_success = serde_json::to_value(stats.connect_timing()).unwrap();
+    impossible_one_success["p90"] = json!({"state": "known", "detail": 2.0});
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ConnectTimingDistribution>(
+            impossible_one_success
+        )
+        .is_err()
+    );
+    let mut bad_bursts = serde_json::to_value(stats.tcp_attempt_failure_bursts()).unwrap();
+    bad_bursts["failed_samples"] = json!(1);
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::TcpAttemptFailureBurstDistribution>(
+            bad_bursts
+        )
+        .is_err()
+    );
+    let mut wrong_no_failure_reason =
+        serde_json::to_value(stats.tcp_attempt_failure_bursts()).unwrap();
+    wrong_no_failure_reason["median"]["detail"] = json!("failed_test");
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::TcpAttemptFailureBurstDistribution>(
+            wrong_no_failure_reason
+        )
+        .is_err()
+    );
+    let failed_sample = ActiveSample::new(
+        id::<ActiveSampleId>(209),
+        run.id(),
+        interval.id(),
+        id(1),
+        ActiveEndpointTier::LanReference,
+        unknown_attribution(),
+        0,
+        run.started(),
+        run.started(),
+        ActiveSampleOutcome::ConnectionRefused,
+        Evidence::Unknown(UnknownReason::FailedTest),
+        run.provenance().clone(),
+    )
+    .unwrap();
+    let failure_stats =
+        kyberia_domain::active::ActiveStatistics::from_samples(&[failed_sample]).unwrap();
+    let mut impossible_failure_burst =
+        serde_json::to_value(failure_stats.tcp_attempt_failure_bursts()).unwrap();
+    impossible_failure_burst["p90"] = json!({"state": "known", "detail": 2});
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::TcpAttemptFailureBurstDistribution>(
+            impossible_failure_burst
+        )
+        .is_err()
+    );
+    let mut wrong_zero_success_reason = serde_json::to_value(&failure_stats).unwrap();
+    wrong_zero_success_reason["connect_timing"]["median"]["detail"] = json!("not_measured");
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ActiveStatistics>(
+            wrong_zero_success_reason
+        )
+        .is_err()
+    );
+    let mut bad_packet_loss = serde_json::to_value(&stats).unwrap();
+    bad_packet_loss["packet_loss_percent"] = json!({"state": "known", "detail": 0.0});
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ActiveStatistics>(bad_packet_loss)
+            .is_err()
     );
     let mut bad_stats = serde_json::to_value(&stats).unwrap();
     bad_stats["eligible_samples"] = json!(0);
     assert!(serde_json::from_value::<kyberia_domain::active::ActiveStatistics>(bad_stats).is_err());
+    let mut excessive_statistics = serde_json::to_value(&stats).unwrap();
+    excessive_statistics["scheduled_samples"] = json!(4_097);
+    excessive_statistics["eligible_samples"] = json!(4_097);
+    excessive_statistics["connect_timing"]["successful_samples"] = json!(4_097);
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ActiveStatistics>(excessive_statistics)
+            .is_err()
+    );
     let mut measured_without_eligible = serde_json::to_value(&stats).unwrap();
     measured_without_eligible["cancelled_samples"] = json!(1);
     measured_without_eligible["eligible_samples"] = json!(0);
     assert!(
         serde_json::from_value::<kyberia_domain::active::ActiveStatistics>(
             measured_without_eligible
+        )
+        .is_err()
+    );
+    assert!(
+        ActiveSample::new(
+            id::<ActiveSampleId>(207),
+            run.id(),
+            interval.id(),
+            id(1),
+            ActiveEndpointTier::LanReference,
+            unknown_attribution(),
+            0,
+            run.started(),
+            run.started(),
+            ActiveSampleOutcome::ConnectionRefused,
+            Evidence::Unknown(UnknownReason::NotMeasured),
+            run.provenance().clone(),
+        )
+        .is_err()
+    );
+    assert!(
+        ActiveSample::new(
+            id::<ActiveSampleId>(208),
+            run.id(),
+            interval.id(),
+            id(1),
+            ActiveEndpointTier::LanReference,
+            unknown_attribution(),
+            0,
+            run.started(),
+            run.started(),
+            ActiveSampleOutcome::Cancelled,
+            Evidence::Unknown(UnknownReason::FailedTest),
+            run.provenance().clone(),
         )
         .is_err()
     );
@@ -348,7 +475,7 @@ fn topology_and_authorization_mismatch_is_rejected() {
             ActiveEndpointTier::InternetControl,
             target,
             ActiveTransportProtocol::Tcp,
-            ActiveMeasurementMethod::TcpConnectRtt,
+            ActiveMeasurementMethod::TcpConnectTiming,
             unknown_attribution(),
         ),
         Err(kyberia_domain::active::ActiveValidationError::TargetTierMismatch)
@@ -364,7 +491,7 @@ fn topology_and_authorization_mismatch_is_rejected() {
         ActiveEndpointTier::InternetControl,
         target,
         ActiveTransportProtocol::Tcp,
-        ActiveMeasurementMethod::TcpConnectRtt,
+        ActiveMeasurementMethod::TcpConnectTiming,
         unknown_attribution(),
     )
     .unwrap();
@@ -437,12 +564,12 @@ fn schedule_is_deterministic_and_resource_bounded() {
             )
         ))
     ));
-    let (limited_run, limited_interval) = make_run(
+    let (mut limited_run, limited_interval) = make_run(
         vec![endpoint(1, 9, ActiveEndpointTier::LanReference)],
         1.0,
         2,
     );
-    let too_many = ActiveTestRun::new(
+    let mut too_many = ActiveTestRun::new(
         limited_run.id(),
         limited_run.started(),
         limited_run.deadline(),
@@ -475,6 +602,64 @@ fn schedule_is_deterministic_and_resource_bounded() {
         )
         .is_err()
     );
+}
+
+#[test]
+fn run_registry_enforces_cumulative_interval_sample_budget() {
+    let epoch = id(210);
+    let started = MonotonicTimestamp {
+        epoch,
+        nanoseconds: 5_000,
+    };
+    let deadline = MonotonicTimestamp {
+        epoch,
+        nanoseconds: 2_000_005_000,
+    };
+    let mut run = ActiveTestRun::new(
+        id(211),
+        started,
+        deadline,
+        vec![endpoint(1, 9, ActiveEndpointTier::LanReference)],
+        authorization(vec![ActiveEndpointTier::LanReference], true),
+        limits(2, 0.1, 2.0, 0.0),
+        provenance(epoch),
+    )
+    .unwrap();
+    let first = run
+        .create_interval(id(212), Seconds::new(1.0).unwrap(), 1)
+        .unwrap();
+    let second = run
+        .create_interval(id(213), Seconds::new(1.0).unwrap(), 1)
+        .unwrap();
+    assert_eq!(run.intervals(), &[first.clone(), second]);
+    assert!(matches!(
+        run.create_interval(id(214), Seconds::new(1.0).unwrap(), 1),
+        Err(kyberia_domain::active::ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::ResourceLimit("active run sample count")
+        ))
+    ));
+    assert!(matches!(
+        run.create_interval(first.id(), Seconds::new(1.0).unwrap(), 1),
+        Err(kyberia_domain::active::ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::Inconsistent("duplicate active interval")
+        ))
+    ));
+
+    let mut forged_run = serde_json::to_value(&run).unwrap();
+    let mut forged_interval = serde_json::to_value(&first).unwrap();
+    forged_interval["id"] = serde_json::to_value(id::<ActiveIntervalId>(215)).unwrap();
+    forged_run["intervals"]
+        .as_array_mut()
+        .unwrap()
+        .push(forged_interval.clone());
+    assert!(serde_json::from_value::<ActiveTestRun>(forged_run).is_err());
+
+    let detached: kyberia_domain::active::ActiveInterval =
+        serde_json::from_value(forged_interval).unwrap();
+    assert!(matches!(
+        build_schedule(&run, &detached),
+        Err(ScheduleError::RunIntervalMismatch)
+    ));
 }
 
 #[derive(Clone)]
@@ -585,18 +770,30 @@ fn execution_preserves_typed_outcomes_and_statistics() {
         ActiveSampleOutcome::ConnectionRefused
     );
     assert!(matches!(
-        result.samples()[1].tcp_connect_rtt(),
+        result.samples()[1].tcp_connect_duration(),
         Evidence::Unknown(_)
     ));
-    assert_eq!(result.statistics().rtt().successful_samples(), 2);
-    assert_eq!(result.statistics().loss_bursts().lost_samples(), 3);
-    assert_eq!(result.statistics().loss_bursts().burst_count(), 1);
+    assert_eq!(result.statistics().connect_timing().successful_samples(), 2);
+    assert_eq!(
+        result
+            .statistics()
+            .tcp_attempt_failure_bursts()
+            .failed_samples(),
+        3
+    );
+    assert_eq!(
+        result
+            .statistics()
+            .tcp_attempt_failure_bursts()
+            .burst_count(),
+        1
+    );
     assert_eq!(
         result.endpoint_attribution(),
         result.samples()[0].endpoint_attribution()
     );
     assert!(matches!(
-        result.statistics().rtt().p95(),
+        result.statistics().connect_timing().p95(),
         Evidence::Known(_)
     ));
 }
@@ -639,7 +836,7 @@ fn cancellation_and_deadline_emit_one_outcome_per_scheduled_sample() {
     assert!(
         samples[1..]
             .iter()
-            .all(|sample| matches!(sample.tcp_connect_rtt(), Evidence::Unknown(_)))
+            .all(|sample| matches!(sample.tcp_connect_duration(), Evidence::Unknown(_)))
     );
 
     let (run, interval) = make_run(
@@ -674,6 +871,38 @@ fn cancellation_and_deadline_emit_one_outcome_per_scheduled_sample() {
     assert_eq!(
         report.results()[0].samples()[1].outcome(),
         ActiveSampleOutcome::Timeout
+    );
+}
+
+#[test]
+fn completion_at_exact_deadline_is_a_timeout() {
+    let (run, interval) = make_run(
+        vec![endpoint(7, 9, ActiveEndpointTier::LanReference)],
+        0.01,
+        1,
+    );
+    let schedule = build_schedule(&run, &interval).unwrap();
+    let now = Rc::new(Cell::new(0));
+    let mut clock = FakeClock { now: now.clone() };
+    let mut connector = FakeConnector {
+        now,
+        results: VecDeque::from([(ConnectResult::Connected, 10_000_000)]),
+        seen: Vec::new(),
+    };
+    let report = execute(
+        &run,
+        &interval,
+        &schedule,
+        &mut clock,
+        &mut connector,
+        &NeverCancelled,
+    )
+    .unwrap();
+    let sample = &report.results()[0].samples()[0];
+    assert_eq!(sample.outcome(), ActiveSampleOutcome::Timeout);
+    assert_eq!(
+        sample.tcp_connect_duration(),
+        &Evidence::Unknown(UnknownReason::FailedTest)
     );
 }
 
@@ -784,11 +1013,11 @@ fn execute_rejects_same_ids_with_changed_schedule_contract() {
         ActiveEndpointTier::LanReference,
         changed_target,
         ActiveTransportProtocol::Tcp,
-        ActiveMeasurementMethod::TcpConnectRtt,
+        ActiveMeasurementMethod::TcpConnectTiming,
         unknown_attribution(),
     )
     .unwrap();
-    let changed_run = ActiveTestRun::new(
+    let mut changed_run = ActiveTestRun::new(
         run.id(),
         run.started(),
         run.deadline(),
@@ -829,7 +1058,7 @@ fn execute_rejects_same_ids_with_changed_schedule_contract() {
         text("different-purpose"),
     )
     .unwrap();
-    let authorization_run = ActiveTestRun::new(
+    let mut authorization_run = ActiveTestRun::new(
         run.id(),
         run.started(),
         run.deadline(),
@@ -873,7 +1102,7 @@ fn execute_rejects_same_ids_with_changed_schedule_contract() {
         Seconds::new(0.0).unwrap(),
     )
     .unwrap();
-    let limits_run = ActiveTestRun::new(
+    let mut limits_run = ActiveTestRun::new(
         run.id(),
         run.started(),
         run.deadline(),
@@ -926,21 +1155,21 @@ proptest! {
         let stats = kyberia_domain::active::ActiveStatistics::from_samples(&samples).unwrap();
         let min = f64::from(*values.iter().min().unwrap());
         let max = f64::from(*values.iter().max().unwrap());
-        for value in [stats.rtt().median(), stats.rtt().p90(), stats.rtt().p95(), stats.rtt().p99(), stats.rtt().max()] {
+        for value in [stats.connect_timing().median(), stats.connect_timing().p90(), stats.connect_timing().p95(), stats.connect_timing().p99(), stats.connect_timing().max()] {
             let Evidence::Known(value) = value else { prop_assert!(false); unreachable!() };
             prop_assert!(value.get() >= min && value.get() <= max);
         }
-        prop_assert_eq!(stats.loss_bursts().lost_samples(), 0);
-        prop_assert_eq!(stats.loss_bursts().burst_count(), 0);
+        prop_assert_eq!(stats.tcp_attempt_failure_bursts().failed_samples(), 0);
+        prop_assert_eq!(stats.tcp_attempt_failure_bursts().burst_count(), 0);
     }
 
     #[test]
-    fn loss_burst_statistics_match_each_failure_run(pattern in prop::collection::vec(any::<bool>(), 1..20)) {
+    fn tcp_attempt_failure_burst_statistics_match_each_failure_run(pattern in prop::collection::vec(any::<bool>(), 1..20)) {
         let (run, interval) = make_run(vec![endpoint(5, 9, ActiveEndpointTier::LanReference)], 2.0, pattern.len() as u32);
         let mut samples = Vec::new();
         for (ordinal, connected) in pattern.iter().copied().enumerate() {
             let start = MonotonicTimestamp { epoch: run.started().epoch, nanoseconds: ordinal as u64 * 2_000_000 };
-            let (outcome, rtt, elapsed) = if connected {
+            let (outcome, timing, elapsed) = if connected {
                 (ActiveSampleOutcome::Success, Evidence::Known(Milliseconds::new(1.0).unwrap()), 1_000_000)
             } else {
                 (ActiveSampleOutcome::Timeout, Evidence::Unknown(UnknownReason::FailedTest), 0)
@@ -949,28 +1178,28 @@ proptest! {
                 id((ordinal as u8).saturating_add(40)), run.id(), interval.id(), id(5),
                 ActiveEndpointTier::LanReference, unknown_attribution(), ordinal as u32,
                 start, MonotonicTimestamp { epoch: start.epoch, nanoseconds: start.nanoseconds + elapsed },
-                outcome, rtt, run.provenance().clone()
+                outcome, timing, run.provenance().clone()
             ).unwrap());
         }
         let stats = kyberia_domain::active::ActiveStatistics::from_samples(&samples).unwrap();
-        let expected_lost = pattern.iter().filter(|connected| !**connected).count() as u32;
-        let mut expected_bursts = Vec::new();
+        let expected_failed = pattern.iter().filter(|connected| !**connected).count() as u32;
+        let mut expected_failure_bursts = Vec::new();
         let mut current = 0u32;
         for connected in pattern {
             if connected {
-                if current > 0 { expected_bursts.push(current); current = 0; }
+                if current > 0 { expected_failure_bursts.push(current); current = 0; }
             } else {
                 current += 1;
             }
         }
-        if current > 0 { expected_bursts.push(current); }
-        prop_assert_eq!(stats.loss_bursts().lost_samples(), expected_lost);
-        prop_assert_eq!(stats.loss_bursts().burst_count(), expected_bursts.len() as u32);
+        if current > 0 { expected_failure_bursts.push(current); }
+        prop_assert_eq!(stats.tcp_attempt_failure_bursts().failed_samples(), expected_failed);
+        prop_assert_eq!(stats.tcp_attempt_failure_bursts().burst_count(), expected_failure_bursts.len() as u32);
         prop_assert_eq!(stats.eligible_samples(), samples.len() as u32);
-        if expected_bursts.is_empty() {
-            prop_assert!(matches!(stats.loss_bursts().max(), Evidence::Unknown(_)));
+        if expected_failure_bursts.is_empty() {
+            prop_assert!(matches!(stats.tcp_attempt_failure_bursts().max(), Evidence::Unknown(_)));
         } else {
-            prop_assert_eq!(stats.loss_bursts().max(), &Evidence::Known(*expected_bursts.iter().max().unwrap()));
+            prop_assert_eq!(stats.tcp_attempt_failure_bursts().max(), &Evidence::Known(*expected_failure_bursts.iter().max().unwrap()));
         }
     }
 }

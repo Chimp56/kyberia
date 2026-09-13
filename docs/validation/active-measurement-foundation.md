@@ -9,10 +9,21 @@ storage, or product/UI acceptance.
 ```text
 cargo fmt --all -- --check
 cargo test -p kyberia-active-measurement --locked --offline
-cargo clippy -p kyberia-active-measurement --all-targets --locked --offline -- -D warnings
+cargo clippy -p kyberia-domain -p kyberia-active-measurement --all-targets --locked --offline -- -D warnings
+cargo test --workspace --locked --offline
 python3 tools/architecture.py check
+<Python 3.11> tools/source_inventory.py check
+<Python 3.11> tools/ledger.py check
 git diff --check
 ```
+
+On 2026-09-13 the focused suite passed 14/14 tests, affected-package Clippy
+passed with warnings denied, and the complete workspace suite passed with all
+non-ignored tests green. The initial sandboxed workspace run reached five
+unrelated Kismet loopback fixtures and failed because listener creation was
+denied; the authorized loopback rerun passed. Architecture, the 241-package
+source inventory, the 5,392-block traceability ledger, formatting, and diff
+checks passed.
 
 The focused Rust suite covers:
 
@@ -27,23 +38,37 @@ The focused Rust suite covers:
 - serial fake-connector outcomes for success, refusal, timeout, error,
   cancellation, and overall deadline, including cancellation-aware 25 ms
   spacing/connector polling;
-- successful RTT median/p90/p95/p99/max and consecutive-loss-burst invariants;
-- run-wide schedule limits against forged maximum-per-endpoint intervals;
+- successful TCP connect duration median/p90/p95/p99/max and consecutive
+  TCP-attempt-failure-burst invariants;
+- run-wide cumulative schedule limits across all registered intervals and
+  endpoints, including duplicate, detached, overflow, and deserialization
+  admission paths;
 - schedule admission against same-ID target, authorization, limit, and
   provenance substitutions;
-- rejection of IPv4-mapped loopback/private/multicast/broadcast addresses;
+- rejection of IPv4-mapped loopback/private/public/multicast/broadcast
+  addresses;
 - rejection of unscoped IPv6 link-local addresses;
-- standalone RTT, loss-burst, statistics, timestamp, and window wire
-  revalidation;
+- standalone connect-timing, TCP-attempt-failure-burst, statistics, timestamp,
+  and window wire revalidation, including evidence-reason, count, percentile,
+  percentage, resource-ceiling, and packet-loss-not-measured invariants;
 - a real std TCP connector against a bounded loopback listener and a local
   refused port. The integration case exits early when the host sandbox denies
   listener creation; no test contacts an external address.
 
 The canonical sample retains an outcome for every scheduled item. Successful
-samples contain measured TCP connect RTT; failed and cancelled samples contain
-unknown RTT evidence with a reason. Statistics exclude cancelled items from
-loss percentage and terminate loss bursts at cancellation boundaries. When no
-loss burst exists, its percentile evidence is `NotApplicable`.
+samples contain measured TCP connect duration; failed and cancelled samples
+contain unknown duration evidence with a reason. Statistics exclude cancelled
+items from TCP-attempt-failure percentage and terminate failure bursts at
+cancellation boundaries. Packet loss remains `Unknown(NotMeasured)` because
+this TCP probe has no packet-loss measurement. When no failure burst exists,
+its percentile evidence is `NotApplicable`.
+The known duration is required to equal the monotonic sample window.
+
+The repository has no persisted independent review packet for this Rust
+foundation. The semantic correction and the acceptance assertions above are
+therefore documented inferences from plan §§5.16, 7.17–7.18, 15.5, 16.8,
+16.14, ACTB-001/002, Iteration 5, and the current `STATUS.md`; independent
+review remains required before integration.
 
 ## Boundaries and known gaps
 

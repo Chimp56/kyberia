@@ -67,6 +67,7 @@ pub struct ActiveSchedule {
     interval_id: ActiveIntervalId,
     run_started: MonotonicTimestamp,
     run_deadline: MonotonicTimestamp,
+    run_intervals: Vec<ActiveInterval>,
     start: MonotonicTimestamp,
     duration: Seconds,
     limits: kyberia_domain::active::ActiveTestLimits,
@@ -270,6 +271,9 @@ pub fn build_schedule(
             kyberia_domain::ValidationError::OutOfRange("active interval rate"),
         )));
     }
+    if !run.intervals().contains(interval) {
+        return Err(ScheduleError::RunIntervalMismatch);
+    }
     let mut endpoints = run.endpoints().to_vec();
     endpoints.sort_by_key(ActiveEndpoint::id);
     let spacing = run.limits().minimum_spacing();
@@ -325,6 +329,7 @@ pub fn build_schedule(
         interval_id: interval.id(),
         run_started: run.started(),
         run_deadline: run.deadline(),
+        run_intervals: run.intervals().to_vec(),
         start: interval.window().start(),
         duration: interval
             .window()
