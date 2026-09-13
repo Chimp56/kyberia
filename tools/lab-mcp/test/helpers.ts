@@ -18,6 +18,7 @@ export function keys(prefix: string) {
 
 export function config(state: string): {
   config: LabConfig;
+  coordinatorKeys: ReturnType<typeof keys>;
   hostKeys: ReturnType<typeof keys>;
 } {
   const suffix = createHash("sha256")
@@ -40,7 +41,8 @@ export function config(state: string): {
   const spec = (version: string) => ({
     executable: "/fixed/runner",
     executableSha256: "0".repeat(64),
-    arguments: ["--stdio"],
+    invocation: { kind: "direct" as const },
+    arguments: [] as [],
     argumentFiles: [],
     version,
     environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
@@ -48,6 +50,7 @@ export function config(state: string): {
     inputManifestId,
   });
   return {
+    coordinatorKeys: coordinator,
     hostKeys,
     config: {
       schemaVersion: 1,

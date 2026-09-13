@@ -2,7 +2,7 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:f178829f-d73a-4977-3400-e6571bcebac7",
+  "serialNumber": "urn:uuid:582e2060-8328-df23-4ecb-650e87bd9870",
   "version": 1,
   "metadata": {
     "component": {
@@ -13,7 +13,7 @@
     "properties": [
       {
         "name": "kyberia:pnpm-lock-sha256",
-        "value": "f178829fd73a49773400e6571bcebac71c1ce8bd35712104c7303a559b22a378"
+        "value": "582e20608328df234ecb650e87bd98705ef76a7c83ca2959f5179cc1545166f6"
       }
     ]
   },

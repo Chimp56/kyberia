@@ -19,7 +19,8 @@
         "foundation": {
           "executable": "/usr/local/libexec/kyberia-lab-remote-transport",
           "executableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
-          "arguments": ["remote-linux"],
+          "invocation": { "kind": "direct" },
+          "arguments": [],
           "argumentFiles": [],
           "version": "foundation-v1",
           "environment": {

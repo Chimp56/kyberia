@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+const runnerInvocation = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("direct") }).strict(),
+  z
+    .object({
+      kind: z.literal("node-bundle"),
+      bundlePath: z
+        .string()
+        .min(1)
+        .max(1024)
+        .regex(/^(?:\/|[A-Za-z]:\\)/),
+      bundleSha256: z.string().regex(/^[0-9a-f]{64}$/),
+    })
+    .strict(),
+]);
+
 export const ID = z.string().regex(/^[a-z0-9][a-z0-9._-]{0,63}$/);
 export const SHA = z.string().regex(/^[0-9a-f]{40}$/);
 export const ARTIFACT = z.string().regex(/^[a-z0-9][a-z0-9._-]{0,127}$/);
@@ -22,7 +37,8 @@ const command = z
       .max(1024)
       .regex(/^(?:\/|[A-Za-z]:\\)/),
     executableSha256: z.string().regex(/^[0-9a-f]{64}$/),
-    arguments: z.array(z.string().max(256)).max(32),
+    invocation: runnerInvocation,
+    arguments: z.tuple([]),
     argumentFiles: z
       .array(
         z
@@ -32,7 +48,7 @@ const command = z
           })
           .strict(),
       )
-      .max(16),
+      .max(0),
     version: z.string().min(1).max(64),
     environment: z
       .object({ KYBERIA_LAB_RUNNER_CONFIG: z.string().min(1).max(1024) })

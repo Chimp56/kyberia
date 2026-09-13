@@ -9,7 +9,11 @@ import type {
   HostChallenge,
   SignedJobRequest,
 } from "../src/manager.js";
-import { LabManager, ProcessExecutor } from "../src/manager.js";
+import {
+  LabManager,
+  ProcessExecutor,
+  verifyPersistedManifest,
+} from "../src/manager.js";
 import { Config } from "../src/schema.js";
 import {
   canonical,
@@ -161,11 +165,20 @@ test("configuration forbids forwarding the coordinator private key", () => {
   const allowlist = config(join(root, "duplicate-allowlist"));
   allowlist.config.hosts[0]!.allowedFixtureSets = ["golden-v1", "golden-v1"];
   assert.throws(() => Config.parse(allowlist.config));
-  const unpinned = config(join(root, "unpinned-argument"));
-  unpinned.config.hosts[0]!.suites.foundation!.arguments = [
-    "/absolute/runner.mjs",
-  ];
-  assert.throws(() => Config.parse(unpinned.config), /digest pinned/);
+  for (const bypass of [
+    ["-e", "code"],
+    ["--eval=code"],
+    ["-lc", "code"],
+    ["-m", "module"],
+    ["--loader", "relative-loader.mjs"],
+    ["--import=relative-loader.mjs"],
+    ["relative-runner.mjs"],
+    ["--require", "relative-runner.cjs"],
+  ]) {
+    const raw = JSON.parse(JSON.stringify(setup.config));
+    raw.hosts[0].suites.foundation.arguments = bypass;
+    assert.throws(() => Config.parse(raw));
+  }
 });
 
 test("coordinator and host key fingerprints must be distinct and paired", () => {
@@ -286,15 +299,15 @@ test(
       executableSha256: createHash("sha256")
         .update(readFileSync(process.execPath))
         .digest("hex"),
-      arguments: [script],
-      argumentFiles: [
-        {
-          argumentIndex: 0,
-          sha256: createHash("sha256")
-            .update(await readFile(script))
-            .digest("hex"),
-        },
-      ],
+      invocation: {
+        kind: "node-bundle" as const,
+        bundlePath: script,
+        bundleSha256: createHash("sha256")
+          .update(await readFile(script))
+          .digest("hex"),
+      },
+      arguments: [] as [],
+      argumentFiles: [],
       version: "test-v1",
       environment: { KYBERIA_LAB_RUNNER_CONFIG: "/unused" },
       credentialEnvNames: [setup.config.manifestPublicKeyEnv],
@@ -321,7 +334,7 @@ test(
   },
 );
 
-test("ProcessExecutor rejects a changed code-bearing argument before launch", async () => {
+test("ProcessExecutor rejects a changed runner bundle before launch", async () => {
   const setup = config(join(root, "argument-tamper"));
   const script = join(root, "argument-tamper", "runner.mjs");
   await mkdir(join(root, "argument-tamper"), { recursive: true });
@@ -338,8 +351,13 @@ test("ProcessExecutor rejects a changed code-bearing argument before launch", as
         executableSha256: createHash("sha256")
           .update(readFileSync(process.execPath))
           .digest("hex"),
-        arguments: [script],
-        argumentFiles: [{ argumentIndex: 0, sha256: expected }],
+        invocation: {
+          kind: "node-bundle",
+          bundlePath: script,
+          bundleSha256: expected,
+        },
+        arguments: [],
+        argumentFiles: [],
         version: "test-v1",
         environment: { KYBERIA_LAB_RUNNER_CONFIG: "/unused" },
         credentialEnvNames: [setup.config.manifestPublicKeyEnv],
@@ -429,6 +447,59 @@ test("signed request binds revision and result; output is redacted and bounded",
   }
   const reopened = new LabManager(setup.config, fake);
   assert.equal(reopened.verifyManifest(id, "lab-one"), true);
+  const coordinatorPublic = publicKeyFromEnv(setup.config.manifestPublicKeyEnv);
+  const hostPublic = publicKeyFromEnv(setup.config.hosts[0]!.publicKeyEnv);
+  const artifactReader = (name: string) =>
+    readFileSync(join(setup.config.stateDirectory, id, name));
+  assert.equal(
+    verifyPersistedManifest(
+      persisted,
+      coordinatorPublic,
+      hostPublic,
+      artifactReader,
+    ),
+    true,
+  );
+  assert.equal(
+    verifyObject(
+      persisted.manifest.signedRequest.request,
+      persisted.manifest.signedRequest.signature,
+      coordinatorPublic,
+    ),
+    true,
+  );
+  for (const [field, value] of [
+    ["runId", "run-other"],
+    ["hostId", "other-host"],
+    ["gitSha", "f".repeat(40)],
+    ["suite", "other-suite"],
+    ["seed", 99],
+    ["timeoutSeconds", 11],
+    ["parameters", { selector: "other" }],
+    ["requestNonce", "b".repeat(43)],
+    ["requestIssuedAt", "2026-09-13T00:00:00.000Z"],
+    ["createdAt", "2026-09-13T00:00:00.000Z"],
+    ["coordinatorKeyId", "other-coordinator"],
+    ["specVersion", "other-v1"],
+    ["inputManifestId", "sha256:" + "f".repeat(64)],
+  ] as const) {
+    const mutated = structuredClone(persisted);
+    (mutated.manifest as unknown as Record<string, unknown>)[field] = value;
+    mutated.signature = signObject(
+      mutated.manifest,
+      setup.coordinatorKeys.privateKey,
+    );
+    assert.equal(
+      verifyPersistedManifest(
+        mutated,
+        coordinatorPublic,
+        hostPublic,
+        artifactReader,
+      ),
+      false,
+      `accepted mutated ${field}`,
+    );
+  }
   signed.manifest.seed = 99;
   assert.equal(manager.verifyManifest(id), false);
 });

@@ -4,23 +4,26 @@
   "private": true,
   "files": [
     "dist/src/**",
+    "dist/runner-bundle.mjs",
+    "dependency-sbom.cdx.json",
     "README.md",
     "config*.example.json",
     "runner.example.json",
     "cyclonedx-bom-1.6.schema.json",
     "jsf-0.82.schema.json",
     "spdx.schema.json",
-    "CYCLONEDX-SCHEMA-LICENSE"
+    "CYCLONEDX-SCHEMA-LICENSE",
+    "ZOD-LICENSE"
   ],
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node test/build-runner.mjs",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' package.json pnpm-lock.yaml pnpm-workspace.yaml README.md 'config*.example.json' runner.example.json dependency-sbom.cdx.json tsconfig.json",
     "lint": "prettier --check 'src/**/*.ts' 'test/**/*.ts' package.json pnpm-lock.yaml pnpm-workspace.yaml README.md 'config*.example.json' runner.example.json dependency-sbom.cdx.json tsconfig.json",
-    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' package.json pnpm-lock.yaml pnpm-workspace.yaml README.md 'config*.example.json' runner.example.json dependency-sbom.cdx.json tsconfig.json && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts && tsc -p tsconfig.json && node test/package-inventory.mjs && node test/supply-chain.mjs",
+    "check": "prettier --check 'src/**/*.ts' 'test/**/*.{ts,mjs}' package.json pnpm-lock.yaml pnpm-workspace.yaml README.md 'config*.example.json' runner.example.json dependency-sbom.cdx.json tsconfig.json && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.json && node test/build-runner.mjs && node --test --import tsx test/*.test.ts && node test/package-inventory.mjs && node test/supply-chain.mjs",
     "sbom": "node test/supply-chain.mjs --write",
     "input-manifest": "node dist/src/input-manifest.js",
     "start": "node dist/src/main.js"
@@ -33,6 +36,7 @@
     "@types/node": "24.10.0",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
+    "esbuild": "0.25.12",
     "prettier": "3.6.2",
     "tsx": "4.20.6",
     "typescript": "5.9.3",

@@ -65,7 +65,7 @@ test(
         };
       });
     const manifestId = inputManifestId(input);
-    const tsx = resolve("node_modules/tsx/dist/loader.mjs");
+    const runnerBundle = resolve("dist/runner-bundle.mjs");
     const runnerPath = join(state, "runner.json");
     const coordinatorPath = join(state, "coordinator.json");
     await writeFile(
@@ -107,14 +107,13 @@ test(
     const runnerSpec = {
       executable: process.execPath,
       executableSha256: await fileSha256(process.execPath),
-      arguments: ["--import", tsx, resolve("src/runner.ts")],
-      argumentFiles: [
-        { argumentIndex: 1, sha256: await fileSha256(tsx) },
-        {
-          argumentIndex: 2,
-          sha256: await fileSha256(resolve("src/runner.ts")),
-        },
-      ],
+      invocation: {
+        kind: "node-bundle",
+        bundlePath: runnerBundle,
+        bundleSha256: await fileSha256(runnerBundle),
+      },
+      arguments: [],
+      argumentFiles: [],
       version: "foundation-v1",
       environment: { KYBERIA_LAB_RUNNER_CONFIG: runnerPath },
       credentialEnvNames: [host.privateName, coordinator.publicName],
@@ -157,7 +156,7 @@ test(
     const client = new Client({ name: "stdio-contract", version: "1.0.0" });
     const transport = new StdioClientTransport({
       command: process.execPath,
-      args: ["--import", tsx, resolve("src/main.ts")],
+      args: [resolve("dist/src/main.js")],
       env: {
         ...process.env,
         KYBERIA_LAB_CONFIG: coordinatorPath,

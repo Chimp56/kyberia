@@ -18,12 +18,15 @@ for (const forbidden of ["node_modules/", ".tools/", ".trash/", "test/"])
     `package contains ${forbidden}`,
   );
 assert.ok(inventory.includes("dist/src/main.js"));
+assert.ok(inventory.includes("dist/runner-bundle.mjs"));
 for (const required of [
   "README.md",
   "config.example.json",
   "config.remote.example.json",
   "runner.example.json",
   "CYCLONEDX-SCHEMA-LICENSE",
+  "ZOD-LICENSE",
+  "dependency-sbom.cdx.json",
 ])
   assert.ok(inventory.includes(required), `package is missing ${required}`);
 assert.ok(
@@ -32,6 +35,9 @@ assert.ok(
       path === "package.json" ||
       path === "README.md" ||
       path === "CYCLONEDX-SCHEMA-LICENSE" ||
+      path === "ZOD-LICENSE" ||
+      path === "dependency-sbom.cdx.json" ||
+      path === "dist/runner-bundle.mjs" ||
       path.endsWith(".example.json") ||
       path.endsWith(".schema.json") ||
       path.startsWith("dist/src/"),

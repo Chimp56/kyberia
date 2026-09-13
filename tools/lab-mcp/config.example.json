@@ -19,13 +19,13 @@
         "foundation": {
           "executable": "/absolute/node",
           "executableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
-          "arguments": ["/absolute/kyberia/tools/lab-mcp/dist/src/runner.js"],
-          "argumentFiles": [
-            {
-              "argumentIndex": 0,
-              "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
-            }
-          ],
+          "invocation": {
+            "kind": "node-bundle",
+            "bundlePath": "/absolute/kyberia/tools/lab-mcp/dist/runner-bundle.mjs",
+            "bundleSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "arguments": [],
+          "argumentFiles": [],
           "version": "foundation-v1",
           "environment": {
             "KYBERIA_LAB_RUNNER_CONFIG": "/absolute/runner.json"

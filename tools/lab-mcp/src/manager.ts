@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { createPublicKey, randomBytes, randomUUID } from "node:crypto";
+import type { KeyObject } from "node:crypto";
 import { lstat, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import {
   existsSync,
@@ -44,7 +45,10 @@ const StatusSchema = z.enum([
 type Spec = {
   executable: string;
   executableSha256: string;
-  arguments: string[];
+  invocation:
+    | { kind: "direct" }
+    | { kind: "node-bundle"; bundlePath: string; bundleSha256: string };
+  arguments: [];
   argumentFiles: Array<{ argumentIndex: number; sha256: string }>;
   version: string;
   environment: { KYBERIA_LAB_RUNNER_CONFIG: string };
@@ -72,6 +76,30 @@ export interface SignedJobRequest {
   signature: string;
   algorithm: "Ed25519";
 }
+const JobRequestSchema: z.ZodType<JobRequest> = z
+  .object({
+    schemaVersion: z.literal(1),
+    runId: ID,
+    hostId: ID,
+    gitSha: SHA,
+    suite: ID,
+    seed: z.number().int().min(0).max(0xffff_ffff),
+    timeoutSeconds: z.number().int().min(1).max(7200),
+    parameters: z.record(ID, z.string().max(64)),
+    nonce: z.string().base64url().min(32).max(128),
+    issuedAt: z.string().datetime(),
+    coordinatorKeyId: ID,
+    specVersion: z.string().min(1).max(64),
+    inputManifestId: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+  })
+  .strict();
+const SignedJobRequestSchema: z.ZodType<SignedJobRequest> = z
+  .object({
+    request: JobRequestSchema,
+    signature: z.string().base64().max(256),
+    algorithm: z.literal("Ed25519"),
+  })
+  .strict();
 export interface HostChallenge {
   schemaVersion: 1;
   hostId: string;
@@ -142,6 +170,12 @@ export interface Manifest {
   specVersion: string;
   inputManifestId: string;
   requestDigest: string;
+  signedRequest: SignedJobRequest;
+  timeoutSeconds: number;
+  parameters: Record<string, string>;
+  requestNonce: string;
+  requestIssuedAt: string;
+  coordinatorKeyId: string;
   toolIdentities: Array<{
     role: "git" | "operation";
     id: string;
@@ -185,6 +219,12 @@ const ManifestSchema: z.ZodType<Manifest> = z
     specVersion: z.string().min(1).max(64),
     inputManifestId: z.string().regex(/^sha256:[0-9a-f]{64}$/),
     requestDigest: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+    signedRequest: SignedJobRequestSchema,
+    timeoutSeconds: z.number().int().min(1).max(7200),
+    parameters: z.record(ID, z.string().max(64)),
+    requestNonce: z.string().base64url().min(32).max(128),
+    requestIssuedAt: z.string().datetime(),
+    coordinatorKeyId: ID,
     toolIdentities: RunnerPayloadSchema.shape.toolIdentities,
     evidence: z.discriminatedUnion("origin", [
       z
@@ -218,6 +258,7 @@ interface StoredRun {
   gitSha: string;
   seed: number;
   createdAt: string;
+  signedRequest: SignedJobRequest;
   manifest?: Manifest;
   signature?: string;
   error?: string;
@@ -236,11 +277,110 @@ const PersistedRunSchema = z
     gitSha: SHA,
     seed: z.number().int().min(0).max(0xffff_ffff),
     createdAt: z.string().datetime(),
+    signedRequest: SignedJobRequestSchema,
     manifest: ManifestSchema.optional(),
     signature: z.string().base64().max(256).optional(),
     error: z.string().max(512).optional(),
   })
   .strict();
+export interface SignedManifest {
+  manifest: Manifest;
+  signature: string;
+  algorithm: "Ed25519";
+}
+
+export function verifyPersistedManifest(
+  signedValue: SignedManifest,
+  coordinatorPublicKey: KeyObject,
+  hostPublicKey: KeyObject | undefined,
+  readArtifact: (name: string) => Uint8Array,
+): boolean {
+  try {
+    const signed = z
+      .object({
+        manifest: ManifestSchema,
+        signature: z.string().base64().max(256),
+        algorithm: z.literal("Ed25519"),
+      })
+      .strict()
+      .parse(signedValue);
+    const manifest = signed.manifest;
+    const request = manifest.signedRequest;
+    if (
+      !verifyObject(manifest, signed.signature, coordinatorPublicKey) ||
+      !verifyObject(request.request, request.signature, coordinatorPublicKey) ||
+      manifest.requestDigest !== digest(canonical(request)) ||
+      request.request.runId !== manifest.runId ||
+      request.request.hostId !== manifest.hostId ||
+      request.request.gitSha !== manifest.gitSha ||
+      request.request.suite !== manifest.suite ||
+      request.request.seed !== manifest.seed ||
+      request.request.timeoutSeconds !== manifest.timeoutSeconds ||
+      canonical(request.request.parameters) !==
+        canonical(manifest.parameters) ||
+      request.request.nonce !== manifest.requestNonce ||
+      request.request.issuedAt !== manifest.requestIssuedAt ||
+      request.request.issuedAt !== manifest.createdAt ||
+      request.request.coordinatorKeyId !== manifest.coordinatorKeyId ||
+      request.request.specVersion !== manifest.specVersion ||
+      request.request.inputManifestId !== manifest.inputManifestId
+    )
+      return false;
+    const artifactBytes = new Map<string, Uint8Array>();
+    for (const artifact of manifest.artifacts) {
+      const bytes = readArtifact(artifact.name);
+      if (
+        bytes.length !== artifact.bytes ||
+        digest(bytes) !== artifact.sha256 ||
+        artifact.sanitization !== "kyberia-lab-text-v2"
+      )
+        return false;
+      artifactBytes.set(artifact.name, bytes);
+    }
+    if (manifest.evidence.origin === "coordinator-terminal")
+      return manifest.toolIdentities.length === 0;
+    if (
+      !hostPublicKey ||
+      publicKeyIdentity(hostPublicKey) !== manifest.hostIdentity
+    )
+      return false;
+    const payload = manifest.evidence.hostPayload;
+    if (
+      manifest.evidence.signedPreimage.payloadDigest !==
+        digest(canonical(payload)) ||
+      !verifyObject(
+        manifest.evidence.signedPreimage,
+        manifest.evidence.hostSignature,
+        hostPublicKey,
+      ) ||
+      payload.hostId !== manifest.hostId ||
+      payload.requestDigest !== manifest.requestDigest ||
+      payload.startedAt !== manifest.startedAt ||
+      payload.finishedAt !== manifest.finishedAt ||
+      payload.status !== manifest.status ||
+      canonical([...payload.capabilities].sort()) !==
+        canonical(manifest.capabilities) ||
+      canonical(payload.toolIdentities) !== canonical(manifest.toolIdentities)
+    )
+      return false;
+    const outputs = [
+      ["stdout.txt", payload.stdout],
+      ["stderr.txt", payload.stderr],
+    ] as const;
+    if (manifest.artifacts.length < 1 || manifest.artifacts.length > 2)
+      return false;
+    for (const [name, text] of outputs.slice(0, manifest.artifacts.length)) {
+      const bytes = artifactBytes.get(name);
+      if (!bytes || Buffer.from(bytes).toString("utf8") !== text) return false;
+      const sanitized = sanitize(text, Math.max(1, Buffer.byteLength(text)));
+      if (sanitized.text !== text || sanitized.policy !== "kyberia-lab-text-v2")
+        return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
 export interface Executor {
   authenticate(
     spec: Spec,
@@ -296,8 +436,17 @@ export class ProcessExecutor implements Executor {
   ): Promise<string> {
     await verifyExecutable(spec.executable, spec.executableSha256);
     await verifyInvocationArguments(spec.arguments, spec.argumentFiles);
+    if (spec.invocation.kind === "node-bundle")
+      await verifyExecutable(
+        spec.invocation.bundlePath,
+        spec.invocation.bundleSha256,
+      );
+    const invocationArguments =
+      spec.invocation.kind === "node-bundle"
+        ? [spec.invocation.bundlePath]
+        : [];
     return await new Promise<string>((resolvePromise, reject) => {
-      const child = spawn(spec.executable, spec.arguments, {
+      const child = spawn(spec.executable, invocationArguments, {
         shell: false,
         detached: process.platform !== "win32",
         windowsHide: true,
@@ -448,7 +597,7 @@ export class LabManager {
               raw.signature,
               publicKeyFromEnv(this.config.manifestPublicKeyEnv),
             ) ||
-            !this.verifyEvidence(raw.manifest))
+            !this.verifyEvidence(raw.manifest, raw.signature))
         )
           throw new Error("persisted manifest signature invalid");
         const status: Status = ["queued", "running", "cancelling"].includes(
@@ -464,6 +613,7 @@ export class LabManager {
           gitSha: raw.gitSha,
           seed: raw.seed,
           createdAt: raw.createdAt,
+          signedRequest: raw.signedRequest,
           ...(raw.manifest ? { manifest: raw.manifest } : {}),
           ...(raw.signature ? { signature: raw.signature } : {}),
           ...(status === "failed" && raw.status !== "failed"
@@ -490,9 +640,15 @@ export class LabManager {
               startedAt: timestamp,
               finishedAt: timestamp,
               status: "failed",
-              specVersion: this.specVersion(run, host),
-              inputManifestId: this.inputManifestId(run, host),
-              requestDigest: digest(`recovered:${run.id}`),
+              specVersion: run.signedRequest.request.specVersion,
+              inputManifestId: run.signedRequest.request.inputManifestId,
+              requestDigest: digest(canonical(run.signedRequest)),
+              signedRequest: run.signedRequest,
+              timeoutSeconds: run.signedRequest.request.timeoutSeconds,
+              parameters: run.signedRequest.request.parameters,
+              requestNonce: run.signedRequest.request.nonce,
+              requestIssuedAt: run.signedRequest.request.issuedAt,
+              coordinatorKeyId: run.signedRequest.request.coordinatorKeyId,
               toolIdentities: [],
               evidence: {
                 origin: "coordinator-terminal",
@@ -522,6 +678,7 @@ export class LabManager {
       gitSha: run.gitSha,
       seed: run.seed,
       createdAt: run.createdAt,
+      signedRequest: run.signedRequest,
       ...(run.manifest ? { manifest: run.manifest } : {}),
       ...(run.signature ? { signature: run.signature } : {}),
       ...(run.error ? { error: run.error } : {}),
@@ -663,16 +820,7 @@ export class LabManager {
     try {
       await this.authenticateBeforeWork(host, spec);
       const id = `run-${randomUUID()}`;
-      const run: StoredRun = {
-        id,
-        status: "queued",
-        hostId,
-        suite,
-        gitSha: sha,
-        seed,
-        createdAt: this.now().toISOString(),
-        controller: new AbortController(),
-      };
+      const issuedAt = this.now().toISOString();
       const request: JobRequest = {
         schemaVersion: 1,
         runId: id,
@@ -683,7 +831,7 @@ export class LabManager {
         timeoutSeconds: timeout,
         parameters,
         nonce: randomBytes(32).toString("base64url"),
-        issuedAt: this.now().toISOString(),
+        issuedAt,
         coordinatorKeyId: this.config.coordinatorKeyId,
         specVersion: spec.version,
         inputManifestId: spec.inputManifestId,
@@ -695,6 +843,17 @@ export class LabManager {
           privateKeyFromEnv(this.config.manifestPrivateKeyEnv),
         ),
         algorithm: "Ed25519",
+      };
+      const run: StoredRun = {
+        id,
+        status: "queued",
+        hostId,
+        suite,
+        gitSha: sha,
+        seed,
+        createdAt: issuedAt,
+        signedRequest: signed,
+        controller: new AbortController(),
       };
       await this.persist(run);
       this.runs.set(id, run);
@@ -782,14 +941,14 @@ export class LabManager {
     }
     return this.status(id);
   }
-  manifest(id: string) {
+  manifest(id: string): SignedManifest & { keyId: string } {
     const run = this.runs.get(ID.parse(id));
     if (!run?.manifest || !run.signature)
       throw new Error("manifest unavailable until run completion");
     return {
       manifest: run.manifest,
       signature: run.signature,
-      algorithm: "Ed25519",
+      algorithm: "Ed25519" as const,
       keyId: this.config.coordinatorKeyId,
     };
   }
@@ -798,82 +957,17 @@ export class LabManager {
     return (
       signed.manifest.runId === id &&
       (!expectedHost || signed.manifest.hostId === expectedHost) &&
-      this.verifyEvidence(signed.manifest) &&
-      verifyObject(
-        signed.manifest,
-        signed.signature,
-        publicKeyFromEnv(this.config.manifestPublicKeyEnv),
-      )
+      this.verifyEvidence(signed.manifest, signed.signature)
     );
   }
-  private verifyEvidence(manifest: Manifest): boolean {
-    try {
-      if (manifest.evidence.origin === "coordinator-terminal")
-        return manifest.toolIdentities.length === 0;
-      const payload = manifest.evidence.hostPayload;
-      const host = this.config.hosts.find(
-        (item) => item.id === manifest.hostId,
-      );
-      if (!host) return false;
-      if (
-        manifest.evidence.signedPreimage.payloadDigest !==
-          digest(canonical(payload)) ||
-        !verifyObject(
-          manifest.evidence.signedPreimage,
-          manifest.evidence.hostSignature,
-          publicKeyFromEnv(host.publicKeyEnv),
-        ) ||
-        payload.hostId !== manifest.hostId ||
-        payload.requestDigest !== manifest.requestDigest ||
-        payload.startedAt !== manifest.startedAt ||
-        payload.finishedAt !== manifest.finishedAt ||
-        payload.status !== manifest.status ||
-        canonical([...payload.capabilities].sort()) !==
-          canonical(manifest.capabilities) ||
-        canonical(payload.toolIdentities) !== canonical(manifest.toolIdentities)
-      )
-        return false;
-      if (
-        sanitize(payload.stdout, this.config.limits.outputBytes).text !==
-          payload.stdout ||
-        sanitize(payload.stderr, this.config.limits.outputBytes).text !==
-          payload.stderr
-      )
-        return false;
-      const outputs = [
-        ["stdout.txt", payload.stdout],
-        ["stderr.txt", payload.stderr],
-      ] as const;
-      const expectedOutputs = outputs.slice(
-        0,
-        this.config.limits.artifactCount,
-      );
-      if (manifest.artifacts.length !== expectedOutputs.length) return false;
-      for (const [name, raw] of expectedOutputs) {
-        const metadata = manifest.artifacts.find((item) => item.name === name);
-        if (!metadata) return false;
-        const cleaned = sanitize(
-          raw,
-          Math.min(
-            this.config.limits.outputBytes,
-            this.config.limits.artifactBytes,
-          ),
-        );
-        const bytes = Buffer.from(cleaned.text);
-        if (
-          metadata.sha256 !== digest(bytes) ||
-          metadata.bytes !== bytes.length ||
-          metadata.sanitization !== cleaned.policy ||
-          metadata.truncated !== cleaned.truncated ||
-          digest(readFileSync(this.artifactPath(manifest.runId, name))) !==
-            metadata.sha256
-        )
-          return false;
-      }
-      return true;
-    } catch {
-      return false;
-    }
+  private verifyEvidence(manifest: Manifest, signature: string): boolean {
+    const host = this.config.hosts.find((item) => item.id === manifest.hostId);
+    return verifyPersistedManifest(
+      { manifest, signature, algorithm: "Ed25519" },
+      publicKeyFromEnv(this.config.manifestPublicKeyEnv),
+      host ? publicKeyFromEnv(host.publicKeyEnv) : undefined,
+      (name) => readFileSync(this.artifactPath(manifest.runId, name)),
+    );
   }
   artifacts(id: string) {
     return this.manifest(id).manifest.artifacts;
@@ -925,7 +1019,7 @@ export class LabManager {
       host,
       {
         schemaVersion: 1,
-        requestDigest: digest("queued-cancelled"),
+        requestDigest: digest(canonical(run.signedRequest)),
         hostId: run.hostId,
         status: "cancelled",
         startedAt: timestamp,
@@ -1128,6 +1222,12 @@ export class LabManager {
       specVersion: this.specVersion(run, host),
       inputManifestId: this.inputManifestId(run, host),
       requestDigest: payload.requestDigest,
+      signedRequest: run.signedRequest,
+      timeoutSeconds: run.signedRequest.request.timeoutSeconds,
+      parameters: run.signedRequest.request.parameters,
+      requestNonce: run.signedRequest.request.nonce,
+      requestIssuedAt: run.signedRequest.request.issuedAt,
+      coordinatorKeyId: run.signedRequest.request.coordinatorKeyId,
       toolIdentities: payload.toolIdentities,
       evidence,
       artifacts,

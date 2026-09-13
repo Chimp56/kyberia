@@ -23,6 +23,9 @@ importers:
       ajv-formats:
         specifier: 3.0.1
         version: 3.0.1
+      esbuild:
+        specifier: 0.25.12
+        version: 0.25.12
       prettier:
         specifier: 3.6.2
         version: 3.6.2

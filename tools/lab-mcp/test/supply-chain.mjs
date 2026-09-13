@@ -70,7 +70,9 @@ if (process.argv.includes("--write")) {
             hashes: [
               {
                 alg: "SHA-512",
-                content: Buffer.from(integrity.slice(7), "base64").toString("hex"),
+                content: Buffer.from(integrity.slice(7), "base64").toString(
+                  "hex",
+                ),
               },
             ],
           }
@@ -104,8 +106,8 @@ if (process.argv.includes("--write")) {
 
 const sbom = JSON.parse(await readFile(target, "utf8"));
 assert.equal(
-  sbom.metadata.properties.find((value) =>
-    value.name === "kyberia:pnpm-lock-sha256",
+  sbom.metadata.properties.find(
+    (value) => value.name === "kyberia:pnpm-lock-sha256",
   )?.value,
   lockDigest,
   "SBOM must match the complete structural pnpm lock",
@@ -116,6 +118,7 @@ const coordinates = new Set(
 for (const required of [
   "@modelcontextprotocol/sdk@1.30.0",
   "zod@4.1.11",
+  "esbuild@0.25.12",
   "express@5.2.1",
 ])
   assert.ok(coordinates.has(required), `missing direct/transitive ${required}`);
