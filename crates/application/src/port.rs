@@ -1,16 +1,20 @@
 use crate::{
     command::SessionMode,
-    error::ApplicationError,
+    error::{ApplicationError, StoreContext, map_budget_error, map_store_error},
     query::{CurrentProjectView, snapshot_to_view},
 };
 use kyberia_domain::{identity::ProjectId, project::Project};
 use kyberia_project_store::{Bundle, CanonicalProjectSnapshot, OpenMode};
-use std::path::Path;
+use kyberia_resource_budget::{CancellationHook, ResourceBudget};
+use std::{fs, path::Path};
 
 /// Inward port used by query/session orchestration. It returns only
 /// application-owned canonical views, so adapter schemas cannot leak outward.
 pub trait ProjectStorePort {
-    fn current_snapshot(&self) -> Result<CurrentProjectView, ApplicationError>;
+    fn current_snapshot_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<CurrentProjectView, ApplicationError>;
 }
 
 /// Production adapter for the reviewed `kyberia-project-store` APIs. This type
@@ -36,32 +40,37 @@ impl BundleProjectStore {
                 ) {
                     ApplicationError::already_exists(path)
                 } else {
-                    error.into()
+                    map_store_error(StoreContext::Create, error)
                 }
             })
     }
 
     pub(crate) fn open(path: &Path, mode: SessionMode) -> Result<Self, ApplicationError> {
+        match fs::symlink_metadata(path) {
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                return Err(ApplicationError::missing_project(path));
+            }
+            Err(error) => {
+                return Err(map_store_error(StoreContext::Open, error.into()));
+            }
+        }
         let open_mode = match mode {
             SessionMode::ReadOnly => OpenMode::ReadOnly,
             SessionMode::ReadWrite => OpenMode::ReadWrite,
         };
-        let bundle = Bundle::open(path, open_mode).map_err(|error| {
-            if matches!(
-                &error,
-                kyberia_project_store::StoreError::Io(io_error)
-                    if io_error.kind() == std::io::ErrorKind::NotFound
-            ) {
-                ApplicationError::missing_project(path)
-            } else {
-                error.into()
-            }
-        })?;
-        let manifest = bundle.manifest().map_err(ApplicationError::from)?;
+        let bundle = Bundle::open(path, open_mode)
+            .map_err(|error| map_store_error(StoreContext::Open, error))?;
+        let manifest = bundle
+            .manifest()
+            .map_err(|error| map_store_error(StoreContext::Open, error))?;
         if manifest.schema_version != 1 || !manifest.required_features.is_empty() {
             return Err(ApplicationError::new(
                 crate::ErrorKind::UnsupportedVersion,
-                format!("unsupported project schema {}", manifest.schema_version),
+                format!(
+                    "unsupported project schema {} or required feature set",
+                    manifest.schema_version
+                ),
             ));
         }
         Ok(Self { bundle })
@@ -75,16 +84,23 @@ impl BundleProjectStore {
         self.bundle
             .register_materialization_baseline(baseline, utc_ms)
             .map(|_| ())
-            .map_err(Into::into)
+            .map_err(|error| map_store_error(StoreContext::Baseline, error))
     }
 }
 
 impl ProjectStorePort for BundleProjectStore {
-    fn current_snapshot(&self) -> Result<CurrentProjectView, ApplicationError> {
+    fn current_snapshot_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<CurrentProjectView, ApplicationError> {
+        budget.check_cancelled().map_err(map_budget_error)?;
+        self.bundle
+            .verify_materialized_project_publication_with_budget(budget)
+            .map_err(|error| map_store_error(StoreContext::Query, error))?;
         let snapshot: CanonicalProjectSnapshot = self
             .bundle
             .canonical_project_snapshot()
-            .map_err(ApplicationError::from)?;
+            .map_err(|error| map_store_error(StoreContext::Query, error))?;
         snapshot_to_view(snapshot)
     }
 }

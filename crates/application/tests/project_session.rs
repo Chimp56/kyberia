@@ -3,8 +3,8 @@ use kyberia_application::{
     ProjectState, SessionMode,
 };
 use kyberia_domain::identity::Text;
-use kyberia_project_store::{Bundle, OpenMode};
-use kyberia_resource_budget::CancellationHook;
+use kyberia_project_store::{ArtifactEntry, ArtifactKind, Bundle, OpenMode};
+use kyberia_resource_budget::{CancellationHook, ResourceBudget, ResourceLimits};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -192,8 +192,283 @@ fn query_view_is_immutable_and_reads_canonical_publication_after_reopen() {
     assert_eq!(after.state(), ProjectState::MaterializedCurrent);
     assert_eq!(after.project().unwrap(), &before_project);
     assert_eq!(after.revision().unwrap().bundle_revision(), 2);
+    assert_eq!(
+        after.revision().unwrap().publication_bundle_revision(),
+        Some(2)
+    );
     assert_eq!(after.revision().unwrap().operation_revision(), Some(0));
     assert_ne!(after, before);
+
+    let mut writer = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    let ordinary_bytes = b"ordinary map source metadata";
+    writer
+        .put_artifact(
+            ordinary_bytes,
+            ArtifactEntry {
+                kind: ArtifactKind::MapSource,
+                bytes: ordinary_bytes.len() as u64,
+                media_type: "application/octet-stream".into(),
+                provenance_id: "application-test-map-source".into(),
+            },
+            3,
+        )
+        .unwrap();
+    drop(writer);
+
+    let after_artifact = current(&session);
+    assert_eq!(after_artifact.revision().unwrap().bundle_revision(), 3);
+    assert_eq!(
+        after_artifact
+            .revision()
+            .unwrap()
+            .publication_bundle_revision(),
+        Some(2)
+    );
+}
+
+#[test]
+fn missing_project_database_inside_an_existing_root_is_corruption() {
+    let root = retained_directory();
+    let path = root.join("missing-database.rfatlas");
+    let app = Application;
+    drop(
+        app.create(create_request(&path, "Missing database"))
+            .unwrap(),
+    );
+    let retained = retained_directory().join("project.sqlite.moved");
+    fs::rename(path.join("project.sqlite"), &retained).unwrap();
+
+    let error = app
+        .open(OpenProject {
+            path,
+            mode: SessionMode::ReadOnly,
+        })
+        .unwrap_err();
+    assert_eq!(error.kind(), kyberia_application::ErrorKind::CorruptProject);
+}
+
+#[test]
+fn missing_artifacts_directory_inside_an_existing_root_is_corruption() {
+    let root = retained_directory();
+    let path = root.join("missing-artifacts-directory.rfatlas");
+    let app = Application;
+    drop(
+        app.create(create_request(&path, "Missing artifacts directory"))
+            .unwrap(),
+    );
+    let retained = retained_directory().join("artifacts.moved");
+    fs::rename(path.join("artifacts"), retained).unwrap();
+
+    let error = app
+        .open(OpenProject {
+            path,
+            mode: SessionMode::ReadOnly,
+        })
+        .unwrap_err();
+    assert_eq!(error.kind(), kyberia_application::ErrorKind::CorruptProject);
+}
+
+#[test]
+fn missing_declared_artifact_is_corruption_at_query_time() {
+    let root = retained_directory();
+    let path = root.join("missing-artifact.rfatlas");
+    let app = Application;
+    let session = app
+        .create(create_request(&path, "Missing artifact"))
+        .unwrap();
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(path.join("manifest.json")).unwrap()).unwrap();
+    let artifact = manifest["artifacts"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .next()
+        .unwrap()
+        .to_owned();
+    let retained = retained_directory().join("declared-artifact.moved");
+    fs::rename(path.join("artifacts").join(artifact), retained).unwrap();
+
+    let error = session.query(ProjectQuery::CurrentSnapshot).unwrap_err();
+    assert_eq!(error.kind(), kyberia_application::ErrorKind::CorruptProject);
+}
+
+#[test]
+fn malformed_manifest_after_open_is_corruption_at_query_time() {
+    let root = retained_directory();
+    let path = root.join("malformed-manifest.rfatlas");
+    let app = Application;
+    let session = app
+        .create(create_request(&path, "Malformed manifest"))
+        .unwrap();
+    let db = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+    db.execute(
+        "UPDATE bundle_manifest SET body=?1",
+        [b"not-json".as_slice()],
+    )
+    .unwrap();
+
+    let error = session.query(ProjectQuery::CurrentSnapshot).unwrap_err();
+    assert_eq!(error.kind(), kyberia_application::ErrorKind::CorruptProject);
+}
+
+#[test]
+fn caller_budget_is_cumulative_and_reports_resource_limit() {
+    let root = retained_directory();
+    let path = root.join("budget.rfatlas");
+    let session = Application.create(create_request(&path, "Budget")).unwrap();
+    let mut budget = ResourceBudget::new(ResourceLimits::new(0, 0, 0, 0, 0, 0));
+
+    let error = session
+        .query_with_budget(ProjectQuery::CurrentSnapshot, &mut budget)
+        .unwrap_err();
+    assert_eq!(error.kind(), kyberia_application::ErrorKind::ResourceLimit);
+    assert!(budget.usage().working_set_bytes() == 0);
+}
+
+#[test]
+fn query_budget_is_shared_across_materialization_publication_history() {
+    use kyberia_causal_materializer::materialize;
+    use kyberia_domain::identity::{ActorDeviceId, ActorId, OperationId};
+    use kyberia_operation_log::{
+        CausalDepth, LogicalTimestamp, Mutation, Operation, OperationSet, ProjectVersion,
+    };
+    use kyberia_project_store::MaterializationPublicationOutcome;
+
+    let root = retained_directory();
+    let path = root.join("budget-history.rfatlas");
+    let app = Application;
+    let session = app.create(create_request(&path, "Budget history")).unwrap();
+    let id = current(&session).project_id();
+    let mut writer = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    let baseline = writer.materialization_baseline().unwrap().unwrap();
+    let empty = OperationSet::empty(id);
+    let initial = materialize(&baseline, &empty).unwrap();
+    assert!(matches!(
+        writer
+            .publish_materialized_project(&baseline, &empty, &initial, ProjectVersion::new(0), 2)
+            .unwrap(),
+        MaterializationPublicationOutcome::Published(_)
+    ));
+
+    let first = Operation::try_apply(
+        OperationId::from_bytes([1; 16]).unwrap(),
+        id,
+        ActorId::from_bytes([21; 16]).unwrap(),
+        ActorDeviceId::from_bytes([41; 16]).unwrap(),
+        LogicalTimestamp::new(1).unwrap(),
+        CausalDepth::new(0),
+        vec![],
+        Mutation::set_project_name(Text::new("Budget one").unwrap()),
+        Mutation::set_project_name(Text::new("Budget history").unwrap()),
+    )
+    .unwrap();
+    writer
+        .append_operation_if_revision(first.clone(), Some(ProjectVersion::new(0)))
+        .unwrap();
+    let first_set = OperationSet::from_operations([first.clone()]).unwrap();
+    let first_project = materialize(&baseline, &first_set).unwrap();
+    writer
+        .publish_materialized_project(
+            &baseline,
+            &first_set,
+            &first_project,
+            ProjectVersion::new(1),
+            3,
+        )
+        .unwrap();
+
+    let second = Operation::try_apply(
+        OperationId::from_bytes([2; 16]).unwrap(),
+        id,
+        ActorId::from_bytes([22; 16]).unwrap(),
+        ActorDeviceId::from_bytes([42; 16]).unwrap(),
+        LogicalTimestamp::new(2).unwrap(),
+        CausalDepth::new(1),
+        vec![first.operation_id()],
+        Mutation::set_project_name(Text::new("Budget two").unwrap()),
+        Mutation::set_project_name(Text::new("Budget one").unwrap()),
+    )
+    .unwrap();
+    writer
+        .append_operation_if_revision(second.clone(), Some(ProjectVersion::new(1)))
+        .unwrap();
+    let second_set = OperationSet::from_operations([first, second]).unwrap();
+    let second_project = materialize(&baseline, &second_set).unwrap();
+    writer
+        .publish_materialized_project(
+            &baseline,
+            &second_set,
+            &second_project,
+            ProjectVersion::new(2),
+            4,
+        )
+        .unwrap();
+    drop(writer);
+
+    let mut unrestricted = ResourceBudget::new(ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+    ));
+    session
+        .query_with_budget(ProjectQuery::CurrentSnapshot, &mut unrestricted)
+        .unwrap();
+    let total_copy_bytes = unrestricted.usage().project_copy_bytes();
+    assert!(total_copy_bytes > 1);
+
+    let mut cumulative = ResourceBudget::new(ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        total_copy_bytes - 1,
+        usize::MAX,
+    ));
+    let error = session
+        .query_with_budget(ProjectQuery::CurrentSnapshot, &mut cumulative)
+        .unwrap_err();
+    assert_eq!(error.kind(), kyberia_application::ErrorKind::ResourceLimit);
+    assert!(cumulative.usage().project_copy_bytes() > 0);
+    assert!(cumulative.usage().project_copy_bytes() < total_copy_bytes);
+}
+
+#[test]
+fn already_open_session_revalidates_schema_and_required_features() {
+    for (label, schema_version, required_features, database_version) in [
+        ("logical-schema", 2_u64, serde_json::json!([]), 2_u64),
+        (
+            "logical-feature",
+            1_u64,
+            serde_json::json!(["future-materialization"]),
+            1_u64,
+        ),
+    ] {
+        let root = retained_directory();
+        let path = root.join(format!("{label}.rfatlas"));
+        let app = Application;
+        let session = app.create(create_request(&path, label)).unwrap();
+        let db = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+        let mut manifest: serde_json::Value =
+            serde_json::from_slice(&fs::read(path.join("manifest.json")).unwrap()).unwrap();
+        manifest["schema_version"] = serde_json::Value::from(schema_version);
+        manifest["required_features"] = required_features;
+        db.execute(
+            "UPDATE bundle_manifest SET body=?1",
+            [serde_json::to_vec(&manifest).unwrap()],
+        )
+        .unwrap();
+        db.execute_batch(&format!("PRAGMA user_version={database_version}"))
+            .unwrap();
+
+        let error = session.query(ProjectQuery::CurrentSnapshot).unwrap_err();
+        assert_eq!(
+            error.kind(),
+            kyberia_application::ErrorKind::UnsupportedVersion
+        );
+    }
 }
 
 struct CancelImmediately;

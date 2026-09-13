@@ -24,21 +24,35 @@ Add `kyberia-application` with two explicit surfaces:
    metadata read-only.
 2. `ProjectQuery::CurrentSnapshot` reads one canonical store snapshot and maps
    it into an immutable `CurrentProjectView`. The view carries the project
-   state, canonical domain project, and distinct bundle, aggregate, logical,
+   state, canonical domain project, and distinct bundle, project, logical,
    operation, and publication revision fields. A legacy bundle without a
-   baseline remains explicit absence.
+   baseline remains explicit absence. A publication may be older than the
+   current manifest when a later metadata/artifact commit does not replace the
+   published project; the view therefore preserves both counters and accepts
+   `publication_bundle_revision <= bundle_revision`.
 
 `ProjectStorePort` is an application-owned inward port returning only
-application-owned values. The private production implementation wraps the
-reviewed `Bundle` APIs; no `Bundle`, SQLite/rusqlite value, or publication
-receipt is part of the public API. The crate is classified as a composition
-layer in the dependency policy because its production adapter must call the
-existing storage crate; domain and numerical crates remain unaware of it.
+application-owned values and takes a caller-owned cumulative resource budget.
+The private production implementation wraps the reviewed `Bundle` APIs; no
+`Bundle`, `StoreError`, SQLite/rusqlite value, or publication receipt is part
+of the public API. The crate is classified as a composition layer in the
+dependency policy because its production adapter must call the existing
+storage crate; domain and numerical crates remain unaware of it.
 
-Cancellation is checked before and after the synchronous canonical query using
-the existing pure `CancellationHook`. The store's own bounded SQLite,
-manifest, artifact, materialization, and schema checks remain authoritative;
-the application does not claim mid-read preemption.
+Opening first admits the requested root path. Only an absent root maps to
+`MissingProject`; missing `project.sqlite`, artifact directories, or declared
+artifact files inside an existing root map to `CorruptProject`. Store failures
+are mapped privately by operation context, with budget/quota failures mapped
+to `ResourceLimit` and caller admission failures remaining `InvalidRequest`.
+
+Every snapshot mapping revalidates the logical schema version and required
+feature set. This protects an already-open session from a concurrent logical
+format advance. The application passes one cumulative budget through the
+store's publication verification of the baseline and all materialized current
+history, and polls the same caller-owned cancellation hook before, during, and
+after that bounded synchronous work. The final canonical snapshot read has no
+budget-taking store API, so its fixed SQLite, manifest, artifact, and schema
+limits remain an additional authoritative bound.
 
 ## Alternatives
 
@@ -68,11 +82,18 @@ and exposes only shared immutable domain methods. Revision counters retain
 their distinct semantics so callers cannot mistake a bundle metadata commit for
 an operation or aggregate revision.
 
+The application budget regression builds a real multi-publication history and
+shows that a limit below the cumulative replay copy charge fails after work
+has begun. A single publication would not prove that the budget is shared
+across history rows.
+
 ## Validation
 
 `crates/application/tests/project_session.rs` uses real bundles and real causal
 materialization to prove create/reopen, duplicate-create retry behavior,
-missing and legacy states, corrupt and unsupported project rejection,
-immutable view/revision behavior across a canonical publication, cancellation,
+missing roots and internal files, declared-artifact and malformed-manifest
+corruption, unsupported project rejection both at open and after a concurrent
+logical advance, immutable view/revision behavior across publication followed
+by an ordinary `MapSource` commit, cancellation, cumulative budget exhaustion,
 and canonical data sourcing. It uses retained fixtures under
 `.trash/test-runs/`; tests never recursively clean those directories.

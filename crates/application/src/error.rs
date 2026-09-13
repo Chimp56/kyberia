@@ -80,59 +80,159 @@ impl ErrorKind {
     }
 }
 
-impl From<StoreError> for ApplicationError {
-    fn from(error: StoreError) -> Self {
-        match error {
-            StoreError::Io(error) => match error.kind() {
-                io::ErrorKind::NotFound => Self::new(
-                    ErrorKind::MissingProject,
-                    "project path or required project file was not found",
-                ),
-                io::ErrorKind::AlreadyExists => Self::new(
-                    ErrorKind::ProjectAlreadyExists,
-                    "project path already exists",
-                ),
-                _ => Self::new(ErrorKind::Storage, format!("project I/O: {error}")),
-            },
-            StoreError::Json(error) => Self::new(
-                ErrorKind::CorruptProject,
-                format!("invalid project JSON: {error}"),
-            ),
-            StoreError::Invalid(message) => Self::new(ErrorKind::InvalidRequest, message),
-            StoreError::ReadOnly => Self::new(ErrorKind::ReadOnly, "project session is read-only"),
-            StoreError::Cancelled => Self::new(ErrorKind::Cancelled, "project operation cancelled"),
-            StoreError::Corrupt(message) => Self::new(ErrorKind::CorruptProject, message),
-            StoreError::UnsupportedVersion(version)
-            | StoreError::UnsupportedChunkVersion(version) => Self::new(
-                ErrorKind::UnsupportedVersion,
-                format!("unsupported project schema or chunk version {version}"),
-            ),
-            StoreError::Operation(message) => Self::new(ErrorKind::CorruptProject, message),
-            StoreError::ChunkCodec(message) => Self::new(ErrorKind::CorruptProject, message),
-            StoreError::Materialization(error) => Self::from_publication(error),
-            StoreError::Sql(error) => {
-                Self::new(ErrorKind::Storage, format!("project database: {error}"))
+/// The same store error has different application meaning depending on which
+/// boundary operation observed it. In particular, only the requested root's
+/// absence is `MissingProject`; missing files inside an existing root are
+/// corruption.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum StoreContext {
+    Create,
+    Open,
+    Query,
+    Baseline,
+}
+
+pub(crate) fn map_store_error(context: StoreContext, error: StoreError) -> ApplicationError {
+    match error {
+        StoreError::Io(error) => map_io(context, error),
+        StoreError::Json(error) => ApplicationError::new(
+            ErrorKind::CorruptProject,
+            format!("invalid project JSON: {error}"),
+        ),
+        StoreError::Invalid(message) => map_invalid(context, message),
+        StoreError::ReadOnly => {
+            ApplicationError::new(ErrorKind::ReadOnly, "project session is read-only")
+        }
+        StoreError::Cancelled => {
+            ApplicationError::new(ErrorKind::Cancelled, "project operation cancelled")
+        }
+        StoreError::Corrupt(message) => {
+            if is_resource_limit(&message) {
+                ApplicationError::new(ErrorKind::ResourceLimit, message)
+            } else {
+                ApplicationError::new(ErrorKind::CorruptProject, message)
             }
         }
+        StoreError::UnsupportedVersion(version) | StoreError::UnsupportedChunkVersion(version) => {
+            ApplicationError::new(
+                ErrorKind::UnsupportedVersion,
+                format!("unsupported project schema or chunk version {version}"),
+            )
+        }
+        StoreError::Operation(message) => map_content_error(context, message),
+        StoreError::ChunkCodec(message) => map_content_error(context, message),
+        StoreError::Materialization(error) => map_publication_error(context, error),
+        StoreError::Sql(error) => ApplicationError::new(
+            // SQL failures while opening or querying an admitted bundle mean
+            // its contents/schema cannot be trusted. Creation failures remain
+            // an adapter/storage failure because no project was admitted yet.
+            if matches!(context, StoreContext::Open | StoreContext::Query) {
+                ErrorKind::CorruptProject
+            } else {
+                ErrorKind::Storage
+            },
+            format!("project database: {error}"),
+        ),
     }
 }
 
-impl ApplicationError {
-    fn from_publication(error: PublicationError) -> Self {
-        let message = error.to_string();
-        match error {
-            PublicationError::ResourceLimit(_) => Self::new(ErrorKind::ResourceLimit, message),
-            PublicationError::StaleOperationRevision { .. }
-            | PublicationError::ConflictingCurrentPublication => {
-                Self::new(ErrorKind::Conflict, message)
+fn map_io(context: StoreContext, error: io::Error) -> ApplicationError {
+    let kind = match error.kind() {
+        io::ErrorKind::AlreadyExists if context == StoreContext::Create => {
+            ErrorKind::ProjectAlreadyExists
+        }
+        io::ErrorKind::NotFound if matches!(context, StoreContext::Open | StoreContext::Query) => {
+            ErrorKind::CorruptProject
+        }
+        _ => ErrorKind::Storage,
+    };
+    ApplicationError::new(kind, format!("project I/O: {error}"))
+}
+
+fn map_invalid(context: StoreContext, message: String) -> ApplicationError {
+    if is_resource_limit(&message) {
+        ApplicationError::new(ErrorKind::ResourceLimit, message)
+    } else {
+        // Store validation runs after application admission. Its invalid
+        // values are malformed or unsupported persisted contents at this
+        // boundary, rather than a new caller request.
+        let _ = context;
+        ApplicationError::new(ErrorKind::CorruptProject, message)
+    }
+}
+
+fn map_content_error(context: StoreContext, message: String) -> ApplicationError {
+    if is_resource_limit(&message) {
+        ApplicationError::new(ErrorKind::ResourceLimit, message)
+    } else if matches!(context, StoreContext::Open | StoreContext::Query) {
+        ApplicationError::new(ErrorKind::CorruptProject, message)
+    } else {
+        ApplicationError::new(ErrorKind::Storage, message)
+    }
+}
+
+fn map_publication_error(context: StoreContext, error: PublicationError) -> ApplicationError {
+    let message = error.to_string();
+    match error {
+        PublicationError::ResourceLimit(_) => {
+            ApplicationError::new(ErrorKind::ResourceLimit, message)
+        }
+        PublicationError::StaleOperationRevision { .. }
+        | PublicationError::ConflictingCurrentPublication => {
+            ApplicationError::new(ErrorKind::Conflict, message)
+        }
+        PublicationError::Corrupt(_) => {
+            if is_resource_limit(&message) {
+                ApplicationError::new(ErrorKind::ResourceLimit, message)
+            } else {
+                ApplicationError::new(ErrorKind::CorruptProject, message)
             }
-            PublicationError::Corrupt(_) => Self::new(ErrorKind::CorruptProject, message),
-            PublicationError::Invalid(_)
-            | PublicationError::WrongProject
-            | PublicationError::InputIdentityMismatch
-            | PublicationError::BaselineNotRegistered
-            | PublicationError::Identity(_) => Self::new(ErrorKind::InvalidRequest, message),
-            PublicationError::TestFault => Self::new(ErrorKind::Storage, message),
+        }
+        PublicationError::Invalid(_)
+        | PublicationError::WrongProject
+        | PublicationError::InputIdentityMismatch
+        | PublicationError::BaselineNotRegistered
+        | PublicationError::Identity(_) => {
+            // These variants can only be raised by a store operation after
+            // the application has admitted its request. Treat them as a bad
+            // bundle or failed internal persistence, never as caller input.
+            if matches!(context, StoreContext::Open | StoreContext::Query) {
+                ApplicationError::new(ErrorKind::CorruptProject, message)
+            } else {
+                ApplicationError::new(ErrorKind::Storage, message)
+            }
+        }
+        PublicationError::TestFault => ApplicationError::new(ErrorKind::Storage, message),
+    }
+}
+
+fn is_resource_limit(message: &str) -> bool {
+    let message = message.to_ascii_lowercase();
+    [
+        "budget",
+        "resource limit",
+        "exceeds",
+        "oversized",
+        "too many",
+        "limit",
+    ]
+    .iter()
+    .any(|marker| message.contains(marker))
+}
+
+pub(crate) fn map_budget_error(
+    error: kyberia_resource_budget::ResourceBudgetError,
+) -> ApplicationError {
+    match error {
+        kyberia_resource_budget::ResourceBudgetError::Cancelled => ApplicationError::new(
+            ErrorKind::Cancelled,
+            "project query resource budget cancelled",
+        ),
+        kyberia_resource_budget::ResourceBudgetError::LimitExceeded(limit) => {
+            ApplicationError::new(
+                ErrorKind::ResourceLimit,
+                format!("project query resource limit: {}", limit.kind().label()),
+            )
         }
     }
 }

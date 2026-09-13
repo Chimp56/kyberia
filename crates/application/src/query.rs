@@ -1,7 +1,21 @@
-use crate::error::{ApplicationError, ErrorKind};
+use crate::error::{ApplicationError, ErrorKind, map_budget_error};
 use kyberia_domain::{identity::ProjectId, project::Project, project::ProjectSchemaVersion};
 use kyberia_project_store::CanonicalProjectSnapshot;
-use kyberia_resource_budget::CancellationHook;
+use kyberia_resource_budget::{CancellationHook, ResourceBudget, ResourceLimits};
+
+/// Aggregate limits for one application snapshot query. The same budget is
+/// passed through publication-history verification so a long history cannot
+/// reset replay work once per publication.
+pub(crate) const fn default_query_limits() -> ResourceLimits {
+    ResourceLimits::new(
+        16_000_000,
+        16_000_000,
+        8_000_000,
+        64 * 1024 * 1024,
+        64 * 1024 * 1024,
+        128 * 1024 * 1024,
+    )
+}
 
 /// Queries are read-only and never mutate a project session.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -101,6 +115,15 @@ pub(crate) fn snapshot_to_view(
         baseline,
         current,
     } = snapshot;
+    if manifest.schema_version != 1 || !manifest.required_features.is_empty() {
+        return Err(ApplicationError::new(
+            ErrorKind::UnsupportedVersion,
+            format!(
+                "unsupported project schema {} or required feature set",
+                manifest.schema_version
+            ),
+        ));
+    }
     if let Some(project) = baseline.as_ref()
         && (project.id() != manifest.project_id || project.name().as_str() != manifest.name)
     {
@@ -133,7 +156,7 @@ pub(crate) fn snapshot_to_view(
             let current_schema_version = current.project().schema_version();
             if current.project().id() != manifest.project_id
                 || receipt.project_id() != manifest.project_id
-                || receipt.bundle_revision() != manifest.revision
+                || receipt.bundle_revision() > manifest.revision
                 || current.project().revision() != receipt.materialized_project_revision()
                 || current.project().logical_time() != receipt.materialized_logical_time()
             {
@@ -176,30 +199,45 @@ pub(crate) fn snapshot_to_view(
     })
 }
 
+/// Run one query with one cumulative resource budget.
+pub(crate) fn query_with_budget<T: crate::port::ProjectStorePort + ?Sized, H: CancellationHook>(
+    store: &T,
+    query: ProjectQuery,
+    budget: &mut ResourceBudget<H>,
+) -> Result<ProjectQueryResult, ApplicationError> {
+    budget.check_cancelled().map_err(map_budget_error)?;
+    let result = match query {
+        ProjectQuery::CurrentSnapshot => {
+            ProjectQueryResult::CurrentSnapshot(store.current_snapshot_with_budget(budget)?)
+        }
+    };
+    budget.check_cancelled().map_err(map_budget_error)?;
+    Ok(result)
+}
+
+/// A cancellation hook borrowed from the application caller. Storage never
+/// owns the source; the budget only polls it at deterministic boundaries.
+pub(crate) struct BorrowedCancellation<'a, H: CancellationHook> {
+    hook: &'a mut H,
+}
+
+impl<H: CancellationHook> CancellationHook for BorrowedCancellation<'_, H> {
+    fn is_cancelled(&mut self) -> bool {
+        self.hook.is_cancelled()
+    }
+}
+
 /// Check cancellation at the application boundary around one store query.
-/// The current store query is a bounded synchronous operation and has no
-/// mid-read hook; cancellation before/after it prevents returning a result.
+/// The hook is also carried by the cumulative verification budget, preserving
+/// cancellation if the bounded store operation performs multiple checks.
 pub(crate) fn query_with_cancel<T: crate::port::ProjectStorePort + ?Sized>(
     store: &T,
     query: ProjectQuery,
     cancel: &mut impl CancellationHook,
 ) -> Result<ProjectQueryResult, ApplicationError> {
-    if cancel.is_cancelled() {
-        return Err(ApplicationError::new(
-            ErrorKind::Cancelled,
-            "project query cancelled before store read",
-        ));
-    }
-    let result = match query {
-        ProjectQuery::CurrentSnapshot => {
-            ProjectQueryResult::CurrentSnapshot(store.current_snapshot()?)
-        }
-    };
-    if cancel.is_cancelled() {
-        return Err(ApplicationError::new(
-            ErrorKind::Cancelled,
-            "project query cancelled after store read",
-        ));
-    }
-    Ok(result)
+    let mut budget = ResourceBudget::with_cancellation(
+        default_query_limits(),
+        BorrowedCancellation { hook: cancel },
+    );
+    query_with_budget(store, query, &mut budget)
 }
