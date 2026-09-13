@@ -38,7 +38,7 @@ measurement, floor-plan, or calibration data is fabricated.
 | --- | --- |
 | `npm ci --dry-run` | PASS (package-lock.json is install-reproducible) |
 | `npm run typecheck` | PASS |
-| `npm test -- --run` | PASS (14 tests) |
+| `npm test -- --run` | PASS (15 tests) |
 | `npm run build` | PASS |
 | `cargo fmt --all -- --check` | PASS |
 | `cargo test -p kyberia-desktop --locked --offline` | PASS (25 tests: 17 Rust library, 6 picker/command, 2 IPC boundary) |
