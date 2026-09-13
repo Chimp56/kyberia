@@ -9,7 +9,7 @@ Inventory: 3335 leaf obligations; 433 obligation groups; 1624 coverage-only bloc
 
 Source SHA-256: `57b6bb686456a567f882a8e4a1eec7bcdcfafea843dd060f224e76c7122328ea`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 82 | NOT_STARTED: 3187 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 83 | NOT_STARTED: 3186 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
