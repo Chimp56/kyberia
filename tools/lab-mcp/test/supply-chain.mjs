@@ -11,6 +11,11 @@ const lockText = await readFile(new URL("pnpm-lock.yaml", packageRoot), "utf8");
 const lock = YAML.parse(lockText);
 assert.equal(lock.lockfileVersion, "9.0");
 assert.ok(lock.packages && typeof lock.packages === "object");
+assert.equal(
+  lock.importers?.["."]?.devDependencies?.["ajv-formats"]?.version,
+  "3.0.1(ajv@8.20.0)",
+  "the frozen lock must bind ajv-formats to its installed Ajv peer",
+);
 const lockDigest = createHash("sha256").update(lockText).digest("hex");
 
 function coordinate(value) {

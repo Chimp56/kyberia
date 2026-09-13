@@ -150,7 +150,7 @@ def command(name):
         python("-m", "pip", "install", "--require-hashes", "--only-binary=:all:", "--no-cache-dir", "-r", "tools/requirements.txt")
         run("rustup", "show", "active-toolchain")
         run("cargo", "fetch", "--locked")
-        lab_pnpm("install", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
+        lab_pnpm("install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store")
     elif name == "clean":
         # The clean helper is stdlib-only and deliberately runs with the
         # invoking interpreter, so it remains available before bootstrap.
@@ -210,7 +210,7 @@ def command(name):
     elif name == "supply-chain-refresh":
         supply_chain("refresh-advisories")
     elif name == "lab-mcp-bootstrap":
-        lab_pnpm("install", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
+        lab_pnpm("install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store")
     elif name == "lab-mcp-build":
         lab_pnpm("run", "build")
     elif name == "lab-mcp-check":

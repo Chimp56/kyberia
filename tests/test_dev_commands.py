@@ -61,3 +61,19 @@ class LabPackageManagerTests(unittest.TestCase):
             kwargs["env"]["COREPACK_HOME"],
             str(DEV.ROOT / "tools/lab-mcp/.tools/corepack"),
         )
+
+    def test_lab_bootstrap_store_is_relative_to_package_directory(self):
+        with patch.object(DEV, "lab_pnpm") as pnpm:
+            DEV.command("lab-mcp-bootstrap")
+        pnpm.assert_called_once_with(
+            "install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store"
+        )
+
+    def test_root_bootstrap_uses_same_package_relative_store(self):
+        with patch.object(DEV, "run"), patch.object(DEV, "python"), patch.object(
+            DEV, "lab_pnpm"
+        ) as pnpm:
+            DEV.command("bootstrap")
+        pnpm.assert_called_once_with(
+            "install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store"
+        )
