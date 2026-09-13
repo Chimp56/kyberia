@@ -45,14 +45,14 @@ The focused early-exit/exact-limit test passed in 100 repetitions before the
 correction. A retained adversarial test that starts both capped readers
 without a consumer fails with the former eight-event queue and passes with
 the corrected queue, proving the backpressure condition independently of
-runner timing. The complete Sionna worker suite passes 49 tests with two
+runner timing. The complete Sionna worker suite passes 52 tests with two
 platform-specific Windows execution tests skipped locally. The active-process
 suite passes 39 tests with one native Windows test skipped. An earlier pinned
 environment run of the complete root Python suite passed 274 tests with 24
 optional tests skipped. The current follow-up's system Python 3.9 run reached
 269 tests with 26 skips but could not import `test_source_inventory` because
 that environment lacks both `tomllib` and `tomli`; it is not recorded as a
-complete root-suite pass. The current locked Python environment passes 277
+complete root-suite pass. The current locked Python environment passes 280
 tests with 24 optional tests skipped.
 
 Native Windows job-object and anonymous-pipe execution remains an external
