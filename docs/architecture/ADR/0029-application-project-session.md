@@ -26,8 +26,9 @@ Add `kyberia-application` with two explicit surfaces:
    it into an immutable `CurrentProjectView`. The view carries the project
    state, canonical domain project, and distinct bundle, project, logical,
    operation, and publication revision fields. A true read-only legacy bundle
-   with its additive materialization table group absent or incomplete remains
-   explicit absence. A publication may be older than the
+   with its additive materialization table group entirely absent remains
+   explicit absence; a partial group is corrupt and fails schema validation.
+   A publication may be older than the
    current manifest when a later metadata/artifact commit does not replace the
    published project; the view therefore preserves both counters and accepts
    `publication_bundle_revision <= bundle_revision`.
