@@ -2,6 +2,12 @@
   "name": "@kyberia/lab-mcp",
   "version": "0.1.0",
   "private": true,
+  "files": [
+    "dist/**",
+    "README.md",
+    "config.example.json",
+    "runner.example.json"
+  ],
   "type": "module",
   "engines": {
     "node": ">=24.0.0"
@@ -10,7 +16,7 @@
     "build": "tsc -p tsconfig.json",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
     "lint": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
-    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md' && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts",
+    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md' && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts && tsc -p tsconfig.json && node test/package-inventory.mjs",
     "start": "node dist/src/main.js"
   },
   "dependencies": {

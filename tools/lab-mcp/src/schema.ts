@@ -22,8 +22,24 @@ const command = z
     environment: z
       .object({ KYBERIA_LAB_RUNNER_CONFIG: z.string().min(1).max(1024) })
       .strict(),
+    credentialEnvNames: z
+      .array(
+        z.string().regex(/^KYBERIA_LAB_[A-Z0-9_]+_(?:PRIVATE|PUBLIC)_KEY$/),
+      )
+      .min(0)
+      .max(4),
+    inputManifestId: z.string().regex(/^sha256:[0-9a-f]{64}$/),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    if (
+      new Set(value.credentialEnvNames).size !== value.credentialEnvNames.length
+    )
+      context.addIssue({
+        code: "custom",
+        message: "credential environment names must be unique",
+      });
+  });
 
 const host = z
   .object({
@@ -31,7 +47,10 @@ const host = z
     displayName: z.string().min(1).max(80),
     identity: z.string().regex(/^sha256:[A-Za-z0-9+/]{43}=$/),
     publicKeyEnv: z.string().regex(/^KYBERIA_LAB_[A-Z0-9_]+_PUBLIC_KEY$/),
-    capabilities: z.array(ID).max(64),
+    capabilities: z
+      .array(ID)
+      .max(64)
+      .refine((v) => new Set(v).size === v.length),
     allowedKismetVersions: z
       .array(
         z
@@ -58,7 +77,11 @@ export const Config = z
       .string()
       .regex(/^KYBERIA_LAB_[A-Z0-9_]+_PUBLIC_KEY$/),
     coordinatorKeyId: ID,
-    immutableRevisions: z.array(SHA).min(1).max(1024),
+    immutableRevisions: z
+      .array(SHA)
+      .min(1)
+      .max(1024)
+      .refine((v) => new Set(v).size === v.length),
     hosts: z.array(host).min(1).max(64),
     limits: z
       .object({
@@ -87,6 +110,7 @@ const runnerCommand = z
       z.string().max(64),
       z.array(z.string().max(64)).max(64),
     ),
+    inputManifestId: z.string().regex(/^sha256:[0-9a-f]{64}$/),
   })
   .strict();
 export const RunnerConfig = z
@@ -102,7 +126,28 @@ export const RunnerConfig = z
     checkoutDirectory: z.string().min(1).max(1024),
     replayDirectory: z.string().min(1).max(1024),
     maximumClockSkewSeconds: z.number().int().min(1).max(300),
-    capabilities: z.array(ID).max(64),
+    capabilities: z
+      .array(ID)
+      .max(64)
+      .refine((v) => new Set(v).size === v.length),
+    inputManifests: z.record(
+      z.string().regex(/^sha256:[0-9a-f]{64}$/),
+      z
+        .array(
+          z
+            .object({
+              path: z
+                .string()
+                .regex(/^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._\/-]+$/)
+                .max(256),
+              sha256: z.string().regex(/^[0-9a-f]{64}$/),
+            })
+            .strict(),
+        )
+        .min(1)
+        .max(256)
+        .refine((v) => new Set(v.map((e) => e.path)).size === v.length),
+    ),
     limits: z
       .object({
         timeoutSeconds: z.number().int().min(1).max(7200),

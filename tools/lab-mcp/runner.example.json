@@ -9,14 +9,22 @@
   "replayDirectory": "/absolute/kyberia/.trash/lab-runner-replay",
   "maximumClockSkewSeconds": 60,
   "capabilities": ["macos", "wifi"],
-  "capabilities": ["macos", "wifi"],
+  "inputManifests": {
+    "sha256:f5d675a25df8cda1b40621844a71c2b0d19929cb63c3921fca7aa28d99c7d027": [
+      {
+        "path": "tools/dev.py",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ]
+  },
   "limits": { "timeoutSeconds": 1800, "outputBytes": 1048576 },
   "operations": {
     "foundation": {
       "executable": "/usr/bin/python3",
       "arguments": ["tools/dev.py", "check"],
       "version": "foundation-v1",
-      "parameters": { "default": [] }
+      "parameters": { "default": [] },
+      "inputManifestId": "sha256:f5d675a25df8cda1b40621844a71c2b0d19929cb63c3921fca7aa28d99c7d027"
     }
   }
 }

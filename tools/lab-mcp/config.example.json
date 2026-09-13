@@ -22,7 +22,9 @@
           "version": "foundation-v1",
           "environment": {
             "KYBERIA_LAB_RUNNER_CONFIG": "/absolute/runner.json"
-          }
+          },
+          "credentialEnvNames": ["KYBERIA_LAB_MANIFEST_PUBLIC_KEY"],
+          "inputManifestId": "sha256:f5d675a25df8cda1b40621844a71c2b0d19929cb63c3921fca7aa28d99c7d027"
         }
       },
       "probes": {}

@@ -7,7 +7,7 @@ import type {
   HostChallenge,
   SignedJobRequest,
 } from "../src/manager.js";
-import { LabManager } from "../src/manager.js";
+import { LabManager, ProcessExecutor } from "../src/manager.js";
 import { canonical, digest, signObject } from "../src/security.js";
 import { config } from "./helpers.js";
 
@@ -23,12 +23,16 @@ class Fake implements Executor {
   requests: SignedJobRequest[] = [];
   delay = 0;
   wrongKey = false;
+  authDelay = 0;
+  beforeReturn?: (request: SignedJobRequest) => Promise<void>;
   constructor(
     private readonly privateKey: ReturnType<
       typeof config
     >["hostKeys"]["privateKey"],
   ) {}
   async authenticate(_spec: unknown, challenge: HostChallenge) {
+    if (this.authDelay)
+      await new Promise((done) => setTimeout(done, this.authDelay));
     const payload = {
       schemaVersion: 1 as const,
       hostId: challenge.hostId,
@@ -73,6 +77,7 @@ class Fake implements Executor {
       stderr: "",
       capabilities: ["wifi", "cuda"],
     };
+    await this.beforeReturn?.(request);
     return canonical({
       payload,
       signature: signObject(payload, this.privateKey),
@@ -107,6 +112,136 @@ test("immutable revision, allowlists and strict identifiers reject hostile input
   );
   assert.throws(() => manager.status("../run"));
 });
+
+test("authentication reservations bound concurrent submissions", async () => {
+  const setup = config(join(root, "reservations"));
+  const fake = new Fake(setup.hostKeys.privateKey);
+  fake.authDelay = 30;
+  const manager = new LabManager(setup.config, fake);
+  const results = await Promise.allSettled(
+    Array.from({ length: 12 }, (_, seed) =>
+      manager.submit(
+        "lab-one",
+        setup.config.immutableRevisions[0]!,
+        "foundation",
+        seed,
+        2,
+      ),
+    ),
+  );
+  assert.ok(
+    results.filter((result) => result.status === "fulfilled").length <= 3,
+  );
+  assert.ok(results.some((result) => result.status === "rejected"));
+});
+
+test("restart recovery turns interrupted intent into signed failed evidence", async () => {
+  const setup = config(join(root, "recovery"));
+  const fake = new Fake(setup.hostKeys.privateKey);
+  fake.delay = 200;
+  const manager = new LabManager(setup.config, fake);
+  const id = await manager.submit(
+    "lab-one",
+    setup.config.immutableRevisions[0]!,
+    "foundation",
+    7,
+    2,
+  );
+  while (manager.status(id).status !== "running")
+    await new Promise((done) => setTimeout(done, 2));
+  await new Promise((done) => setTimeout(done, 10));
+  const recovered = new LabManager(setup.config, fake);
+  assert.equal(recovered.status(id).status, "failed");
+  assert.match(recovered.status(id).error ?? "", /restarted/);
+  assert.equal(recovered.manifest(id).manifest.status, "failed");
+  assert.equal(recovered.verifyManifest(id), true);
+  manager.cancel(id);
+  await waitDone(manager, id);
+});
+
+test("restart recovery rejects malformed persisted run state", async () => {
+  const setup = config(join(root, "malformed-recovery"));
+  const dir = join(setup.config.stateDirectory, "run-malformed");
+  await mkdir(dir, { recursive: true });
+  await writeFile(
+    join(dir, "status.json"),
+    JSON.stringify({ id: "../../escape", status: "running" }),
+  );
+  const manager = new LabManager(
+    setup.config,
+    new Fake(setup.hostKeys.privateKey),
+  );
+  assert.throws(() => manager.status("run-malformed"), /unknown/);
+});
+
+test("artifact publication failure resolves to recoverable failed status", async () => {
+  const setup = config(join(root, "publication-failure"));
+  const fake = new Fake(setup.hostKeys.privateKey);
+  fake.beforeReturn = async (request) => {
+    const dir = join(setup.config.stateDirectory, request.request.runId);
+    await writeFile(join(dir, "stdout.txt"), "collision");
+  };
+  const manager = new LabManager(setup.config, fake);
+  const id = await manager.submit(
+    "lab-one",
+    setup.config.immutableRevisions[0]!,
+    "foundation",
+    1,
+    2,
+  );
+  await waitDone(manager, id);
+  assert.equal(manager.status(id).status, "failed");
+  assert.match(manager.status(id).error ?? "", /publication/);
+  assert.throws(() => manager.manifest(id), /unavailable/);
+  const restarted = new LabManager(setup.config, fake);
+  assert.equal(restarted.status(id).status, "failed");
+});
+
+test(
+  "ProcessExecutor imposes a hard deadline on a noncooperating child",
+  {
+    skip:
+      process.platform === "win32"
+        ? "Windows containment is fail-closed"
+        : false,
+  },
+  async () => {
+    const setup = config(join(root, "hard-deadline"));
+    const executor = new ProcessExecutor();
+    const spec = {
+      executable: process.execPath,
+      arguments: [
+        "-e",
+        "process.on('SIGTERM',()=>{});process.stdin.resume();setInterval(()=>{},1000)",
+      ],
+      version: "test-v1",
+      environment: { KYBERIA_LAB_RUNNER_CONFIG: "/unused" },
+      credentialEnvNames: [
+        setup.config.manifestPrivateKeyEnv,
+        setup.config.manifestPublicKeyEnv,
+      ],
+      inputManifestId: "sha256:" + "0".repeat(64),
+    };
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 200);
+    const started = Date.now();
+    await assert.rejects(
+      executor.execute(
+        spec,
+        {
+          request: {} as SignedJobRequest["request"],
+          signature: "",
+          algorithm: "Ed25519",
+        },
+        10_000,
+        controller.signal,
+        1024,
+      ),
+      /cancelled|terminate/,
+    );
+    assert.ok(Date.now() - started < 3_500);
+  },
+);
 
 test("signed request binds revision and result; output is redacted and bounded", async () => {
   const setup = config(join(root, "signed"));

@@ -169,14 +169,14 @@ def command(name):
     elif name == "supply-chain-refresh":
         supply_chain("refresh-advisories")
     elif name == "lab-mcp-bootstrap":
-        run("pnpm", "install", "--dir", "tools/lab-mcp", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
+        run("corepack", "pnpm@12.3.4", "install", "--dir", "tools/lab-mcp", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
     elif name == "lab-mcp-build":
-        run("pnpm", "--dir", "tools/lab-mcp", "run", "build")
+        run("corepack", "pnpm@12.3.4", "--dir", "tools/lab-mcp", "run", "build")
     elif name == "lab-mcp-check":
-        run("pnpm", "--dir", "tools/lab-mcp", "run", "check")
+        run("corepack", "pnpm@12.3.4", "--dir", "tools/lab-mcp", "run", "check")
         run(sys.executable, "-m", "unittest", "-v", "tools/lab-mcp/test/test_windows_process.py")
     elif name == "check":
-        for step in ["lint", "typecheck", "test", "source-check", "evidence-check"]:
+        for step in ["lint", "typecheck", "test", "lab-mcp-check", "source-check", "evidence-check"]:
             command(step)
 
 

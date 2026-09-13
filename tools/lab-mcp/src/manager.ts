@@ -1,6 +1,13 @@
 import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
-import { lstat, mkdir, readFile, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
 import { z } from "zod";
 import type { LabConfig, ProbeId, SuiteId } from "./schema.js";
@@ -23,11 +30,21 @@ type Status =
   | "succeeded"
   | "failed"
   | "cancelled";
+const StatusSchema = z.enum([
+  "queued",
+  "running",
+  "cancelling",
+  "succeeded",
+  "failed",
+  "cancelled",
+]);
 type Spec = {
   executable: string;
   arguments: string[];
   version: string;
   environment: { KYBERIA_LAB_RUNNER_CONFIG: string };
+  credentialEnvNames: string[];
+  inputManifestId: string;
 };
 type Host = LabConfig["hosts"][number];
 export interface JobRequest {
@@ -43,6 +60,7 @@ export interface JobRequest {
   issuedAt: string;
   coordinatorKeyId: string;
   specVersion: string;
+  inputManifestId: string;
 }
 export interface SignedJobRequest {
   request: JobRequest;
@@ -98,10 +116,42 @@ export interface Manifest {
   finishedAt: string;
   status: Status;
   specVersion: string;
+  inputManifestId: string;
   requestDigest: string;
   hostResultSignature: string;
   artifacts: Artifact[];
 }
+const ArtifactSchema = z
+  .object({
+    name: ARTIFACT,
+    mediaType: z.literal("text/plain"),
+    bytes: z.number().int().min(0),
+    sha256: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+    sanitization: ID,
+    truncated: z.boolean(),
+  })
+  .strict();
+const ManifestSchema: z.ZodType<Manifest> = z
+  .object({
+    schemaVersion: z.literal(1),
+    runId: ID,
+    hostId: ID,
+    hostIdentity: z.string().regex(/^sha256:[A-Za-z0-9+/]{43}=$/),
+    capabilities: z.array(ID).max(64),
+    gitSha: SHA,
+    suite: ID,
+    seed: z.number().int().min(0).max(0xffff_ffff),
+    createdAt: z.string().datetime(),
+    startedAt: z.string().datetime(),
+    finishedAt: z.string().datetime(),
+    status: StatusSchema,
+    specVersion: z.string().min(1).max(64),
+    inputManifestId: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+    requestDigest: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+    hostResultSignature: z.string().min(1).max(512),
+    artifacts: z.array(ArtifactSchema).max(32),
+  })
+  .strict();
 interface StoredRun {
   id: string;
   status: Status;
@@ -116,6 +166,23 @@ interface StoredRun {
   controller: AbortController;
   queued?: () => void;
 }
+type PersistedRun = Omit<StoredRun, "controller" | "queued" | "manifest"> & {
+  manifest?: Manifest;
+};
+const PersistedRunSchema = z
+  .object({
+    id: ID,
+    status: StatusSchema,
+    hostId: ID,
+    suite: ID,
+    gitSha: SHA,
+    seed: z.number().int().min(0).max(0xffff_ffff),
+    createdAt: z.string().datetime(),
+    manifest: ManifestSchema.optional(),
+    signature: z.string().base64().max(256).optional(),
+    error: z.string().max(512).optional(),
+  })
+  .strict();
 export interface Executor {
   authenticate(
     spec: Spec,
@@ -178,24 +245,45 @@ export class ProcessExecutor implements Executor {
         env: {
           PATH: process.env.PATH ?? "",
           KYBERIA_LAB_RUNNER_CONFIG: spec.environment.KYBERIA_LAB_RUNNER_CONFIG,
+          ...Object.fromEntries(
+            spec.credentialEnvNames.map((name) => {
+              const value = process.env[name];
+              if (!value)
+                throw new Error("allowlisted runner credential unavailable");
+              return [name, value];
+            }),
+          ),
         },
       });
       if (!child.stdin || !child.stdout || !child.stderr) {
         reject(new Error("runner pipes unavailable"));
         return;
       }
-      let response = Buffer.alloc(0),
+      const response: Buffer[] = [];
+      let responseBytes = 0,
         stderrBytes = 0,
-        settled = false;
+        settled = false,
+        stopping = false;
+      const finish = (error?: Error, value?: string) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        clearTimeout(hardTimer);
+        signal.removeEventListener("abort", stop);
+        error ? reject(error) : resolvePromise(value ?? "");
+      };
+      let hardTimer: NodeJS.Timeout | undefined;
       const stop = () => {
-        if (settled || child.pid === undefined) return;
+        if (settled || stopping) return;
+        stopping = true;
         try {
-          process.kill(
-            process.platform === "win32" ? child.pid : -child.pid,
-            "SIGTERM",
-          );
+          if (child.pid !== undefined)
+            process.kill(
+              process.platform === "win32" ? child.pid : -child.pid,
+              "SIGTERM",
+            );
         } catch {}
-        setTimeout(() => {
+        hardTimer = setTimeout(() => {
           if (!settled && child.pid !== undefined)
             try {
               process.kill(
@@ -203,11 +291,18 @@ export class ProcessExecutor implements Executor {
                 "SIGKILL",
               );
             } catch {}
-        }, 2000).unref();
+          setTimeout(
+            () =>
+              finish(new Error("runner did not terminate after cancellation")),
+            500,
+          ).unref();
+        }, 2000);
+        hardTimer.unref();
       };
       child.stdout.on("data", (chunk: Buffer) => {
-        response = Buffer.concat([response, chunk]);
-        if (response.length > maxOutput) stop();
+        responseBytes += chunk.length;
+        if (responseBytes <= maxOutput) response.push(chunk);
+        else stop();
       });
       child.stderr.on("data", (chunk: Buffer) => {
         stderrBytes += chunk.length;
@@ -216,15 +311,13 @@ export class ProcessExecutor implements Executor {
       signal.addEventListener("abort", stop, { once: true });
       const timer = setTimeout(stop, timeoutMs);
       timer.unref();
-      child.once("error", reject);
+      child.once("error", (error) => finish(error));
       child.once("close", (code) => {
-        settled = true;
-        clearTimeout(timer);
-        signal.removeEventListener("abort", stop);
-        if (response.length > maxOutput || stderrBytes > maxOutput)
-          reject(new Error("runner response exceeded output limit"));
-        else if (code !== 0) reject(new Error("authenticated runner failed"));
-        else resolvePromise(response.toString("utf8"));
+        if (responseBytes > maxOutput || stderrBytes > maxOutput)
+          finish(new Error("runner response exceeded output limit"));
+        else if (signal.aborted) finish(new Error("runner cancelled"));
+        else if (code !== 0) finish(new Error("authenticated runner failed"));
+        else finish(undefined, Buffer.concat(response).toString("utf8"));
       });
       child.stdin.end(`${input}\n`);
     });
@@ -234,12 +327,147 @@ export class ProcessExecutor implements Executor {
 export class LabManager {
   readonly runs = new Map<string, StoredRun>();
   private active = 0;
+  private reservations = 0;
   private queue: StoredRun[] = [];
   constructor(
     readonly config: LabConfig,
     private readonly executor: Executor = new ProcessExecutor(),
     private readonly now = () => new Date(),
-  ) {}
+  ) {
+    this.recover();
+  }
+  private recover() {
+    const root = resolve(this.config.stateDirectory);
+    if (!existsSync(root)) return;
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+      if (!entry.isDirectory() || !ID.safeParse(entry.name).success) continue;
+      const statePath = resolve(root, entry.name, "status.json");
+      if (!existsSync(statePath)) continue;
+      try {
+        const raw = PersistedRunSchema.parse(
+          JSON.parse(readFileSync(statePath, "utf8")),
+        );
+        if (raw.id !== entry.name)
+          throw new Error("run state identity mismatch");
+        if (
+          (raw.manifest || raw.signature) &&
+          (!raw.manifest ||
+            !raw.signature ||
+            raw.manifest.runId !== raw.id ||
+            !verifyObject(
+              raw.manifest,
+              raw.signature,
+              publicKeyFromEnv(this.config.manifestPublicKeyEnv),
+            ))
+        )
+          throw new Error("persisted manifest signature invalid");
+        const status: Status = ["queued", "running", "cancelling"].includes(
+          raw.status,
+        )
+          ? "failed"
+          : raw.status;
+        const run: StoredRun = {
+          id: raw.id,
+          status,
+          hostId: raw.hostId,
+          suite: raw.suite,
+          gitSha: raw.gitSha,
+          seed: raw.seed,
+          createdAt: raw.createdAt,
+          ...(raw.manifest ? { manifest: raw.manifest } : {}),
+          ...(raw.signature ? { signature: raw.signature } : {}),
+          ...(status === "failed" && raw.status !== "failed"
+            ? { error: "coordinator restarted before run completion" }
+            : raw.error
+              ? { error: raw.error }
+              : {}),
+          controller: new AbortController(),
+        };
+        if (status === "failed" && raw.status !== "failed") {
+          const host = this.config.hosts.find((item) => item.id === raw.hostId);
+          if (host) {
+            const timestamp = this.now().toISOString();
+            run.manifest = {
+              schemaVersion: 1,
+              runId: run.id,
+              hostId: run.hostId,
+              hostIdentity: host.identity,
+              capabilities: [...host.capabilities].sort(),
+              gitSha: run.gitSha,
+              suite: run.suite,
+              seed: run.seed,
+              createdAt: run.createdAt,
+              startedAt: timestamp,
+              finishedAt: timestamp,
+              status: "failed",
+              specVersion: this.specVersion(run, host),
+              inputManifestId: this.inputManifestId(run, host),
+              requestDigest: digest(`recovered:${run.id}`),
+              hostResultSignature: "coordinator-recovery-no-host-result",
+              artifacts: [],
+            };
+            run.signature = signObject(
+              run.manifest,
+              privateKeyFromEnv(this.config.manifestPrivateKeyEnv),
+            );
+            this.persistSync(run);
+          }
+        }
+        this.runs.set(entry.name, run);
+      } catch {
+        // A malformed status record is ignored rather than trusted.
+      }
+    }
+  }
+  private record(run: StoredRun): PersistedRun {
+    return {
+      id: run.id,
+      status: run.status,
+      hostId: run.hostId,
+      suite: run.suite,
+      gitSha: run.gitSha,
+      seed: run.seed,
+      createdAt: run.createdAt,
+      ...(run.manifest ? { manifest: run.manifest } : {}),
+      ...(run.signature ? { signature: run.signature } : {}),
+      ...(run.error ? { error: run.error } : {}),
+    };
+  }
+  private persistSync(run: StoredRun) {
+    const dir = resolve(this.config.stateDirectory, run.id);
+    if (run.manifest && run.signature) {
+      const manifestTarget = resolve(dir, "manifest.json");
+      const manifestTemporary = resolve(dir, `manifest-${randomUUID()}.tmp`);
+      writeFileSync(
+        manifestTemporary,
+        canonical({
+          manifest: run.manifest,
+          signature: run.signature,
+          algorithm: "Ed25519",
+        }),
+        { mode: 0o600, flag: "wx" },
+      );
+      renameSync(manifestTemporary, manifestTarget);
+    }
+    const target = resolve(dir, "status.json");
+    const temporary = resolve(dir, `status-${randomUUID()}.tmp`);
+    writeFileSync(temporary, canonical(this.record(run)), {
+      mode: 0o600,
+      flag: "wx",
+    });
+    renameSync(temporary, target);
+  }
+  private async persist(run: StoredRun) {
+    const dir = resolve(this.config.stateDirectory, run.id);
+    await mkdir(dir, { recursive: true, mode: 0o700 });
+    const target = resolve(dir, "status.json");
+    const temporary = resolve(dir, `status-${randomUUID()}.tmp`);
+    await writeFile(temporary, canonical(this.record(run)), {
+      mode: 0o600,
+      flag: "wx",
+    });
+    await rename(temporary, target);
+  }
   listHosts() {
     return this.config.hosts.map(
       ({ id, displayName, identity, capabilities, suites, probes }) => ({
@@ -331,49 +559,58 @@ export class LabManager {
     if (timeout > this.config.limits.timeoutSeconds)
       throw new Error("timeout exceeds operator limit");
     if (
-      this.active + this.queue.length >=
+      this.active + this.queue.length + this.reservations >=
       this.config.limits.concurrency + this.config.limits.queue
     )
       throw new Error("lab queue is full");
-    await this.authenticateBeforeWork(host, spec);
-    const id = `run-${randomUUID()}`;
-    const run: StoredRun = {
-      id,
-      status: "queued",
-      hostId,
-      suite,
-      gitSha: sha,
-      seed,
-      createdAt: this.now().toISOString(),
-      controller: new AbortController(),
-    };
-    this.runs.set(id, run);
-    const request: JobRequest = {
-      schemaVersion: 1,
-      runId: id,
-      hostId,
-      gitSha: sha,
-      suite,
-      seed,
-      timeoutSeconds: timeout,
-      parameters,
-      nonce: randomBytes(32).toString("base64url"),
-      issuedAt: this.now().toISOString(),
-      coordinatorKeyId: this.config.coordinatorKeyId,
-      specVersion: spec.version,
-    };
-    const signed: SignedJobRequest = {
-      request,
-      signature: signObject(
+    if (this.reservations >= this.config.limits.concurrency)
+      throw new Error("host authentication capacity is full");
+    this.reservations++;
+    try {
+      await this.authenticateBeforeWork(host, spec);
+      const id = `run-${randomUUID()}`;
+      const run: StoredRun = {
+        id,
+        status: "queued",
+        hostId,
+        suite,
+        gitSha: sha,
+        seed,
+        createdAt: this.now().toISOString(),
+        controller: new AbortController(),
+      };
+      const request: JobRequest = {
+        schemaVersion: 1,
+        runId: id,
+        hostId,
+        gitSha: sha,
+        suite,
+        seed,
+        timeoutSeconds: timeout,
+        parameters,
+        nonce: randomBytes(32).toString("base64url"),
+        issuedAt: this.now().toISOString(),
+        coordinatorKeyId: this.config.coordinatorKeyId,
+        specVersion: spec.version,
+        inputManifestId: spec.inputManifestId,
+      };
+      const signed: SignedJobRequest = {
         request,
-        privateKeyFromEnv(this.config.manifestPrivateKeyEnv),
-      ),
-      algorithm: "Ed25519",
-    };
-    run.queued = () => void this.perform(run, host, spec, signed, timeout);
-    this.queue.push(run);
-    this.pump();
-    return id;
+        signature: signObject(
+          request,
+          privateKeyFromEnv(this.config.manifestPrivateKeyEnv),
+        ),
+        algorithm: "Ed25519",
+      };
+      await this.persist(run);
+      this.runs.set(id, run);
+      run.queued = () => void this.perform(run, host, spec, signed, timeout);
+      this.queue.push(run);
+      this.pump();
+      return id;
+    } finally {
+      this.reservations--;
+    }
   }
   private async authenticateBeforeWork(host: Host, spec: Spec) {
     const challenge: HostChallenge = {
@@ -405,12 +642,17 @@ export class LabManager {
       key,
       host.identity,
     );
+    const issuedAt = Date.parse(challenge.issuedAt);
+    if (
+      !Number.isFinite(issuedAt) ||
+      Math.abs(this.now().getTime() - issuedAt) > 10_000
+    )
+      throw new Error("host challenge freshness failed");
     if (
       proof.payload.hostId !== host.id ||
       proof.payload.challengeDigest !== digest(canonical(challenge)) ||
-      proof.payload.capabilities.some(
-        (capability) => !host.capabilities.includes(capability),
-      )
+      canonical([...proof.payload.capabilities].sort()) !==
+        canonical([...host.capabilities].sort())
     )
       throw new Error("host preflight binding failed");
   }
@@ -432,9 +674,16 @@ export class LabManager {
     if (run.status === "queued") {
       this.queue = this.queue.filter((candidate) => candidate !== run);
       run.status = "cancelling";
-      void this.finalizeCancelled(run);
+      void this.persist(run)
+        .then(() => this.finalizeCancelled(run))
+        .catch(() => {
+          run.status = "failed";
+          run.error = "cancelled run evidence publication failed";
+          void this.persist(run).catch(() => undefined);
+        });
     } else if (run.status === "running") {
       run.status = "cancelling";
+      void this.persist(run).catch(() => undefined);
       run.controller.abort();
     }
     return this.status(id);
@@ -493,7 +742,15 @@ export class LabManager {
       const run = this.queue.shift()!;
       if (run.status !== "queued") continue;
       this.active++;
-      run.queued!();
+      run.status = "running";
+      void this.persist(run)
+        .then(() => run.queued!())
+        .catch(() => {
+          run.status = "failed";
+          run.error = "run intent persistence failed";
+          this.active--;
+          this.pump();
+        });
     }
   }
   private async finalizeCancelled(run: StoredRun) {
@@ -517,6 +774,7 @@ export class LabManager {
       "cancelled",
     );
     run.status = "cancelled";
+    await this.persist(run);
   }
   private async perform(
     run: StoredRun,
@@ -526,11 +784,18 @@ export class LabManager {
     timeout: number,
   ) {
     if (run.status === "cancelling") {
-      this.active--;
-      this.pump();
+      try {
+        await this.finalizeCancelled(run);
+      } catch {
+        run.status = "failed";
+        run.error = "cancelled run evidence publication failed";
+        await this.persist(run).catch(() => undefined);
+      } finally {
+        this.active--;
+        this.pump();
+      }
       return;
     }
-    run.status = "running";
     try {
       const raw = await this.executor.execute(
         spec,
@@ -553,9 +818,8 @@ export class LabManager {
       )
         throw new Error("host response does not bind the submitted request");
       if (
-        response.payload.capabilities.some(
-          (capability) => !host.capabilities.includes(capability),
-        )
+        canonical([...response.payload.capabilities].sort()) !==
+        canonical([...host.capabilities].sort())
       )
         throw new Error("host asserted an unpinned capability");
       const finalStatus = run.controller.signal.aborted
@@ -569,30 +833,40 @@ export class LabManager {
         finalStatus,
       );
       run.status = finalStatus;
+      await this.persist(run);
     } catch (_error) {
       const finalStatus = run.controller.signal.aborted
         ? "cancelled"
         : "failed";
       run.error = "runner execution or authentication failed";
       const timestamp = this.now().toISOString();
-      await this.writeManifest(
-        run,
-        host,
-        {
-          schemaVersion: 1,
-          requestDigest: digest(canonical(signed)),
-          hostId: host.id,
-          status: finalStatus,
-          startedAt: timestamp,
-          finishedAt: timestamp,
-          stdout: "",
-          stderr: run.error,
-          capabilities: host.capabilities,
-        },
-        "coordinator-failure",
-        finalStatus,
-      );
-      run.status = finalStatus;
+      try {
+        await this.writeManifest(
+          run,
+          host,
+          {
+            schemaVersion: 1,
+            requestDigest: digest(canonical(signed)),
+            hostId: host.id,
+            status: finalStatus,
+            startedAt: timestamp,
+            finishedAt: timestamp,
+            stdout: "",
+            stderr: run.error,
+            capabilities: host.capabilities,
+          },
+          "coordinator-failure",
+          finalStatus,
+        );
+        run.status = finalStatus;
+      } catch {
+        run.status = "failed";
+        run.error =
+          "terminal evidence publication failed; retained status is recoverable";
+        delete run.manifest;
+        delete run.signature;
+      }
+      await this.persist(run).catch(() => undefined);
     } finally {
       this.active--;
       this.pump();
@@ -603,6 +877,14 @@ export class LabManager {
       host.suites[run.suite as SuiteId]?.version ??
       host.probes[run.suite.replace("probe-", "") as ProbeId]?.version ??
       "coordinator-v1"
+    );
+  }
+  private inputManifestId(run: StoredRun, host: Host) {
+    return (
+      host.suites[run.suite as SuiteId]?.inputManifestId ??
+      host.probes[run.suite.replace("probe-", "") as ProbeId]
+        ?.inputManifestId ??
+      "sha256:" + "0".repeat(64)
     );
   }
   private async writeManifest(
@@ -655,6 +937,7 @@ export class LabManager {
       finishedAt: payload.finishedAt,
       status,
       specVersion: this.specVersion(run, host),
+      inputManifestId: this.inputManifestId(run, host),
       requestDigest: payload.requestDigest,
       hostResultSignature: hostSignature,
       artifacts,
@@ -668,10 +951,13 @@ export class LabManager {
       manifest,
       privateKeyFromEnv(this.config.manifestPrivateKeyEnv),
     );
+    const target = resolve(dir, "manifest.json");
+    const temporary = resolve(dir, `manifest-${randomUUID()}.tmp`);
     await writeFile(
-      resolve(dir, "manifest.json"),
+      temporary,
       canonical({ manifest, signature: run.signature, algorithm: "Ed25519" }),
       { mode: 0o600, flag: "wx" },
     );
+    await rename(temporary, target);
   }
 }

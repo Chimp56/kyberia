@@ -35,7 +35,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0029](0029-application-project-session.md) | Accepted bounded application increment; mutation and job surfaces remain open | Typed create/open project sessions and immutable single-snapshot canonical queries behind an application-owned port |
 | [0030](0030-barrier-aware-idw.md) | Accepted bounded numerical increment; polygon paths and publication remain open | Inward-owned finite planar barriers add deterministic path cost, attenuation and impassable support boundaries to IDW |
 | [0031](0031-active-measurement-foundation.md) | Proposed bounded foundation; independent review and product wiring remain open | Versioned, consented TCP-connect timing records with literal-target safety, deterministic scheduling, typed outcomes and recomputable statistics |
-| [0031](0031-kyberia-lab-mcp.md) | Proposed; independent review and physical-host gates open | Stdio MCP coordinator with immutable revisions, mutually signed runner envelopes, static command allowlists and sanitized evidence |
+| [0032](0032-kyberia-lab-mcp.md) | Proposed; independent review and physical-host gates open | Stdio MCP coordinator with immutable revisions, mutually signed runner envelopes, static command allowlists and sanitized evidence |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

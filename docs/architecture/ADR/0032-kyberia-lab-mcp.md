@@ -1,4 +1,4 @@
-# ADR 0031: Authenticated allowlisted lab MCP boundary
+# ADR 0032: Authenticated allowlisted lab MCP boundary
 
 Status: Proposed development-tooling boundary; independent review and physical-host gates open
 
@@ -8,11 +8,11 @@ Plan §§15–16 and Appendix I OPS-004 require authenticated remote execution, 
 
 ## Decision
 
-Provide a stdio-only MCP coordinator using the official TypeScript MCP SDK 1.30.0. MCP inputs are strict, bounded enums/identifiers. The coordinator admits only configured full Git SHAs and fixed runner executables. It signs a versioned request containing run/host/revision/suite/seed/timeout/parameters/fresh nonce/time/spec version. A host runner verifies that signature, freshness, one-time nonce and exact checkout, maps the request through its own static command allowlist, bounds execution, and signs the result with a host-only Ed25519 key. The coordinator pins host public-key identities, verifies exact request digest/host/capability bindings, sanitizes bounded text artifacts, hashes them and signs a deterministic manifest.
+Provide a stdio-only MCP coordinator using the official TypeScript MCP SDK 1.30.0. MCP inputs are strict, bounded enums/identifiers. The coordinator admits only configured full Git SHAs and fixed runner executables. It signs a versioned request containing run/host/revision/suite/seed/timeout/parameters/fresh nonce/time/spec version and input-manifest identity. A host runner verifies that signature, freshness, one-time nonce, exact checkout, exact operation version and every unique tracked input file/hash, maps the request through its own static command allowlist, and signs the result. The seed crosses the command boundary only as a fixed `KYBERIA_LAB_SEED` value. The coordinator verifies exact request digest/host/capability bindings, sanitizes bounded text artifacts, hashes them and signs a deterministic manifest.
 
 Only stdio is enabled. Remote transport is deferred until a separately reviewed OAuth 2.1 or mutually authenticated fixed-agent boundary exists. The MCP server offers no command, argv, environment, filesystem-path, URL or script input. Test fakes cannot be selected by production configuration.
 
-Unix process groups provide bounded descendant termination. A retained fixed-catalog Windows helper uses the previously tested Kyberia Job Object primitive. Automatic command review did not permit connecting a helper-mediated process path in this iteration, so the TypeScript runner fails closed on Windows pending independent approval and hosted execution. Run directories and replay claims are retained under `.trash` and are never automatically removed.
+Unix process groups provide bounded descendant termination with a hard post-cancel deadline. A retained fixed-catalog Windows helper uses the previously tested Kyberia Job Object primitive. The TypeScript runner fails closed on Windows pending native integration and hosted execution. Run intent is persisted before publication; terminal state and signed recovery evidence survive coordinator restart. Run directories and replay claims are retained under `.trash` and are never automatically removed.
 
 ## Alternatives
 
@@ -24,7 +24,7 @@ Unix process groups provide bounded descendant termination. A retained fixed-cat
 
 ## Evidence
 
-Contract tests use the official MCP client against the real in-memory server transport. They enumerate the exact tools/templates, exercise a run and malformed request, verify signatures and bindings, tamper/replay/wrong-key behavior, cancellation, queue/output limits, sanitization, traversal and artifact integrity. Runner tests exercise signature, freshness, nonce, revision and static parameter mapping. The Windows fixed-catalog parser has injection and bound tests.
+Contract tests use both the official in-memory transport and a real stdio client/coordinator/`ProcessExecutor`/runner chain with generated keys and a harmless fixed seed-reading command. They enumerate the exact tools/templates and exercise signatures, binding, tamper/replay/wrong-key behavior, authentication reservations, hard cancellation, restart recovery, failed publication, bounded sanitization, package inventory, traversal and artifact integrity. Runner tests reject changed, dirty, ignored, symlinked, duplicated and substituted inputs. The Windows fixed-catalog parser has injection and bound tests.
 
 ## Consequences
 

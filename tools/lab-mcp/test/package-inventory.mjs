@@ -1,0 +1,21 @@
+import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+
+const output = execFileSync("npm", ["pack", "--dry-run", "--json"], {
+  cwd: new URL("..", import.meta.url),
+  encoding: "utf8",
+  env: {
+    ...process.env,
+    npm_config_cache: new URL("../.trash/test-runs/npm-cache/", import.meta.url)
+      .pathname,
+  },
+});
+const inventory = JSON.parse(output)[0].files.map((entry) => entry.path);
+for (const forbidden of ["node_modules/", ".tools/", ".trash/", "test/"])
+  assert.equal(
+    inventory.some((path) => path.startsWith(forbidden)),
+    false,
+    `package contains ${forbidden}`,
+  );
+for (const required of ["dist/src/main.js", "README.md", "config.example.json", "runner.example.json"])
+  assert.ok(inventory.includes(required), `package is missing ${required}`);

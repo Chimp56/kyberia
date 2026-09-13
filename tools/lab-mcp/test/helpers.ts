@@ -1,6 +1,8 @@
 import { createHash, generateKeyPairSync } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { LabConfig } from "../src/schema.js";
+import { canonical, digest } from "../src/security.js";
 
 export function keys(prefix: string) {
   const pair = generateKeyPairSync("ed25519");
@@ -20,6 +22,23 @@ export function config(state: string): {
 } {
   const coordinator = keys("TEST_COORDINATOR"),
     hostKeys = keys("TEST_HOST");
+  const input = [
+    {
+      path: "README.md",
+      sha256: createHash("sha256")
+        .update(readFileSync(resolve(process.cwd(), "../..", "README.md")))
+        .digest("hex"),
+    },
+  ];
+  const inputManifestId = digest(canonical(input));
+  const spec = (version: string) => ({
+    executable: "/fixed/runner",
+    arguments: ["--stdio"],
+    version,
+    environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
+    credentialEnvNames: [coordinator.privateName, hostKeys.privateName],
+    inputManifestId,
+  });
   return {
     hostKeys,
     config: {
@@ -40,38 +59,13 @@ export function config(state: string): {
           allowedFixtureSets: ["golden-v1"],
           allowedSceneSets: ["canonical-v1"],
           suites: {
-            foundation: {
-              executable: "/fixed/runner",
-              arguments: ["--stdio"],
-              version: "foundation-v1",
-              environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
-            },
+            foundation: spec("foundation-v1"),
           },
           probes: {
-            wifi: {
-              executable: "/fixed/runner",
-              arguments: ["--stdio"],
-              version: "wifi-v1",
-              environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
-            },
-            kismet: {
-              executable: "/fixed/runner",
-              arguments: ["--stdio"],
-              version: "kismet-v1",
-              environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
-            },
-            sionna: {
-              executable: "/fixed/runner",
-              arguments: ["--stdio"],
-              version: "sionna-v1",
-              environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
-            },
-            spectrum: {
-              executable: "/fixed/runner",
-              arguments: ["--stdio"],
-              version: "spectrum-v1",
-              environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
-            },
+            wifi: spec("wifi-v1"),
+            kismet: spec("kismet-v1"),
+            sionna: spec("sionna-v1"),
+            spectrum: spec("spectrum-v1"),
           },
         },
       ],

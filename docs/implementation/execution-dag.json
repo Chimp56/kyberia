@@ -1120,7 +1120,7 @@
       ],
       "owned_paths": [
         "tools/lab-mcp",
-        "docs/architecture/ADR/0031-kyberia-lab-mcp.md",
+        "docs/architecture/ADR/0032-kyberia-lab-mcp.md",
         "docs/security/kyberia-lab-mcp-threat-model.md"
       ],
       "acceptance": "Official-SDK stdio MCP with exact resources/tools, pre-work host proof, signed immutable jobs/results/manifests, closed runner allowlists, bounds, cancellation and sanitized artifacts. Independent review and native Windows/Kismet/CUDA/spectrum execution remain open."

@@ -8,8 +8,19 @@ import {
 } from "node:crypto";
 
 export function canonical(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (value === null) return "null";
+  if (typeof value === "number") {
+    if (!Number.isFinite(value))
+      throw new Error("non-finite number is not canonicalizable");
+    return JSON.stringify(value);
+  }
+  if (typeof value === "string" || typeof value === "boolean")
+    return JSON.stringify(value);
+  if (typeof value !== "object" || value === undefined)
+    throw new Error("unsupported value is not canonicalizable");
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (Object.getPrototypeOf(value) !== Object.prototype)
+    throw new Error("non-plain object is not canonicalizable");
   const record = value as Record<string, unknown>;
   return `{${Object.keys(record)
     .sort()
@@ -83,13 +94,36 @@ export function sanitize(
   text: string,
   maxBytes: number,
 ): { text: string; truncated: boolean; policy: string } {
-  let value = text
+  // Bound the working set before applying regular expressions. The extra tail
+  // lets a token crossing the retained boundary be fully redacted.
+  const source = Buffer.from(text)
+    .subarray(0, maxBytes + 4096)
+    .toString("utf8");
+  let value = source
     .replace(/\b(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b/g, "[redacted-mac]")
+    .replace(/\b(?:[0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}\b/g, "[redacted-mac]")
     .replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, "[redacted-ip]")
+    .replace(
+      /(?<![A-Za-z0-9])(?:[A-Fa-f0-9]{0,4}:){2,7}[A-Fa-f0-9]{0,4}(?![A-Za-z0-9])/g,
+      "[redacted-ip]",
+    )
     .replace(/\bSSID\s*[:=]\s*[^\r\n]+/gi, "SSID=[redacted]")
+    .replace(/\bAKIA[0-9A-Z]{16}\b/g, "[redacted-cloud-credential]")
+    .replace(
+      /\b(?:Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi,
+      "[redacted-authorization]",
+    )
+    .replace(
+      /(["'](?:token|password|secret|authorization|api[_-]?key)["']\s*:\s*)["'][^"'\r\n]*["']/gi,
+      '$1"[redacted]"',
+    )
     .replace(
       /(token|password|secret|authorization)\s*[:=]\s*\S+/gi,
       "$1=[redacted]",
+    )
+    .replace(
+      /(?:[A-Za-z]:\\|\/Users\/|\/home\/|\/private\/|\/var\/|\/tmp\/)[^\s"']+/g,
+      "[redacted-path]",
     );
   const bytes = Buffer.from(value);
   const truncated = bytes.length > maxBytes;
@@ -98,5 +132,9 @@ export function sanitize(
       .subarray(0, maxBytes)
       .toString("utf8")
       .replace(/\uFFFD$/, "");
-  return { text: value, truncated, policy: "kyberia-lab-text-v1" };
+  return {
+    text: value,
+    truncated: truncated || Buffer.byteLength(text) > maxBytes,
+    policy: "kyberia-lab-text-v2",
+  };
 }
