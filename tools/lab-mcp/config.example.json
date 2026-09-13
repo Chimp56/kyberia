@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "stateDirectory": ".trash/lab-runs",
+  "manifestPrivateKeyEnv": "KYBERIA_LAB_MANIFEST_PRIVATE_KEY",
+  "manifestPublicKeyEnv": "KYBERIA_LAB_MANIFEST_PUBLIC_KEY",
+  "coordinatorKeyId": "coordinator-dev-1",
+  "immutableRevisions": ["0000000000000000000000000000000000000000"],
+  "hosts": [
+    {
+      "id": "local-macos",
+      "displayName": "Local macOS validation host",
+      "identity": "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "publicKeyEnv": "KYBERIA_LAB_LOCAL_PUBLIC_KEY",
+      "capabilities": ["stdio", "macos"],
+      "allowedKismetVersions": [],
+      "allowedFixtureSets": [],
+      "allowedSceneSets": [],
+      "suites": {
+        "foundation": {
+          "executable": "/absolute/node",
+          "arguments": ["/absolute/kyberia/tools/lab-mcp/dist/runner.js"],
+          "version": "foundation-v1",
+          "environment": {
+            "KYBERIA_LAB_RUNNER_CONFIG": "/absolute/runner.json"
+          }
+        }
+      },
+      "probes": {}
+    }
+  ],
+  "limits": {
+    "concurrency": 1,
+    "queue": 8,
+    "timeoutSeconds": 1800,
+    "outputBytes": 1048576,
+    "artifactBytes": 1048576,
+    "artifactCount": 8,
+    "manifestBytes": 262144
+  }
+}

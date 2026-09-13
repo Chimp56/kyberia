@@ -168,6 +168,13 @@ def command(name):
         supply_chain("bootstrap")
     elif name == "supply-chain-refresh":
         supply_chain("refresh-advisories")
+    elif name == "lab-mcp-bootstrap":
+        run("pnpm", "install", "--dir", "tools/lab-mcp", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
+    elif name == "lab-mcp-build":
+        run("pnpm", "--dir", "tools/lab-mcp", "run", "build")
+    elif name == "lab-mcp-check":
+        run("pnpm", "--dir", "tools/lab-mcp", "run", "check")
+        run(sys.executable, "-m", "unittest", "-v", "tools/lab-mcp/test/test_windows_process.py")
     elif name == "check":
         for step in ["lint", "typecheck", "test", "source-check", "evidence-check"]:
             command(step)
@@ -175,7 +182,7 @@ def command(name):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "evidence-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "check"])
+    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "evidence-check", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "lab-mcp-bootstrap", "lab-mcp-build", "lab-mcp-check", "check"])
     args = parser.parse_args()
     try:
         command(args.command)

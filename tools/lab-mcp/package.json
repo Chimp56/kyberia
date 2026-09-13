@@ -1,0 +1,26 @@
+{
+  "name": "@kyberia/lab-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
+    "lint": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
+    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md' && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts",
+    "start": "node dist/src/main.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "zod": "4.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "prettier": "3.6.2",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}

@@ -1105,6 +1105,25 @@
         "crates/spatial-analysis/src/tile.rs"
       ],
       "acceptance": "Bounded direct finite-vector barrier crossings modify deterministic IDW path cost and support with stable extreme-attenuation numerics, unknown gaps, diagnostics, cancellation, budgets and independent numerical review. Polygon shortest paths, floors, calibrated uncertainty, cross-validation and product publication remain open."
+    },
+    {
+      "id": "iteration-5-kyberia-lab-mcp",
+      "kind": "implementation_unit",
+      "depends_on": [
+        "contracts",
+        "kismet-offline-proof",
+        "sionna-proof"
+      ],
+      "owner": "release/operations",
+      "requirements": [
+        "audit:OPS-004:1"
+      ],
+      "owned_paths": [
+        "tools/lab-mcp",
+        "docs/architecture/ADR/0031-kyberia-lab-mcp.md",
+        "docs/security/kyberia-lab-mcp-threat-model.md"
+      ],
+      "acceptance": "Official-SDK stdio MCP with exact resources/tools, pre-work host proof, signed immutable jobs/results/manifests, closed runner allowlists, bounds, cancellation and sanitized artifacts. Independent review and native Windows/Kismet/CUDA/spectrum execution remain open."
     }
   ]
 }
