@@ -245167,8 +245167,8 @@
         {
           "path": "tools/lab-mcp/src/manager.ts",
           "description": "Authenticated MCP coordinator and runner protocol",
-          "revision": "fb32ef9af7ad165ef9153b89b12595e2fc885b4ec92d528fd65bed784a922b8e",
-          "sha256": "fb32ef9af7ad165ef9153b89b12595e2fc885b4ec92d528fd65bed784a922b8e"
+          "revision": "57a89b35bcd6db5cc41c3c446299c08424337dcc864664f5bfdb824f900204ae",
+          "sha256": "57a89b35bcd6db5cc41c3c446299c08424337dcc864664f5bfdb824f900204ae"
         },
         {
           "path": "tools/lab-mcp/src/runner.ts",

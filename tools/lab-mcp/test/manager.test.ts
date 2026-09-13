@@ -179,6 +179,13 @@ test("configuration forbids forwarding the coordinator private key", () => {
     raw.hosts[0].suites.foundation.arguments = bypass;
     assert.throws(() => Config.parse(raw));
   }
+  const retiredInvocation = JSON.parse(JSON.stringify(setup.config));
+  retiredInvocation.hosts[0].suites.foundation.invocation = {
+    kind: "node-bundle",
+    bundlePath: "/absolute/runner.mjs",
+    bundleSha256: "0".repeat(64),
+  };
+  assert.throws(() => Config.parse(retiredInvocation));
 });
 
 test("coordinator and host key fingerprints must be distinct and paired", () => {
@@ -300,7 +307,7 @@ test(
         .update(readFileSync(process.execPath))
         .digest("hex"),
       invocation: {
-        kind: "node-bundle" as const,
+        kind: "single-pinned-bundle" as const,
         bundlePath: script,
         bundleSha256: createHash("sha256")
           .update(await readFile(script))
@@ -352,7 +359,7 @@ test("ProcessExecutor rejects a changed runner bundle before launch", async () =
           .update(readFileSync(process.execPath))
           .digest("hex"),
         invocation: {
-          kind: "node-bundle",
+          kind: "single-pinned-bundle",
           bundlePath: script,
           bundleSha256: expected,
         },

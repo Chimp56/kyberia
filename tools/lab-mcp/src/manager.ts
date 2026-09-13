@@ -47,7 +47,11 @@ type Spec = {
   executableSha256: string;
   invocation:
     | { kind: "direct" }
-    | { kind: "node-bundle"; bundlePath: string; bundleSha256: string };
+    | {
+        kind: "single-pinned-bundle";
+        bundlePath: string;
+        bundleSha256: string;
+      };
   arguments: [];
   argumentFiles: Array<{ argumentIndex: number; sha256: string }>;
   version: string;
@@ -436,13 +440,13 @@ export class ProcessExecutor implements Executor {
   ): Promise<string> {
     await verifyExecutable(spec.executable, spec.executableSha256);
     await verifyInvocationArguments(spec.arguments, spec.argumentFiles);
-    if (spec.invocation.kind === "node-bundle")
+    if (spec.invocation.kind === "single-pinned-bundle")
       await verifyExecutable(
         spec.invocation.bundlePath,
         spec.invocation.bundleSha256,
       );
     const invocationArguments =
-      spec.invocation.kind === "node-bundle"
+      spec.invocation.kind === "single-pinned-bundle"
         ? [spec.invocation.bundlePath]
         : [];
     return await new Promise<string>((resolvePromise, reject) => {

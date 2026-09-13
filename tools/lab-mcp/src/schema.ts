@@ -4,7 +4,7 @@ const runnerInvocation = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("direct") }).strict(),
   z
     .object({
-      kind: z.literal("node-bundle"),
+      kind: z.literal("single-pinned-bundle"),
       bundlePath: z
         .string()
         .min(1)

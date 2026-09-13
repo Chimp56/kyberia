@@ -20,7 +20,7 @@
           "executable": "/absolute/node",
           "executableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
           "invocation": {
-            "kind": "node-bundle",
+            "kind": "single-pinned-bundle",
             "bundlePath": "/absolute/kyberia/tools/lab-mcp/dist/runner-bundle.mjs",
             "bundleSha256": "0000000000000000000000000000000000000000000000000000000000000000"
           },

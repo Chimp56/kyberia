@@ -108,7 +108,7 @@ test(
       executable: process.execPath,
       executableSha256: await fileSha256(process.execPath),
       invocation: {
-        kind: "node-bundle",
+        kind: "single-pinned-bundle",
         bundlePath: runnerBundle,
         bundleSha256: await fileSha256(runnerBundle),
       },
