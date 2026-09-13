@@ -41,7 +41,7 @@ measurement, floor-plan, or calibration data is fabricated.
 | `npm test -- --run` | PASS (14 tests) |
 | `npm run build` | PASS |
 | `cargo fmt --all -- --check` | PASS |
-| `cargo test -p kyberia-desktop --locked --offline` | PASS (24 tests: 17 Rust library, 5 native picker/command boundary; 2 IPC boundary tests are included in the package total) |
+| `cargo test -p kyberia-desktop --locked --offline` | PASS (25 tests: 17 Rust library, 6 picker/command, 2 IPC boundary) |
 | `cargo test --workspace --locked --offline` | PASS (workspace, including desktop; refreshed after corrections) |
 | `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | PASS |
 | `python3 tools/architecture.py` | PASS |
