@@ -94,6 +94,17 @@ impl ProjectStorePort for BundleProjectStore {
         budget: &mut ResourceBudget<H>,
     ) -> Result<CurrentProjectView, ApplicationError> {
         budget.check_cancelled().map_err(map_budget_error)?;
+        // A true legacy read-only bundle can omit the additive materialization
+        // table group. The canonical snapshot API already represents that
+        // shape as `baseline=None,current=None`; do not force the verifier,
+        // whose contract requires those tables, to reject it.
+        let snapshot = self
+            .bundle
+            .canonical_project_snapshot()
+            .map_err(|error| map_store_error(StoreContext::Query, error))?;
+        if snapshot.baseline.is_none() && snapshot.current.is_none() {
+            return snapshot_to_view(snapshot);
+        }
         self.bundle
             .verify_materialized_project_publication_with_budget(budget)
             .map_err(|error| map_store_error(StoreContext::Query, error))?;

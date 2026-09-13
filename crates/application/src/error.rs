@@ -106,13 +106,7 @@ pub(crate) fn map_store_error(context: StoreContext, error: StoreError) -> Appli
         StoreError::Cancelled => {
             ApplicationError::new(ErrorKind::Cancelled, "project operation cancelled")
         }
-        StoreError::Corrupt(message) => {
-            if is_resource_limit(&message) {
-                ApplicationError::new(ErrorKind::ResourceLimit, message)
-            } else {
-                ApplicationError::new(ErrorKind::CorruptProject, message)
-            }
-        }
+        StoreError::Corrupt(message) => ApplicationError::new(ErrorKind::CorruptProject, message),
         StoreError::UnsupportedVersion(version) | StoreError::UnsupportedChunkVersion(version) => {
             ApplicationError::new(
                 ErrorKind::UnsupportedVersion,
@@ -122,17 +116,7 @@ pub(crate) fn map_store_error(context: StoreContext, error: StoreError) -> Appli
         StoreError::Operation(message) => map_content_error(context, message),
         StoreError::ChunkCodec(message) => map_content_error(context, message),
         StoreError::Materialization(error) => map_publication_error(context, error),
-        StoreError::Sql(error) => ApplicationError::new(
-            // SQL failures while opening or querying an admitted bundle mean
-            // its contents/schema cannot be trusted. Creation failures remain
-            // an adapter/storage failure because no project was admitted yet.
-            if matches!(context, StoreContext::Open | StoreContext::Query) {
-                ErrorKind::CorruptProject
-            } else {
-                ErrorKind::Storage
-            },
-            format!("project database: {error}"),
-        ),
+        StoreError::Sql(error) => map_sql_error(error),
     }
 }
 
@@ -150,21 +134,18 @@ fn map_io(context: StoreContext, error: io::Error) -> ApplicationError {
 }
 
 fn map_invalid(context: StoreContext, message: String) -> ApplicationError {
-    if is_resource_limit(&message) {
-        ApplicationError::new(ErrorKind::ResourceLimit, message)
+    if matches!(context, StoreContext::Open | StoreContext::Query) {
+        ApplicationError::new(ErrorKind::CorruptProject, message)
     } else {
         // Store validation runs after application admission. Its invalid
-        // values are malformed or unsupported persisted contents at this
-        // boundary, rather than a new caller request.
-        let _ = context;
-        ApplicationError::new(ErrorKind::CorruptProject, message)
+        // values are a failed internal persistence operation, rather than a
+        // new caller request.
+        ApplicationError::new(ErrorKind::Storage, message)
     }
 }
 
 fn map_content_error(context: StoreContext, message: String) -> ApplicationError {
-    if is_resource_limit(&message) {
-        ApplicationError::new(ErrorKind::ResourceLimit, message)
-    } else if matches!(context, StoreContext::Open | StoreContext::Query) {
+    if matches!(context, StoreContext::Open | StoreContext::Query) {
         ApplicationError::new(ErrorKind::CorruptProject, message)
     } else {
         ApplicationError::new(ErrorKind::Storage, message)
@@ -181,13 +162,7 @@ fn map_publication_error(context: StoreContext, error: PublicationError) -> Appl
         | PublicationError::ConflictingCurrentPublication => {
             ApplicationError::new(ErrorKind::Conflict, message)
         }
-        PublicationError::Corrupt(_) => {
-            if is_resource_limit(&message) {
-                ApplicationError::new(ErrorKind::ResourceLimit, message)
-            } else {
-                ApplicationError::new(ErrorKind::CorruptProject, message)
-            }
-        }
+        PublicationError::Corrupt(_) => ApplicationError::new(ErrorKind::CorruptProject, message),
         PublicationError::Invalid(_)
         | PublicationError::WrongProject
         | PublicationError::InputIdentityMismatch
@@ -206,18 +181,20 @@ fn map_publication_error(context: StoreContext, error: PublicationError) -> Appl
     }
 }
 
-fn is_resource_limit(message: &str) -> bool {
-    let message = message.to_ascii_lowercase();
-    [
-        "budget",
-        "resource limit",
-        "exceeds",
-        "oversized",
-        "too many",
-        "limit",
-    ]
-    .iter()
-    .any(|marker| message.contains(marker))
+fn map_sql_error(error: rusqlite::Error) -> ApplicationError {
+    let kind = match error.sqlite_error_code() {
+        Some(
+            rusqlite::ErrorCode::OperationInterrupted
+            | rusqlite::ErrorCode::OutOfMemory
+            | rusqlite::ErrorCode::DiskFull
+            | rusqlite::ErrorCode::TooBig,
+        ) => ErrorKind::ResourceLimit,
+        Some(rusqlite::ErrorCode::DatabaseCorrupt | rusqlite::ErrorCode::NotADatabase) => {
+            ErrorKind::CorruptProject
+        }
+        Some(_) | None => ErrorKind::Storage,
+    };
+    ApplicationError::new(kind, format!("project database: {error}"))
 }
 
 pub(crate) fn map_budget_error(
@@ -234,5 +211,59 @@ pub(crate) fn map_budget_error(
                 format!("project query resource limit: {}", limit.kind().label()),
             )
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sqlite_failure(code: i32) -> StoreError {
+        StoreError::Sql(rusqlite::Error::SqliteFailure(
+            rusqlite::ffi::Error::new(code),
+            None,
+        ))
+    }
+
+    #[test]
+    fn typed_sql_codes_map_resource_storage_and_corruption_categories() {
+        for code in [
+            rusqlite::ffi::SQLITE_INTERRUPT,
+            rusqlite::ffi::SQLITE_NOMEM,
+            rusqlite::ffi::SQLITE_FULL,
+            rusqlite::ffi::SQLITE_TOOBIG,
+        ] {
+            assert_eq!(
+                map_store_error(StoreContext::Query, sqlite_failure(code)).kind(),
+                ErrorKind::ResourceLimit
+            );
+        }
+        for code in [
+            rusqlite::ffi::SQLITE_BUSY,
+            rusqlite::ffi::SQLITE_LOCKED,
+            rusqlite::ffi::SQLITE_IOERR,
+        ] {
+            assert_eq!(
+                map_store_error(StoreContext::Query, sqlite_failure(code)).kind(),
+                ErrorKind::Storage
+            );
+        }
+        for code in [rusqlite::ffi::SQLITE_CORRUPT, rusqlite::ffi::SQLITE_NOTADB] {
+            assert_eq!(
+                map_store_error(StoreContext::Query, sqlite_failure(code)).kind(),
+                ErrorKind::CorruptProject
+            );
+        }
+    }
+
+    #[test]
+    fn publication_corruption_message_never_changes_its_category() {
+        let error = map_store_error(
+            StoreContext::Query,
+            StoreError::Materialization(PublicationError::Corrupt(
+                "publication revision exceeds committed manifest resource limit".into(),
+            )),
+        );
+        assert_eq!(error.kind(), ErrorKind::CorruptProject);
     }
 }

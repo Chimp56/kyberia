@@ -25,8 +25,9 @@ Add `kyberia-application` with two explicit surfaces:
 2. `ProjectQuery::CurrentSnapshot` reads one canonical store snapshot and maps
    it into an immutable `CurrentProjectView`. The view carries the project
    state, canonical domain project, and distinct bundle, project, logical,
-   operation, and publication revision fields. A legacy bundle without a
-   baseline remains explicit absence. A publication may be older than the
+   operation, and publication revision fields. A true read-only legacy bundle
+   with its additive materialization table group absent or incomplete remains
+   explicit absence. A publication may be older than the
    current manifest when a later metadata/artifact commit does not replace the
    published project; the view therefore preserves both counters and accepts
    `publication_bundle_revision <= bundle_revision`.
@@ -35,22 +36,30 @@ Add `kyberia-application` with two explicit surfaces:
 application-owned values and takes a caller-owned cumulative resource budget.
 The private production implementation wraps the reviewed `Bundle` APIs; no
 `Bundle`, `StoreError`, SQLite/rusqlite value, or publication receipt is part
-of the public API. The crate is classified as a composition layer in the
-dependency policy because its production adapter must call the existing
-storage crate; domain and numerical crates remain unaware of it.
+of the public API. A private rusqlite dependency is used only to classify
+typed SQLite error codes at this adapter boundary; it is not re-exported or
+present in any public signature. The crate is classified as a composition
+layer in the dependency policy because its production adapter must call the
+existing storage crate; domain and numerical crates remain unaware of it.
 
 Opening first admits the requested root path. Only an absent root maps to
 `MissingProject`; missing `project.sqlite`, artifact directories, or declared
 artifact files inside an existing root map to `CorruptProject`. Store failures
-are mapped privately by operation context, with budget/quota failures mapped
-to `ResourceLimit` and caller admission failures remaining `InvalidRequest`.
+are mapped privately by operation context. Typed publication budget failures,
+resource-budget exhaustion, and SQLite operation/resource exhaustion map to
+`ResourceLimit`; typed SQLite busy/locked/I/O failures map to `Storage`; only
+typed SQLite corruption/not-a-database failures map to `CorruptProject`.
+Caller admission failures remain `InvalidRequest`; persisted invalid-content
+messages are never parsed to infer an error category.
 
 Every snapshot mapping revalidates the logical schema version and required
 feature set. This protects an already-open session from a concurrent logical
 format advance. The application passes one cumulative budget through the
 store's publication verification of the baseline and all materialized current
 history, and polls the same caller-owned cancellation hook before, during, and
-after that bounded synchronous work. The final canonical snapshot read has no
+after that bounded synchronous work. Legacy snapshots bypass the verifier
+when their optional materialization table group is absent or incomplete. The
+final canonical snapshot read has no
 budget-taking store API, so its fixed SQLite, manifest, artifact, and schema
 limits remain an additional authoritative bound.
 
@@ -85,7 +94,9 @@ an operation or aggregate revision.
 The application budget regression builds a real multi-publication history and
 shows that a limit below the cumulative replay copy charge fails after work
 has begun. A single publication would not prove that the budget is shared
-across history rows.
+across history rows. Private unit tests construct typed SQLite failures and a
+resource-looking publication corruption message to protect the error mapping
+contract from message-based classification.
 
 ## Validation
 
@@ -95,5 +106,6 @@ missing roots and internal files, declared-artifact and malformed-manifest
 corruption, unsupported project rejection both at open and after a concurrent
 logical advance, immutable view/revision behavior across publication followed
 by an ordinary `MapSource` commit, cancellation, cumulative budget exhaustion,
-and canonical data sourcing. It uses retained fixtures under
+legacy optional-table absence, typed SQL error mapping, and canonical data
+sourcing. It uses retained fixtures under
 `.trash/test-runs/`; tests never recursively clean those directories.

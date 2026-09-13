@@ -16,6 +16,7 @@ the real `kyberia-project-store::Bundle` and causal materializer through
   storage adapter can inspect compatible future metadata read-only;
 - revalidation of unsupported schema and required features after a session is
   already open;
+- legacy read-only shape with the complete materialization table group absent;
 - immutable view and revision consistency when a second real store handle
   publishes a canonical materialized snapshot and then commits an ordinary
   `MapSource` artifact at the next bundle revision;
@@ -23,6 +24,8 @@ the real `kyberia-project-store::Bundle` and causal materializer through
 - a real two-operation, three-publication history proving one cumulative
   application resource budget rejects replay after its shared copy quota is
   exhausted;
+- typed SQLite interruption, exhaustion, busy/locked, I/O, corruption, and
+  not-a-database mappings, plus a publication-corruption message regression;
 - explicit legacy absence when a bundle has no registered baseline; and
 - invalid timestamp admission before the application reserves a directory.
 
@@ -31,7 +34,11 @@ cleanup. The application maps storage failures to `ApplicationError` categories
 without exposing `StoreError`, SQLite, rusqlite, `Bundle`, or
 materialization-publication types. Internal operation context reserves
 `MissingProject` for the requested root and maps resource/quota failures to
-`ResourceLimit`.
+`ResourceLimit` only from typed budget/publication/SQLite categories; persisted
+invalid-content messages are not parsed for classification.
+
+The architecture policy explicitly reviews the application crate's private
+rusqlite dependency for typed error-code mapping; no SQLite value is exported.
 
 This validation does not claim product UI completion, mutation command
 orchestration, authorization, or preemptive cancellation during filesystem or

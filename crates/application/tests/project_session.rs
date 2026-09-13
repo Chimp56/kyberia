@@ -499,6 +499,13 @@ fn legacy_bundle_without_a_baseline_is_explicitly_absent() {
     let path = root.join("legacy.rfatlas");
     let id = kyberia_domain::identity::ProjectId::from_bytes([7; 16]).unwrap();
     drop(Bundle::create(&path, id, "Legacy".into(), 1).unwrap());
+    let db = rusqlite::Connection::open(path.join("project.sqlite")).unwrap();
+    db.execute_batch(
+        "DROP TABLE materialized_project_state;
+         DROP TABLE materialized_project_publications;
+         DROP TABLE materialization_baselines;",
+    )
+    .unwrap();
     let session = Application
         .open(OpenProject {
             path,
