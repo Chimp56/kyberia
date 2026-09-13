@@ -195,6 +195,20 @@ pub fn build_schedule(
     {
         return Err(ScheduleError::IntervalOutsideRun);
     }
+    let total_samples = run
+        .endpoints()
+        .len()
+        .checked_mul(interval.samples_per_endpoint() as usize)
+        .ok_or(ScheduleError::Invalid(ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::ResourceLimit("active schedule sample count"),
+        )))?;
+    if total_samples > run.limits().max_samples_total() as usize
+        || total_samples > kyberia_domain::active::MAX_ACTIVE_SAMPLES as usize
+    {
+        return Err(ScheduleError::Invalid(ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::ResourceLimit("active schedule sample count"),
+        )));
+    }
     let mut endpoints = run.endpoints().to_vec();
     endpoints.sort_by_key(ActiveEndpoint::id);
     let spacing = run.limits().minimum_spacing();

@@ -25,14 +25,29 @@ pub enum ConnectResult {
     Unreachable,
     PermissionDenied,
     Error,
+    /// The connector observed cancellation before the bounded attempt ended.
+    /// This is distinct from a network timeout and carries no RTT evidence.
+    Cancelled,
 }
 
 pub trait TcpConnector {
+    /// Attempt one TCP handshake to this literal address. `timeout` bounds
+    /// this call, and implementations must poll `cancellation` while waiting
+    /// so cancellation cannot be held behind a long kernel connect wait.
+    /// Port semantics come from `ActiveSocketAddr`: this is a numeric TCP
+    /// destination port and never a service-name or protocol lookup.
     fn connect(
         &mut self,
         target: kyberia_domain::active::ActiveSocketAddr,
         timeout: Duration,
+        cancellation: &dyn Cancellation,
     ) -> ConnectResult;
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SleepResult {
+    Complete,
+    Cancelled,
 }
 
 pub trait MonotonicClock {
@@ -42,7 +57,10 @@ pub trait MonotonicClock {
 
     /// Sleeping is a separate inward port so deterministic tests can advance
     /// a fake clock without wall-clock delays.
-    fn sleep_for(&mut self, duration: Duration);
+    /// Sleep for at most `duration`, polling cancellation. Implementations
+    /// must return `Cancelled` promptly instead of blocking for the complete
+    /// duration after cancellation is observed.
+    fn sleep_for(&mut self, duration: Duration, cancellation: &dyn Cancellation) -> SleepResult;
 }
 
 pub trait Cancellation {
@@ -151,6 +169,7 @@ fn outcome_and_rtt(
             ConnectResult::Unreachable => ActiveSampleOutcome::Unreachable,
             ConnectResult::PermissionDenied => ActiveSampleOutcome::PermissionDenied,
             ConnectResult::Error => ActiveSampleOutcome::Error,
+            ConnectResult::Cancelled => ActiveSampleOutcome::Cancelled,
         }
     };
     if outcome.is_success() {
@@ -218,6 +237,73 @@ fn timeout_sample(
     .map_err(ActiveMeasurementError::InvalidSample)
 }
 
+#[allow(clippy::too_many_arguments)]
+fn execute_one<C: MonotonicClock, T: TcpConnector, X: Cancellation>(
+    scheduled: &ScheduledSample,
+    run: &ActiveTestRun,
+    interval: &ActiveInterval,
+    schedule: &ActiveSchedule,
+    clock: &mut C,
+    connector: &mut T,
+    cancellation: &X,
+    deadline_nanos: u64,
+    execution_start: u64,
+    attempt_started: u64,
+    last_now: &mut u64,
+) -> Result<ActiveSample, ActiveMeasurementError> {
+    if attempt_started >= deadline_nanos {
+        return timeout_sample(
+            scheduled,
+            run,
+            interval,
+            stamp(schedule.start(), execution_start, attempt_started)?,
+        );
+    }
+    if cancellation.is_cancelled() {
+        return cancellation_sample(
+            scheduled,
+            run,
+            interval,
+            stamp(schedule.start(), execution_start, attempt_started)?,
+        );
+    }
+    let remaining = Duration::from_nanos(deadline_nanos - attempt_started);
+    let timeout = duration_from_seconds(schedule.per_attempt_timeout()).min(remaining);
+    let result = connector.connect(
+        scheduled.endpoint().target().address(),
+        timeout,
+        cancellation,
+    );
+    let after = clock.now_nanos();
+    if after < attempt_started {
+        return Err(ActiveMeasurementError::ClockRegression);
+    }
+    *last_now = after;
+    let finished = stamp(schedule.start(), execution_start, after)?;
+    let result = if cancellation.is_cancelled() {
+        ConnectResult::Cancelled
+    } else {
+        result
+    };
+    let elapsed = after - attempt_started;
+    let (outcome, rtt) = outcome_and_rtt(result, elapsed, after > deadline_nanos);
+    ActiveSample::new(
+        scheduled.id(),
+        run.id(),
+        interval.id(),
+        scheduled.endpoint().id(),
+        scheduled.endpoint().tier(),
+        scheduled.endpoint().attribution().clone(),
+        scheduled.ordinal(),
+        stamp(schedule.start(), execution_start, attempt_started)?,
+        finished,
+        outcome,
+        rtt,
+        run.provenance().clone(),
+    )
+    .map_err(ActiveMeasurementError::InvalidSample)
+}
+
 /// Execute every scheduled sample in deterministic order.  A cancellation
 /// or overall deadline does not discard the remainder: each remaining sample
 /// receives a typed `Cancelled` or `Timeout` outcome, preserving the declared
@@ -264,50 +350,61 @@ pub fn execute<C: MonotonicClock, T: TcpConnector, X: Cancellation>(
             let offset_nanos = duration_from_seconds(scheduled.planned_offset()).as_nanos() as u64;
             let target_start = execution_start.saturating_add(offset_nanos);
             if now < target_start {
-                clock.sleep_for(Duration::from_nanos(target_start - now));
+                let sleep_result =
+                    clock.sleep_for(Duration::from_nanos(target_start - now), cancellation);
                 let after_sleep = clock.now_nanos();
                 if after_sleep < last_now {
                     return Err(ActiveMeasurementError::ClockRegression);
                 }
                 last_now = after_sleep;
-            }
-            let now = last_now;
-            let at = stamp(schedule.start(), execution_start, now)?;
-            if now >= deadline_nanos {
+                if sleep_result == SleepResult::Cancelled || cancellation.is_cancelled() {
+                    cancelled = true;
+                    cancellation_sample(
+                        scheduled,
+                        run,
+                        interval,
+                        stamp(schedule.start(), execution_start, after_sleep)?,
+                    )?
+                } else {
+                    let now = last_now;
+                    execute_one(
+                        scheduled,
+                        run,
+                        interval,
+                        schedule,
+                        clock,
+                        connector,
+                        cancellation,
+                        deadline_nanos,
+                        execution_start,
+                        now,
+                        &mut last_now,
+                    )?
+                }
+            } else if now >= deadline_nanos {
                 timeout_sample(scheduled, run, interval, at)?
             } else if cancellation.is_cancelled() {
                 cancelled = true;
                 cancellation_sample(scheduled, run, interval, at)?
             } else {
-                let remaining = Duration::from_nanos(deadline_nanos - now);
-                let timeout = duration_from_seconds(schedule.per_attempt_timeout()).min(remaining);
-                let attempt_started = now;
-                let result = connector.connect(scheduled.endpoint().target().address(), timeout);
-                let after = clock.now_nanos();
-                if after < attempt_started {
-                    return Err(ActiveMeasurementError::ClockRegression);
-                }
-                last_now = after;
-                let elapsed = after - attempt_started;
-                let finished = stamp(schedule.start(), execution_start, after)?;
-                let (outcome, rtt) = outcome_and_rtt(result, elapsed, after > deadline_nanos);
-                ActiveSample::new(
-                    scheduled.id(),
-                    run.id(),
-                    interval.id(),
-                    scheduled.endpoint().id(),
-                    scheduled.endpoint().tier(),
-                    scheduled.endpoint().attribution().clone(),
-                    scheduled.ordinal(),
-                    stamp(schedule.start(), execution_start, attempt_started)?,
-                    finished,
-                    outcome,
-                    rtt,
-                    run.provenance().clone(),
-                )
-                .map_err(ActiveMeasurementError::InvalidSample)?
+                execute_one(
+                    scheduled,
+                    run,
+                    interval,
+                    schedule,
+                    clock,
+                    connector,
+                    cancellation,
+                    deadline_nanos,
+                    execution_start,
+                    now,
+                    &mut last_now,
+                )?
             }
         };
+        if sample.outcome().is_cancelled() {
+            cancelled = true;
+        }
         samples_by_endpoint
             .entry(scheduled.endpoint().id())
             .or_default()

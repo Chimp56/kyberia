@@ -1,12 +1,15 @@
-//! Production standard-library adapters for active execution.
+//! Production OS-backed adapters for active execution.
 
-use crate::executor::{ConnectResult, MonotonicClock, TcpConnector};
+use crate::executor::{Cancellation, ConnectResult, MonotonicClock, SleepResult, TcpConnector};
 use kyberia_domain::active::{ActiveIpAddress, ActiveSocketAddr};
+use mio::{Events, Interest, Poll, Token};
 use std::{
     io,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, TcpStream},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     time::{Duration, Instant},
 };
+
+const CANCELLATION_POLL: Duration = Duration::from_millis(25);
 
 /// A monotonic clock backed by `std::time::Instant`. The epoch is supplied by
 /// the application in the canonical provenance record; this adapter only
@@ -35,8 +38,21 @@ impl MonotonicClock for StdMonotonicClock {
         self.origin.elapsed().as_nanos().min(u128::from(u64::MAX)) as u64
     }
 
-    fn sleep_for(&mut self, duration: Duration) {
-        std::thread::sleep(duration);
+    fn sleep_for(&mut self, duration: Duration, cancellation: &dyn Cancellation) -> SleepResult {
+        if cancellation.is_cancelled() {
+            return SleepResult::Cancelled;
+        }
+        let started = Instant::now();
+        loop {
+            let elapsed = started.elapsed();
+            if elapsed >= duration {
+                return SleepResult::Complete;
+            }
+            std::thread::sleep(CANCELLATION_POLL.min(duration - elapsed));
+            if cancellation.is_cancelled() {
+                return SleepResult::Cancelled;
+            }
+        }
     }
 }
 
@@ -70,13 +86,54 @@ fn classify(error: io::Error) -> ConnectResult {
 }
 
 impl TcpConnector for StdTcpConnector {
-    fn connect(&mut self, target: ActiveSocketAddr, timeout: Duration) -> ConnectResult {
-        match TcpStream::connect_timeout(&to_std_address(target), timeout) {
-            Ok(stream) => {
-                drop(stream);
-                ConnectResult::Connected
+    fn connect(
+        &mut self,
+        target: ActiveSocketAddr,
+        timeout: Duration,
+        cancellation: &dyn Cancellation,
+    ) -> ConnectResult {
+        if cancellation.is_cancelled() {
+            return ConnectResult::Cancelled;
+        }
+        let address = to_std_address(target);
+        let mut stream = match mio::net::TcpStream::connect(address) {
+            Ok(stream) => stream,
+            Err(error) => return classify(error),
+        };
+        let mut poll = match Poll::new() {
+            Ok(poll) => poll,
+            Err(error) => return classify(error),
+        };
+        if let Err(error) = poll.registry().register(
+            &mut stream,
+            Token(0),
+            Interest::READABLE | Interest::WRITABLE,
+        ) {
+            return classify(error);
+        }
+        let mut events = Events::with_capacity(1);
+        let started = Instant::now();
+        loop {
+            if cancellation.is_cancelled() {
+                return ConnectResult::Cancelled;
             }
-            Err(error) => classify(error),
+            let elapsed = started.elapsed();
+            if elapsed >= timeout {
+                return ConnectResult::Timeout;
+            }
+            let wait = CANCELLATION_POLL.min(timeout - elapsed);
+            match poll.poll(&mut events, Some(wait)) {
+                Ok(()) => {}
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => return classify(error),
+            }
+            if events.iter().any(|event| event.token() == Token(0)) {
+                return match stream.take_error() {
+                    Ok(Some(error)) => classify(error),
+                    Ok(None) => ConnectResult::Connected,
+                    Err(error) => classify(error),
+                };
+            }
         }
     }
 }

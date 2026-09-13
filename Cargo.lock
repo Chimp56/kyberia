@@ -884,6 +884,7 @@ name = "kyberia-active-measurement"
 version = "0.1.0"
 dependencies = [
  "kyberia-domain",
+ "mio",
  "proptest",
  "serde_json",
  "sha2",

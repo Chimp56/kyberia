@@ -1,6 +1,7 @@
 use kyberia_active_measurement::{
     ActiveSchedule, Cancellation, ConnectResult, MonotonicClock, NeverCancelled, SCHEDULE_VERSION,
-    ScheduleError, StdMonotonicClock, StdTcpConnector, TcpConnector, build_schedule, execute,
+    ScheduleError, SleepResult, StdMonotonicClock, StdTcpConnector, TcpConnector, build_schedule,
+    execute,
 };
 use kyberia_domain::{
     active::{
@@ -122,6 +123,15 @@ fn make_run(
     run_duration: f64,
     per_endpoint: u32,
 ) -> (ActiveTestRun, kyberia_domain::active::ActiveInterval) {
+    make_run_with_spacing(endpoints, run_duration, per_endpoint, 0.0)
+}
+
+fn make_run_with_spacing(
+    endpoints: Vec<ActiveEndpoint>,
+    run_duration: f64,
+    per_endpoint: u32,
+    spacing: f64,
+) -> (ActiveTestRun, kyberia_domain::active::ActiveInterval) {
     let epoch = id(200);
     let started = MonotonicTimestamp {
         epoch,
@@ -137,7 +147,7 @@ fn make_run(
         deadline,
         endpoints,
         authorization(vec![ActiveEndpointTier::LanReference], true),
-        limits(64, run_duration.min(0.5), run_duration, 0.0),
+        limits(64, run_duration.min(0.5), run_duration, spacing),
         provenance(epoch),
     )
     .unwrap();
@@ -156,6 +166,19 @@ fn target_and_units_fail_closed() {
         ActiveIpAddress::v4([255, 255, 255, 255]),
     ] {
         assert!(ActiveSocketAddr::new(address, 80).is_err());
+    }
+    for octets in [
+        [127, 0, 0, 1],
+        [10, 0, 0, 1],
+        [224, 0, 0, 1],
+        [255, 255, 255, 255],
+    ] {
+        let mut mapped = [0_u8; 16];
+        mapped[10] = 0xff;
+        mapped[11] = 0xff;
+        mapped[12..].copy_from_slice(&octets);
+        assert!(ActiveIpAddress::v6(mapped).is_ipv4_mapped());
+        assert!(ActiveSocketAddr::new(ActiveIpAddress::v6(mapped), 80).is_err());
     }
     assert!(Seconds::new(f64::NAN).is_err());
     assert!(Milliseconds::new(-1.0).is_err());
@@ -208,10 +231,59 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     assert!(serde_json::from_value::<ActiveTestLimits>(bad_limits).is_err());
 
     let (run, interval) = make_run(vec![value], 1.0, 1);
-    let mut bad_interval = serde_json::to_value(interval).unwrap();
+    let mut bad_interval = serde_json::to_value(&interval).unwrap();
     bad_interval["samples_per_endpoint"] = json!(0);
     assert!(
         serde_json::from_value::<kyberia_domain::active::ActiveInterval>(bad_interval).is_err()
+    );
+    let mut unknown_window = serde_json::to_value(&interval).unwrap();
+    unknown_window["window"]["start"]["extra"] = json!(true);
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ActiveInterval>(unknown_window).is_err()
+    );
+
+    let sample = ActiveSample::new(
+        id::<ActiveSampleId>(205),
+        run.id(),
+        interval.id(),
+        id(1),
+        ActiveEndpointTier::LanReference,
+        unknown_attribution(),
+        0,
+        run.started(),
+        MonotonicTimestamp {
+            epoch: run.started().epoch,
+            nanoseconds: run.started().nanoseconds + 1_000_000,
+        },
+        ActiveSampleOutcome::Success,
+        Evidence::Known(Milliseconds::new(1.0).unwrap()),
+        run.provenance().clone(),
+    )
+    .unwrap();
+    let mut unknown_sample_time = serde_json::to_value(&sample).unwrap();
+    unknown_sample_time["started"]["extra"] = json!(true);
+    assert!(serde_json::from_value::<ActiveSample>(unknown_sample_time).is_err());
+    let stats = kyberia_domain::active::ActiveStatistics::from_samples(&[sample]).unwrap();
+    let mut bad_rtt = serde_json::to_value(stats.rtt()).unwrap();
+    bad_rtt["successful_samples"] = json!(0);
+    assert!(serde_json::from_value::<kyberia_domain::active::RttDistribution>(bad_rtt).is_err());
+    let mut bad_bursts = serde_json::to_value(stats.loss_bursts()).unwrap();
+    bad_bursts["lost_samples"] = json!(1);
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::LossBurstDistribution>(bad_bursts)
+            .is_err()
+    );
+    let mut bad_stats = serde_json::to_value(&stats).unwrap();
+    bad_stats["eligible_samples"] = json!(0);
+    assert!(serde_json::from_value::<kyberia_domain::active::ActiveStatistics>(bad_stats).is_err());
+    let mut measured_without_eligible = serde_json::to_value(&stats).unwrap();
+    measured_without_eligible["cancelled_samples"] = json!(1);
+    measured_without_eligible["eligible_samples"] = json!(0);
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ActiveStatistics>(
+            measured_without_eligible
+        )
+        .is_err()
     );
     assert_eq!(run.endpoints().len(), 1);
 }
@@ -279,6 +351,17 @@ fn schedule_is_deterministic_and_resource_bounded() {
     assert_eq!(first.samples()[0].ordinal(), 0);
     assert_eq!(first.samples()[1].ordinal(), 1);
     assert_eq!(first.max_concurrency(), 2);
+    let mut forged_interval = serde_json::to_value(&interval).unwrap();
+    forged_interval["samples_per_endpoint"] = json!(4_096);
+    let forged_interval = serde_json::from_value(forged_interval).unwrap();
+    assert!(matches!(
+        build_schedule(&run, &forged_interval),
+        Err(ScheduleError::Invalid(
+            kyberia_domain::active::ActiveValidationError::Domain(
+                kyberia_domain::ValidationError::ResourceLimit(_)
+            )
+        ))
+    ));
     let (limited_run, limited_interval) = make_run(
         vec![endpoint(1, 9, ActiveEndpointTier::LanReference)],
         1.0,
@@ -329,9 +412,22 @@ impl MonotonicClock for FakeClock {
         self.now.get()
     }
 
-    fn sleep_for(&mut self, duration: Duration) {
-        self.now
-            .set(self.now.get().saturating_add(duration.as_nanos() as u64));
+    fn sleep_for(&mut self, duration: Duration, cancellation: &dyn Cancellation) -> SleepResult {
+        let mut remaining = duration;
+        while remaining > Duration::ZERO {
+            if cancellation.is_cancelled() {
+                return SleepResult::Cancelled;
+            }
+            let step = remaining.min(Duration::from_millis(25));
+            self.now
+                .set(self.now.get().saturating_add(step.as_nanos() as u64));
+            remaining = remaining.saturating_sub(step);
+        }
+        if cancellation.is_cancelled() {
+            SleepResult::Cancelled
+        } else {
+            SleepResult::Complete
+        }
     }
 }
 
@@ -342,14 +438,26 @@ struct FakeConnector {
 }
 
 impl TcpConnector for FakeConnector {
-    fn connect(&mut self, target: ActiveSocketAddr, _timeout: Duration) -> ConnectResult {
+    fn connect(
+        &mut self,
+        target: ActiveSocketAddr,
+        _timeout: Duration,
+        cancellation: &dyn Cancellation,
+    ) -> ConnectResult {
+        if cancellation.is_cancelled() {
+            return ConnectResult::Cancelled;
+        }
         self.seen.push(target);
         let (result, elapsed) = self
             .results
             .pop_front()
             .unwrap_or((ConnectResult::Error, 0));
         self.now.set(self.now.get().saturating_add(elapsed));
-        result
+        if cancellation.is_cancelled() {
+            ConnectResult::Cancelled
+        } else {
+            result
+        }
     }
 }
 
@@ -494,6 +602,93 @@ fn cancellation_and_deadline_emit_one_outcome_per_scheduled_sample() {
     );
 }
 
+#[test]
+fn cancellation_interrupts_long_spacing_and_connector_ports() {
+    let now = Rc::new(Cell::new(0));
+    let mut clock = FakeClock { now: now.clone() };
+    let cancelled = CancelAfter {
+        now: now.clone(),
+        at: 25_000_000,
+    };
+    assert_eq!(
+        clock.sleep_for(Duration::from_secs(3_600), &cancelled),
+        SleepResult::Cancelled
+    );
+    assert!(now.get() < Duration::from_secs(3_600).as_nanos() as u64);
+
+    let (run, interval) = make_run_with_spacing(
+        vec![endpoint(1, 9, ActiveEndpointTier::LanReference)],
+        2.0,
+        2,
+        1.0,
+    );
+    let schedule = build_schedule(&run, &interval).unwrap();
+    let now = Rc::new(Cell::new(0));
+    let mut clock = FakeClock { now: now.clone() };
+    let mut connector = FakeConnector {
+        now: now.clone(),
+        results: VecDeque::from([(ConnectResult::Connected, 1_000_000)]),
+        seen: Vec::new(),
+    };
+    let cancelled = CancelAfter {
+        now: now.clone(),
+        at: 25_000_000,
+    };
+    let report = execute(
+        &run,
+        &interval,
+        &schedule,
+        &mut clock,
+        &mut connector,
+        &cancelled,
+    )
+    .unwrap();
+    assert_eq!(connector.seen.len(), 1);
+    assert_eq!(
+        report.results()[0].samples()[0].outcome(),
+        ActiveSampleOutcome::Success
+    );
+    assert_eq!(
+        report.results()[0].samples()[1].outcome(),
+        ActiveSampleOutcome::Cancelled
+    );
+    assert!(now.get() < 1_000_000_000);
+
+    let (run, interval) = make_run(
+        vec![endpoint(2, 9, ActiveEndpointTier::LanReference)],
+        1.0,
+        2,
+    );
+    let schedule = build_schedule(&run, &interval).unwrap();
+    let now = Rc::new(Cell::new(0));
+    let mut clock = FakeClock { now: now.clone() };
+    let mut connector = FakeConnector {
+        now: now.clone(),
+        results: VecDeque::from([(ConnectResult::Connected, 1_000_000)]),
+        seen: Vec::new(),
+    };
+    let cancelled = CancelAfter {
+        now: now.clone(),
+        at: 1,
+    };
+    let report = execute(
+        &run,
+        &interval,
+        &schedule,
+        &mut clock,
+        &mut connector,
+        &cancelled,
+    )
+    .unwrap();
+    assert_eq!(connector.seen.len(), 1);
+    assert!(
+        report.results()[0]
+            .samples()
+            .iter()
+            .all(|sample| sample.outcome() == ActiveSampleOutcome::Cancelled)
+    );
+}
+
 proptest! {
     #[test]
     fn percentile_and_burst_statistics_stay_bounded(values in prop::collection::vec(1u32..1000, 1..12)) {
@@ -564,8 +759,9 @@ proptest! {
 #[test]
 fn real_loopback_adapter_records_success_and_refusal_without_external_network() {
     let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {
-        // Some CI sandboxes prohibit listener creation. The fake connector
-        // tests above still cover every lifecycle and outcome branch.
+        eprintln!(
+            "SKIP: active loopback integration requires local listener permission; no runtime pass recorded"
+        );
         return;
     };
     let success_port = listener.local_addr().unwrap().port();

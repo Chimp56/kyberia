@@ -29,7 +29,9 @@ validation rejects unspecified, multicast, and broadcast addresses.  Loopback
 and link-local targets require both the corresponding authorization flag and a
 local gateway/LAN tier.  Gateway/LAN targets must be local-only addresses;
 Internet-control targets must not be local-only.  Endpoint and target tiers
-must match, and the only accepted protocol/method pair is TCP connect timing.
+must match, IPv4-mapped IPv6 addresses are rejected, and the only accepted
+protocol/method pair is TCP connect timing.  The target port is an explicit
+numeric TCP port in `1..=65535`.
 
 `kyberia-active-measurement` provides three separated surfaces:
 
@@ -41,10 +43,13 @@ must match, and the only accepted protocol/method pair is TCP connect timing.
    concurrency ceiling, and emits one canonical sample for every scheduled
    sample.  Cancellation emits `Cancelled`; an overall deadline emits
    `Timeout`; neither silently drops the remainder.
-3. `adapter` supplies a real standard-library connector using
-   `TcpStream::connect_timeout` against the validated literal address.  It
-   never resolves names, spawns a process, accepts command fragments, or
-   contacts a target outside the endpoint contract.
+3. `adapter` supplies a real `StdTcpConnector` backed by Mio's nonblocking OS
+   TCP stream and a literal address.  It polls connection readiness and
+   cancellation in 25 ms bounded slices, rather than allowing a 60-second
+   blocking connect to hide cancellation.  The clock adapter uses the same
+   bounded cancellation-aware sleep port.  It never resolves names, spawns a
+   process, accepts command fragments, or contacts a target outside the
+   endpoint contract.
 
 Successful attempts record monotonic TCP connect timing in milliseconds.
 Refusal, timeout, unreachable, permission, generic error, and cancellation
@@ -95,10 +100,12 @@ and connector ports cover all lifecycle branches without external network
 access.
 
 The domain crate contains no adapter or storage dependency.  The architecture
-policy records the active crate as an adapter depending only on the canonical
-domain and SHA-256 identity derivation.  The contract is a foundation and does
-not claim completion of ACT-001/ACT-005, Phase 1, iPerf, multi-tier probes, or
-the product definition of done.
+policy records the active crate as an adapter depending on the canonical
+domain, SHA-256 identity derivation, and the narrowly scoped nonblocking socket
+adapter.  Active timestamp and window wire wrappers deny unknown nested fields
+so permissive global monotonic-time decoding cannot widen this record schema.
+The contract is a foundation and does not claim completion of ACT-001/ACT-005,
+Phase 1, iPerf, multi-tier probes, or the product definition of done.
 
 ## Consequences
 

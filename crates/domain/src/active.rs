@@ -27,6 +27,53 @@ pub const MAX_ACTIVE_TIMEOUT_SECONDS: f64 = 60.0;
 pub const MAX_ACTIVE_DURATION_SECONDS: f64 = 3_600.0;
 pub const MAX_ACTIVE_SPACING_SECONDS: f64 = 3_600.0;
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ActiveTimestampWire {
+    epoch: ClockEpochId,
+    nanoseconds: u64,
+}
+
+impl ActiveTimestampWire {
+    fn into_timestamp(self) -> MonotonicTimestamp {
+        MonotonicTimestamp {
+            epoch: self.epoch,
+            nanoseconds: self.nanoseconds,
+        }
+    }
+}
+
+impl From<MonotonicTimestamp> for ActiveTimestampWire {
+    fn from(value: MonotonicTimestamp) -> Self {
+        Self {
+            epoch: value.epoch,
+            nanoseconds: value.nanoseconds,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ActiveWindowWire {
+    start: ActiveTimestampWire,
+    end: ActiveTimestampWire,
+}
+
+impl ActiveWindowWire {
+    fn into_window(self) -> Result<MonotonicWindow, ValidationError> {
+        MonotonicWindow::new(self.start.into_timestamp(), self.end.into_timestamp())
+    }
+}
+
+impl From<MonotonicWindow> for ActiveWindowWire {
+    fn from(value: MonotonicWindow) -> Self {
+        Self {
+            start: value.start().into(),
+            end: value.end().into(),
+        }
+    }
+}
+
 /// Compatibility names for callers that use the shorter record terminology.
 pub type ActiveRunId = ActiveTestRunId;
 pub type ActiveEndpointIdentity = ActiveEndpointId;
@@ -131,6 +178,25 @@ impl ActiveIpAddress {
         }
     }
 
+    /// IPv4-mapped IPv6 addresses must not bypass IPv4 target safety checks.
+    /// They are rejected at the socket-address boundary instead of being
+    /// treated as ordinary IPv6 unicast addresses.
+    pub const fn is_ipv4_mapped(self) -> bool {
+        match self {
+            Self::V4(_) => false,
+            Self::V6(octets) => {
+                let mut index = 0;
+                while index < 10 {
+                    if octets[index] != 0 {
+                        return false;
+                    }
+                    index += 1;
+                }
+                octets[10] == 0xff && octets[11] == 0xff
+            }
+        }
+    }
+
     /// Private/ULA ranges are suitable for the local gateway and LAN tiers.
     /// This intentionally excludes loopback and link-local so those require a
     /// separate explicit authorization below.
@@ -154,6 +220,8 @@ impl ActiveIpAddress {
 #[serde(try_from = "ActiveSocketAddrWire", into = "ActiveSocketAddrWire")]
 pub struct ActiveSocketAddr {
     address: ActiveIpAddress,
+    /// Literal TCP destination port.  Port zero is rejected and no service
+    /// name or protocol other than TCP is resolved by this contract.
     port: u16,
 }
 
@@ -162,7 +230,11 @@ impl ActiveSocketAddr {
         if port == 0 {
             return Err(ValidationError::OutOfRange("active TCP port"));
         }
-        if address.is_unspecified() || address.is_multicast() || address.is_broadcast() {
+        if address.is_unspecified()
+            || address.is_multicast()
+            || address.is_broadcast()
+            || address.is_ipv4_mapped()
+        {
             return Err(ValidationError::OutOfRange("active TCP unicast address"));
         }
         Ok(Self { address, port })
@@ -218,6 +290,7 @@ impl ActiveTarget {
         if address.address().is_unspecified()
             || address.address().is_multicast()
             || address.address().is_broadcast()
+            || address.address().is_ipv4_mapped()
         {
             return Err(ValidationError::OutOfRange("active target address"));
         }
@@ -957,8 +1030,8 @@ impl ActiveTestRun {
 struct ActiveTestRunWire {
     schema_version: ActiveSchemaVersion,
     id: ActiveTestRunId,
-    started: MonotonicTimestamp,
-    deadline: MonotonicTimestamp,
+    started: ActiveTimestampWire,
+    deadline: ActiveTimestampWire,
     endpoints: Vec<ActiveEndpoint>,
     authorization: ActiveAuthorization,
     limits: ActiveTestLimits,
@@ -976,8 +1049,8 @@ impl TryFrom<ActiveTestRunWire> for ActiveTestRun {
         }
         Self::new(
             value.id,
-            value.started,
-            value.deadline,
+            value.started.into_timestamp(),
+            value.deadline.into_timestamp(),
             value.endpoints,
             value.authorization,
             value.limits,
@@ -991,8 +1064,8 @@ impl From<ActiveTestRun> for ActiveTestRunWire {
         Self {
             schema_version: value.schema_version,
             id: value.id,
-            started: value.started,
-            deadline: value.deadline,
+            started: value.started.into(),
+            deadline: value.deadline.into(),
             endpoints: value.endpoints,
             authorization: value.authorization,
             limits: value.limits,
@@ -1040,7 +1113,7 @@ struct ActiveIntervalWire {
     schema_version: ActiveSchemaVersion,
     id: ActiveIntervalId,
     run_id: ActiveTestRunId,
-    window: MonotonicWindow,
+    window: ActiveWindowWire,
     samples_per_endpoint: u32,
     provenance: ActiveMeasurementProvenance,
 }
@@ -1054,10 +1127,11 @@ impl TryFrom<ActiveIntervalWire> for ActiveInterval {
                 ValidationError::UnsupportedSchema,
             ));
         }
+        let window = value.window.into_window()?;
         if value.samples_per_endpoint == 0
             || value.samples_per_endpoint > MAX_ACTIVE_SAMPLES
-            || value.window.end().nanoseconds <= value.window.start().nanoseconds
-            || value.provenance.clock_epoch() != value.window.start().epoch
+            || window.end().nanoseconds <= window.start().nanoseconds
+            || value.provenance.clock_epoch() != window.start().epoch
         {
             return Err(ActiveValidationError::Domain(
                 ValidationError::Inconsistent("active interval shape"),
@@ -1067,7 +1141,7 @@ impl TryFrom<ActiveIntervalWire> for ActiveInterval {
             schema_version: ActiveSchemaVersion::V1,
             id: value.id,
             run_id: value.run_id,
-            window: value.window,
+            window,
             samples_per_endpoint: value.samples_per_endpoint,
             provenance: value.provenance,
         })
@@ -1080,7 +1154,7 @@ impl From<ActiveInterval> for ActiveIntervalWire {
             schema_version: value.schema_version,
             id: value.id,
             run_id: value.run_id,
-            window: value.window,
+            window: value.window.into(),
             samples_per_endpoint: value.samples_per_endpoint,
             provenance: value.provenance,
         }
@@ -1251,8 +1325,8 @@ struct ActiveSampleWire {
     endpoint_tier: ActiveEndpointTier,
     endpoint_attribution: EndpointAttribution,
     ordinal: u32,
-    started: MonotonicTimestamp,
-    finished: MonotonicTimestamp,
+    started: ActiveTimestampWire,
+    finished: ActiveTimestampWire,
     outcome: ActiveSampleOutcome,
     tcp_connect_rtt: Evidence<Milliseconds>,
     provenance: ActiveMeasurementProvenance,
@@ -1275,8 +1349,8 @@ impl TryFrom<ActiveSampleWire> for ActiveSample {
             value.endpoint_tier,
             value.endpoint_attribution,
             value.ordinal,
-            value.started,
-            value.finished,
+            value.started.into_timestamp(),
+            value.finished.into_timestamp(),
             value.outcome,
             value.tcp_connect_rtt,
             value.provenance,
@@ -1295,8 +1369,8 @@ impl From<ActiveSample> for ActiveSampleWire {
             endpoint_tier: value.endpoint_tier,
             endpoint_attribution: value.endpoint_attribution,
             ordinal: value.ordinal,
-            started: value.started,
-            finished: value.finished,
+            started: value.started.into(),
+            finished: value.finished.into(),
             outcome: value.outcome,
             tcp_connect_rtt: value.tcp_connect_rtt,
             provenance: value.provenance,
@@ -1305,7 +1379,7 @@ impl From<ActiveSample> for ActiveSampleWire {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(try_from = "RttDistributionWire", into = "RttDistributionWire")]
 pub struct RttDistribution {
     successful_samples: u32,
     median: Evidence<Milliseconds>,
@@ -1341,8 +1415,82 @@ impl RttDistribution {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+struct RttDistributionWire {
+    successful_samples: u32,
+    median: Evidence<Milliseconds>,
+    p90: Evidence<Milliseconds>,
+    p95: Evidence<Milliseconds>,
+    p99: Evidence<Milliseconds>,
+    max: Evidence<Milliseconds>,
+}
+
+impl TryFrom<RttDistributionWire> for RttDistribution {
+    type Error = ActiveValidationError;
+
+    fn try_from(value: RttDistributionWire) -> Result<Self, Self::Error> {
+        let values = [
+            &value.median,
+            &value.p90,
+            &value.p95,
+            &value.p99,
+            &value.max,
+        ];
+        if value.successful_samples == 0 {
+            if values
+                .iter()
+                .any(|value| matches!(value, Evidence::Known(_)))
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active RTT distribution without successes"),
+                ));
+            }
+        } else {
+            let mut previous = 0.0;
+            for value in values {
+                let Evidence::Known(value) = value else {
+                    return Err(ActiveValidationError::Domain(
+                        ValidationError::Inconsistent("active RTT distribution missing percentile"),
+                    ));
+                };
+                if value.get() < previous {
+                    return Err(ActiveValidationError::Domain(
+                        ValidationError::Inconsistent("active RTT percentiles are unordered"),
+                    ));
+                }
+                previous = value.get();
+            }
+        }
+        Ok(Self {
+            successful_samples: value.successful_samples,
+            median: value.median,
+            p90: value.p90,
+            p95: value.p95,
+            p99: value.p99,
+            max: value.max,
+        })
+    }
+}
+
+impl From<RttDistribution> for RttDistributionWire {
+    fn from(value: RttDistribution) -> Self {
+        Self {
+            successful_samples: value.successful_samples,
+            median: value.median,
+            p90: value.p90,
+            p95: value.p95,
+            p99: value.p99,
+            max: value.max,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(
+    try_from = "LossBurstDistributionWire",
+    into = "LossBurstDistributionWire"
+)]
 pub struct LossBurstDistribution {
     burst_count: u32,
     lost_samples: u32,
@@ -1383,8 +1531,90 @@ impl LossBurstDistribution {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+struct LossBurstDistributionWire {
+    burst_count: u32,
+    lost_samples: u32,
+    median: Evidence<u32>,
+    p90: Evidence<u32>,
+    p95: Evidence<u32>,
+    p99: Evidence<u32>,
+    max: Evidence<u32>,
+}
+
+impl TryFrom<LossBurstDistributionWire> for LossBurstDistribution {
+    type Error = ActiveValidationError;
+
+    fn try_from(value: LossBurstDistributionWire) -> Result<Self, Self::Error> {
+        let values = [
+            &value.median,
+            &value.p90,
+            &value.p95,
+            &value.p99,
+            &value.max,
+        ];
+        if value.burst_count == 0 {
+            if value.lost_samples != 0
+                || values
+                    .iter()
+                    .any(|value| matches!(value, Evidence::Known(_)))
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active loss burst distribution without bursts"),
+                ));
+            }
+        } else {
+            if value.lost_samples < value.burst_count {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active loss burst count exceeds losses"),
+                ));
+            }
+            let mut previous = 0;
+            for value in values {
+                let Evidence::Known(value) = value else {
+                    return Err(ActiveValidationError::Domain(
+                        ValidationError::Inconsistent(
+                            "active loss burst distribution missing percentile",
+                        ),
+                    ));
+                };
+                if *value == 0 || *value < previous {
+                    return Err(ActiveValidationError::Domain(
+                        ValidationError::Inconsistent("active loss burst percentiles are invalid"),
+                    ));
+                }
+                previous = *value;
+            }
+        }
+        Ok(Self {
+            burst_count: value.burst_count,
+            lost_samples: value.lost_samples,
+            median: value.median,
+            p90: value.p90,
+            p95: value.p95,
+            p99: value.p99,
+            max: value.max,
+        })
+    }
+}
+
+impl From<LossBurstDistribution> for LossBurstDistributionWire {
+    fn from(value: LossBurstDistribution) -> Self {
+        Self {
+            burst_count: value.burst_count,
+            lost_samples: value.lost_samples,
+            median: value.median,
+            p90: value.p90,
+            p95: value.p95,
+            p99: value.p99,
+            max: value.max,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(try_from = "ActiveStatisticsWire", into = "ActiveStatisticsWire")]
 pub struct ActiveStatistics {
     scheduled_samples: u32,
     eligible_samples: u32,
@@ -1497,6 +1727,90 @@ impl ActiveStatistics {
 
     pub const fn loss_bursts(&self) -> &LossBurstDistribution {
         &self.loss_bursts
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ActiveStatisticsWire {
+    scheduled_samples: u32,
+    eligible_samples: u32,
+    cancelled_samples: u32,
+    loss_percent: Evidence<Percentage>,
+    rtt: RttDistribution,
+    loss_bursts: LossBurstDistribution,
+}
+
+impl TryFrom<ActiveStatisticsWire> for ActiveStatistics {
+    type Error = ActiveValidationError;
+
+    fn try_from(value: ActiveStatisticsWire) -> Result<Self, Self::Error> {
+        if value.cancelled_samples > value.scheduled_samples
+            || value.eligible_samples
+                != value
+                    .scheduled_samples
+                    .saturating_sub(value.cancelled_samples)
+        {
+            return Err(ActiveValidationError::Domain(
+                ValidationError::Inconsistent("active sample eligibility counts"),
+            ));
+        }
+        if value.eligible_samples == 0 {
+            if matches!(value.loss_percent, Evidence::Known(_))
+                || value.rtt.successful_samples != 0
+                || value.loss_bursts.lost_samples != 0
+                || value.loss_bursts.burst_count != 0
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "active statistics contain measurements without eligible samples",
+                    ),
+                ));
+            }
+        } else {
+            let Evidence::Known(loss_percent) = value.loss_percent else {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active loss percentage missing"),
+                ));
+            };
+            let successful = value.rtt.successful_samples;
+            let lost = value.loss_bursts.lost_samples;
+            if successful
+                .checked_add(lost)
+                .is_none_or(|measured| measured != value.eligible_samples)
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active success and loss counts"),
+                ));
+            }
+            let expected_loss_percent = f64::from(lost) * 100.0 / f64::from(value.eligible_samples);
+            if loss_percent.get() != expected_loss_percent {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent("active loss percentage does not match samples"),
+                ));
+            }
+        }
+        Ok(Self {
+            scheduled_samples: value.scheduled_samples,
+            eligible_samples: value.eligible_samples,
+            cancelled_samples: value.cancelled_samples,
+            loss_percent: value.loss_percent,
+            rtt: value.rtt,
+            loss_bursts: value.loss_bursts,
+        })
+    }
+}
+
+impl From<ActiveStatistics> for ActiveStatisticsWire {
+    fn from(value: ActiveStatistics) -> Self {
+        Self {
+            scheduled_samples: value.scheduled_samples,
+            eligible_samples: value.eligible_samples,
+            cancelled_samples: value.cancelled_samples,
+            loss_percent: value.loss_percent,
+            rtt: value.rtt,
+            loss_bursts: value.loss_bursts,
+        }
     }
 }
 

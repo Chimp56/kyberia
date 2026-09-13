@@ -24,8 +24,13 @@ The focused Rust suite covers:
 - deterministic endpoint-id-then-ordinal ordering and hash-derived sample IDs;
 - total sample, duration, spacing, timeout, and concurrency bounds;
 - serial fake-connector outcomes for success, refusal, timeout, error,
-  cancellation, and overall deadline;
+  cancellation, and overall deadline, including cancellation-aware 25 ms
+  spacing/connector polling;
 - successful RTT median/p90/p95/p99/max and consecutive-loss-burst invariants;
+- run-wide schedule limits against forged maximum-per-endpoint intervals;
+- rejection of IPv4-mapped loopback/private/multicast/broadcast addresses;
+- standalone RTT, loss-burst, statistics, timestamp, and window wire
+  revalidation;
 - a real std TCP connector against a bounded loopback listener and a local
   refused port. The integration case exits early when the host sandbox denies
   listener creation; no test contacts an external address.
@@ -39,15 +44,21 @@ loss percentage and terminate loss bursts at cancellation boundaries.
 
 `kyberia-domain` has no networking, clock, storage, process, UI, or foreign
 schema dependency. `kyberia-active-measurement/src/pure.rs` has no socket or
-process API; `src/adapter.rs` is the only production module that imports
-`TcpStream`. The shipped executor is deliberately serial even though the
-schedule records a maximum concurrency bound. DNS, ICMP, UDP, HTTP/TLS,
-QUIC, throughput, roaming, Wi-Fi link telemetry, remote authenticated agents,
-and persistence remain open requirements.
+process API; `src/adapter.rs` is the only production module that imports the
+Mio TCP adapter. Active timestamp/window wire wrappers explicitly
+reject unknown nested fields even though the shared monotonic types remain
+additively decodable elsewhere. The shipped executor is deliberately serial
+even though the schedule records a maximum concurrency bound. DNS, ICMP, UDP,
+HTTP/TLS, QUIC, throughput, roaming, Wi-Fi link telemetry, remote
+authenticated agents, and persistence remain open requirements.
 
 The loopback evidence demonstrates executable lifecycle and typed results,
-not cross-platform socket parity or Internet performance. A connector is
-expected to honor the supplied per-attempt timeout; the std adapter uses the
-OS bounded `connect_timeout` call. An outer application still must enforce
+not cross-platform socket parity or Internet performance. The endpoint port is
+an explicit numeric TCP destination in `1..=65535`; no service-name lookup is
+performed. A connector must honor the supplied per-attempt timeout and
+cancellation port; the std adapter uses a nonblocking socket with 25 ms
+readiness/cancellation polling. An outer application still must enforce
 user/session policy and persist the canonical records through its own reviewed
-boundary.
+boundary. If the host denies loopback
+listener creation, the integration test records no pass and exits through an
+explicit environment-gated skip path; fake-port assertions remain separate.

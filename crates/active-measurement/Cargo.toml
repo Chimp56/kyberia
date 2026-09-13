@@ -8,6 +8,7 @@ description = "Bounded consented TCP-connect active measurement contracts and ad
 [dependencies]
 kyberia-domain = { version = "=0.1.0", path = "../domain" }
 sha2 = "=0.10.9"
+mio = { version = "=1.2.3", default-features = false, features = ["net", "os-poll"] }
 
 [dev-dependencies]
 proptest = "=1.10.0"

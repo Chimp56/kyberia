@@ -10,6 +10,6 @@ pub mod pure;
 pub use adapter::{StdMonotonicClock, StdTcpConnector};
 pub use executor::{
     ActiveExecutionReport, ActiveMeasurementError, Cancellation, ConnectResult, MonotonicClock,
-    NeverCancelled, TcpConnector, execute,
+    NeverCancelled, SleepResult, TcpConnector, execute,
 };
 pub use pure::{ActiveSchedule, SCHEDULE_VERSION, ScheduleError, ScheduledSample, build_schedule};

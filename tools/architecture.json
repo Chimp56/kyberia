@@ -22,7 +22,7 @@
     "kyberia-cli": {"layer": "composition", "external_dependencies": ["libc", "serde", "serde_json", "sha2", "signal-hook", "uuid", "windows-sys"]},
     "kyberia-observation-pipeline": {"layer": "composition", "external_dependencies": ["rustix", "serde", "serde_json", "sha2"]},
     "kyberia-geometry-adapter": {"layer": "adapter", "external_dependencies": ["geo"]},
-    "kyberia-active-measurement": {"layer": "adapter", "external_dependencies": ["sha2"]}
+    "kyberia-active-measurement": {"layer": "adapter", "external_dependencies": ["mio", "sha2"]}
   },
   "allowed_internal_layers": {
     "domain": [
