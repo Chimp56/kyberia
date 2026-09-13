@@ -8,7 +8,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated feature: the authenticated Kyberia Lab MCP through `964a5ae`, with its merge correction independently approved at `eb3574d`. The reviewed desktop shell is integrated through `c49840a`; one deterministic cancellation-test correction and the Vitest advisory upgrade remain in its isolated worktree. Final renderer and product gates remain open.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; and the Windows loopback fixture correction through `f019928`. Final renderer and product gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -18,23 +18,23 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 
 ## Current execution checkpoint — 2026-09-13
 
-Main is at `eb3574d`. The complete reviewed Lab MCP is integrated with exact
+Main is at `f019928`. The complete reviewed Lab MCP is integrated with exact
 resources and ten allowlisted tools, immutable Git revisions, authenticated
 hosts, signed requests/results, bounded execution and sanitized text artifacts.
 Its fresh package-local bootstrap passes 32 Node tests with one explicit
 Windows-only skip, three fixed-helper parser tests, package/SBOM checks and an
 independent no-findings review. The reviewed Tauri/React desktop shell is also
-integrated; native Rust tests, Clippy and a no-bundle release build pass. A
-locally reproduced Playwright cancellation-state race has a code correction in
-independent test-quality review, together with a required Vitest advisory fix.
+integrated; deterministic cancellation handling, the exact Vitest 4.1.11 fix,
+native Rust tests, Clippy, Playwright and a no-bundle release build all pass.
 
 Hosted run `34770478017` validates the diagnostic split: Ubuntu and macOS pass.
 Windows now isolates failure to refusal handling in
 `real_loopback_adapter_records_refusal_without_external_network` and the
 same-connector mixed success/refusal regression; success-only loopback passes.
-A Luna xhigh agent is correcting that bounded Windows path in its isolated
-worktree. Native Windows, CUDA, physical-radio, Kismet and spectrum executions
-remain runtime gates rather than simulated evidence.
+The independently reviewed test correction is integrated and preserves real
+refusal plus mixed same-connector coverage. A new native Windows hosted run is
+still required. CUDA, physical-radio, Kismet and spectrum executions remain
+runtime gates rather than simulated evidence.
 
 The generated traceability matrix currently reports **66 VALIDATED, 83
 IN_PROGRESS, and 3,186 NOT_STARTED leaf obligations**, with zero
@@ -118,10 +118,10 @@ product capability is validated.
 | Durable capture session and unassociated acquisition spool | Integrated and independently approved at `cec2efd` | Bounded session closure, allocation preflight, SQLite storage/recovery and cancellation-safe publication are validated; product coordinator, streaming journal and UI wiring remain open |
 | Project application boundary | Integrated and independently approved at `c61afc0` | Typed create/open/current-snapshot use cases are validated; operation-backed mutations and the reviewed desktop product path remain open |
 | Barrier-aware measured interpolation | Integrated and independently approved at `425edfe` | Direct finite-segment path cost, stable weights, unknown support, budgets and cancellation are validated; polygon shortest paths, floors, calibrated uncertainty and publication remain open |
-| Active TCP measurement foundation | Integrated through `e4eec6d`; Windows correction worktree | Reviewed scheduling, attribution, budgets, cancellation and statistics are integrated. Native Windows refusal completion needs correction, review and hosted validation |
-| Desktop instrument shell | Integrated through `c49840a`; correction worktree `feat/desktop-shell` | Native lifecycle, opaque grants, project commands, command palette, responsive shell and release build pass. Deterministic cancellation-race proof and Vitest 4.1.11 audit correction remain before hosted validation |
+| Active TCP measurement foundation | Integrated through `e4eec6d`; reviewed Windows fixture correction `f019928` | Reviewed scheduling, attribution, budgets, cancellation and statistics are integrated. Native Windows hosted validation of refusal completion remains |
+| Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
 | Kyberia Lab MCP | Integrated through `964a5ae`; merge correction `eb3574d` | Exact requested MCP surface and hardened coordinator/runner pass local checks and independent review. Provisioned authenticated hosts plus physical Windows/Kismet/CUDA/spectrum executions remain |
-| Hosted validation diagnostics | Integrated diagnostic split `86fe0e2`; isolated Windows correction | Ubuntu/macOS pass run `34770478017`; Windows identifies only active refusal and mixed success/refusal failures. Correction, review and hosted rerun remain |
+| Hosted validation diagnostics | Correction integrated through `f019928` | Ubuntu/macOS pass run `34770478017`; Windows isolated active refusal fixture races. Reviewed serialization/address isolation is integrated; hosted rerun remains |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 
 
@@ -131,15 +131,16 @@ An active draft or passing author test is not integration approval.
 
 ## Current validation
 
-At `eb3574d`, the locked Python environment passes **284 tests with 22 skips**;
+At combined integration `f019928`, the locked Python environment passes **284 tests with 22 skips**;
 the Lab MCP passes **32 Node tests with one explicit Windows skip** plus three
 Windows helper parser tests; and the merged developer-command regressions pass
 19/19. Ledger and architecture checks pass, and source inventory covers **522
 locked Cargo packages** after desktop integration. Desktop typecheck, production
-build, 14 Vitest tests, 25 Rust tests, Clippy and the no-bundle Tauri release
-build pass. The integrated Playwright run exposed one cancellation-state race
-(9/10 passed); its correction and a test-only dependency advisory update are in
-the isolated desktop worktree and do not count as validated until rereview.
+build, 15 Vitest tests, 10 Playwright workflows, 25 Rust tests, Clippy and the
+no-bundle Tauri release build pass. The full serial Rust workspace and full
+workspace Clippy pass. The desktop npm audit and Lab production pnpm audit both
+report zero current vulnerabilities. The Windows target active-measurement
+check passes; native hosted execution remains open.
 
 At `b4c4c33`, `.tools/venv/bin/python tools/dev.py check` passes the complete
 integrated check: Rust regression, formatting/lint/typecheck, 215 Python tests
@@ -240,11 +241,11 @@ IDs must remain section-qualified.
 
 ## Next executable work
 
-1. Complete the desktop cancellation proof and Vitest advisory correction,
-   obtain independent rereview, integrate, and run the affected plus workspace
-   regression suites.
-2. Resolve the two isolated hosted Windows refusal failures, independently
-   review the correction, and repeat the three-host CI gate.
+1. Push the reviewed Lab, desktop and Windows-fixture integration and repeat the
+   three-host CI gate, using native Windows results to accept or reject the
+   refusal-race correction.
+2. Provision authenticated Lab runner configuration on available Windows,
+   Kismet, CUDA and spectrum hosts and execute the signed runtime gates.
 3. Implement defensive map-asset admission and operation-backed floorplan
    calibration through application and desktop boundaries, with parser/security
    review and real UI evidence.
