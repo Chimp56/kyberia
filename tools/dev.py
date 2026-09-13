@@ -107,6 +107,8 @@ def run(*args, diagnostics=None, env=None):
     print("+ " + " ".join(command), flush=True)
     if actions:
         _run_streamed(command, diagnostics, env)
+    elif env is None:
+        subprocess.run(command, cwd=ROOT, check=True)
     else:
         subprocess.run(command, cwd=ROOT, check=True, env=env)
 
