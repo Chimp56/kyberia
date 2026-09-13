@@ -3,8 +3,9 @@
 use kyberia_desktop_lib::{
     CreateBlankProjectRequest, DesktopIpcError, DesktopState, JobCancellation,
     OpenProjectGrantRequest, OpenProjectSelectionResponse, SchemaRequest, SelectOpenProjectRequest,
-    begin_job, begin_open_job, blank_project_path, cancel_job, cancelled_error, error,
-    finish_joined_job, issue_open_grant, response_for_with_cancel, run_atomic_project_step,
+    begin_job, begin_open_job, blank_project_path, cancel_created_project, cancel_job,
+    cancelled_error, current_project_job, error, finish_job, finish_joined_job, issue_open_grant,
+    response_for_with_cancel, retain_cancelled_project, run_atomic_project_step,
 };
 use std::{
     path::PathBuf,
@@ -29,14 +30,23 @@ fn lock_state<'a>(
 
 fn native_project_selection() -> Result<Option<PathBuf>, DesktopIpcError> {
     #[cfg(target_os = "macos")]
-    let output = Command::new("osascript")
+    let output = Command::new("/usr/bin/osascript")
         .args([
             "-e",
             "POSIX path of (choose folder with prompt \"Open RF Atlas project\")",
         ])
         .output();
     #[cfg(target_os = "windows")]
-    let output = Command::new("powershell")
+    let powershell = std::env::var_os("WINDIR")
+        .map(PathBuf::from)
+        .filter(|path| path.is_absolute())
+        .unwrap_or_else(|| PathBuf::from(r"C:\Windows"))
+        .join("System32")
+        .join("WindowsPowerShell")
+        .join("v1.0")
+        .join("powershell.exe");
+    #[cfg(target_os = "windows")]
+    let output = Command::new(powershell)
         .args([
             "-NoProfile",
             "-NonInteractive",
@@ -45,7 +55,7 @@ fn native_project_selection() -> Result<Option<PathBuf>, DesktopIpcError> {
         ])
         .output();
     #[cfg(target_os = "linux")]
-    let output = Command::new("zenity")
+    let output = Command::new("/usr/bin/zenity")
         .args([
             "--file-selection",
             "--directory",
@@ -53,7 +63,7 @@ fn native_project_selection() -> Result<Option<PathBuf>, DesktopIpcError> {
         ])
         .output()
         .or_else(|_| {
-            Command::new("kdialog")
+            Command::new("/usr/bin/kdialog")
                 .args(["--getexistingdirectory", ".", "Open RF Atlas project"])
                 .output()
         });
@@ -122,6 +132,7 @@ async fn project_create_blank(
         (control, guard.application())
     };
     let name = request.name;
+    let cleanup_path = path.clone();
     let task_control = Arc::clone(&control);
     let result = tauri::async_runtime::spawn_blocking(move || {
         let mut cancellation = JobCancellation::new(task_control);
@@ -141,18 +152,31 @@ async fn project_create_blank(
         if cancellation.is_cancelled() {
             return Err(cancelled_error());
         }
-        let session = run_atomic_project_step(cancellation.control(), || {
-            application
-                .create(kyberia_application::CreateProject {
-                    path,
-                    name,
-                    created_utc_ms: now,
-                })
-                .map_err(DesktopIpcError::from)
-        })?;
+        let session = match application.create(kyberia_application::CreateProject {
+            path: path.clone(),
+            name,
+            created_utc_ms: now,
+        }) {
+            Ok(session) => session,
+            Err(_value) if cancellation.is_cancelled() => {
+                retain_cancelled_project(&path)?;
+                return Err(cancelled_error());
+            }
+            Err(value) => return Err(DesktopIpcError::from(value)),
+        };
         cancellation.control().set_progress(65);
-        let response = response_for_with_cancel(&session, &mut cancellation)?;
+        let response = match response_for_with_cancel(&session, &mut cancellation) {
+            Ok(response) => response,
+            Err(value) if cancellation.is_cancelled() => {
+                drop(session);
+                cancel_created_project(&path, cancellation.control())?;
+                return Err(value);
+            }
+            Err(value) => return Err(value),
+        };
         if cancellation.is_cancelled() {
+            drop(session);
+            cancel_created_project(&path, cancellation.control())?;
             return Err(cancelled_error());
         }
         cancellation.control().set_progress(100);
@@ -163,6 +187,11 @@ async fn project_create_blank(
     let result = finish_joined_job(&mut guard, &job_id, result)?;
     match result {
         Ok((session, response)) => {
+            if control.is_cancelled() {
+                drop(session);
+                retain_cancelled_project(&cleanup_path)?;
+                return Err(cancelled_error());
+            }
             guard.set_session(session);
             Ok(response)
         }
@@ -176,15 +205,31 @@ fn project_select_open(
     request: SelectOpenProjectRequest,
 ) -> Result<OpenProjectSelectionResponse, DesktopIpcError> {
     kyberia_desktop_lib::require_schema(&request.schema)?;
-    let selected = native_project_selection()?;
-    let Some(selected) = selected else {
-        return Ok(OpenProjectSelectionResponse {
+    let job_id = request.job_id;
+    let control = {
+        let mut guard = lock_state(&state)?;
+        begin_job(&mut guard, &job_id)?
+    };
+    control.set_progress(5);
+    let selected = native_project_selection();
+    let mut guard = lock_state(&state)?;
+    finish_job(&mut guard, &job_id);
+    if control.is_cancelled() {
+        return Err(cancelled_error());
+    }
+    match selected? {
+        Some(selected) => {
+            if control.is_cancelled() {
+                Err(cancelled_error())
+            } else {
+                issue_open_grant(&mut guard, selected)
+            }
+        }
+        None => Ok(OpenProjectSelectionResponse {
             schema: kyberia_desktop_lib::IPC_SCHEMA,
             selection: None,
-        });
-    };
-    let mut guard = lock_state(&state)?;
-    issue_open_grant(&mut guard, selected)
+        }),
+    }
 }
 
 #[tauri::command]
@@ -242,6 +287,10 @@ async fn project_open_grant(
     let result = finish_joined_job(&mut guard, &job_id, result)?;
     match result {
         Ok((session, response)) => {
+            if control.is_cancelled() {
+                drop(session);
+                return Err(cancelled_error());
+            }
             guard.set_session(session);
             Ok(response)
         }
@@ -255,48 +304,7 @@ async fn project_current(
     request: SchemaRequest,
 ) -> Result<kyberia_desktop_lib::CurrentProjectResponse, DesktopIpcError> {
     kyberia_desktop_lib::require_schema(&request.schema)?;
-    let job_id = request.job_id;
-    let (control, session) = {
-        let mut guard = lock_state(&state)?;
-        let Some(session) = guard.take_session() else {
-            return Ok(kyberia_desktop_lib::no_project_response());
-        };
-        let control = match begin_job(&mut guard, &job_id) {
-            Ok(value) => value,
-            Err(error) => {
-                guard.set_session(session);
-                return Err(error);
-            }
-        };
-        (control, session)
-    };
-    let task_control = Arc::clone(&control);
-    let task_result = tauri::async_runtime::spawn_blocking(move || {
-        let mut cancellation = JobCancellation::new(task_control);
-        cancellation.control().set_progress(25);
-        let result = response_for_with_cancel(&session, &mut cancellation).and_then(|response| {
-            if cancellation.is_cancelled() {
-                Err(cancelled_error())
-            } else {
-                cancellation.control().set_progress(100);
-                Ok(response)
-            }
-        });
-        (session, result)
-    })
-    .await;
-    let mut guard = lock_state(&state)?;
-    let task_result = finish_joined_job(&mut guard, &job_id, task_result)?;
-    match task_result {
-        (session, Ok(response)) => {
-            guard.set_session(session);
-            Ok(response)
-        }
-        (session, Err(value)) => {
-            guard.set_session(session);
-            Err(value)
-        }
-    }
+    current_project_job(&state, request.job_id).await
 }
 
 #[tauri::command]

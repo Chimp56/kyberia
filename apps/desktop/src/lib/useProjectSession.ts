@@ -45,6 +45,7 @@ export function responseToState(response: CurrentProjectResponse, previous: Work
     ...previous,
     phase: "ready",
     projectState: response.state,
+    projectId: response.project?.projectId ?? null,
     projectName: response.project?.name ?? previous.projectName,
     hasFloorPlan: response.project?.hasFloorPlan ?? false,
     calibrated: response.project?.calibrated ?? false,
@@ -58,6 +59,7 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
   const [lastError, setLastError] = useState<IpcErrorPayload | null>(null);
   const requestGate = useRef(createRequestGate());
   const activeJobId = useRef<string | null>(null);
+  const operationInFlight = useRef(false);
   const lastFailedOperation = useRef<ProjectOperation | null>(null);
 
   const applyError = useCallback((error: IpcErrorPayload, operation: ProjectOperation | null) => {
@@ -71,8 +73,16 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
     operation: ProjectOperation,
     label: string,
     invokeOperation: (jobId: string) => Promise<CurrentProjectResponse>,
+    reserved = false,
   ): Promise<void> => {
-    if (activeJobId.current !== null) return;
+    if (!reserved) {
+      if (operationInFlight.current) return;
+      operationInFlight.current = true;
+    }
+    if (activeJobId.current !== null) {
+      if (!reserved) operationInFlight.current = false;
+      return;
+    }
     const jobId = nextJobId();
     activeJobId.current = jobId;
     setState((current) => ({
@@ -82,7 +92,7 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
       activeJob: { id: jobId, label, progress: 0, state: "running" },
     }));
 
-    const outcome: Promise<JobOutcome> = invokeOperation(jobId).then(
+    const outcome: Promise<JobOutcome> = Promise.resolve().then(() => invokeOperation(jobId)).then(
       (response) => ({ kind: "success", response }),
       (error: unknown) => ({ kind: "failure", error }),
     );
@@ -126,11 +136,12 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
     } finally {
       if (activeJobId.current === jobId) activeJobId.current = null;
       setState((current) => current.activeJob?.id === jobId ? { ...current, activeJob: null } : current);
+      if (!reserved) operationInFlight.current = false;
     }
   }, [applyError, ipc]);
 
   const runCurrent = useCallback(async () => {
-    if (activeJobId.current !== null) return;
+    if (operationInFlight.current) return;
     const request = requestGate.current.begin();
     await runJob(request, "current", "Opening project", (jobId) => ipc.currentProject({ schema: IPC_SCHEMA, jobId }));
   }, [ipc, runJob]);
@@ -142,7 +153,7 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
   }, [runCurrent]);
 
   const createBlankProject = useCallback(async () => {
-    if (activeJobId.current !== null) return;
+    if (operationInFlight.current) return;
     const request = requestGate.current.begin();
     await runJob(request, "create", "Creating project", (jobId) => ipc.createBlankProject({
       schema: IPC_SCHEMA,
@@ -152,30 +163,70 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
   }, [ipc, runJob]);
 
   const openProject = useCallback(async () => {
-    if (activeJobId.current !== null) return;
+    if (operationInFlight.current) return;
     const request = requestGate.current.begin();
-    setState((current) => ({ ...current, phase: "loading", error: null, activeJob: null }));
+    const pickerJobId = nextJobId();
+    operationInFlight.current = true;
+    activeJobId.current = pickerJobId;
+    setState((current) => ({
+      ...current,
+      phase: "loading",
+      error: null,
+      activeJob: { id: pickerJobId, label: "Choosing project", progress: 5, state: "running" },
+    }));
+    let selectionOutcome: Promise<{ kind: "success"; response: unknown } | { kind: "failure"; error: unknown }>;
     try {
-      const selection = assertOpenProjectSelectionResponse(await ipc.selectOpenProject());
-      if (!requestGate.current.isCurrent(request)) return;
-      if (selection.selection === null) {
-        setState((current) => ({
-          ...current,
-          phase: current.projectState === "no_project" ? "idle" : "ready",
-          error: null,
-        }));
-        return;
+      selectionOutcome = Promise.resolve()
+        .then(() => ipc.selectOpenProject({ schema: IPC_SCHEMA, jobId: pickerJobId }))
+        .then((response) => ({ kind: "success", response }), (error: unknown) => ({ kind: "failure", error }));
+      while (true) {
+        const observed = await Promise.race([selectionOutcome, delay(JOB_POLL_INTERVAL_MS)]);
+        if (observed.kind === "success") {
+          const selection = assertOpenProjectSelectionResponse(observed.response);
+          if (!requestGate.current.isCurrent(request)) return;
+          if (selection.selection === null) {
+            setState((current) => ({
+              ...current,
+              phase: current.projectState === "no_project" ? "idle" : "ready",
+              error: null,
+              activeJob: null,
+            }));
+            return;
+          }
+          const selected = selection.selection;
+          activeJobId.current = null;
+          setState((current) => ({ ...current, activeJob: null }));
+          await runJob(request, "open", "Opening project", (jobId) => ipc.openProject({
+            schema: IPC_SCHEMA,
+            jobId,
+            grantId: selected.grantId,
+            mode: "read_write",
+            expectedName: selected.displayName,
+          }), true);
+          return;
+        }
+        if (observed.kind === "failure") throw observed.error;
+        try {
+          const status = assertJobStatusResponse(await ipc.jobStatus({ schema: IPC_SCHEMA, jobId: pickerJobId }));
+          if (status.jobId !== pickerJobId) throw { schema: IPC_SCHEMA, code: "invalid_response", message: "The desktop adapter returned status for a different job.", retryable: false } satisfies IpcErrorPayload;
+          if (requestGate.current.isCurrent(request)) {
+            setState((current) => current.activeJob?.id === pickerJobId
+              ? { ...current, activeJob: { ...current.activeJob, progress: status.progress, state: status.state } }
+              : current);
+          }
+        } catch (value) {
+          const statusError = normalizeIpcError(value);
+          if (statusError.code !== "invalid_request") throw statusError;
+        }
       }
-      const selected = selection.selection;
-      await runJob(request, "open", "Opening project", (jobId) => ipc.openProject({
-        schema: IPC_SCHEMA,
-        jobId,
-        grantId: selected.grantId,
-        mode: "read_write",
-        expectedName: selected.displayName,
-      }));
     } catch (value) {
       if (requestGate.current.isCurrent(request)) applyError(normalizeIpcError(value), "open");
+    } finally {
+      if (activeJobId.current === pickerJobId) {
+        activeJobId.current = null;
+        setState((current) => current.activeJob?.id === pickerJobId ? { ...current, activeJob: null } : current);
+      }
+      operationInFlight.current = false;
     }
   }, [applyError, ipc, runJob]);
 

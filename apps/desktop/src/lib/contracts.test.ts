@@ -32,6 +32,12 @@ describe("desktop IPC contract", () => {
     expect(error.remediation).not.toContain("/Users/vincent");
   });
 
+  it("scrubs Windows UNC paths before rendered errors", () => {
+    const error = normalizeIpcError({ schema: IPC_SCHEMA, code: "storage", message: "Could not open \\\\server\\share\\rf atlas.rfatlas", remediation: "Check \\\\server\\share", retryable: true });
+    expect(error.message).not.toContain("server");
+    expect(error.remediation).not.toContain("server");
+  });
+
   it("validates nested native selection grants", () => {
     expect(assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: null }).selection).toBeNull();
     expect(() => assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: { grantId: "g", displayName: "Plan.rfatlas", kind: "open", path: "/private/user/secret" } })).toThrow(/malformed/);

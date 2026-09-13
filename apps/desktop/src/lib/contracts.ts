@@ -43,6 +43,11 @@ export interface CreateBlankProjectRequest {
   name: string;
 }
 
+export interface SelectOpenProjectRequest {
+  schema: typeof IPC_SCHEMA;
+  jobId: string;
+}
+
 export interface OpenProjectGrantRequest {
   schema: typeof IPC_SCHEMA;
   jobId: string;
@@ -82,7 +87,7 @@ export interface OpenProjectSelectionResponse {
 
 export interface DesktopIpc {
   createBlankProject(request: CreateBlankProjectRequest): Promise<CurrentProjectResponse>;
-  selectOpenProject(): Promise<OpenProjectSelectionResponse>;
+  selectOpenProject(request: SelectOpenProjectRequest): Promise<OpenProjectSelectionResponse>;
   openProject(request: OpenProjectGrantRequest): Promise<CurrentProjectResponse>;
   currentProject(request: JobRequest): Promise<CurrentProjectResponse>;
   jobStatus(request: JobRequest): Promise<JobStatusResponse>;
@@ -278,7 +283,7 @@ export function assertJobCancelResponse(value: unknown): JobCancelResponse {
 }
 
 function scrubRendererMessage(message: string): string {
-  if (message.split(/\s+/).some((part) => /^\//.test(part) || /^[A-Za-z]:[\\/]/.test(part))) {
+  if (message.split(/\s+/).some((part) => /^\\\\/.test(part) || /^\//.test(part) || /^[A-Za-z]:[\\/]/.test(part))) {
     return "The desktop command failed while accessing a local project.";
   }
   return message;

@@ -11,6 +11,7 @@ import {
   type JobRequest,
   type OpenProjectGrantRequest,
   type OpenProjectSelectionResponse,
+  type SelectOpenProjectRequest,
 } from "./contracts";
 
 declare global {
@@ -39,7 +40,7 @@ async function invokeProject<T>(command: string, payload: unknown, validate: (va
 
 const tauriIpc: DesktopIpc = {
   createBlankProject: (request: CreateBlankProjectRequest) => invokeProject("project_create_blank", request, assertResponse),
-  selectOpenProject: () => invokeProject<OpenProjectSelectionResponse>("project_select_open", { schema: IPC_SCHEMA }, assertOpenProjectSelectionResponse),
+  selectOpenProject: (request: SelectOpenProjectRequest) => invokeProject<OpenProjectSelectionResponse>("project_select_open", request, assertOpenProjectSelectionResponse),
   openProject: (request: OpenProjectGrantRequest) => invokeProject("project_open_grant", request, assertResponse),
   currentProject: (request: JobRequest) => invokeProject("project_current", request, assertResponse),
   jobStatus: (request: JobRequest) => invokeProject("project_job_status", request, assertJobStatusResponse),

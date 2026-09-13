@@ -12,6 +12,7 @@ export interface ActiveProjectJob {
 export interface WorkspaceState {
   phase: WorkspacePhase;
   projectState: ProjectState;
+  projectId: string | null;
   projectName: string;
   hasFloorPlan: boolean;
   calibrated: boolean;
@@ -25,6 +26,7 @@ export interface WorkspaceState {
 export const initialWorkspaceState: WorkspaceState = {
   phase: "idle",
   projectState: "no_project",
+  projectId: null,
   projectName: "Untitled project",
   hasFloorPlan: false,
   calibrated: false,

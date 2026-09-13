@@ -46,7 +46,8 @@ function LoadingState({ job, onCancel }: { job: ActiveProjectJob | null; onCance
 }
 
 function ErrorState({ error, onRetry }: { error: IpcErrorPayload | null; onRetry: () => void }) {
-  return <div className="canvas-state-card error-state" role="alert"><span className="state-symbol">!</span><h1>Project unavailable</h1><p>{error?.message ?? "The project could not be opened."}</p>{error?.retryable && <button className="secondary-button" type="button" onClick={onRetry}>Try again</button>}</div>;
+  const title = error?.code === "cancelled" ? "Operation cancelled" : "Project unavailable";
+  return <div className="canvas-state-card error-state" role="alert"><span className="state-symbol">!</span><h1>{title}</h1><p>{error?.message ?? "The project could not be opened."}</p>{error?.remediation && <p className="state-remediation">{error.remediation}</p>}{error?.retryable && <button className="secondary-button" type="button" onClick={onRetry}>Try again</button>}</div>;
 }
 
 function UnsupportedState({ message }: { message?: string }) {

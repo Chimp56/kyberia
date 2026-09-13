@@ -4,6 +4,7 @@ import { createRequestGate, initialWorkspaceState, stateForError } from "./ui-st
 describe("workspace state semantics", () => {
   it("starts without inventing a project or measurements", () => {
     expect(initialWorkspaceState.projectState).toBe("no_project");
+    expect(initialWorkspaceState.projectId).toBeNull();
     expect(initialWorkspaceState.phase).toBe("idle");
     expect(initialWorkspaceState.activeJob).toBeNull();
     expect(initialWorkspaceState.layerVisibility.prediction).toBe(false);

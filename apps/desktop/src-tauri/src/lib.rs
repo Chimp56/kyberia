@@ -8,7 +8,7 @@ use std::{
     collections::HashMap,
     path::PathBuf,
     sync::{
-        Arc,
+        Arc, Mutex,
         atomic::{AtomicBool, AtomicU8, Ordering},
     },
     time::{Duration, Instant},
@@ -30,6 +30,7 @@ pub struct CreateBlankProjectRequest {
 #[serde(rename_all = "camelCase")]
 pub struct SelectOpenProjectRequest {
     pub schema: String,
+    pub job_id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -208,7 +209,7 @@ impl CancellationHook for JobCancellation {
 
 pub struct DesktopState {
     application: Application,
-    session: Option<ProjectSession>,
+    session: Option<Arc<Mutex<ProjectSession>>>,
     grants: HashMap<String, NativeProjectGrant>,
     pub(crate) jobs: HashMap<String, Arc<JobControl>>,
 }
@@ -229,13 +230,24 @@ impl DesktopState {
         self.application
     }
 
-    pub fn take_session(&mut self) -> Option<ProjectSession> {
-        self.session.take()
+    pub fn session(&self) -> Option<Arc<Mutex<ProjectSession>>> {
+        self.session.as_ref().map(Arc::clone)
     }
 
     pub fn set_session(&mut self, session: ProjectSession) {
-        self.session = Some(session);
+        self.session = Some(Arc::new(Mutex::new(session)));
     }
+}
+
+fn lock_session_for_query(
+    session: &Mutex<ProjectSession>,
+) -> std::sync::MutexGuard<'_, ProjectSession> {
+    // Current-project workers only borrow the session for an immutable query.
+    // Recovering this owner after an unwinding query cannot expose a partial
+    // session mutation; mutation paths must not use poison recovery.
+    session
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
 pub fn error(
@@ -248,7 +260,7 @@ pub fn error(
         schema: IPC_SCHEMA,
         code: code.into(),
         message: scrub_user_message(&message.into()),
-        remediation: remediation.map(str::to_owned),
+        remediation: remediation.map(scrub_user_message),
         retryable,
     }
 }
@@ -280,7 +292,14 @@ pub fn run_atomic_project_step<T>(
 }
 
 fn scrub_user_message(message: &str) -> String {
-    if message.split_whitespace().any(is_absolute_path) {
+    let words = message.split_whitespace().collect::<Vec<_>>();
+    if words.iter().any(|word| {
+        let trimmed = word.trim_matches(|character: char| ",.;:()[]{}\"'".contains(character));
+        trimmed.starts_with("\\\\")
+    }) {
+        return "The desktop command failed while accessing a local project.".to_owned();
+    }
+    if words.iter().any(|word| is_absolute_path(word)) {
         message
             .split_whitespace()
             .map(|word| {
@@ -431,6 +450,14 @@ pub fn response_for_with_cancel(
 
 pub fn current_project(state: &DesktopState) -> Result<CurrentProjectResponse, DesktopIpcError> {
     let Some(session) = state.session.as_ref() else {
+        if !state.jobs.is_empty() {
+            return Err(error(
+                "resource_limit",
+                "Another project operation is already running.",
+                Some("Wait for the current project operation to finish."),
+                true,
+            ));
+        }
         return Ok(CurrentProjectResponse {
             schema: IPC_SCHEMA,
             state: "no_project",
@@ -439,7 +466,8 @@ pub fn current_project(state: &DesktopState) -> Result<CurrentProjectResponse, D
         });
     };
     let control = Arc::new(JobControl::new());
-    response_for_with_cancel(session, &mut JobCancellation::new(control))
+    let session = lock_session_for_query(session);
+    response_for_with_cancel(&session, &mut JobCancellation::new(control))
 }
 
 pub fn no_project_response() -> CurrentProjectResponse {
@@ -470,7 +498,7 @@ pub fn create_project_at(
         name,
         created_utc_ms,
     })?;
-    state.session = Some(session);
+    state.session = Some(Arc::new(Mutex::new(session)));
     current_project(state)
 }
 
@@ -480,7 +508,7 @@ pub fn open_project_at(
     mode: SessionMode,
 ) -> Result<CurrentProjectResponse, DesktopIpcError> {
     let session = state.application.open(OpenProject { path, mode })?;
-    state.session = Some(session);
+    state.session = Some(Arc::new(Mutex::new(session)));
     current_project(state)
 }
 
@@ -502,6 +530,56 @@ pub fn blank_project_path(app_data_dir: PathBuf) -> Result<PathBuf, DesktopIpcEr
         )
     })?;
     Ok(root.join(format!("rf-atlas-{}.rfatlas", uuid::Uuid::new_v4())))
+}
+
+/// Move a project that was created by a cancelled operation into the owning
+/// recovery bin. Keeping the bundle makes cancellation recoverable while
+/// avoiding a half-admitted project at the path chosen by the application.
+pub fn retain_cancelled_project(path: &std::path::Path) -> Result<(), DesktopIpcError> {
+    if !path.exists() {
+        return Ok(());
+    }
+    let parent = path.parent().ok_or_else(|| {
+        error(
+            "storage",
+            "The cancelled project could not be retained safely.",
+            Some("Retry the operation and keep the application data directory writable."),
+            true,
+        )
+    })?;
+    let trash = parent.join(".trash");
+    std::fs::create_dir_all(&trash).map_err(|value| {
+        error(
+            "storage",
+            format!("Could not prepare cancellation recovery storage: {value}"),
+            Some("Keep the application data directory writable and retry."),
+            true,
+        )
+    })?;
+    let name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("cancelled-project.rfatlas");
+    let destination = trash.join(format!("cancelled-{}-{name}", uuid::Uuid::new_v4()));
+    std::fs::rename(path, &destination).map_err(|value| {
+        error(
+            "storage",
+            format!("Could not retain the cancelled project bundle: {value}"),
+            Some("Keep the application data directory writable and retry."),
+            true,
+        )
+    })
+}
+
+pub fn cancel_created_project(
+    path: &std::path::Path,
+    control: &JobControl,
+) -> Result<(), DesktopIpcError> {
+    if !control.is_cancelled() {
+        return Ok(());
+    }
+    retain_cancelled_project(path)?;
+    Err(cancelled_error())
 }
 
 pub fn issue_open_grant(
@@ -697,6 +775,72 @@ pub fn finish_joined_job<T, E>(
     })
 }
 
+async fn current_project_job_with<F>(
+    state: &Mutex<DesktopState>,
+    job_id: String,
+    worker: F,
+) -> Result<CurrentProjectResponse, DesktopIpcError>
+where
+    F: FnOnce(
+            Arc<Mutex<ProjectSession>>,
+            Arc<JobControl>,
+        ) -> Result<CurrentProjectResponse, DesktopIpcError>
+        + Send
+        + 'static,
+{
+    let (control, session) = {
+        let mut guard = state.lock().map_err(|_| {
+            error(
+                "storage",
+                "The desktop project session is unavailable.",
+                Some("Restart RF Atlas."),
+                true,
+            )
+        })?;
+        let Some(session) = guard.session() else {
+            if !guard.jobs.is_empty() {
+                return Err(error(
+                    "resource_limit",
+                    "Another project operation is already running.",
+                    Some("Wait for the current project operation to finish."),
+                    true,
+                ));
+            }
+            return Ok(no_project_response());
+        };
+        let control = begin_job(&mut guard, &job_id)?;
+        (control, session)
+    };
+    let joined = tauri::async_runtime::spawn_blocking(move || worker(session, control)).await;
+    let mut guard = state.lock().map_err(|_| {
+        error(
+            "storage",
+            "The desktop project session is unavailable.",
+            Some("Restart RF Atlas."),
+            true,
+        )
+    })?;
+    finish_joined_job(&mut guard, &job_id, joined)?
+}
+
+pub async fn current_project_job(
+    state: &Mutex<DesktopState>,
+    job_id: String,
+) -> Result<CurrentProjectResponse, DesktopIpcError> {
+    current_project_job_with(state, job_id, |session, control| {
+        let mut cancellation = JobCancellation::new(control);
+        cancellation.control().set_progress(25);
+        let session = lock_session_for_query(&session);
+        let response = response_for_with_cancel(&session, &mut cancellation)?;
+        if cancellation.is_cancelled() {
+            return Err(cancelled_error());
+        }
+        cancellation.control().set_progress(100);
+        Ok(response)
+    })
+    .await
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -748,6 +892,20 @@ mod tests {
         assert_eq!(response.state, "no_project");
         assert!(response.project.is_none());
         assert!(!response.capabilities.is_empty());
+    }
+
+    #[test]
+    fn current_query_reports_busy_while_create_or_open_is_admitted() {
+        let mut state = DesktopState::default();
+        let job_id = uuid::Uuid::new_v4().to_string();
+        begin_job(&mut state, &job_id).expect("admit operation");
+        assert_eq!(
+            current_project(&state)
+                .expect_err("current query must not hide an active operation")
+                .code,
+            "resource_limit"
+        );
+        finish_job(&mut state, &job_id);
     }
 
     #[test]
@@ -862,7 +1020,52 @@ mod tests {
     }
 
     #[test]
-    fn cancellation_during_atomic_create_keeps_session_and_admission_recoverable() {
+    fn current_project_join_failure_preserves_session_and_releases_admission() {
+        let state = Mutex::new(DesktopState::default());
+        let active_id = {
+            let mut guard = state.lock().expect("state");
+            create_project_at(
+                &mut guard,
+                retained_path("current-join-failure"),
+                "Current before panic".into(),
+                1_800_000_000_000,
+            )
+            .expect("active project")
+            .project
+            .expect("project")
+            .project_id
+        };
+        let failed_id = uuid::Uuid::new_v4().to_string();
+        let failure = tauri::async_runtime::block_on(current_project_job_with(
+            &state,
+            failed_id,
+            |session, _control| {
+                let _session = session
+                    .lock()
+                    .expect("unpoisoned session before injected panic");
+                panic!("injected current-project worker failure")
+            },
+        ))
+        .expect_err("join failure");
+        assert_eq!(failure.code, "storage");
+        assert!(failure.retryable);
+
+        let mut guard = state.lock().expect("state after join failure");
+        assert!(guard.jobs.is_empty());
+        assert_eq!(
+            current_project(&guard)
+                .expect("prior session remains queryable")
+                .project
+                .expect("same project")
+                .project_id,
+            active_id
+        );
+        let next_id = uuid::Uuid::new_v4().to_string();
+        assert!(begin_job(&mut guard, &next_id).is_ok());
+    }
+
+    #[test]
+    fn cancellation_during_atomic_create_retains_bundle_and_keeps_session_recoverable() {
         use std::sync::mpsc;
 
         let mut state = DesktopState::default();
@@ -883,18 +1086,19 @@ mod tests {
         let (release_tx, release_rx) = mpsc::channel();
 
         let worker = std::thread::spawn(move || {
-            run_atomic_project_step(&task_control, || {
-                entered_tx.send(()).expect("entered");
-                release_rx.recv().expect("release");
-                let name = kyberia_domain::identity::Text::new("Cancelled project".to_owned())
-                    .expect("name");
-                Application.create(CreateProject {
+            entered_tx.send(()).expect("entered");
+            release_rx.recv().expect("release");
+            let name =
+                kyberia_domain::identity::Text::new("Cancelled project".to_owned()).expect("name");
+            let session = Application
+                .create(CreateProject {
                     path: worker_path.clone(),
                     name,
                     created_utc_ms: 1_800_000_000_001,
-                })?;
-                Ok(worker_path)
-            })
+                })
+                .map_err(DesktopIpcError::from)?;
+            drop(session);
+            cancel_created_project(&worker_path, &task_control).map(|_| worker_path)
         });
         entered_rx.recv().expect("worker entered atomic step");
         cancel_job(&state, &job_id).expect("cancel");
@@ -906,12 +1110,17 @@ mod tests {
         assert_eq!(completed_path.code, "cancelled");
         finish_job(&mut state, &job_id);
 
-        Application
-            .open(OpenProject {
-                path: cancelled_path,
-                mode: SessionMode::ReadOnly,
-            })
-            .expect("atomic create left a complete canonical project");
+        assert!(!cancelled_path.exists());
+        assert!(
+            cancelled_path
+                .parent()
+                .expect("cancelled project parent")
+                .join(".trash")
+                .read_dir()
+                .expect("recovery trash")
+                .next()
+                .is_some()
+        );
 
         let current = current_project(&state).expect("current project");
         assert_eq!(
@@ -994,5 +1203,17 @@ mod tests {
         );
         assert!(!value.message.contains("/private/user"));
         assert!(value.message.contains("[local path]"));
+    }
+
+    #[test]
+    fn renderer_errors_scrub_unc_paths_and_remediation() {
+        let value = error(
+            "storage",
+            r#"could not open \\server\share\rf atlas.rfatlas"#,
+            Some(r#"Check \\server\share\rf atlas.rfatlas"#),
+            true,
+        );
+        assert!(!value.message.contains("server"));
+        assert!(!value.remediation.expect("remediation").contains("server"));
     }
 }

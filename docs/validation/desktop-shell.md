@@ -19,7 +19,7 @@ measurement, floor-plan, or calibration data is fabricated.
 | Check | Result |
 | --- | --- |
 | `npm run typecheck` | PASS |
-| `npm test -- --run` | PASS (13 tests) |
+| `npm test -- --run` | PASS (14 tests) |
 | `npm run build` | PASS |
 | `cargo fmt --all -- --check` | PASS |
 | `cargo test --workspace --locked --offline` | PASS (workspace, including desktop; refreshed after corrections) |
@@ -27,7 +27,7 @@ measurement, floor-plan, or calibration data is fabricated.
 | `python3 tools/architecture.py` | PASS |
 | `python tools/source_inventory.py check` | PASS (522 locked external packages) |
 | `python tools/ledger.py check` | PASS |
-| `npm run e2e` | PASS (6 Chromium tests) |
+| `npm run e2e` | PASS (10 Chromium tests) |
 | `npm run tauri:build` | PASS (`tauri build --no-bundle`; `target/release/kyberia-desktop`) |
 | `KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/venv/bin/python python3 tools/dev.py desktop` | PASS (the complete root desktop gate, including Playwright and native build) |
 | Native binary launch | PASS: release process remained live until the controlled interrupt; host process inspection was sandbox-denied, so this is a launch/liveness smoke rather than visual native automation |
@@ -36,8 +36,10 @@ measurement, floor-plan, or calibration data is fabricated.
 Browser plugin not available. Playwright Chromium is
 the recorded fallback. The E2E suite covers empty, loading, error, unsupported,
 opaque grant open, command-palette arrows/Enter/Escape/focus restoration,
-strict combobox/listbox semantics, progress/cancellation, operation-specific
-retry, active-project confirmation, and 390×760 Inspector toggle behavior. Fresh screenshots are retained at
+strict combobox/listbox semantics, progress/cancellation during create and the
+native picker, operation serialization, operation-specific create/open retry,
+non-retryable recovery, distinct-identity replacement, and 390×760 Inspector
+toggle behavior. Fresh screenshots are retained at
 `apps/desktop/evidence/desktop-shell-1586x960-v3.png` and
 `apps/desktop/evidence/mobile-shell-390x760-v3.png`; the earlier evidence files
 remain unchanged.
@@ -66,23 +68,32 @@ shown as measured.
 
 ## Boundary decisions
 
-- `project_select_open` uses the OS selector adapter (`osascript` on macOS,
-  PowerShell folder picker on Windows, and `zenity`/`kdialog` on Linux). Rust
+- `project_select_open` uses the OS selector adapter (`/usr/bin/osascript` on
+  macOS, an absolute Windows PowerShell path, and `/usr/bin/zenity` or
+  `/usr/bin/kdialog` on Linux). Rust
   canonicalizes the selected root, rejects symlink roots, requires a `.rfatlas`
   directory, and stores the path only behind an opaque grant ID.
 - `project_open_grant` consumes the grant once and checks the optional expected
   display name. Forged, reused, mismatched, traversal, and symlink selections
   are rejected before application open.
-- `project_create_blank`, `project_open_grant`, and `project_current` admit one
-  caller-identified job at a time. Job IDs are canonical UUIDs; progress and
-  cancellation responses are strictly validated by the renderer. Join failure
-  always releases admission, cancellation never swaps the active session, and
-  an open grant is not consumed when job admission fails.
+- `project_select_open`, `project_create_blank`, `project_open_grant`, and
+  `project_current` admit one caller-identified job at a time. The renderer
+  reserves the whole create/open operation before the native picker and keeps
+  that picker job visible and cancellable. Job IDs are canonical UUIDs;
+  progress and cancellation responses are strictly validated by the renderer.
+  Join failure always releases admission, cancellation never swaps the active
+  session, and an open grant is not consumed when job admission fails.
+- Current-project queries retain a shared session owner outside the blocking
+  worker. The worker holds its mutex only for an immutable query; if that query
+  unwinds, the narrowly scoped poison recovery preserves the identical session
+  and project while unconditional cleanup releases the job admission slot.
 - Application create/open are short atomic storage calls without an internal
   cancellation seam. The desktop checks cancellation immediately before and
   after that call and again before response publication/session swap. A cancel
-  arriving inside the atomic call therefore completes the canonical bundle but
-  suppresses session publication; its latency is bounded by that atomic call.
+  arriving during create drops the session and moves the resulting bundle to
+  the owning `.trash` recovery bin before reporting `cancelled`; cleanup failure
+  is reported as a retryable storage error. Its latency is bounded by that
+  atomic call.
 - Native open grants expire after five minutes and the in-memory grant table is
   capped at eight entries. Valid grants remain single-use after successful job
   admission.
@@ -96,7 +107,8 @@ shown as measured.
   The former nested lock was moved to `.trash/desktop-lock-forward/` with an
   origin note; root `Cargo.lock` is canonical.
 - Frontend configuration remains self-contained under `apps/desktop`; its
-  `package-lock.json` pins the React/Vite and Tauri CLI graph because the root
+  exact direct dependency versions and `package-lock.json` pin the React/Vite
+  and Tauri CLI graph because the root
   untracked `package.json` and pnpm store are user work outside this boundary.
 - `src-tauri/gen/`, `tsconfig.tsbuildinfo`, app `dist/`, node modules, and the
   retained app test-run bin are ignored by the app-local `.gitignore`.

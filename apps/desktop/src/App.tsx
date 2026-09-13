@@ -48,7 +48,7 @@ export function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePalette, session.selectTool, session.setPaletteOpen, state.commandPaletteOpen]);
 
-  return <div className="app-shell">
+  return <div className="app-shell" data-project-id={state.projectId ?? undefined}>
     <TopBar projectName={state.projectName} paletteButtonRef={paletteTriggerRef} onOpenPalette={() => session.setPaletteOpen(true)} onNewProject={createProject} onOpenProject={() => void session.openProject()} onToggleInspector={() => setInspectorOpen((current) => !current)} inspectorOpen={inspectorOpen} busy={busy} />
     <div className="workspace">
       <ToolRail selected={state.selectedTool as ToolId} onSelect={session.selectTool} />

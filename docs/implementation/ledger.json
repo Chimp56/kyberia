@@ -236707,21 +236707,21 @@
         },
         {
           "path": "apps/desktop/src-tauri/src/lib.rs",
-          "description": "Panic-safe job admission/release, cancellation checkpoints, and bounded native grant lifecycle",
-          "revision": "e9a81c14e246e5fd8b5d7ffa5253d6e7786eb601a452a9dde782609c0034b3b6",
-          "sha256": "e9a81c14e246e5fd8b5d7ffa5253d6e7786eb601a452a9dde782609c0034b3b6"
+          "description": "Panic-safe job admission/release, recoverable immutable-query session ownership, cancellation recovery trash, and bounded native grant lifecycle",
+          "revision": "545f4d7603e2ab895cb5b5523e54c38cd654910f7992beeb95e3839e2fdffb15",
+          "sha256": "545f4d7603e2ab895cb5b5523e54c38cd654910f7992beeb95e3839e2fdffb15"
         },
         {
           "path": "apps/desktop/src-tauri/src/main.rs",
           "description": "Tauri command progress, cancellation and session-publication boundary",
-          "revision": "f250b331adf0bc444c73d3b2fe3006eb36874b1dbe7b77892139da92100bf07d",
-          "sha256": "f250b331adf0bc444c73d3b2fe3006eb36874b1dbe7b77892139da92100bf07d"
+          "revision": "09db9bff8fe521ba92f3116d9ed04ac6a21f28020de201131a514213539182ef",
+          "sha256": "09db9bff8fe521ba92f3116d9ed04ac6a21f28020de201131a514213539182ef"
         },
         {
           "path": "apps/desktop/src/lib/useProjectSession.ts",
           "description": "Renderer-known job identity, strict polling, cancellation and operation-specific retry",
-          "revision": "6c1afc102deaf62fa271f1487cc6e9703269740d9c3ffbee075a9e55b7aecbca",
-          "sha256": "6c1afc102deaf62fa271f1487cc6e9703269740d9c3ffbee075a9e55b7aecbca"
+          "revision": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8",
+          "sha256": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8"
         }
       ],
       "validation": [
@@ -236737,17 +236737,17 @@
         {
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered desktop/mobile shell, palette semantics, progress/cancel, session preservation and retry assertions",
-          "revision": "211c162a11a628fb52de63e514394cd198554a20e49bb1134aa374b510f13bae",
-          "sha256": "211c162a11a628fb52de63e514394cd198554a20e49bb1134aa374b510f13bae",
+          "revision": "66e6d6cb99ca23c5316c1fc5748de35c5d0773954b13544db5fbdc814a2816e3",
+          "sha256": "66e6d6cb99ca23c5316c1fc5748de35c5d0773954b13544db5fbdc814a2816e3",
           "command": "npm run e2e",
           "scope": "contract",
-          "result": "PASS (6 Chromium tests)"
+          "result": "PASS (10 Chromium tests)"
         },
         {
           "path": "docs/validation/desktop-shell.md",
           "description": "Desktop boundary decisions, test evidence and explicit native/browser limitations",
-          "revision": "25a8726134be3dcbd0378b977fced7f820834a9b92bcae61901e05811393641c",
-          "sha256": "25a8726134be3dcbd0378b977fced7f820834a9b92bcae61901e05811393641c",
+          "revision": "7865b6d96ea65810b3ff493b759f8060f8c21f122ec8e81e2ff484eb81e92f4d",
+          "sha256": "7865b6d96ea65810b3ff493b759f8060f8c21f122ec8e81e2ff484eb81e92f4d",
           "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/venv/bin/python python3 tools/dev.py desktop",
           "scope": "integration",
           "result": "PASS"
