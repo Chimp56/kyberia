@@ -28,28 +28,37 @@ An active run requires explicit user consent and a tier allow-list.  Target
 validation rejects unspecified, multicast, and broadcast addresses.  Loopback
 and link-local targets require both the corresponding authorization flag and a
 local gateway/LAN tier.  Gateway/LAN targets must be local-only addresses;
-Internet-control targets must not be local-only.  Endpoint and target tiers
-must match, IPv4-mapped IPv6 addresses are rejected, and the only accepted
-protocol/method pair is TCP connect timing.  The target port is an explicit
-numeric TCP port in `1..=65535`.
+Internet-control targets must not be local-only.  The literal address contract
+rejects unscoped IPv6 link-local addresses because it has no zone/interface
+identifier; IPv4 link-local remains tier- and authorization-gated.  Endpoint
+and target tiers must match, IPv4-mapped IPv6 addresses are rejected, and the
+only accepted protocol/method pair is TCP connect timing.  The target port is
+an explicit numeric TCP port in `1..=65535`.
 
 `kyberia-active-measurement` provides three separated surfaces:
 
 1. `pure` builds a deterministic endpoint-id-then-ordinal schedule with
-   SHA-256-derived sample identities, no randomization, a bounded sample
+   SHA-256-derived unique sample identities, no randomization, a bounded sample
    count, minimum spacing, timeout, duration, and concurrency declaration.
+   The schedule carries the authorization, sample-limit, and provenance
+   contract used to build it.  Canonical result admission also rejects a
+   repeated sample identity, even when ordinals differ.
 2. `executor` is generic over monotonic clock, cancellation, and TCP connector
-   ports.  It executes serially in this increment, preserving the configured
+   ports.  It re-derives and compares the complete run/interval schedule
+   contract before executing, so a same-ID schedule with a different target,
+   authorization, limit, or provenance is rejected.  It executes serially in
+   this increment, preserving the configured
    concurrency ceiling, and emits one canonical sample for every scheduled
    sample.  Cancellation emits `Cancelled`; an overall deadline emits
    `Timeout`; neither silently drops the remainder.
 3. `adapter` supplies a real `StdTcpConnector` backed by Mio's nonblocking OS
    TCP stream and a literal address.  It polls connection readiness and
-   cancellation in 25 ms bounded slices, rather than allowing a 60-second
-   blocking connect to hide cancellation.  The clock adapter uses the same
-   bounded cancellation-aware sleep port.  It never resolves names, spawns a
-   process, accepts command fragments, or contacts a target outside the
-   endpoint contract.
+   cancellation in 25 ms bounded slices, then requires both a clear socket
+   error and a connected peer before recording success.  This prevents
+   pending/WouldBlock state from becoming a false connection.  The clock
+   adapter uses the same bounded cancellation-aware sleep port.  It never
+   resolves names, spawns a process, accepts command fragments, or contacts a
+   target outside the endpoint contract.
 
 Successful attempts record monotonic TCP connect timing in milliseconds.
 Refusal, timeout, unreachable, permission, generic error, and cancellation
@@ -57,7 +66,8 @@ are typed outcomes with unknown RTT evidence.  Statistics are computed from
 successful RTTs using linear interpolation at `q * (n - 1)` for median, p90,
 p95, and p99, with max as the largest successful sample.  Loss percentage
 uses non-cancelled attempts; consecutive non-cancelled failures are retained
-as burst lengths.  No failure contributes a zero RTT.
+as burst lengths, while a run with no loss has `NotApplicable` burst
+percentiles.  No failure contributes a zero RTT.
 
 Hard limits in this increment are 32 endpoints, 4,096 total samples, eight
 concurrent operations (the shipped executor uses one), 60 seconds per

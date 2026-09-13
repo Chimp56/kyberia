@@ -234,8 +234,11 @@ impl ActiveSocketAddr {
             || address.is_multicast()
             || address.is_broadcast()
             || address.is_ipv4_mapped()
+            || (matches!(address, ActiveIpAddress::V6(_)) && address.is_link_local())
         {
-            return Err(ValidationError::OutOfRange("active TCP unicast address"));
+            return Err(ValidationError::OutOfRange(
+                "active TCP unicast address (IPv6 link-local requires a scope)",
+            ));
         }
         Ok(Self { address, port })
     }
@@ -1558,7 +1561,7 @@ impl TryFrom<LossBurstDistributionWire> for LossBurstDistribution {
             if value.lost_samples != 0
                 || values
                     .iter()
-                    .any(|value| matches!(value, Evidence::Known(_)))
+                    .any(|value| !matches!(value, Evidence::Unknown(UnknownReason::NotApplicable)))
             {
                 return Err(ActiveValidationError::Domain(
                     ValidationError::Inconsistent("active loss burst distribution without bursts"),
@@ -1680,6 +1683,11 @@ impl ActiveStatistics {
         } else {
             UnknownReason::FailedTest
         };
+        let no_burst_reason = if loss_bursts.is_empty() {
+            UnknownReason::NotApplicable
+        } else {
+            no_rtt_reason.clone()
+        };
         Ok(Self {
             scheduled_samples,
             eligible_samples,
@@ -1696,11 +1704,11 @@ impl ActiveStatistics {
             loss_bursts: LossBurstDistribution {
                 burst_count: loss_bursts.len() as u32,
                 lost_samples,
-                median: percentile_count(&loss_bursts, 0.50, no_rtt_reason.clone()),
-                p90: percentile_count(&loss_bursts, 0.90, no_rtt_reason.clone()),
-                p95: percentile_count(&loss_bursts, 0.95, no_rtt_reason.clone()),
-                p99: percentile_count(&loss_bursts, 0.99, no_rtt_reason.clone()),
-                max: max_count(&loss_bursts, no_rtt_reason),
+                median: percentile_count(&loss_bursts, 0.50, no_burst_reason.clone()),
+                p90: percentile_count(&loss_bursts, 0.90, no_burst_reason.clone()),
+                p95: percentile_count(&loss_bursts, 0.95, no_burst_reason.clone()),
+                p99: percentile_count(&loss_bursts, 0.99, no_burst_reason.clone()),
+                max: max_count(&loss_bursts, no_burst_reason),
             },
         })
     }
@@ -1899,6 +1907,7 @@ impl ActiveResult {
         }
         samples.sort_by_key(ActiveSample::ordinal);
         let mut ordinals = BTreeSet::new();
+        let mut sample_ids = BTreeSet::new();
         for sample in &samples {
             if sample.run_id() != run_id
                 || sample.interval_id() != interval_id
@@ -1906,6 +1915,7 @@ impl ActiveResult {
                 || sample.endpoint_tier() != endpoint.tier()
                 || sample.endpoint_attribution() != endpoint.attribution()
                 || sample.provenance() != samples[0].provenance()
+                || !sample_ids.insert(sample.id())
                 || !ordinals.insert(sample.ordinal())
             {
                 return Err(ActiveValidationError::Domain(
@@ -2010,6 +2020,7 @@ impl TryFrom<ActiveResultWire> for ActiveResult {
             ));
         }
         value.samples.sort_by_key(ActiveSample::ordinal);
+        let mut sample_ids = BTreeSet::new();
         for (expected, sample) in value.samples.iter().enumerate() {
             if sample.run_id() != value.run_id
                 || sample.interval_id() != value.interval_id
@@ -2017,6 +2028,7 @@ impl TryFrom<ActiveResultWire> for ActiveResult {
                 || sample.endpoint_tier() != value.endpoint_tier
                 || sample.endpoint_attribution() != &value.endpoint_attribution
                 || sample.provenance() != &value.provenance
+                || !sample_ids.insert(sample.id())
                 || sample.ordinal() != expected as u32
             {
                 return Err(ActiveValidationError::Domain(

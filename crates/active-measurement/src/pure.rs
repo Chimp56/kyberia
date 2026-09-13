@@ -1,12 +1,16 @@
 //! Side-effect-free active scheduling and result helpers.
 
 use kyberia_domain::{
-    active::{ActiveEndpoint, ActiveInterval, ActiveTestRun, ActiveValidationError},
+    active::{
+        ActiveAuthorization, ActiveEndpoint, ActiveInterval, ActiveMeasurementProvenance,
+        ActiveTestRun, ActiveValidationError,
+    },
     identity::{ActiveEndpointId, ActiveIntervalId, ActiveSampleId, ActiveTestRunId, Text},
     time::MonotonicTimestamp,
     units::Seconds,
 };
 use sha2::{Digest, Sha256};
+use std::collections::BTreeSet;
 
 pub const SCHEDULE_VERSION: &str = "rf-atlas-active-schedule/v1";
 
@@ -61,13 +65,16 @@ pub struct ActiveSchedule {
     schedule_version: Text,
     run_id: ActiveTestRunId,
     interval_id: ActiveIntervalId,
+    run_started: MonotonicTimestamp,
+    run_deadline: MonotonicTimestamp,
     start: MonotonicTimestamp,
     duration: Seconds,
-    per_attempt_timeout: Seconds,
-    minimum_spacing: Seconds,
-    max_concurrency: u16,
+    limits: kyberia_domain::active::ActiveTestLimits,
     order: ScheduleOrder,
     randomization: Randomization,
+    authorization: ActiveAuthorization,
+    run_provenance: ActiveMeasurementProvenance,
+    interval_provenance: ActiveMeasurementProvenance,
     samples: Vec<ScheduledSample>,
 }
 
@@ -88,20 +95,28 @@ impl ActiveSchedule {
         self.start
     }
 
+    pub const fn run_started(&self) -> MonotonicTimestamp {
+        self.run_started
+    }
+
+    pub const fn run_deadline(&self) -> MonotonicTimestamp {
+        self.run_deadline
+    }
+
     pub const fn duration(&self) -> Seconds {
         self.duration
     }
 
     pub const fn per_attempt_timeout(&self) -> Seconds {
-        self.per_attempt_timeout
+        self.limits.per_attempt_timeout()
     }
 
     pub const fn minimum_spacing(&self) -> Seconds {
-        self.minimum_spacing
+        self.limits.minimum_spacing()
     }
 
     pub const fn max_concurrency(&self) -> u16 {
-        self.max_concurrency
+        self.limits.max_concurrency()
     }
 
     pub const fn order(&self) -> ScheduleOrder {
@@ -110,6 +125,26 @@ impl ActiveSchedule {
 
     pub const fn randomization(&self) -> Randomization {
         self.randomization
+    }
+
+    pub fn authorization(&self) -> &ActiveAuthorization {
+        &self.authorization
+    }
+
+    pub const fn max_samples_total(&self) -> u32 {
+        self.limits.max_samples_total()
+    }
+
+    pub const fn limits(&self) -> kyberia_domain::active::ActiveTestLimits {
+        self.limits
+    }
+
+    pub const fn run_provenance(&self) -> &ActiveMeasurementProvenance {
+        &self.run_provenance
+    }
+
+    pub const fn interval_provenance(&self) -> &ActiveMeasurementProvenance {
+        &self.interval_provenance
     }
 
     pub fn samples(&self) -> &[ScheduledSample] {
@@ -195,6 +230,13 @@ pub fn build_schedule(
     {
         return Err(ScheduleError::IntervalOutsideRun);
     }
+    if interval.provenance() != run.provenance() {
+        return Err(ScheduleError::Invalid(ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::Inconsistent(
+                "active interval provenance differs from run",
+            ),
+        )));
+    }
     let total_samples = run
         .endpoints()
         .len()
@@ -209,6 +251,25 @@ pub fn build_schedule(
             kyberia_domain::ValidationError::ResourceLimit("active schedule sample count"),
         )));
     }
+    let interval_duration_nanos = interval
+        .window()
+        .end()
+        .nanoseconds
+        .checked_sub(interval.window().start().nanoseconds)
+        .ok_or(ScheduleError::Invalid(ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::ReversedTime,
+        )))?;
+    let required_nanos = (total_samples.saturating_sub(1) as u64)
+        .checked_mul(duration_nanos(run.limits().minimum_spacing()))
+        .and_then(|offset| offset.checked_add(duration_nanos(run.limits().per_attempt_timeout())))
+        .ok_or(ScheduleError::Invalid(ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::ResourceLimit("active schedule rate"),
+        )))?;
+    if required_nanos > interval_duration_nanos {
+        return Err(ScheduleError::Invalid(ActiveValidationError::Domain(
+            kyberia_domain::ValidationError::OutOfRange("active interval rate"),
+        )));
+    }
     let mut endpoints = run.endpoints().to_vec();
     endpoints.sort_by_key(ActiveEndpoint::id);
     let spacing = run.limits().minimum_spacing();
@@ -217,6 +278,7 @@ pub fn build_schedule(
             .len()
             .saturating_mul(interval.samples_per_endpoint() as usize),
     );
+    let mut sample_ids = BTreeSet::new();
     let mut sequence = 0u32;
     for endpoint in endpoints {
         for ordinal in 0..interval.samples_per_endpoint() {
@@ -233,8 +295,16 @@ pub fn build_schedule(
                 epoch: interval.window().start().epoch,
                 nanoseconds: planned_nanos,
             };
+            let id = sample_id(run.id(), interval.id(), endpoint.id(), ordinal);
+            if !sample_ids.insert(id) {
+                return Err(ScheduleError::Invalid(ActiveValidationError::Domain(
+                    kyberia_domain::ValidationError::Inconsistent(
+                        "duplicate active sample identity",
+                    ),
+                )));
+            }
             samples.push(ScheduledSample {
-                id: sample_id(run.id(), interval.id(), endpoint.id(), ordinal),
+                id,
                 endpoint: endpoint.clone(),
                 ordinal,
                 sequence,
@@ -253,6 +323,8 @@ pub fn build_schedule(
         schedule_version,
         run_id: run.id(),
         interval_id: interval.id(),
+        run_started: run.started(),
+        run_deadline: run.deadline(),
         start: interval.window().start(),
         duration: interval
             .window()
@@ -260,11 +332,12 @@ pub fn build_schedule(
             .elapsed_since(interval.window().start())
             .map_err(ActiveValidationError::Domain)
             .map_err(ScheduleError::Invalid)?,
-        per_attempt_timeout: run.limits().per_attempt_timeout(),
-        minimum_spacing: spacing,
-        max_concurrency: run.limits().max_concurrency(),
+        limits: run.limits(),
         order: ScheduleOrder::EndpointIdThenOrdinal,
         randomization: Randomization::None,
+        authorization: run.authorization().clone(),
+        run_provenance: run.provenance().clone(),
+        interval_provenance: interval.provenance().clone(),
         samples,
     })
 }

@@ -21,14 +21,18 @@ The focused Rust suite covers:
 - loopback authorization and endpoint-tier/target-tier mismatch;
 - explicit consent/tier allow-list enforcement;
 - unknown interface/route/BSSID attribution preservation;
-- deterministic endpoint-id-then-ordinal ordering and hash-derived sample IDs;
+- deterministic endpoint-id-then-ordinal ordering and unique hash-derived
+  sample IDs, with canonical result admission rejecting repeated IDs;
 - total sample, duration, spacing, timeout, and concurrency bounds;
 - serial fake-connector outcomes for success, refusal, timeout, error,
   cancellation, and overall deadline, including cancellation-aware 25 ms
   spacing/connector polling;
 - successful RTT median/p90/p95/p99/max and consecutive-loss-burst invariants;
 - run-wide schedule limits against forged maximum-per-endpoint intervals;
+- schedule admission against same-ID target, authorization, limit, and
+  provenance substitutions;
 - rejection of IPv4-mapped loopback/private/multicast/broadcast addresses;
+- rejection of unscoped IPv6 link-local addresses;
 - standalone RTT, loss-burst, statistics, timestamp, and window wire
   revalidation;
 - a real std TCP connector against a bounded loopback listener and a local
@@ -38,7 +42,8 @@ The focused Rust suite covers:
 The canonical sample retains an outcome for every scheduled item. Successful
 samples contain measured TCP connect RTT; failed and cancelled samples contain
 unknown RTT evidence with a reason. Statistics exclude cancelled items from
-loss percentage and terminate loss bursts at cancellation boundaries.
+loss percentage and terminate loss bursts at cancellation boundaries. When no
+loss burst exists, its percentile evidence is `NotApplicable`.
 
 ## Boundaries and known gaps
 

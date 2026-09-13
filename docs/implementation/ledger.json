@@ -168432,8 +168432,8 @@
         {
           "path": "crates/domain/src/identity.rs",
           "description": "Canonical typed identities",
-          "revision": "d3733dbfa573e1b70a634955788cadcbd0449d512f0b108d83ed6e3c36ae8b31",
-          "sha256": "d3733dbfa573e1b70a634955788cadcbd0449d512f0b108d83ed6e3c36ae8b31"
+          "revision": "357db1e6e112134d1910423f19b47b2aadb8fba19d76b23b40b04a632f4809e8",
+          "sha256": "357db1e6e112134d1910423f19b47b2aadb8fba19d76b23b40b04a632f4809e8"
         }
       ],
       "validation": [

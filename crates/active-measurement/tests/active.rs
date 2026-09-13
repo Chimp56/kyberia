@@ -12,8 +12,8 @@ use kyberia_domain::{
     },
     evidence::{Evidence, UnknownReason},
     identity::{
-        ActiveEndpointId, ActiveIntervalId, ActiveSampleId, ActiveTestRunId, AdapterId,
-        ClockEpochId, SensorId, Text,
+        ActiveEndpointId, ActiveIntervalId, ActiveResultId, ActiveSampleId, ActiveTestRunId,
+        AdapterId, ClockEpochId, SensorId, Text,
     },
     time::MonotonicTimestamp,
     units::{Milliseconds, Seconds},
@@ -47,6 +47,7 @@ macro_rules! ids {
 ids!(
     ActiveEndpointId,
     ActiveIntervalId,
+    ActiveResultId,
     ActiveSampleId,
     ActiveTestRunId,
     AdapterId,
@@ -180,6 +181,11 @@ fn target_and_units_fail_closed() {
         assert!(ActiveIpAddress::v6(mapped).is_ipv4_mapped());
         assert!(ActiveSocketAddr::new(ActiveIpAddress::v6(mapped), 80).is_err());
     }
+    let mut ipv6_link_local = [0_u8; 16];
+    ipv6_link_local[0] = 0xfe;
+    ipv6_link_local[1] = 0x80;
+    assert!(ActiveIpAddress::v6(ipv6_link_local).is_link_local());
+    assert!(ActiveSocketAddr::new(ActiveIpAddress::v6(ipv6_link_local), 80).is_err());
     assert!(Seconds::new(f64::NAN).is_err());
     assert!(Milliseconds::new(-1.0).is_err());
     let endpoint = endpoint(1, 80, ActiveEndpointTier::LanReference);
@@ -263,7 +269,39 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     let mut unknown_sample_time = serde_json::to_value(&sample).unwrap();
     unknown_sample_time["started"]["extra"] = json!(true);
     assert!(serde_json::from_value::<ActiveSample>(unknown_sample_time).is_err());
+    let duplicate_id_sample = ActiveSample::new(
+        sample.id(),
+        run.id(),
+        interval.id(),
+        id(1),
+        ActiveEndpointTier::LanReference,
+        unknown_attribution(),
+        1,
+        run.started(),
+        MonotonicTimestamp {
+            epoch: run.started().epoch,
+            nanoseconds: run.started().nanoseconds + 1_000_000,
+        },
+        ActiveSampleOutcome::Success,
+        Evidence::Known(Milliseconds::new(1.0).unwrap()),
+        run.provenance().clone(),
+    )
+    .unwrap();
+    assert!(
+        kyberia_domain::active::ActiveResult::from_samples(
+            id(206),
+            run.id(),
+            interval.id(),
+            &run.endpoints()[0],
+            vec![sample.clone(), duplicate_id_sample],
+        )
+        .is_err()
+    );
     let stats = kyberia_domain::active::ActiveStatistics::from_samples(&[sample]).unwrap();
+    assert_eq!(
+        stats.loss_bursts().median(),
+        &Evidence::Unknown(UnknownReason::NotApplicable)
+    );
     let mut bad_rtt = serde_json::to_value(stats.rtt()).unwrap();
     bad_rtt["successful_samples"] = json!(0);
     assert!(serde_json::from_value::<kyberia_domain::active::RttDistribution>(bad_rtt).is_err());
@@ -272,6 +310,14 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     assert!(
         serde_json::from_value::<kyberia_domain::active::LossBurstDistribution>(bad_bursts)
             .is_err()
+    );
+    let mut wrong_no_loss_reason = serde_json::to_value(stats.loss_bursts()).unwrap();
+    wrong_no_loss_reason["median"]["detail"] = json!("failed_test");
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::LossBurstDistribution>(
+            wrong_no_loss_reason
+        )
+        .is_err()
     );
     let mut bad_stats = serde_json::to_value(&stats).unwrap();
     bad_stats["eligible_samples"] = json!(0);
@@ -351,6 +397,9 @@ fn schedule_is_deterministic_and_resource_bounded() {
     assert_eq!(first.samples()[0].ordinal(), 0);
     assert_eq!(first.samples()[1].ordinal(), 1);
     assert_eq!(first.max_concurrency(), 2);
+    let sample_ids: std::collections::BTreeSet<_> =
+        first.samples().iter().map(|sample| sample.id()).collect();
+    assert_eq!(sample_ids.len(), first.samples().len());
     let mut forged_interval = serde_json::to_value(&interval).unwrap();
     forged_interval["samples_per_endpoint"] = json!(4_096);
     let forged_interval = serde_json::from_value(forged_interval).unwrap();
@@ -359,6 +408,32 @@ fn schedule_is_deterministic_and_resource_bounded() {
         Err(ScheduleError::Invalid(
             kyberia_domain::active::ActiveValidationError::Domain(
                 kyberia_domain::ValidationError::ResourceLimit(_)
+            )
+        ))
+    ));
+    let mut forged_rate_interval = serde_json::to_value(&interval).unwrap();
+    forged_rate_interval["samples_per_endpoint"] = json!(2);
+    forged_rate_interval["window"]["end"]["nanoseconds"] =
+        json!(interval.window().start().nanoseconds + 499_999_999);
+    let forged_rate_interval = serde_json::from_value(forged_rate_interval).unwrap();
+    assert!(matches!(
+        build_schedule(&run, &forged_rate_interval),
+        Err(ScheduleError::Invalid(
+            kyberia_domain::active::ActiveValidationError::Domain(
+                kyberia_domain::ValidationError::OutOfRange("active interval rate")
+            )
+        ))
+    ));
+    let mut mismatched_interval = serde_json::to_value(&interval).unwrap();
+    mismatched_interval["provenance"]["source"] = json!("other-source");
+    let mismatched_interval =
+        serde_json::from_value::<kyberia_domain::active::ActiveInterval>(mismatched_interval)
+            .unwrap();
+    assert!(matches!(
+        build_schedule(&run, &mismatched_interval),
+        Err(ScheduleError::Invalid(
+            kyberia_domain::active::ActiveValidationError::Domain(
+                kyberia_domain::ValidationError::Inconsistent(_)
             )
         ))
     ));
@@ -687,6 +762,150 @@ fn cancellation_interrupts_long_spacing_and_connector_ports() {
             .iter()
             .all(|sample| sample.outcome() == ActiveSampleOutcome::Cancelled)
     );
+}
+
+#[test]
+fn execute_rejects_same_ids_with_changed_schedule_contract() {
+    let (run, interval) = make_run(
+        vec![endpoint(1, 9, ActiveEndpointTier::LanReference)],
+        1.0,
+        1,
+    );
+    let expected = build_schedule(&run, &interval).unwrap();
+
+    let changed_target = ActiveTarget::new(
+        text("loopback-test"),
+        ActiveEndpointTier::LanReference,
+        ActiveSocketAddr::new(ActiveIpAddress::v4([127, 0, 0, 1]), 10).unwrap(),
+    )
+    .unwrap();
+    let changed_endpoint = ActiveEndpoint::new(
+        id::<ActiveEndpointId>(1),
+        ActiveEndpointTier::LanReference,
+        changed_target,
+        ActiveTransportProtocol::Tcp,
+        ActiveMeasurementMethod::TcpConnectRtt,
+        unknown_attribution(),
+    )
+    .unwrap();
+    let changed_run = ActiveTestRun::new(
+        run.id(),
+        run.started(),
+        run.deadline(),
+        vec![changed_endpoint],
+        run.authorization().clone(),
+        run.limits(),
+        run.provenance().clone(),
+    )
+    .unwrap();
+    let changed_interval = changed_run
+        .create_interval(interval.id(), Seconds::new(1.0).unwrap(), 1)
+        .unwrap();
+    let changed_target_schedule = build_schedule(&changed_run, &changed_interval).unwrap();
+    let now = Rc::new(Cell::new(0));
+    let mut clock = FakeClock { now: now.clone() };
+    let mut connector = FakeConnector {
+        now,
+        results: VecDeque::new(),
+        seen: Vec::new(),
+    };
+    assert!(matches!(
+        execute(
+            &run,
+            &interval,
+            &changed_target_schedule,
+            &mut clock,
+            &mut connector,
+            &NeverCancelled,
+        ),
+        Err(kyberia_active_measurement::ActiveMeasurementError::ScheduleMismatch)
+    ));
+
+    let changed_authorization = ActiveAuthorization::new(
+        true,
+        vec![ActiveEndpointTier::LanReference],
+        true,
+        false,
+        text("different-purpose"),
+    )
+    .unwrap();
+    let authorization_run = ActiveTestRun::new(
+        run.id(),
+        run.started(),
+        run.deadline(),
+        run.endpoints().to_vec(),
+        changed_authorization,
+        run.limits(),
+        run.provenance().clone(),
+    )
+    .unwrap();
+    let authorization_interval = authorization_run
+        .create_interval(interval.id(), Seconds::new(1.0).unwrap(), 1)
+        .unwrap();
+    let authorization_schedule =
+        build_schedule(&authorization_run, &authorization_interval).unwrap();
+    assert_ne!(authorization_schedule, expected);
+    assert_ne!(authorization_schedule.authorization(), run.authorization());
+    let now = Rc::new(Cell::new(0));
+    let mut clock = FakeClock { now: now.clone() };
+    let mut connector = FakeConnector {
+        now,
+        results: VecDeque::new(),
+        seen: Vec::new(),
+    };
+    assert!(matches!(
+        execute(
+            &run,
+            &interval,
+            &authorization_schedule,
+            &mut clock,
+            &mut connector,
+            &NeverCancelled,
+        ),
+        Err(kyberia_active_measurement::ActiveMeasurementError::ScheduleMismatch)
+    ));
+
+    let changed_limits = ActiveTestLimits::new(
+        32,
+        2,
+        Seconds::new(0.5).unwrap(),
+        Seconds::new(1.0).unwrap(),
+        Seconds::new(0.0).unwrap(),
+    )
+    .unwrap();
+    let limits_run = ActiveTestRun::new(
+        run.id(),
+        run.started(),
+        run.deadline(),
+        run.endpoints().to_vec(),
+        run.authorization().clone(),
+        changed_limits,
+        run.provenance().clone(),
+    )
+    .unwrap();
+    let limits_interval = limits_run
+        .create_interval(interval.id(), Seconds::new(1.0).unwrap(), 1)
+        .unwrap();
+    let limits_schedule = build_schedule(&limits_run, &limits_interval).unwrap();
+    assert_ne!(limits_schedule.limits(), expected.limits());
+    let now = Rc::new(Cell::new(0));
+    let mut clock = FakeClock { now: now.clone() };
+    let mut connector = FakeConnector {
+        now,
+        results: VecDeque::new(),
+        seen: Vec::new(),
+    };
+    assert!(matches!(
+        execute(
+            &run,
+            &interval,
+            &limits_schedule,
+            &mut clock,
+            &mut connector,
+            &NeverCancelled,
+        ),
+        Err(kyberia_active_measurement::ActiveMeasurementError::ScheduleMismatch)
+    ));
 }
 
 proptest! {

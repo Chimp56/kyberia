@@ -128,11 +128,21 @@ impl TcpConnector for StdTcpConnector {
                 Err(error) => return classify(error),
             }
             if events.iter().any(|event| event.token() == Token(0)) {
-                return match stream.take_error() {
-                    Ok(Some(error)) => classify(error),
-                    Ok(None) => ConnectResult::Connected,
-                    Err(error) => classify(error),
-                };
+                match stream.take_error() {
+                    Ok(Some(error)) => return classify(error),
+                    Err(error)
+                        if error.kind() == io::ErrorKind::NotConnected
+                            || error.kind() == io::ErrorKind::WouldBlock => {}
+                    Err(error) => return classify(error),
+                    Ok(None) => {}
+                }
+                match stream.peer_addr() {
+                    Ok(_) => return ConnectResult::Connected,
+                    Err(error)
+                        if error.kind() == io::ErrorKind::NotConnected
+                            || error.kind() == io::ErrorKind::WouldBlock => {}
+                    Err(error) => return classify(error),
+                }
             }
         }
     }

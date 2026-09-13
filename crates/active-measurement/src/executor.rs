@@ -4,7 +4,7 @@
 //! the connector are inward ports, which makes deadline and cancellation
 //! behavior testable without contacting an external address.
 
-use crate::pure::{ActiveSchedule, ScheduledSample, result_id};
+use crate::pure::{ActiveSchedule, ScheduledSample, build_schedule, result_id};
 use kyberia_domain::{
     active::{
         ActiveEndpoint, ActiveInterval, ActiveResult, ActiveSample, ActiveSampleOutcome,
@@ -318,15 +318,9 @@ pub fn execute<C: MonotonicClock, T: TcpConnector, X: Cancellation>(
     connector: &mut T,
     cancellation: &X,
 ) -> Result<ActiveExecutionReport, ActiveMeasurementError> {
-    if schedule.run_id() != run.id()
-        || schedule.interval_id() != interval.id()
-        || interval.run_id() != run.id()
-        || schedule.samples().len()
-            != run
-                .endpoints()
-                .len()
-                .saturating_mul(interval.samples_per_endpoint() as usize)
-    {
+    let expected_schedule =
+        build_schedule(run, interval).map_err(|_| ActiveMeasurementError::ScheduleMismatch)?;
+    if schedule != &expected_schedule {
         return Err(ActiveMeasurementError::ScheduleMismatch);
     }
     let execution_start = clock.now_nanos();
