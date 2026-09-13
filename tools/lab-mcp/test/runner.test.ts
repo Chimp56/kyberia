@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { mkdir, readFile, symlink, writeFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
 import { execFileSync } from "node:child_process";
 import type { SignedJobRequest } from "../src/manager.js";
+import { generateInputManifest } from "../src/input-manifest.js";
 import { inputManifestId, proveHost, runOnce } from "../src/runner.js";
 import { RunnerConfig, type LabRunnerConfig } from "../src/schema.js";
 import { canonical, signObject, verifyObject } from "../src/security.js";
@@ -18,15 +20,73 @@ const root = join(
 );
 await mkdir(root, { recursive: true });
 const executableRunnerTest = process.platform === "win32" ? test.skip : test;
+const repository = resolve(process.cwd(), "../..");
+const gitExecutable =
+  process.platform === "win32"
+    ? "C:\\Program Files\\Git\\cmd\\git.exe"
+    : "/usr/bin/git";
+const fileSha256 = (path: string) =>
+  createHash("sha256").update(readFileSync(path)).digest("hex");
+const gitExecutableSha256 =
+  process.platform === "win32" ? "0".repeat(64) : fileSha256(gitExecutable);
+const committedSha =
+  process.platform === "win32"
+    ? "0".repeat(40)
+    : execFileSync(gitExecutable, ["rev-parse", "HEAD"], {
+        cwd: repository,
+        encoding: "utf8",
+      }).trim();
+function inputsFor(repositoryPath: string, revision: string) {
+  return execFileSync(
+    gitExecutable,
+    ["ls-tree", "-rz", "--full-tree", revision],
+    { cwd: repositoryPath },
+  )
+    .toString("utf8")
+    .split("\0")
+    .filter(Boolean)
+    .map((record) => {
+      const match = /^(100644|100755) blob ([0-9a-f]{40,64})\t(.+)$/.exec(
+        record,
+      );
+      assert.ok(match, `unsupported test tree entry: ${record}`);
+      return {
+        path: match[3]!,
+        mode: match[1]! as "100644" | "100755",
+        sha256: createHash("sha256")
+          .update(
+            execFileSync(gitExecutable, ["cat-file", "blob", match[2]!], {
+              cwd: repositoryPath,
+              maxBuffer: 64_000_000,
+            }),
+          )
+          .digest("hex"),
+      };
+    })
+    .sort((a, b) => a.path.localeCompare(b.path));
+}
+const committedInputs =
+  process.platform === "win32"
+    ? [{ path: "README.md", mode: "100644" as const, sha256: "0".repeat(64) }]
+    : inputsFor(repository, committedSha);
+executableRunnerTest(
+  "operator manifest generator covers the complete commit",
+  async () => {
+    const generated = await generateInputManifest(
+      gitExecutable,
+      gitExecutableSha256,
+      repository,
+      committedSha,
+    );
+    assert.deepEqual(generated.entries, committedInputs);
+    assert.equal(generated.inputManifestId, inputManifestId(committedInputs));
+  },
+);
 function setup(name: string) {
   const coordinator = keys(`RUNNER_COORD_${name.toUpperCase()}`),
     host = keys(`RUNNER_HOST_${name.toUpperCase()}`);
-  const sha = execFileSync("git", ["rev-parse", "HEAD"], {
-    cwd: resolve(process.cwd(), "../.."),
-    encoding: "utf8",
-  }).trim();
-  const readme = awaitInput();
-  const inputs = [{ path: "README.md", sha256: readme }];
+  const sha = committedSha;
+  const inputs = committedInputs;
   const manifestId = inputManifestId(inputs);
   const config: LabRunnerConfig = {
     schemaVersion: 1,
@@ -35,15 +95,18 @@ function setup(name: string) {
     hostPrivateKeyEnv: host.privateName,
     coordinatorPublicKeyEnv: coordinator.publicName,
     coordinatorKeyId: "coordinator-1",
-    checkoutDirectory: resolve(process.cwd(), "../.."),
+    gitExecutable,
+    gitExecutableSha256,
+    checkoutDirectory: repository,
     replayDirectory: join(root, name),
     maximumClockSkewSeconds: 60,
     capabilities: ["wifi"],
     inputManifests: { [manifestId]: inputs },
-    limits: { timeoutSeconds: 5, outputBytes: 1024 },
+    limits: { timeoutSeconds: 5, outputBytes: 1024, inputBytes: 64_000_000 },
     operations: {
       foundation: {
         executable: "/usr/bin/printf",
+        executableSha256: fileSha256("/usr/bin/printf"),
         arguments: [],
         version: "foundation-v1",
         parameters: { default: ["validated"] },
@@ -51,6 +114,7 @@ function setup(name: string) {
       },
       "probe-kismet": {
         executable: "/usr/bin/printf",
+        executableSha256: fileSha256("/usr/bin/printf"),
         arguments: [],
         version: "kismet-v1",
         parameters: { "expected_version=2025.01": ["kismet-ok"] },
@@ -80,18 +144,13 @@ function setup(name: string) {
   };
   return { config, signed, host, coordinator };
 }
-function awaitInput() {
-  return createHash("sha256")
-    .update(
-      execFileSync("git", ["show", "HEAD:README.md"], {
-        cwd: resolve(process.cwd(), "../.."),
-      }),
-    )
-    .digest("hex");
-}
 function bindInput(
   s: ReturnType<typeof setup>,
-  entries: { path: string; sha256: string }[],
+  entries: {
+    path: string;
+    sha256: string;
+    mode: "100644" | "100755";
+  }[],
 ) {
   const id = inputManifestId(entries);
   s.config.inputManifests = { [id]: entries };
@@ -106,7 +165,11 @@ executableRunnerTest(
     const response = await runOnce(s.config, s.signed);
     assert.equal(response.payload.stdout, "validated");
     assert.equal(
-      verifyObject(response.payload, response.signature, s.host.privateKey),
+      verifyObject(
+        response.signedPreimage,
+        response.signature,
+        s.host.privateKey,
+      ),
       true,
     );
   },
@@ -148,7 +211,10 @@ executableRunnerTest(
       revision.signed.request,
       revision.coordinator.privateKey,
     );
-    await assert.rejects(runOnce(revision.config, revision.signed), /revision/);
+    await assert.rejects(
+      runOnce(revision.config, revision.signed),
+      /revision|checkout verification/,
+    );
   },
 );
 executableRunnerTest(
@@ -192,64 +258,50 @@ executableRunnerTest(
 );
 
 executableRunnerTest(
-  "runner rejects changed, dirty, ignored, and symlinked inputs",
+  "runner materializes complete commit and excludes dirty external inputs",
   async () => {
     const changed = setup("changed-input");
-    bindInput(changed, [{ path: "README.md", sha256: "0".repeat(64) }]);
-    await assert.rejects(runOnce(changed.config, changed.signed), /changed/);
-
-    const dirty = setup("dirty-input");
-    const managerPath = resolve(process.cwd(), "src/manager.ts");
-    bindInput(dirty, [
-      {
-        path: "tools/lab-mcp/src/manager.ts",
-        sha256: createHash("sha256")
-          .update(await readFile(managerPath))
-          .digest("hex"),
-      },
-    ]);
-    await assert.rejects(runOnce(dirty.config, dirty.signed), /dirty/);
-
-    const ignoredPath = join(
-      process.cwd(),
-      ".trash",
-      "test-runs",
-      `ignored-input-${process.pid}.sh`,
-    );
-    await writeFile(ignoredPath, "echo ignored\n");
-    const ignored = setup("ignored-input");
-    bindInput(ignored, [
-      {
-        path: relativeRepo(ignoredPath),
-        sha256: createHash("sha256").update("echo ignored\n").digest("hex"),
-      },
-    ]);
+    bindInput(changed, [{ ...committedInputs[0]!, sha256: "0".repeat(64) }]);
     await assert.rejects(
-      runOnce(ignored.config, ignored.signed),
-      /verification/,
+      runOnce(changed.config, changed.signed),
+      /tree manifest/,
     );
 
-    const symlinkPath = join(
-      process.cwd(),
-      ".trash",
-      "test-runs",
-      `symlink-input-${process.pid}`,
-    );
-    await symlink(resolve(process.cwd(), "../../README.md"), symlinkPath);
-    const linked = setup("symlink-input");
-    bindInput(linked, [
-      {
-        path: relativeRepo(symlinkPath),
-        sha256: "0".repeat(64),
-      },
-    ]);
-    await assert.rejects(runOnce(linked.config, linked.signed), /type/);
+    const dirtyRepo = join(root, "owned-dirty-repository");
+    await mkdir(dirtyRepo, { recursive: true });
+    await writeFile(join(dirtyRepo, ".gitignore"), "ignored-*\n");
+    await writeFile(join(dirtyRepo, "seed.txt"), "committed\n");
+    for (const args of [
+      ["init"],
+      ["config", "user.name", "Kyberia Test"],
+      ["config", "user.email", "test@invalid.example"],
+      ["add", ".gitignore", "seed.txt"],
+      ["commit", "-m", "fixture"],
+    ])
+      execFileSync(gitExecutable, args, { cwd: dirtyRepo });
+    const revision = execFileSync(gitExecutable, ["rev-parse", "HEAD"], {
+      cwd: dirtyRepo,
+      encoding: "utf8",
+    }).trim();
+    const inputs = inputsFor(dirtyRepo, revision);
+    await writeFile(join(dirtyRepo, "seed.txt"), "dirty\n");
+    await writeFile(join(dirtyRepo, "untracked.txt"), "untracked\n");
+    await writeFile(join(dirtyRepo, "ignored-command"), "ignored\n");
+    await symlink("seed.txt", join(dirtyRepo, "ignored-link"));
+    const dirty = setup("dirty-input");
+    dirty.config.checkoutDirectory = dirtyRepo;
+    dirty.config.operations.foundation!.executable = "/bin/cat";
+    dirty.config.operations.foundation!.executableSha256 =
+      fileSha256("/bin/cat");
+    dirty.config.operations.foundation!.arguments = ["seed.txt"];
+    dirty.config.operations.foundation!.parameters = { default: [] };
+    dirty.signed.request.gitSha = revision;
+    bindInput(dirty, inputs);
+    const response = await runOnce(dirty.config, dirty.signed);
+    assert.equal(response.payload.stdout, "committed\n");
+    assert.doesNotMatch(response.payload.stdout, /dirty|untracked|ignored/);
   },
 );
-
-function relativeRepo(path: string) {
-  return path.slice(resolve(process.cwd(), "../..").length + 1);
-}
 
 test("runner configuration rejects duplicate manifest paths and capabilities", () => {
   const s = setup("duplicates");
@@ -263,6 +315,15 @@ test("runner configuration rejects duplicate manifest paths and capabilities", (
     }),
   );
 });
+
+executableRunnerTest(
+  "runner rejects unpinned Git executable bytes",
+  async () => {
+    const s = setup("git-identity");
+    s.config.gitExecutableSha256 = "f".repeat(64);
+    await assert.rejects(runOnce(s.config, s.signed), /digest mismatch/);
+  },
+);
 
 test("host proof rejects stale challenges", () => {
   const s = setup("stale-proof");
@@ -286,7 +347,28 @@ test(
   },
   async () => {
     const s = setup("operation-timeout");
+    const smallRepo = join(root, "operation-timeout-repository");
+    await mkdir(smallRepo, { recursive: true });
+    await writeFile(join(smallRepo, "input.txt"), "bounded\n");
+    for (const args of [
+      ["init"],
+      ["config", "user.name", "Kyberia Test"],
+      ["config", "user.email", "test@invalid.example"],
+      ["add", "input.txt"],
+      ["commit", "-m", "fixture"],
+    ])
+      execFileSync(gitExecutable, args, { cwd: smallRepo });
+    s.config.checkoutDirectory = smallRepo;
+    s.signed.request.gitSha = execFileSync(
+      gitExecutable,
+      ["rev-parse", "HEAD"],
+      { cwd: smallRepo, encoding: "utf8" },
+    ).trim();
+    bindInput(s, inputsFor(smallRepo, s.signed.request.gitSha));
     s.config.operations.foundation!.executable = process.execPath;
+    s.config.operations.foundation!.executableSha256 = fileSha256(
+      process.execPath,
+    );
     s.config.operations.foundation!.arguments = [
       "-e",
       "process.on('SIGTERM',()=>{});setInterval(()=>{},1000)",

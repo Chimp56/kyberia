@@ -28,15 +28,17 @@ export function config(state: string): {
       sha256: createHash("sha256")
         .update(readFileSync(resolve(process.cwd(), "../..", "README.md")))
         .digest("hex"),
+      mode: "100644" as const,
     },
   ];
   const inputManifestId = digest(canonical(input));
   const spec = (version: string) => ({
     executable: "/fixed/runner",
+    executableSha256: "0".repeat(64),
     arguments: ["--stdio"],
     version,
     environment: { KYBERIA_LAB_RUNNER_CONFIG: "/fixed/runner.json" },
-    credentialEnvNames: [coordinator.privateName, hostKeys.privateName],
+    credentialEnvNames: [hostKeys.privateName],
     inputManifestId,
   });
   return {

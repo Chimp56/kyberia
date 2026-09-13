@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -29,22 +29,41 @@ test(
     const coordinator = keys("STDIO_COORDINATOR");
     const host = keys("STDIO_HOST");
     const repository = resolve(process.cwd(), "../..");
-    const sha = execFileSync("git", ["rev-parse", "HEAD"], {
+    const gitExecutable = "/usr/bin/git";
+    const fileSha256 = async (path: string) =>
+      createHash("sha256")
+        .update(await readFile(path))
+        .digest("hex");
+    const sha = execFileSync(gitExecutable, ["rev-parse", "HEAD"], {
       cwd: repository,
       encoding: "utf8",
     }).trim();
-    const input = [
-      {
-        path: "README.md",
-        sha256: createHash("sha256")
-          .update(
-            execFileSync("git", ["show", "HEAD:README.md"], {
-              cwd: repository,
-            }),
-          )
-          .digest("hex"),
-      },
-    ];
+    const input = execFileSync(
+      gitExecutable,
+      ["ls-tree", "-rz", "--full-tree", sha],
+      { cwd: repository },
+    )
+      .toString("utf8")
+      .split("\0")
+      .filter(Boolean)
+      .map((record) => {
+        const match = /^(100644|100755) blob ([0-9a-f]{40,64})\t(.+)$/.exec(
+          record,
+        );
+        assert.ok(match);
+        return {
+          path: match[3]!,
+          mode: match[1]! as "100644" | "100755",
+          sha256: createHash("sha256")
+            .update(
+              execFileSync(gitExecutable, ["cat-file", "blob", match[2]!], {
+                cwd: repository,
+                maxBuffer: 64_000_000,
+              }),
+            )
+            .digest("hex"),
+        };
+      });
     const manifestId = inputManifestId(input);
     const tsx = resolve("node_modules/tsx/dist/loader.mjs");
     const runnerPath = join(state, "runner.json");
@@ -58,15 +77,22 @@ test(
         hostPrivateKeyEnv: host.privateName,
         coordinatorPublicKeyEnv: coordinator.publicName,
         coordinatorKeyId: "stdio-coordinator",
+        gitExecutable,
+        gitExecutableSha256: await fileSha256(gitExecutable),
         checkoutDirectory: repository,
         replayDirectory: join(state, "replay"),
         maximumClockSkewSeconds: 60,
         capabilities: ["stdio"],
         inputManifests: { [manifestId]: input },
-        limits: { timeoutSeconds: 10, outputBytes: 4096 },
+        limits: {
+          timeoutSeconds: 30,
+          outputBytes: 4096,
+          inputBytes: 64_000_000,
+        },
         operations: {
           foundation: {
             executable: "/usr/bin/printenv",
+            executableSha256: await fileSha256("/usr/bin/printenv"),
             arguments: ["KYBERIA_LAB_SEED"],
             version: "foundation-v1",
             parameters: { default: [] },
@@ -77,6 +103,7 @@ test(
     );
     const runnerSpec = {
       executable: process.execPath,
+      executableSha256: await fileSha256(process.execPath),
       arguments: ["--import", tsx, resolve("src/runner.ts")],
       version: "foundation-v1",
       environment: { KYBERIA_LAB_RUNNER_CONFIG: runnerPath },
@@ -109,7 +136,7 @@ test(
         limits: {
           concurrency: 1,
           queue: 2,
-          timeoutSeconds: 10,
+          timeoutSeconds: 30,
           outputBytes: 4096,
           artifactBytes: 4096,
           artifactCount: 2,
@@ -135,7 +162,7 @@ test(
           git_sha: sha,
           suite: "foundation",
           seed: 11,
-          timeout: 5,
+          timeout: 25,
         },
       });
       const first = (
@@ -144,7 +171,7 @@ test(
       assert.ok(first && first.type === "text");
       const runId = (JSON.parse(first.text) as { run_id: string }).run_id;
       let status = "";
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 3_000; i++) {
         const current = await client.callTool({
           name: "get_run_status",
           arguments: { run_id: runId },

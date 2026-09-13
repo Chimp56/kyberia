@@ -17,5 +17,12 @@ for (const forbidden of ["node_modules/", ".tools/", ".trash/", "test/"])
     false,
     `package contains ${forbidden}`,
   );
-for (const required of ["dist/src/main.js", "README.md", "config.example.json", "runner.example.json"])
-  assert.ok(inventory.includes(required), `package is missing ${required}`);
+assert.ok(inventory.includes("dist/src/main.js"));
+assert.ok(
+  inventory.every(
+    (path) =>
+      path === "package.json" ||
+      path === "README.md" ||
+      path.startsWith("dist/src/"),
+  ),
+);

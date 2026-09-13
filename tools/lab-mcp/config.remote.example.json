@@ -3,32 +3,29 @@
   "stateDirectory": ".trash/lab-runs",
   "manifestPrivateKeyEnv": "KYBERIA_LAB_MANIFEST_PRIVATE_KEY",
   "manifestPublicKeyEnv": "KYBERIA_LAB_MANIFEST_PUBLIC_KEY",
-  "coordinatorKeyId": "coordinator-dev-1",
+  "coordinatorKeyId": "coordinator-production-1",
   "immutableRevisions": ["0000000000000000000000000000000000000000"],
   "hosts": [
     {
-      "id": "local-macos",
-      "displayName": "Local macOS validation host",
+      "id": "remote-linux",
+      "displayName": "Authenticated remote runner service",
       "identity": "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-      "publicKeyEnv": "KYBERIA_LAB_LOCAL_PUBLIC_KEY",
-      "capabilities": ["stdio", "macos"],
-      "allowedKismetVersions": [],
-      "allowedFixtureSets": [],
+      "publicKeyEnv": "KYBERIA_LAB_REMOTE_PUBLIC_KEY",
+      "capabilities": ["linux", "kismet"],
+      "allowedKismetVersions": ["2025.01"],
+      "allowedFixtureSets": ["canonical-v1"],
       "allowedSceneSets": [],
       "suites": {
         "foundation": {
-          "executable": "/absolute/node",
+          "executable": "/usr/local/libexec/kyberia-lab-remote-transport",
           "executableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
-          "arguments": ["/absolute/kyberia/tools/lab-mcp/dist/runner.js"],
+          "arguments": ["remote-linux"],
           "version": "foundation-v1",
           "environment": {
-            "KYBERIA_LAB_RUNNER_CONFIG": "/absolute/runner.json"
+            "KYBERIA_LAB_RUNNER_CONFIG": "/etc/kyberia/lab-remote.json"
           },
-          "credentialEnvNames": [
-            "KYBERIA_LAB_LOCAL_PRIVATE_KEY",
-            "KYBERIA_LAB_MANIFEST_PUBLIC_KEY"
-          ],
-          "inputManifestId": "sha256:460ef3876a4623cee3e5ae9bb655a3bf7cd499386c9400000d48af5c8d746b50"
+          "credentialEnvNames": [],
+          "inputManifestId": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         }
       },
       "probes": {}

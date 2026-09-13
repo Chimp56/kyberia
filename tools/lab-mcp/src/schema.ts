@@ -16,7 +16,12 @@ export const Probe = z.enum(["wifi", "kismet", "sionna", "spectrum"]);
 
 const command = z
   .object({
-    executable: z.string().min(1).max(256),
+    executable: z
+      .string()
+      .min(1)
+      .max(1024)
+      .regex(/^(?:\/|[A-Za-z]:\\)/),
+    executableSha256: z.string().regex(/^[0-9a-f]{64}$/),
     arguments: z.array(z.string().max(256)).max(32),
     version: z.string().min(1).max(64),
     environment: z
@@ -95,7 +100,19 @@ export const Config = z
       })
       .strict(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    for (const hostValue of value.hosts)
+      for (const spec of [
+        ...Object.values(hostValue.suites),
+        ...Object.values(hostValue.probes),
+      ])
+        if (spec?.credentialEnvNames.includes(value.manifestPrivateKeyEnv))
+          context.addIssue({
+            code: "custom",
+            message: "coordinator private signing key cannot be forwarded",
+          });
+  });
 
 export type LabConfig = z.infer<typeof Config>;
 export type SuiteId = z.infer<typeof Suite>;
@@ -103,7 +120,12 @@ export type ProbeId = z.infer<typeof Probe>;
 
 const runnerCommand = z
   .object({
-    executable: z.string().min(1).max(256),
+    executable: z
+      .string()
+      .min(1)
+      .max(1024)
+      .regex(/^(?:\/|[A-Za-z]:\\)/),
+    executableSha256: z.string().regex(/^[0-9a-f]{64}$/),
     arguments: z.array(z.string().max(256)).max(32),
     version: z.string().min(1).max(64),
     parameters: z.record(
@@ -123,6 +145,12 @@ export const RunnerConfig = z
       .string()
       .regex(/^KYBERIA_LAB_[A-Z0-9_]+_PUBLIC_KEY$/),
     coordinatorKeyId: ID,
+    gitExecutable: z
+      .string()
+      .min(1)
+      .max(1024)
+      .regex(/^(?:\/|[A-Za-z]:\\)/),
+    gitExecutableSha256: z.string().regex(/^[0-9a-f]{64}$/),
     checkoutDirectory: z.string().min(1).max(1024),
     replayDirectory: z.string().min(1).max(1024),
     maximumClockSkewSeconds: z.number().int().min(1).max(300),
@@ -141,17 +169,19 @@ export const RunnerConfig = z
                 .regex(/^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._\/-]+$/)
                 .max(256),
               sha256: z.string().regex(/^[0-9a-f]{64}$/),
+              mode: z.enum(["100644", "100755"]),
             })
             .strict(),
         )
         .min(1)
-        .max(256)
+        .max(20_000)
         .refine((v) => new Set(v.map((e) => e.path)).size === v.length),
     ),
     limits: z
       .object({
         timeoutSeconds: z.number().int().min(1).max(7200),
         outputBytes: z.number().int().min(1024).max(4_194_304),
+        inputBytes: z.number().int().min(1).max(1_073_741_824),
       })
       .strict(),
     operations: z.record(

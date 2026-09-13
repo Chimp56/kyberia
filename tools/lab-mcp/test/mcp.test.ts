@@ -43,15 +43,32 @@ test("real MCP client enumerates exact tools and resource templates", async () =
         requestDigest: digest(canonical(request)),
         hostId: "lab-one",
         status: "succeeded" as const,
-        startedAt: "2026-09-13T00:00:00.000Z",
-        finishedAt: "2026-09-13T00:00:01.000Z",
+        startedAt: request.request.issuedAt,
+        finishedAt: request.request.issuedAt,
         stdout: "ok",
         stderr: "",
         capabilities: ["wifi", "cuda"],
+        toolIdentities: [
+          {
+            role: "git" as const,
+            path: "/usr/bin/git",
+            sha256: "0".repeat(64),
+          },
+          {
+            role: "operation" as const,
+            path: "/fixed/op",
+            sha256: "1".repeat(64),
+          },
+        ],
+      };
+      const signedPreimage = {
+        schemaVersion: 1 as const,
+        payloadDigest: digest(canonical(payload)),
       };
       return canonical({
         payload,
-        signature: signObject(payload, setup.hostKeys.privateKey),
+        signedPreimage,
+        signature: signObject(signedPreimage, setup.hostKeys.privateKey),
         algorithm: "Ed25519",
       });
     },

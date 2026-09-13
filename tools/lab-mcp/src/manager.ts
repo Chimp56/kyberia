@@ -20,6 +20,7 @@ import {
   publicKeyFromEnv,
   sanitize,
   signObject,
+  verifyExecutable,
   verifyObject,
 } from "./security.js";
 
@@ -40,6 +41,7 @@ const StatusSchema = z.enum([
 ]);
 type Spec = {
   executable: string;
+  executableSha256: string;
   arguments: string[];
   version: string;
   environment: { KYBERIA_LAB_RUNNER_CONFIG: string };
@@ -84,12 +86,29 @@ const RunnerPayloadSchema = z
     stdout: z.string(),
     stderr: z.string(),
     capabilities: z.array(ID).max(64),
+    toolIdentities: z
+      .array(
+        z
+          .object({
+            role: z.enum(["git", "operation"]),
+            path: z.string().min(1).max(1024),
+            sha256: z.string().regex(/^[0-9a-f]{64}$/),
+          })
+          .strict(),
+      )
+      .max(2),
   })
   .strict();
 export type RunnerPayload = z.infer<typeof RunnerPayloadSchema>;
 const RunnerResponseSchema = z
   .object({
     payload: RunnerPayloadSchema,
+    signedPreimage: z
+      .object({
+        schemaVersion: z.literal(1),
+        payloadDigest: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+      })
+      .strict(),
     signature: z.string().base64().max(256),
     algorithm: z.literal("Ed25519"),
   })
@@ -118,7 +137,18 @@ export interface Manifest {
   specVersion: string;
   inputManifestId: string;
   requestDigest: string;
-  hostResultSignature: string;
+  toolIdentities: Array<{
+    role: "git" | "operation";
+    path: string;
+    sha256: string;
+  }>;
+  evidence:
+    | {
+        origin: "host-signed";
+        signedPreimage: { schemaVersion: 1; payloadDigest: string };
+        hostSignature: string;
+      }
+    | { origin: "coordinator-terminal"; reason: string };
   artifacts: Artifact[];
 }
 const ArtifactSchema = z
@@ -148,7 +178,27 @@ const ManifestSchema: z.ZodType<Manifest> = z
     specVersion: z.string().min(1).max(64),
     inputManifestId: z.string().regex(/^sha256:[0-9a-f]{64}$/),
     requestDigest: z.string().regex(/^sha256:[0-9a-f]{64}$/),
-    hostResultSignature: z.string().min(1).max(512),
+    toolIdentities: RunnerPayloadSchema.shape.toolIdentities,
+    evidence: z.discriminatedUnion("origin", [
+      z
+        .object({
+          origin: z.literal("host-signed"),
+          signedPreimage: z
+            .object({
+              schemaVersion: z.literal(1),
+              payloadDigest: z.string().regex(/^sha256:[0-9a-f]{64}$/),
+            })
+            .strict(),
+          hostSignature: z.string().base64().max(256),
+        })
+        .strict(),
+      z
+        .object({
+          origin: z.literal("coordinator-terminal"),
+          reason: ID,
+        })
+        .strict(),
+    ]),
     artifacts: z.array(ArtifactSchema).max(32),
   })
   .strict();
@@ -236,6 +286,7 @@ export class ProcessExecutor implements Executor {
     signal: AbortSignal,
     maxOutput: number,
   ): Promise<string> {
+    await verifyExecutable(spec.executable, spec.executableSha256);
     return await new Promise<string>((resolvePromise, reject) => {
       const child = spawn(spec.executable, spec.arguments, {
         shell: false,
@@ -243,7 +294,7 @@ export class ProcessExecutor implements Executor {
         windowsHide: true,
         stdio: ["pipe", "pipe", "pipe"],
         env: {
-          PATH: process.env.PATH ?? "",
+          PATH: "",
           KYBERIA_LAB_RUNNER_CONFIG: spec.environment.KYBERIA_LAB_RUNNER_CONFIG,
           ...Object.fromEntries(
             spec.credentialEnvNames.map((name) => {
@@ -403,7 +454,11 @@ export class LabManager {
               specVersion: this.specVersion(run, host),
               inputManifestId: this.inputManifestId(run, host),
               requestDigest: digest(`recovered:${run.id}`),
-              hostResultSignature: "coordinator-recovery-no-host-result",
+              toolIdentities: [],
+              evidence: {
+                origin: "coordinator-terminal",
+                reason: "restart-recovery",
+              },
               artifacts: [],
             };
             run.signature = signObject(
@@ -769,8 +824,9 @@ export class LabManager {
         stdout: "",
         stderr: "",
         capabilities: host.capabilities,
+        toolIdentities: [],
       },
-      "coordinator-cancelled-before-dispatch",
+      { origin: "coordinator-terminal", reason: "cancelled-before-dispatch" },
       "cancelled",
     );
     run.status = "cancelled";
@@ -807,12 +863,14 @@ export class LabManager {
       const response = RunnerResponseSchema.parse(JSON.parse(raw));
       const hostKey = publicKeyFromEnv(host.publicKeyEnv);
       authenticateHostResponse(
-        response.payload,
+        response.signedPreimage,
         response.signature,
         hostKey,
         host.identity,
       );
       if (
+        response.signedPreimage.payloadDigest !==
+          digest(canonical(response.payload)) ||
         response.payload.requestDigest !== digest(canonical(signed)) ||
         response.payload.hostId !== host.id
       )
@@ -822,6 +880,22 @@ export class LabManager {
         canonical([...host.capabilities].sort())
       )
         throw new Error("host asserted an unpinned capability");
+      if (
+        response.payload.toolIdentities.length !== 2 ||
+        new Set(response.payload.toolIdentities.map(({ role }) => role))
+          .size !== 2
+      )
+        throw new Error("host tool identity evidence is incomplete");
+      const issuedAt = Date.parse(signed.request.issuedAt);
+      const startedAt = Date.parse(response.payload.startedAt);
+      const finishedAt = Date.parse(response.payload.finishedAt);
+      if (
+        startedAt < issuedAt - 5_000 ||
+        finishedAt < startedAt ||
+        finishedAt - startedAt > timeout * 1000 + 3_000 ||
+        finishedAt > this.now().getTime() + 5_000
+      )
+        throw new Error("host result timing rejected");
       const finalStatus = run.controller.signal.aborted
         ? "cancelled"
         : response.payload.status;
@@ -829,7 +903,11 @@ export class LabManager {
         run,
         host,
         response.payload,
-        response.signature,
+        {
+          origin: "host-signed",
+          signedPreimage: response.signedPreimage,
+          hostSignature: response.signature,
+        },
         finalStatus,
       );
       run.status = finalStatus;
@@ -854,8 +932,9 @@ export class LabManager {
             stdout: "",
             stderr: run.error,
             capabilities: host.capabilities,
+            toolIdentities: [],
           },
-          "coordinator-failure",
+          { origin: "coordinator-terminal", reason: "runner-failure" },
           finalStatus,
         );
         run.status = finalStatus;
@@ -891,7 +970,7 @@ export class LabManager {
     run: StoredRun,
     host: Host,
     payload: RunnerPayload,
-    hostSignature: string,
+    evidence: Manifest["evidence"],
     status: Status,
   ) {
     const dir = resolve(this.config.stateDirectory, run.id);
@@ -939,7 +1018,8 @@ export class LabManager {
       specVersion: this.specVersion(run, host),
       inputManifestId: this.inputManifestId(run, host),
       requestDigest: payload.requestDigest,
-      hostResultSignature: hostSignature,
+      toolIdentities: payload.toolIdentities,
+      evidence,
       artifacts,
     };
     if (

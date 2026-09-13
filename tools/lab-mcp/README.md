@@ -12,6 +12,7 @@ From this directory, using the repository-pinned Node and pnpm binaries:
 node /absolute/path/to/pnpm.mjs install --frozen-lockfile --store-dir .tools/pnpm-store
 ./node_modules/.bin/tsc -p tsconfig.json
 node --test --import tsx test/*.test.ts
+node test/supply-chain.mjs
 PYTHONPYCACHEPREFIX=.trash/test-runs/pycache python3 -m unittest -v test/test_windows_process.py
 ```
 
@@ -19,7 +20,17 @@ Generate separate Ed25519 key pairs with an approved secret-management tool. Sto
 
 The direct-local development mode and stdio E2E run coordinator and runner under the same OS account, so their generated ephemeral keys co-reside and the local operation explicitly forwards the runner private key. Do not use that arrangement for a remote host. Rotate production keys by adding a new key ID/config, draining old jobs, then removing the old secret. Never commit key material.
 
-Copy and edit `config.example.json` and `runner.example.json`. Every coordinator operation points to the fixed runner entry point and names the only signing-key environment variables that may cross that process boundary. The runner independently maps the signed suite and bounded parameters to its administrator-owned static command table. It verifies the coordinator signature, key ID, freshness, nonce uniqueness, exact checked-out revision, operation version, input-manifest identity and timeout before execution. Every manifest entry must be a unique, ordinary, tracked file whose bytes match the operator-pinned SHA-256; executable or script files inside the checkout must be included. The runner passes the seed only through `KYBERIA_LAB_SEED`, together with fixed spec-version and input-manifest environment values. It accepts no request-supplied argument.
+Copy and edit `config.example.json` plus `runner.example.json` for same-host development. That coordinator config deliberately forwards the local host key because both processes share one development account. Use `config.remote.example.json` with an authenticated fixed transport for production: its empty credential allowlist leaves the host private key in the remote runner service. Configuration validation always forbids forwarding the coordinator private signing key.
+
+Every coordinator operation points to an absolute fixed runner entry point and pins its file SHA-256. The runner independently maps the signed suite and bounded parameters to its administrator-owned static command table, whose Git and operation executables are also absolute and SHA-256 pinned. Generate the complete tree manifest after building with:
+
+```sh
+npm run input-manifest -- /usr/bin/git <git-executable-sha256> /absolute/kyberia <40-hex-commit>
+```
+
+Paste its ID and entries into runner configuration. The generator and runner reject symlinks, submodules, missing/duplicate entries and trees beyond fixed file/byte bounds. The runner reads every blob from the exact commit, verifies the complete manifest, then exclusively creates a retained `.trash` snapshot and executes with that snapshot as the working directory. Dirty, untracked and ignored checkout files are therefore outside the command namespace. Replay claims and snapshots cannot be reused and are intentionally retained for audit.
+
+The runner verifies the coordinator signature, key ID, freshness, nonce uniqueness, operation version, input-manifest identity and timeout before execution. It passes the seed only through `KYBERIA_LAB_SEED`, together with fixed spec-version and input-manifest environment values. It accepts no request-supplied argument. Signed result evidence records the canonical signed-preimage digest and both tool identities, and coordinator-only terminal outcomes use an explicit evidence-origin variant.
 
 Unix descendants are held in a process group and face a hard deadline after cooperative termination. Run intent and terminal state are atomically replaced on disk; a restart converts interrupted work into a signed failed recovery manifest. The retained fixed-catalog Windows helper uses Kyberia's tested Job Object primitive, but the TypeScript runner fails closed on Windows until the helper is integrated and exercised on a real Windows host.
 
@@ -52,3 +63,5 @@ Keep signing keys in the launching service's secret environment rather than the 
 8. On authorized Linux/Kismet, CUDA and spectrum hosts, run their named gates. On Windows, run the Job Object descendant fixture and retain hosted evidence.
 
 Only UTF-8 text summaries and logs use artifact class `kyberia-lab-text-v2`. The sanitizer bounds its working set and removes colon/hyphen MAC addresses, IPv4/IPv6 addresses, SSID values, local paths, common JSON/plain secret fields, cloud key IDs and Basic/Bearer credentials. Raw PCAP, PCAPNG, KismetDB, spectrum IQ, location traces and arbitrary files are never returned by this server.
+
+`pnpm-lock.yaml` pins the complete npm graph with registry integrity hashes. `dependency-sbom.cdx.json` is a deterministic CycloneDX inventory derived from that lock; `npm run sbom` refreshes it and `npm run check` rejects drift. Run `pnpm audit --prod` in a network-authorized release environment because vulnerability advisory freshness is an external online dependency.

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { mkdir, rename, symlink, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { mkdir, readFile, rename, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import type {
@@ -8,7 +10,14 @@ import type {
   SignedJobRequest,
 } from "../src/manager.js";
 import { LabManager, ProcessExecutor } from "../src/manager.js";
-import { canonical, digest, signObject } from "../src/security.js";
+import { Config } from "../src/schema.js";
+import {
+  canonical,
+  digest,
+  publicKeyFromEnv,
+  signObject,
+  verifyObject,
+} from "../src/security.js";
 import { config } from "./helpers.js";
 
 const root = join(
@@ -24,6 +33,7 @@ class Fake implements Executor {
   delay = 0;
   wrongKey = false;
   authDelay = 0;
+  finishedOffsetMs = 0;
   beforeReturn?: (request: SignedJobRequest) => Promise<void>;
   constructor(
     private readonly privateKey: ReturnType<
@@ -69,18 +79,33 @@ class Fake implements Executor {
       requestDigest: digest(canonical(request)),
       hostId: request.request.hostId,
       status: signal.aborted ? ("cancelled" as const) : ("succeeded" as const),
-      startedAt: "2026-09-13T00:00:00.000Z",
-      finishedAt: "2026-09-13T00:00:01.000Z",
+      startedAt: request.request.issuedAt,
+      finishedAt: new Date(
+        Date.parse(request.request.issuedAt) + this.finishedOffsetMs,
+      ).toISOString(),
       stdout:
         "SSID=secret\nAA:BB:CC:DD:EE:FF 192.168.1.2 token=hunter2\n" +
         "x".repeat(2000),
       stderr: "",
       capabilities: ["wifi", "cuda"],
+      toolIdentities: [
+        { role: "git" as const, path: "/usr/bin/git", sha256: "0".repeat(64) },
+        {
+          role: "operation" as const,
+          path: "/fixed/op",
+          sha256: "1".repeat(64),
+        },
+      ],
     };
     await this.beforeReturn?.(request);
+    const signedPreimage = {
+      schemaVersion: 1 as const,
+      payloadDigest: digest(canonical(payload)),
+    };
     return canonical({
       payload,
-      signature: signObject(payload, this.privateKey),
+      signedPreimage,
+      signature: signObject(signedPreimage, this.privateKey),
       algorithm: "Ed25519",
     });
   }
@@ -111,6 +136,14 @@ test("immutable revision, allowlists and strict identifiers reject hostile input
     manager.probe("lab-one", "sionna", { scene_set: "other" }),
   );
   assert.throws(() => manager.status("../run"));
+});
+
+test("configuration forbids forwarding the coordinator private key", () => {
+  const setup = config(join(root, "private-key-forwarding"));
+  setup.config.hosts[0]!.suites.foundation!.credentialEnvNames = [
+    setup.config.manifestPrivateKeyEnv,
+  ];
+  assert.throws(() => Config.parse(setup.config), /cannot be forwarded/);
 });
 
 test("authentication reservations bound concurrent submissions", async () => {
@@ -210,16 +243,16 @@ test(
     const executor = new ProcessExecutor();
     const spec = {
       executable: process.execPath,
+      executableSha256: createHash("sha256")
+        .update(readFileSync(process.execPath))
+        .digest("hex"),
       arguments: [
         "-e",
         "process.on('SIGTERM',()=>{});process.stdin.resume();setInterval(()=>{},1000)",
       ],
       version: "test-v1",
       environment: { KYBERIA_LAB_RUNNER_CONFIG: "/unused" },
-      credentialEnvNames: [
-        setup.config.manifestPrivateKeyEnv,
-        setup.config.manifestPublicKeyEnv,
-      ],
+      credentialEnvNames: [setup.config.manifestPublicKeyEnv],
       inputManifestId: "sha256:" + "0".repeat(64),
     };
     const controller = new AbortController();
@@ -268,8 +301,46 @@ test("signed request binds revision and result; output is redacted and bounded",
   assert.match(artifact.content, /redacted-mac/);
   assert.doesNotMatch(artifact.content, /hunter2|192\.168/);
   const signed = manager.manifest(id);
+  assert.equal(signed.manifest.evidence.origin, "host-signed");
+  if (signed.manifest.evidence.origin === "host-signed") {
+    assert.equal(
+      verifyObject(
+        signed.manifest.evidence.signedPreimage,
+        signed.manifest.evidence.hostSignature,
+        publicKeyFromEnv(setup.config.hosts[0]!.publicKeyEnv),
+      ),
+      true,
+    );
+  }
+  const persisted = JSON.parse(
+    await readFile(
+      join(setup.config.stateDirectory, id, "manifest.json"),
+      "utf8",
+    ),
+  ) as typeof signed;
+  assert.deepEqual(persisted.manifest.evidence, signed.manifest.evidence);
   signed.manifest.seed = 99;
   assert.equal(manager.verifyManifest(id), false);
+});
+
+test("host results outside the requested timing envelope are rejected", async () => {
+  const setup = config(join(root, "timing"));
+  const fake = new Fake(setup.hostKeys.privateKey);
+  fake.finishedOffsetMs = 10_000;
+  const manager = new LabManager(setup.config, fake);
+  const id = await manager.submit(
+    "lab-one",
+    setup.config.immutableRevisions[0]!,
+    "foundation",
+    1,
+    2,
+  );
+  await waitDone(manager, id);
+  assert.equal(manager.status(id).status, "failed");
+  assert.equal(
+    manager.manifest(id).manifest.evidence.origin,
+    "coordinator-terminal",
+  );
 });
 
 test("wrong host key fails before work", async () => {

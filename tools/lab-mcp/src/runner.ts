@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { lstat, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 import { RunnerConfig, type LabRunnerConfig } from "./schema.js";
 import type {
@@ -15,6 +15,7 @@ import {
   privateKeyFromEnv,
   publicKeyFromEnv,
   signObject,
+  verifyExecutable,
   verifyObject,
 } from "./security.js";
 
@@ -58,88 +59,112 @@ async function claimNonce(config: LabRunnerConfig, request: JobRequest) {
     mode: 0o600,
   });
 }
-async function currentRevision(config: LabRunnerConfig): Promise<string> {
-  return (await git(config, ["rev-parse", "HEAD"])).trim();
-}
-async function git(config: LabRunnerConfig, args: string[]): Promise<string> {
+async function gitBuffer(
+  config: LabRunnerConfig,
+  args: string[],
+  limit = config.limits.inputBytes,
+): Promise<Buffer> {
   return await new Promise((done, reject) => {
-    const child = spawn("git", args, {
+    const child = spawn(config.gitExecutable, args, {
       cwd: resolve(config.checkoutDirectory),
       shell: false,
-      env: { PATH: process.env.PATH ?? "" },
+      env: {},
       stdio: ["ignore", "pipe", "ignore"],
     });
-    let out = "";
-    child.stdout?.on("data", (chunk) => {
-      out += String(chunk).slice(0, 80);
+    const chunks: Buffer[] = [];
+    let bytes = 0;
+    child.stdout?.on("data", (chunk: Buffer) => {
+      bytes += chunk.length;
+      if (bytes <= limit) chunks.push(chunk);
+      else child.kill("SIGKILL");
     });
     child.on("close", (code) =>
-      code === 0
-        ? done(out.trim())
+      code === 0 && bytes <= limit
+        ? done(Buffer.concat(chunks, bytes))
         : reject(new Error("checkout verification failed")),
     );
     child.on("error", reject);
   });
 }
-export function inputManifestId(entries: { path: string; sha256: string }[]) {
+type InputEntry = { path: string; sha256: string; mode: "100644" | "100755" };
+export function inputManifestId(entries: InputEntry[]) {
   return digest(
     canonical([...entries].sort((a, b) => a.path.localeCompare(b.path))),
   );
 }
-async function verifyInputs(config: LabRunnerConfig, request: JobRequest) {
+async function completeTree(
+  config: LabRunnerConfig,
+  revision: string,
+): Promise<Array<InputEntry & { object: string; bytes: Buffer }>> {
+  const listing = await gitBuffer(
+    config,
+    ["ls-tree", "-rz", "--full-tree", revision],
+    16_777_216,
+  );
+  const records = listing.toString("utf8").split("\0").filter(Boolean);
+  if (!records.length || records.length > 20_000)
+    throw new Error("commit tree file count rejected");
+  const entries: Array<InputEntry & { object: string; bytes: Buffer }> = [];
+  let total = 0;
+  for (const record of records) {
+    const match = /^(\d{6}) (\w+) ([0-9a-f]{40,64})\t(.+)$/.exec(record);
+    if (!match) throw new Error("commit tree record rejected");
+    const [, mode, type, object, path] = match;
+    if (
+      type !== "blob" ||
+      (mode !== "100644" && mode !== "100755") ||
+      !path ||
+      path.startsWith("/") ||
+      path.split("/").includes("..")
+    )
+      throw new Error("symlink, submodule, or unsafe tree entry rejected");
+    const bytes = await gitBuffer(config, ["cat-file", "blob", object!]);
+    total += bytes.length;
+    if (total > config.limits.inputBytes)
+      throw new Error("commit tree byte limit exceeded");
+    entries.push({
+      path,
+      mode,
+      object: object!,
+      bytes,
+      sha256: createHash("sha256").update(bytes).digest("hex"),
+    });
+  }
+  return entries.sort((a, b) => a.path.localeCompare(b.path));
+}
+async function materializeInputs(config: LabRunnerConfig, request: JobRequest) {
   const operation = config.operations[request.suite];
   if (!operation || operation.inputManifestId !== request.inputManifestId)
     throw new Error("input manifest binding rejected");
-  const entries = config.inputManifests[request.inputManifestId];
-  if (!entries || inputManifestId(entries) !== request.inputManifestId)
+  const expected = config.inputManifests[request.inputManifestId];
+  if (!expected || inputManifestId(expected) !== request.inputManifestId)
     throw new Error("input manifest identity invalid");
-  const root = resolve(config.checkoutDirectory);
-  const paths = new Set<string>();
-  for (const entry of entries) {
-    if (paths.has(entry.path)) throw new Error("duplicate manifest input");
-    paths.add(entry.path);
-    const path = resolve(root, entry.path);
-    const rel = relative(root, path);
+  const tree = await completeTree(config, request.gitSha);
+  const actual = tree.map(({ path, sha256, mode }) => ({ path, sha256, mode }));
+  if (
+    inputManifestId(actual) !== request.inputManifestId ||
+    canonical(actual) !==
+      canonical([...expected].sort((a, b) => a.path.localeCompare(b.path)))
+  )
+    throw new Error("complete commit tree manifest mismatch");
+  const snapshot = resolve(config.replayDirectory, "snapshots", request.runId);
+  await mkdir(resolve(config.replayDirectory, "snapshots"), {
+    recursive: true,
+    mode: 0o700,
+  });
+  await mkdir(snapshot, { mode: 0o700 });
+  for (const entry of tree) {
+    const target = resolve(snapshot, entry.path);
+    const rel = relative(snapshot, target);
     if (!rel || rel.startsWith("..") || isAbsolute(rel))
-      throw new Error("manifest path escapes checkout");
-    const stat = await lstat(path);
-    if (!stat.isFile() || stat.isSymbolicLink())
-      throw new Error("manifest input type rejected");
-    const actual = createHash("sha256")
-      .update(await readFile(path))
-      .digest("hex");
-    if (actual !== entry.sha256) throw new Error("manifest input changed");
-    await git(config, ["ls-files", "--error-unmatch", "--", entry.path]);
+      throw new Error("snapshot path rejected");
+    await mkdir(resolve(target, ".."), { recursive: true, mode: 0o700 });
+    await writeFile(target, entry.bytes, {
+      flag: "wx",
+      mode: entry.mode === "100755" ? 0o500 : 0o400,
+    });
   }
-  const selectedArguments =
-    operation.parameters[selector(request.parameters)] ?? [];
-  for (const candidate of [
-    operation.executable,
-    ...operation.arguments,
-    ...selectedArguments,
-  ]) {
-    const absolute = isAbsolute(candidate)
-      ? resolve(candidate)
-      : resolve(root, candidate);
-    const rel = relative(root, absolute);
-    if (!rel || rel.startsWith("..") || isAbsolute(rel)) continue;
-    try {
-      const stat = await lstat(absolute);
-      if (stat.isFile() && !paths.has(rel))
-        throw new Error("executable input absent from manifest");
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("absent"))
-        throw error;
-    }
-  }
-  const dirty = await git(config, [
-    "status",
-    "--porcelain=v1",
-    "--untracked-files=all",
-    "--",
-    ...entries.map((entry) => entry.path),
-  ]);
-  if (dirty.trim()) throw new Error("manifest input is dirty or untracked");
+  return snapshot;
 }
 async function execute(config: LabRunnerConfig, request: JobRequest) {
   const operation = config.operations[request.suite];
@@ -150,9 +175,8 @@ async function execute(config: LabRunnerConfig, request: JobRequest) {
     throw new Error("timeout rejected");
   if (request.specVersion !== operation.version)
     throw new Error("operation version mismatch");
-  if ((await currentRevision(config)) !== request.gitSha)
-    throw new Error("checkout revision mismatch");
-  await verifyInputs(config, request);
+  const snapshot = await materializeInputs(config, request);
+  await verifyExecutable(operation.executable, operation.executableSha256);
   return await new Promise<{
     stdout: string;
     stderr: string;
@@ -162,11 +186,11 @@ async function execute(config: LabRunnerConfig, request: JobRequest) {
       operation.executable,
       [...operation.arguments, ...staticArgs],
       {
-        cwd: resolve(config.checkoutDirectory),
+        cwd: snapshot,
         shell: false,
         detached: true,
         env: {
-          PATH: process.env.PATH ?? "",
+          PATH: "",
           KYBERIA_LAB_SEED: String(request.seed),
           KYBERIA_LAB_SPEC_VERSION: operation.version,
           KYBERIA_LAB_INPUT_MANIFEST_ID: request.inputManifestId,
@@ -253,6 +277,7 @@ export async function runOnce(
     throw new Error(
       "Windows runner requires approved native Job Object containment",
     );
+  await verifyExecutable(config.gitExecutable, config.gitExecutableSha256);
   if (
     signed.algorithm !== "Ed25519" ||
     signed.request.coordinatorKeyId !== config.coordinatorKeyId
@@ -288,10 +313,30 @@ export async function runOnce(
     stdout: result.stdout,
     stderr: result.stderr,
     capabilities: [...config.capabilities].sort(),
+    toolIdentities: [
+      {
+        role: "git" as const,
+        path: config.gitExecutable,
+        sha256: config.gitExecutableSha256,
+      },
+      {
+        role: "operation" as const,
+        path: operation.executable,
+        sha256: operation.executableSha256,
+      },
+    ],
+  };
+  const signedPreimage = {
+    schemaVersion: 1 as const,
+    payloadDigest: digest(canonical(payload)),
   };
   return {
     payload,
-    signature: signObject(payload, privateKeyFromEnv(config.hostPrivateKeyEnv)),
+    signedPreimage,
+    signature: signObject(
+      signedPreimage,
+      privateKeyFromEnv(config.hostPrivateKeyEnv),
+    ),
     algorithm: "Ed25519" as const,
   };
 }

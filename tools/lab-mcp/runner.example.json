@@ -5,26 +5,34 @@
   "hostPrivateKeyEnv": "KYBERIA_LAB_LOCAL_PRIVATE_KEY",
   "coordinatorPublicKeyEnv": "KYBERIA_LAB_MANIFEST_PUBLIC_KEY",
   "coordinatorKeyId": "coordinator-dev-1",
+  "gitExecutable": "/usr/bin/git",
+  "gitExecutableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "checkoutDirectory": "/absolute/kyberia",
   "replayDirectory": "/absolute/kyberia/.trash/lab-runner-replay",
   "maximumClockSkewSeconds": 60,
   "capabilities": ["macos", "wifi"],
   "inputManifests": {
-    "sha256:f5d675a25df8cda1b40621844a71c2b0d19929cb63c3921fca7aa28d99c7d027": [
+    "sha256:460ef3876a4623cee3e5ae9bb655a3bf7cd499386c9400000d48af5c8d746b50": [
       {
         "path": "tools/dev.py",
-        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "mode": "100755"
       }
     ]
   },
-  "limits": { "timeoutSeconds": 1800, "outputBytes": 1048576 },
+  "limits": {
+    "timeoutSeconds": 1800,
+    "outputBytes": 1048576,
+    "inputBytes": 1073741824
+  },
   "operations": {
     "foundation": {
       "executable": "/usr/bin/python3",
+      "executableSha256": "0000000000000000000000000000000000000000000000000000000000000000",
       "arguments": ["tools/dev.py", "check"],
       "version": "foundation-v1",
       "parameters": { "default": [] },
-      "inputManifestId": "sha256:f5d675a25df8cda1b40621844a71c2b0d19929cb63c3921fca7aa28d99c7d027"
+      "inputManifestId": "sha256:460ef3876a4623cee3e5ae9bb655a3bf7cd499386c9400000d48af5c8d746b50"
     }
   }
 }

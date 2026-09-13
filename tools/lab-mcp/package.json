@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "files": [
-    "dist/**",
-    "README.md",
-    "config.example.json",
-    "runner.example.json"
+    "dist/src/**"
   ],
   "type": "module",
   "engines": {
@@ -16,7 +13,9 @@
     "build": "tsc -p tsconfig.json",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
     "lint": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md'",
-    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md' && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts && tsc -p tsconfig.json && node test/package-inventory.mjs",
+    "check": "prettier --check 'src/**/*.ts' 'test/**/*.ts' '*.json' '*.yaml' '*.md' && tsc -p tsconfig.json --noEmit && node --test --import tsx test/*.test.ts && tsc -p tsconfig.json && node test/package-inventory.mjs && node test/supply-chain.mjs",
+    "sbom": "node test/supply-chain.mjs --write",
+    "input-manifest": "node dist/src/input-manifest.js",
     "start": "node dist/src/main.js"
   },
   "dependencies": {

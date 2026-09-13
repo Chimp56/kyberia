@@ -147217,8 +147217,8 @@
         {
           "path": "tools/dev.py",
           "description": "Discoverable validation commands with guarded subprocess diagnostics",
-          "revision": "73c9be77db3d65f24e032c58b93d2626332ba59897e36893434dd1f143e82a9e",
-          "sha256": "73c9be77db3d65f24e032c58b93d2626332ba59897e36893434dd1f143e82a9e"
+          "revision": "da18e787944d66bed9f9403dfcc3598b2db45cd3fe110396c412083cfb5f7053",
+          "sha256": "da18e787944d66bed9f9403dfcc3598b2db45cd3fe110396c412083cfb5f7053"
         }
       ],
       "validation": [
@@ -169860,8 +169860,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "dfdc3169b72f2a7555700711dc145c2875796f7c4d73320a926f61da81a43460",
-          "sha256": "dfdc3169b72f2a7555700711dc145c2875796f7c4d73320a926f61da81a43460"
+          "revision": "3098f72f1d3b08c373488fca39caffa968bafe38fc81e6c22bb298129cfe2f99",
+          "sha256": "3098f72f1d3b08c373488fca39caffa968bafe38fc81e6c22bb298129cfe2f99"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -178229,8 +178229,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "dfdc3169b72f2a7555700711dc145c2875796f7c4d73320a926f61da81a43460",
-          "sha256": "dfdc3169b72f2a7555700711dc145c2875796f7c4d73320a926f61da81a43460"
+          "revision": "3098f72f1d3b08c373488fca39caffa968bafe38fc81e6c22bb298129cfe2f99",
+          "sha256": "3098f72f1d3b08c373488fca39caffa968bafe38fc81e6c22bb298129cfe2f99"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -245167,22 +245167,22 @@
         {
           "path": "tools/lab-mcp/src/manager.ts",
           "description": "Authenticated MCP coordinator and runner protocol",
-          "revision": "596c6d80e418ce7d045ec981e0f20a15a24badf170442bb3e902bb1faf679a10",
-          "sha256": "596c6d80e418ce7d045ec981e0f20a15a24badf170442bb3e902bb1faf679a10"
+          "revision": "d397840f0bc41264111170185f066750f1a785acbb509437c42f6afd48d61803",
+          "sha256": "d397840f0bc41264111170185f066750f1a785acbb509437c42f6afd48d61803"
         },
         {
           "path": "tools/lab-mcp/src/runner.ts",
           "description": "Authenticated MCP coordinator and runner protocol",
-          "revision": "e75c1cba00017daf513e2b5147387e4174ee8e3f4dbc3e4ff7d35059eba3bc1a",
-          "sha256": "e75c1cba00017daf513e2b5147387e4174ee8e3f4dbc3e4ff7d35059eba3bc1a"
+          "revision": "bf5386eeadc31ac0bf271912ffc94e2fe56b7f74b14dc74bb72b68734ec36747",
+          "sha256": "bf5386eeadc31ac0bf271912ffc94e2fe56b7f74b14dc74bb72b68734ec36747"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/kyberia-lab-mcp.md",
           "description": "Focused contract validation",
-          "revision": "a6cf94288d2dc8d4353e5926d2b22ac8f7813b5573cea3c0d3eff96fa4b8a70b",
-          "sha256": "a6cf94288d2dc8d4353e5926d2b22ac8f7813b5573cea3c0d3eff96fa4b8a70b",
+          "revision": "dc5b08ef9f8891cdf8d072ee7ef981eb398599c5d672efe9ef537c9fb2293526",
+          "sha256": "dc5b08ef9f8891cdf8d072ee7ef981eb398599c5d672efe9ef537c9fb2293526",
           "command": "cd tools/lab-mcp && pnpm run check && python3 -m unittest -v test/test_windows_process.py",
           "scope": "authenticated_lab_mcp_contract",
           "result": "PASS"

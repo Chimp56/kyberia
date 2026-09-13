@@ -23,12 +23,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
-      - name: Install pinned Lab MCP dependencies
-        shell: bash
+      - name: Prepare pinned pnpm
         run: |
           corepack enable
           corepack prepare pnpm@12.3.4 --activate
-          pnpm --dir tools/lab-mcp install --frozen-lockfile --store-dir tools/lab-mcp/.tools/pnpm-store
       - name: Bootstrap locked toolchain and dependencies
         run: python tools/dev.py bootstrap
       - name: Compile foundation and CLI

@@ -6,6 +6,7 @@ import {
   verify,
   type KeyObject,
 } from "node:crypto";
+import { lstat, readFile } from "node:fs/promises";
 
 export function canonical(value: unknown): string {
   if (value === null) return "null";
@@ -30,6 +31,20 @@ export function canonical(value: unknown): string {
 
 export function digest(data: Uint8Array | string): string {
   return `sha256:${createHash("sha256").update(data).digest("hex")}`;
+}
+
+export async function verifyExecutable(
+  path: string,
+  expectedSha256: string,
+): Promise<void> {
+  const stat = await lstat(path);
+  if (!stat.isFile() || stat.isSymbolicLink())
+    throw new Error("trusted executable must be a regular non-symlink file");
+  const actual = createHash("sha256")
+    .update(await readFile(path))
+    .digest("hex");
+  if (actual !== expectedSha256)
+    throw new Error("trusted executable digest mismatch");
 }
 
 export function privateKeyFromEnv(name: string): KeyObject {
@@ -94,6 +109,8 @@ export function sanitize(
   text: string,
   maxBytes: number,
 ): { text: string; truncated: boolean; policy: string } {
+  if (/\0|\uFFFD/.test(text))
+    throw new Error("non-text artifact rejected by deny-by-default policy");
   // Bound the working set before applying regular expressions. The extra tail
   // lets a token crossing the retained boundary be fully redacted.
   const source = Buffer.from(text)
@@ -114,12 +131,16 @@ export function sanitize(
       "[redacted-authorization]",
     )
     .replace(
-      /(["'](?:token|password|secret|authorization|api[_-]?key)["']\s*:\s*)["'][^"'\r\n]*["']/gi,
+      /(["'](?:ssid|psk|token|access[_-]?token|refresh[_-]?token|password|secret|aws[_-]?secret[_-]?access[_-]?key|authorization|api[_-]?key)["']\s*:\s*)["'][^"'\r\n]*["']/gi,
       '$1"[redacted]"',
     )
     .replace(
       /(token|password|secret|authorization)\s*[:=]\s*\S+/gi,
       "$1=[redacted]",
+    )
+    .replace(
+      /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{20,})\b/g,
+      "[redacted-token]",
     )
     .replace(
       /(?:[A-Za-z]:\\|\/Users\/|\/home\/|\/private\/|\/var\/|\/tmp\/)[^\s"']+/g,

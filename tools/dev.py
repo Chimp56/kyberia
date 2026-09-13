@@ -125,6 +125,7 @@ def command(name):
         python("-m", "pip", "install", "--require-hashes", "--only-binary=:all:", "--no-cache-dir", "-r", "tools/requirements.txt")
         run("rustup", "show", "active-toolchain")
         run("cargo", "fetch", "--locked")
+        run("corepack", "pnpm@12.3.4", "install", "--dir", "tools/lab-mcp", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
     elif name == "clean":
         # The clean helper is stdlib-only and deliberately runs with the
         # invoking interpreter, so it remains available before bootstrap.
