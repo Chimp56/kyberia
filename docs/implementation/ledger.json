@@ -104917,17 +104917,71 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "architecture/application",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Typed project lifecycle commands and immutable current-project query are implemented; project mutations and cancellable analysis jobs remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/application/src/lib.rs",
+          "description": "Application-owned typed command, session, query, and private production adapter boundary",
+          "revision": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912",
+          "sha256": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/application/tests/project_session.rs",
+          "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
+          "revision": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "sha256": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "command": "cargo test -p kyberia-application --locked --offline",
+          "scope": "bounded_application_project_session",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/application-project-session-review.md",
+          "description": "Independent multi-round correctness, architecture, resource-bound, and error-semantics review",
+          "revision": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "sha256": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "reviewer": "/root/application_project_session_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Initial mixed-revision read and storage-boundary leakage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Incomplete lifecycle, concurrent schema, cumulative budget, cancellation, and corruption coverage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Message-based error classification and ambiguous partial legacy schema handling",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0029-application-project-session.md",
+        "description": "Canonical application project-session boundary",
+        "revision": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "sha256": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent application review",
+        "reason": "Provide typed create/open lifecycle and immutable canonical views without leaking storage types",
+        "preserved_product_intent": "Preserves canonical ownership, command/query separation, bounded untrusted reads, version checks, and explicit legacy absence"
+      },
       "parent_id": "source:heading:535dd0a530696c65a335:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:672",
@@ -105011,17 +105065,71 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "architecture/application",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "CreateProject and OpenProject are explicit typed use cases; floor, wall, AP, survey, requirement, analysis, and plan mutation commands remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/application/src/lib.rs",
+          "description": "Application-owned typed command, session, query, and private production adapter boundary",
+          "revision": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912",
+          "sha256": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/application/tests/project_session.rs",
+          "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
+          "revision": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "sha256": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "command": "cargo test -p kyberia-application --locked --offline",
+          "scope": "bounded_application_project_session",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/application-project-session-review.md",
+          "description": "Independent multi-round correctness, architecture, resource-bound, and error-semantics review",
+          "revision": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "sha256": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "reviewer": "/root/application_project_session_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Initial mixed-revision read and storage-boundary leakage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Incomplete lifecycle, concurrent schema, cumulative budget, cancellation, and corruption coverage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Message-based error classification and ambiguous partial legacy schema handling",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0029-application-project-session.md",
+        "description": "Canonical application project-session boundary",
+        "revision": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "sha256": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent application review",
+        "reason": "Provide typed create/open lifecycle and immutable canonical views without leaking storage types",
+        "preserved_product_intent": "Preserves canonical ownership, command/query separation, bounded untrusted reads, version checks, and explicit legacy absence"
+      },
       "parent_id": "source:heading:71710d3043aaa590f581:1",
       "children": []
     },
@@ -105183,17 +105291,71 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "architecture",
+      "status": "IN_PROGRESS",
+      "owner": "architecture/application",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "CurrentProjectView is a versioned immutable single-snapshot query; long calculations as immutable-manifest cancellable jobs remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/application/src/lib.rs",
+          "description": "Application-owned typed command, session, query, and private production adapter boundary",
+          "revision": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912",
+          "sha256": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/application/tests/project_session.rs",
+          "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
+          "revision": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "sha256": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "command": "cargo test -p kyberia-application --locked --offline",
+          "scope": "bounded_application_project_session",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/application-project-session-review.md",
+          "description": "Independent multi-round correctness, architecture, resource-bound, and error-semantics review",
+          "revision": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "sha256": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "reviewer": "/root/application_project_session_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Initial mixed-revision read and storage-boundary leakage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Incomplete lifecycle, concurrent schema, cumulative budget, cancellation, and corruption coverage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Message-based error classification and ambiguous partial legacy schema handling",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0029-application-project-session.md",
+        "description": "Canonical application project-session boundary",
+        "revision": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "sha256": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent application review",
+        "reason": "Provide typed create/open lifecycle and immutable canonical views without leaking storage types",
+        "preserved_product_intent": "Preserves canonical ownership, command/query separation, bounded untrusted reads, version checks, and explicit legacy absence"
+      },
       "parent_id": "source:heading:71710d3043aaa590f581:1",
       "children": []
     },
@@ -236238,16 +236400,70 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "architecture/domain",
+      "owner": "architecture/application",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
-      "reviews": [],
+      "acceptance_cases": [
+        "Application project lifecycle boundary is independently approved; Tauri desktop shell, helper composition, and product lifecycle remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/application/src/lib.rs",
+          "description": "Application-owned typed command, session, query, and private production adapter boundary",
+          "revision": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912",
+          "sha256": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/application/tests/project_session.rs",
+          "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
+          "revision": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "sha256": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "command": "cargo test -p kyberia-application --locked --offline",
+          "scope": "bounded_application_project_session",
+          "result": "PASS"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/application-project-session-review.md",
+          "description": "Independent multi-round correctness, architecture, resource-bound, and error-semantics review",
+          "revision": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "sha256": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "reviewer": "/root/application_project_session_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Initial mixed-revision read and storage-boundary leakage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Incomplete lifecycle, concurrent schema, cumulative budget, cancellation, and corruption coverage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Message-based error classification and ambiguous partial legacy schema handling",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
-      "adr": null,
+      "adr": {
+        "path": "docs/architecture/ADR/0029-application-project-session.md",
+        "description": "Canonical application project-session boundary",
+        "revision": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "sha256": "2887e4e46f05baa4cbddbbfba405b29c506994b0aad3dfca15ff2bf6bd385a52",
+        "decision_status": "ACCEPTED",
+        "accepted_by": "/root after independent application review",
+        "reason": "Provide typed create/open lifecycle and immutable canonical views without leaking storage types",
+        "preserved_product_intent": "Preserves canonical ownership, command/query separation, bounded untrusted reads, version checks, and explicit legacy absence"
+      },
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
       "children": []
     },
@@ -236617,13 +236833,14 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "Architecture / Storage",
+      "owner": "architecture/application",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
         "Canonical operation persistence is validated; project materialization, signed authorization, coordinator transport, chunk merge, and product conflict UX remain open as applicable",
-        "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable"
+        "Pure bounded operation and merge contracts are validated; persistence, project materialization, authorization, coordinator transport, and product conflict UX remain open as applicable",
+        "Typed create/open commands and immutable current-project views are independently approved; remaining mutation commands and analysis job graph remain open"
       ],
       "implementation": [
         {
@@ -236649,6 +236866,12 @@
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
           "revision": "331eeef641a2660ba5af160ecac96101491c85bbdb6db22ef933ae4ccd982922",
           "sha256": "331eeef641a2660ba5af160ecac96101491c85bbdb6db22ef933ae4ccd982922"
+        },
+        {
+          "path": "crates/application/src/lib.rs",
+          "description": "Application-owned typed command, session, query, and private production adapter boundary",
+          "revision": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912",
+          "sha256": "2c91d3f4c86fd61e61a825e307388d09430d6f6fd03ee186d2d51597a3d30912"
         }
       ],
       "validation": [
@@ -236695,6 +236918,15 @@
           "sha256": "28761ff8b8181cff21f100d04dba170759c504753b5d60137ed7f491767b6921",
           "command": "cargo test -p kyberia-operation-log -p kyberia-project-store -p kyberia-spatial-analysis --locked --offline",
           "scope": "integrated_regression",
+          "result": "PASS"
+        },
+        {
+          "path": "crates/application/tests/project_session.rs",
+          "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
+          "revision": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "sha256": "90badfcf2259d734683e31d94ff62711e597e1870dc879141aa06cac8b36fe4d",
+          "command": "cargo test -p kyberia-application --locked --offline",
+          "scope": "bounded_application_project_session",
           "result": "PASS"
         }
       ],
@@ -236757,6 +236989,31 @@
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
+        },
+        {
+          "path": "docs/reviews/application-project-session-review.md",
+          "description": "Independent multi-round correctness, architecture, resource-bound, and error-semantics review",
+          "revision": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "sha256": "de231dc3f831c08d50417550ad3e2d098e3ea6e7b5a868d715ac24aa121c86e0",
+          "reviewer": "/root/application_project_session_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "BLOCKER",
+              "description": "Initial mixed-revision read and storage-boundary leakage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Incomplete lifecycle, concurrent schema, cumulative budget, cancellation, and corruption coverage",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Message-based error classification and ambiguous partial legacy schema handling",
+              "resolution": "RESOLVED"
+            }
+          ]
         }
       ],
       "blocker": null,

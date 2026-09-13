@@ -32,7 +32,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0026](0026-renderer-wasm-admission.md) | Proposed bounded renderer correction; final Gate B open | Use the exact Rust rendering-scene validator in a cancellable browser WASM worker before the diagnostic JavaScript mirror |
 | [0027](0027-planning-interchange.md) | Accepted bounded Phase 0 proof; upstream interoperability open | Independent versioned `openrfplan/1` canonical planning interchange with explicit units, unknowns, references, bounds, seeds, and provenance |
 | [0028](0028-canonical-capture-session-record.md) | Accepted bounded increment; product workflow gates open | Durable canonical acquisition-session identity, mapping, privacy and terminal provenance with additive SQLite storage |
-| [0029](0029-application-project-session.md) | Proposed bounded application increment | Typed create/open project sessions and immutable single-snapshot canonical queries behind an application-owned port |
+| [0029](0029-application-project-session.md) | Accepted bounded application increment; mutation and job surfaces remain open | Typed create/open project sessions and immutable single-snapshot canonical queries behind an application-owned port |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

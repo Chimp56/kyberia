@@ -1,6 +1,6 @@
 # ADR-0029: Canonical application project sessions
 
-- Status: Proposed bounded application increment
+- Status: Accepted bounded application increment; mutation and job surfaces remain open
 - Date: 2026-09-12
 - Related: plan §§10.1, 10.4, 10.6, 11.3, Phase 1; FND-001, FND-004, FND-006; ADR-0001, ADR-0023
 
@@ -58,9 +58,10 @@ feature set. This protects an already-open session from a concurrent logical
 format advance. The application passes one cumulative budget through the
 store's publication verification of the baseline and all materialized current
 history, and polls the same caller-owned cancellation hook before, during, and
-after that bounded synchronous work. Legacy snapshots bypass the verifier
-when their optional materialization table group is absent or incomplete. The
-final canonical snapshot read has no
+after that bounded synchronous work. Legacy snapshots bypass the verifier only
+when their optional materialization table group is entirely absent. A partial
+group is corrupt and is rejected by schema validation. The final canonical
+snapshot read has no
 budget-taking store API, so its fixed SQLite, manifest, artifact, and schema
 limits remain an additional authoritative bound.
 
