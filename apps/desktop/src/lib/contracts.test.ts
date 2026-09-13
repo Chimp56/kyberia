@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { assertOpenProjectSelectionResponse, assertResponse, IPC_SCHEMA, isIpcErrorPayload, normalizeIpcError } from "./contracts";
+import { assertJobCancelResponse, assertJobStatusResponse, assertOpenProjectSelectionResponse, assertResponse, IPC_SCHEMA, isIpcErrorPayload, normalizeIpcError } from "./contracts";
+
+const jobId = "123e4567-e89b-42d3-a456-426614174000";
 
 describe("desktop IPC contract", () => {
   it("rejects a response from an unversioned adapter", () => {
@@ -34,5 +36,14 @@ describe("desktop IPC contract", () => {
     expect(assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: null }).selection).toBeNull();
     expect(() => assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: { grantId: "g", displayName: "Plan.rfatlas", kind: "open", path: "/private/user/secret" } })).toThrow(/malformed/);
     expect(() => assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: { grantId: "", displayName: "Plan.rfatlas", kind: "open" } })).toThrow(/malformed/);
+  });
+
+  it("strictly validates bounded job progress and cancellation acknowledgements", () => {
+    expect(assertJobStatusResponse({ schema: IPC_SCHEMA, jobId, state: "running", progress: 42 }).progress).toBe(42);
+    expect(assertJobCancelResponse({ schema: IPC_SCHEMA, jobId, state: "cancelling" }).state).toBe("cancelling");
+    expect(() => assertJobStatusResponse({ schema: IPC_SCHEMA, jobId, state: "done", progress: 42 })).toThrow(/malformed/);
+    expect(() => assertJobStatusResponse({ schema: IPC_SCHEMA, jobId, state: "running", progress: 101 })).toThrow(/malformed/);
+    expect(() => assertJobStatusResponse({ schema: IPC_SCHEMA, jobId: "../../job", state: "running", progress: 1 })).toThrow(/malformed/);
+    expect(() => assertJobCancelResponse({ schema: IPC_SCHEMA, jobId, state: "cancelling", path: "/private/project" })).toThrow(/malformed/);
   });
 });

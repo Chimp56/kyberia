@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -33,7 +33,9 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       - name: Install desktop frontend dependencies
-        run: npm install --prefix apps/desktop --ignore-scripts
+        run: npm ci --prefix apps/desktop --ignore-scripts
+      - name: Install locked Playwright Chromium
+        run: npm exec --prefix apps/desktop -- playwright install --with-deps chromium
       - name: Compile foundation and CLI
         run: python tools/dev.py build
       - name: Check formatting, lint and dependency boundaries

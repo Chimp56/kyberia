@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PYTHON = ROOT / ".tools/venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+DEFAULT_PYTHON = ROOT / ".tools/venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+PYTHON = Path(os.environ.get("KYBERIA_TOOL_PYTHON", DEFAULT_PYTHON))
 TOOLS = Path(__file__).resolve().parent
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
@@ -170,10 +171,9 @@ def command(name):
     elif name == "integration":
         run("cargo", "test", "-p", "kyberia-project-store", "--locked", "--offline")
     elif name == "e2e":
-        # Executable CLI workflows. Desktop/browser E2E joins this command when
-        # the application exists; no current GUI acceptance is implied.
         run("cargo", "test", "-p", "kyberia-cli", "--test", "project_workflow", "--locked", "--offline")
         run("cargo", "test", "-p", "kyberia-cli", "--test", "stored_analysis", "--locked", "--offline")
+        run_in(ROOT / "apps/desktop", "npm", "run", "e2e")
     elif name == "test":
         run("cargo", "test", "--workspace", "--locked", "--offline", diagnostics="libtest")
         python("-m", "unittest", "discover", "-v", "-s", "tests", "-p", "test_*.py", diagnostics="python-unittest")
@@ -187,9 +187,14 @@ def command(name):
         run_in(desktop, "npm", "run", "typecheck")
         run_in(desktop, "npm", "run", "build")
         run_in(desktop, "npm", "test", "--", "--run")
+        run_in(desktop, "npm", "run", "e2e")
         run("cargo", "fmt", "--manifest-path", desktop / "src-tauri/Cargo.toml", "--", "--check")
         run("cargo", "test", "-p", "kyberia-desktop", "--locked", "--offline")
         run("cargo", "clippy", "-p", "kyberia-desktop", "--all-targets", "--locked", "--offline", "--", "-D", "warnings", diagnostics="cargo")
+        run_in(desktop, "npm", "run", "tauri:build")
+        desktop_binary = ROOT / "target/release" / ("kyberia-desktop.exe" if os.name == "nt" else "kyberia-desktop")
+        if not desktop_binary.is_file():
+            raise SystemExit(f"Tauri build did not produce the expected desktop binary: {desktop_binary}")
         python("tools/architecture.py")
         python("tools/source_inventory.py", "check")
         python("tools/ledger.py", "check")

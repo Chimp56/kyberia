@@ -3,8 +3,8 @@
 use kyberia_desktop_lib::{
     CreateBlankProjectRequest, DesktopIpcError, DesktopState, JobCancellation,
     OpenProjectGrantRequest, OpenProjectSelectionResponse, SchemaRequest, SelectOpenProjectRequest,
-    begin_job, blank_project_path, cancel_job, consume_open_grant, error, finish_job,
-    issue_open_grant, response_for_with_cancel,
+    begin_job, begin_open_job, blank_project_path, cancel_job, cancelled_error, error,
+    finish_joined_job, issue_open_grant, response_for_with_cancel, run_atomic_project_step,
 };
 use std::{
     path::PathBuf,
@@ -25,24 +25,6 @@ fn lock_state<'a>(
             true,
         )
     })
-}
-
-fn join_error() -> DesktopIpcError {
-    error(
-        "storage",
-        "The desktop project operation stopped unexpectedly.",
-        Some("Retry the project operation."),
-        true,
-    )
-}
-
-fn cancelled_error() -> DesktopIpcError {
-    error(
-        "cancelled",
-        "The desktop project operation was cancelled.",
-        Some("Run the operation again when ready."),
-        true,
-    )
 }
 
 fn native_project_selection() -> Result<Option<PathBuf>, DesktopIpcError> {
@@ -133,16 +115,20 @@ async fn project_create_blank(
             )
         })?
         .as_millis() as i64;
-    let (job_id, control, application) = {
+    let job_id = request.job_id;
+    let (control, application) = {
         let mut guard = lock_state(&state)?;
-        let (job_id, control) = begin_job(&mut guard)?;
-        (job_id, control, guard.application())
+        let control = begin_job(&mut guard, &job_id)?;
+        (control, guard.application())
     };
     let name = request.name;
     let task_control = Arc::clone(&control);
     let result = tauri::async_runtime::spawn_blocking(move || {
         let mut cancellation = JobCancellation::new(task_control);
-        cancellation.control().set_progress(10);
+        cancellation.control().set_progress(5);
+        if cancellation.is_cancelled() {
+            return Err(cancelled_error());
+        }
         let name = kyberia_domain::identity::Text::new(name).map_err(|value| {
             error(
                 "invalid_request",
@@ -151,16 +137,19 @@ async fn project_create_blank(
                 false,
             )
         })?;
-        let session = application
-            .create(kyberia_application::CreateProject {
-                path,
-                name,
-                created_utc_ms: now,
-            })
-            .map_err(DesktopIpcError::from)?;
+        cancellation.control().set_progress(15);
         if cancellation.is_cancelled() {
             return Err(cancelled_error());
         }
+        let session = run_atomic_project_step(cancellation.control(), || {
+            application
+                .create(kyberia_application::CreateProject {
+                    path,
+                    name,
+                    created_utc_ms: now,
+                })
+                .map_err(DesktopIpcError::from)
+        })?;
         cancellation.control().set_progress(65);
         let response = response_for_with_cancel(&session, &mut cancellation)?;
         if cancellation.is_cancelled() {
@@ -169,10 +158,9 @@ async fn project_create_blank(
         cancellation.control().set_progress(100);
         Ok((session, response))
     })
-    .await
-    .map_err(|_| join_error())?;
+    .await;
     let mut guard = lock_state(&state)?;
-    finish_job(&mut guard, &job_id);
+    let result = finish_joined_job(&mut guard, &job_id, result)?;
     match result {
         Ok((session, response)) => {
             guard.set_session(session);
@@ -217,26 +205,30 @@ async fn project_open_grant(
             ));
         }
     };
-    let (job_id, control, application, path) = {
+    let job_id = request.job_id;
+    let (control, application, path) = {
         let mut guard = lock_state(&state)?;
-        let path = consume_open_grant(
+        let (control, path) = begin_open_job(
             &mut guard,
+            &job_id,
             &request.grant_id,
             request.expected_name.as_deref(),
         )?;
-        let (job_id, control) = begin_job(&mut guard)?;
-        (job_id, control, guard.application(), path)
+        (control, guard.application(), path)
     };
     let task_control = Arc::clone(&control);
     let result = tauri::async_runtime::spawn_blocking(move || {
         let mut cancellation = JobCancellation::new(task_control);
-        cancellation.control().set_progress(15);
-        let session = application
-            .open(kyberia_application::OpenProject { path, mode })
-            .map_err(DesktopIpcError::from)?;
+        cancellation.control().set_progress(5);
         if cancellation.is_cancelled() {
             return Err(cancelled_error());
         }
+        cancellation.control().set_progress(15);
+        let session = run_atomic_project_step(cancellation.control(), || {
+            application
+                .open(kyberia_application::OpenProject { path, mode })
+                .map_err(DesktopIpcError::from)
+        })?;
         cancellation.control().set_progress(65);
         let response = response_for_with_cancel(&session, &mut cancellation)?;
         if cancellation.is_cancelled() {
@@ -245,10 +237,9 @@ async fn project_open_grant(
         cancellation.control().set_progress(100);
         Ok((session, response))
     })
-    .await
-    .map_err(|_| join_error())?;
+    .await;
     let mut guard = lock_state(&state)?;
-    finish_job(&mut guard, &job_id);
+    let result = finish_joined_job(&mut guard, &job_id, result)?;
     match result {
         Ok((session, response)) => {
             guard.set_session(session);
@@ -264,19 +255,20 @@ async fn project_current(
     request: SchemaRequest,
 ) -> Result<kyberia_desktop_lib::CurrentProjectResponse, DesktopIpcError> {
     kyberia_desktop_lib::require_schema(&request.schema)?;
-    let (job_id, control, session) = {
+    let job_id = request.job_id;
+    let (control, session) = {
         let mut guard = lock_state(&state)?;
         let Some(session) = guard.take_session() else {
             return Ok(kyberia_desktop_lib::no_project_response());
         };
-        let (job_id, control) = match begin_job(&mut guard) {
+        let control = match begin_job(&mut guard, &job_id) {
             Ok(value) => value,
             Err(error) => {
                 guard.set_session(session);
                 return Err(error);
             }
         };
-        (job_id, control, session)
+        (control, session)
     };
     let task_control = Arc::clone(&control);
     let task_result = tauri::async_runtime::spawn_blocking(move || {
@@ -294,17 +286,16 @@ async fn project_current(
     })
     .await;
     let mut guard = lock_state(&state)?;
-    finish_job(&mut guard, &job_id);
+    let task_result = finish_joined_job(&mut guard, &job_id, task_result)?;
     match task_result {
-        Ok((session, Ok(response))) => {
+        (session, Ok(response)) => {
             guard.set_session(session);
             Ok(response)
         }
-        Ok((session, Err(value))) => {
+        (session, Err(value)) => {
             guard.set_session(session);
             Err(value)
         }
-        Err(_) => Err(join_error()),
     }
 }
 
@@ -312,10 +303,15 @@ async fn project_current(
 fn project_cancel(
     state: State<'_, Mutex<DesktopState>>,
     request: kyberia_desktop_lib::JobRequest,
-) -> Result<(), DesktopIpcError> {
+) -> Result<kyberia_desktop_lib::JobCancelResponse, DesktopIpcError> {
     kyberia_desktop_lib::require_schema(&request.schema)?;
     let guard = lock_state(&state)?;
-    cancel_job(&guard, &request.job_id)
+    cancel_job(&guard, &request.job_id)?;
+    Ok(kyberia_desktop_lib::JobCancelResponse {
+        schema: kyberia_desktop_lib::IPC_SCHEMA,
+        job_id: request.job_id,
+        state: "cancelling",
+    })
 }
 
 #[tauri::command]

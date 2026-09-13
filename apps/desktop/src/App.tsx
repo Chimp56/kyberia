@@ -15,10 +15,15 @@ export function App() {
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const paletteTriggerRef = useRef<HTMLButtonElement>(null);
   const projectReady = state.projectState === "baseline_only" || state.projectState === "materialized_current";
+  const busy = state.activeJob !== null || state.phase === "loading";
   const closePalette = useCallback(() => {
     session.setPaletteOpen(false);
     requestAnimationFrame(() => paletteTriggerRef.current?.focus());
   }, [session.setPaletteOpen]);
+  const createProject = useCallback(() => {
+    if (projectReady && !window.confirm("Create a new project? The current project will remain on disk, but this window will switch to the new project.")) return;
+    void session.createBlankProject();
+  }, [projectReady, session.createBlankProject]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -44,14 +49,14 @@ export function App() {
   }, [closePalette, session.selectTool, session.setPaletteOpen, state.commandPaletteOpen]);
 
   return <div className="app-shell">
-    <TopBar projectName={state.projectName} paletteButtonRef={paletteTriggerRef} onOpenPalette={() => session.setPaletteOpen(true)} onNewProject={() => void session.createBlankProject()} onOpenProject={() => void session.openProject()} onToggleInspector={() => setInspectorOpen((current) => !current)} inspectorOpen={inspectorOpen} />
+    <TopBar projectName={state.projectName} paletteButtonRef={paletteTriggerRef} onOpenPalette={() => session.setPaletteOpen(true)} onNewProject={createProject} onOpenProject={() => void session.openProject()} onToggleInspector={() => setInspectorOpen((current) => !current)} inspectorOpen={inspectorOpen} busy={busy} />
     <div className="workspace">
       <ToolRail selected={state.selectedTool as ToolId} onSelect={session.selectTool} />
       <LayerPanel visibility={state.layerVisibility} onToggle={session.toggleLayer} />
-      <main className="map-region"><CanvasStage phase={state.phase} errorMessage={state.error?.message} onImport={session.importFloorPlan} onNewBlank={() => void session.createBlankProject()} onRetry={() => void session.retry()} calibrated={state.calibrated} /></main>
+      <main className="map-region"><CanvasStage phase={state.phase} error={state.error} activeJob={state.activeJob} onImport={session.importFloorPlan} onNewProject={createProject} onRetry={() => void session.retry()} onCancel={() => void session.cancelActiveJob()} calibrated={state.calibrated} /></main>
       <InspectorPanel projectName={state.projectName} projectReady={projectReady} isMobileOpen={inspectorOpen} />
     </div>
-    <StatusBar phase={state.phase} projectName={state.projectName} />
-    {state.commandPaletteOpen && <CommandPalette onClose={closePalette} onSelectTool={session.selectTool} onNewProject={() => void session.createBlankProject()} onOpenProject={() => void session.openProject()} onImport={session.importFloorPlan} />}
+    <StatusBar phase={state.phase} projectName={state.projectName} activeJob={state.activeJob} />
+    {state.commandPaletteOpen && <CommandPalette onClose={closePalette} onSelectTool={session.selectTool} onNewProject={createProject} onOpenProject={() => void session.openProject()} onImport={session.importFloorPlan} />}
   </div>;
 }

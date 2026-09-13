@@ -42,6 +42,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue-bright
 .palette-trigger kbd { color: #adbed0; font-size: 12px; white-space: nowrap; }
 .top-action { display: inline-flex; align-items: center; gap: 9px; padding: 9px 14px; border: 0; background: transparent; color: #a8b9cb; cursor: pointer; font-size: 13px; }
 .top-action:disabled { color: #687b8f; cursor: default; }
+.project-name:disabled { color: #687b8f; cursor: default; }
 .top-action:not(:disabled):hover, .project-name:hover { color: var(--text); }
 .project-menu { gap: 8px; }
 .action-divider { width: 1px; height: 36px; background: var(--line); }
@@ -96,6 +97,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue-bright
 .canvas-state-card { min-height: 260px; justify-content: center; gap: 0; padding: 38px; border-style: solid; border-color: #405264; background: rgba(22, 32, 43, .87); }
 .canvas-state-card p { max-width: 270px; }
 .canvas-state-card .secondary-button { margin-top: 22px; min-width: 130px; }
+.canvas-state-card .secondary-button:disabled { cursor: wait; opacity: .7; }
+.job-progress { width: min(230px, 100%); height: 8px; margin-top: 18px; accent-color: var(--blue-bright); }
 .state-symbol { display: grid; place-items: center; width: 35px; height: 35px; margin-bottom: 16px; border: 1px solid currentColor; border-radius: 50%; color: var(--amber); font-weight: 700; }
 .error-state .state-symbol { color: var(--red); }
 .unsupported-state .state-symbol { color: #9fb1c3; }
@@ -157,8 +160,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue-bright
 .palette-search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 15px; }
 .palette-search input::placeholder { color: #8094a9; }
 .command-list { padding: 7px; }
-.command-list button { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 39px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: #dbe8f3; cursor: pointer; text-align: left; font-size: 13px; }
-.command-list button:hover, .command-list button:focus-visible, .command-list button.is-active { background: #19425e; outline: 0; }
+.command-list [role="option"] { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 39px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: #dbe8f3; cursor: pointer; text-align: left; font-size: 13px; }
+.command-list [role="option"]:hover, .command-list [role="option"].is-active { background: #19425e; outline: 0; }
 .command-list small { color: #91a7bc; font-size: 11px; }
 .no-commands { margin: 18px 12px; color: #9aafc2; font-size: 13px; }
 .palette-footer { display: flex; gap: 17px; padding: 10px 17px; border-top: 1px solid #33485c; color: #7e94a9; font-size: 11px; }

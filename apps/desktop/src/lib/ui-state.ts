@@ -2,6 +2,13 @@ import type { IpcErrorPayload, ProjectState } from "./contracts";
 
 export type WorkspacePhase = "idle" | "loading" | "ready" | "error" | "unsupported";
 
+export interface ActiveProjectJob {
+  id: string;
+  label: string;
+  progress: number;
+  state: "running" | "cancelling";
+}
+
 export interface WorkspaceState {
   phase: WorkspacePhase;
   projectState: ProjectState;
@@ -9,6 +16,7 @@ export interface WorkspaceState {
   hasFloorPlan: boolean;
   calibrated: boolean;
   error: IpcErrorPayload | null;
+  activeJob: ActiveProjectJob | null;
   selectedTool: string;
   commandPaletteOpen: boolean;
   layerVisibility: Record<string, boolean>;
@@ -21,6 +29,7 @@ export const initialWorkspaceState: WorkspaceState = {
   hasFloorPlan: false,
   calibrated: false,
   error: null,
+  activeJob: null,
   selectedTool: "select",
   commandPaletteOpen: false,
   layerVisibility: {
@@ -36,6 +45,7 @@ export function stateForError(error: IpcErrorPayload, previous: WorkspaceState =
     ...previous,
     phase: error.code === "capability_unavailable" ? "unsupported" : "error",
     error,
+    activeJob: null,
   };
 }
 

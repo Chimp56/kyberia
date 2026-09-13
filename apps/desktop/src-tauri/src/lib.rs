@@ -11,14 +11,18 @@ use std::{
         Arc,
         atomic::{AtomicBool, AtomicU8, Ordering},
     },
+    time::{Duration, Instant},
 };
 
 pub const IPC_SCHEMA: &str = "kyberia.desktop-ipc/1";
+const MAX_OPEN_GRANTS: usize = 8;
+const OPEN_GRANT_TTL: Duration = Duration::from_secs(5 * 60);
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateBlankProjectRequest {
     pub schema: String,
+    pub job_id: String,
     pub name: String,
 }
 
@@ -32,14 +36,17 @@ pub struct SelectOpenProjectRequest {
 #[serde(rename_all = "camelCase")]
 pub struct OpenProjectGrantRequest {
     pub schema: String,
+    pub job_id: String,
     pub grant_id: String,
     pub mode: String,
     pub expected_name: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SchemaRequest {
     pub schema: String,
+    pub job_id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -117,6 +124,14 @@ pub struct JobStatusResponse {
     pub progress: u8,
 }
 
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JobCancelResponse {
+    pub schema: &'static str,
+    pub job_id: String,
+    pub state: &'static str,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum GrantKind {
     Open,
@@ -127,6 +142,7 @@ struct NativeProjectGrant {
     path: PathBuf,
     display_name: String,
     kind: GrantKind,
+    issued_at: Instant,
 }
 
 #[derive(Debug)]
@@ -235,6 +251,32 @@ pub fn error(
         remediation: remediation.map(str::to_owned),
         retryable,
     }
+}
+
+pub fn cancelled_error() -> DesktopIpcError {
+    error(
+        "cancelled",
+        "The desktop project operation was cancelled.",
+        Some("Run the operation again when ready."),
+        true,
+    )
+}
+
+/// Application create/open are short atomic storage operations without an
+/// internal cancellation seam. Poll immediately before and after that step so
+/// cancellation never publishes its returned session into the desktop state.
+pub fn run_atomic_project_step<T>(
+    control: &JobControl,
+    work: impl FnOnce() -> Result<T, DesktopIpcError>,
+) -> Result<T, DesktopIpcError> {
+    if control.is_cancelled() {
+        return Err(cancelled_error());
+    }
+    let value = work()?;
+    if control.is_cancelled() {
+        return Err(cancelled_error());
+    }
+    Ok(value)
 }
 
 fn scrub_user_message(message: &str) -> String {
@@ -466,6 +508,7 @@ pub fn issue_open_grant(
     state: &mut DesktopState,
     selected: PathBuf,
 ) -> Result<OpenProjectSelectionResponse, DesktopIpcError> {
+    prune_expired_grants(state, Instant::now());
     let metadata = std::fs::symlink_metadata(&selected).map_err(|_| {
         error(
             "missing_project",
@@ -506,12 +549,22 @@ pub fn issue_open_grant(
         .unwrap_or("Project")
         .to_owned();
     let grant_id = uuid::Uuid::new_v4().to_string();
+    if state.grants.len() >= MAX_OPEN_GRANTS
+        && let Some(oldest) = state
+            .grants
+            .iter()
+            .min_by_key(|(_, grant)| grant.issued_at)
+            .map(|(id, _)| id.clone())
+    {
+        state.grants.remove(&oldest);
+    }
     state.grants.insert(
         grant_id.clone(),
         NativeProjectGrant {
             path: canonical,
             display_name: display_name.clone(),
             kind: GrantKind::Open,
+            issued_at: Instant::now(),
         },
     );
     Ok(OpenProjectSelectionResponse {
@@ -529,6 +582,7 @@ pub fn consume_open_grant(
     grant_id: &str,
     expected_name: Option<&str>,
 ) -> Result<PathBuf, DesktopIpcError> {
+    prune_expired_grants(state, Instant::now());
     let Some(grant) = state.grants.get(grant_id) else {
         return Err(error(
             "invalid_grant",
@@ -551,7 +605,46 @@ pub fn consume_open_grant(
     Ok(path)
 }
 
-pub fn begin_job(state: &mut DesktopState) -> Result<(String, Arc<JobControl>), DesktopIpcError> {
+pub fn begin_open_job(
+    state: &mut DesktopState,
+    job_id: &str,
+    grant_id: &str,
+    expected_name: Option<&str>,
+) -> Result<(Arc<JobControl>, PathBuf), DesktopIpcError> {
+    let control = begin_job(state, job_id)?;
+    match consume_open_grant(state, grant_id, expected_name) {
+        Ok(path) => Ok((control, path)),
+        Err(error) => {
+            finish_job(state, job_id);
+            Err(error)
+        }
+    }
+}
+
+fn prune_expired_grants(state: &mut DesktopState, now: Instant) {
+    state.grants.retain(|_, grant| {
+        now.checked_duration_since(grant.issued_at)
+            .is_some_and(|age| age <= OPEN_GRANT_TTL)
+    });
+}
+
+pub fn begin_job(
+    state: &mut DesktopState,
+    job_id: &str,
+) -> Result<Arc<JobControl>, DesktopIpcError> {
+    let parsed_id = uuid::Uuid::parse_str(job_id).ok();
+    if parsed_id.as_ref().is_none_or(|value| {
+        value.hyphenated().to_string() != job_id
+            || value.get_version() != Some(uuid::Version::Random)
+            || value.get_variant() != uuid::Variant::RFC4122
+    }) {
+        return Err(error(
+            "invalid_request",
+            "The project job identifier is malformed.",
+            Some("Start the project operation again."),
+            false,
+        ));
+    }
     if !state.jobs.is_empty() {
         return Err(error(
             "resource_limit",
@@ -560,10 +653,9 @@ pub fn begin_job(state: &mut DesktopState) -> Result<(String, Arc<JobControl>), 
             true,
         ));
     }
-    let id = uuid::Uuid::new_v4().to_string();
     let control = Arc::new(JobControl::new());
-    state.jobs.insert(id.clone(), Arc::clone(&control));
-    Ok((id, control))
+    state.jobs.insert(job_id.to_owned(), Arc::clone(&control));
+    Ok(control)
 }
 
 pub fn finish_job(state: &mut DesktopState, job_id: &str) {
@@ -587,6 +679,22 @@ pub fn cancel_job(state: &DesktopState, job_id: &str) -> Result<(), DesktopIpcEr
 
 pub fn job_control(state: &DesktopState, job_id: &str) -> Option<Arc<JobControl>> {
     state.jobs.get(job_id).cloned()
+}
+
+pub fn finish_joined_job<T, E>(
+    state: &mut DesktopState,
+    job_id: &str,
+    joined: Result<T, E>,
+) -> Result<T, DesktopIpcError> {
+    finish_job(state, job_id);
+    joined.map_err(|_| {
+        error(
+            "storage",
+            "The desktop project operation stopped unexpectedly.",
+            Some("Retry the project operation."),
+            true,
+        )
+    })
 }
 
 #[cfg(test)]
@@ -714,15 +822,166 @@ mod tests {
     #[test]
     fn job_admission_is_bounded_and_cancellation_is_observable() {
         let mut state = DesktopState::default();
-        let (job_id, control) = begin_job(&mut state).expect("first job");
+        let job_id = uuid::Uuid::new_v4().to_string();
+        let control = begin_job(&mut state, &job_id).expect("first job");
+        let second_id = uuid::Uuid::new_v4().to_string();
         assert_eq!(
-            begin_job(&mut state).expect_err("second job").code,
+            begin_job(&mut state, &second_id)
+                .expect_err("second job")
+                .code,
             "resource_limit"
         );
         cancel_job(&state, &job_id).expect("cancel job");
         assert!(control.is_cancelled());
         finish_job(&mut state, &job_id);
-        assert!(begin_job(&mut state).is_ok());
+        assert!(begin_job(&mut state, &second_id).is_ok());
+    }
+
+    #[test]
+    fn malformed_job_ids_fail_before_admission() {
+        let mut state = DesktopState::default();
+        assert_eq!(
+            begin_job(&mut state, "not-a-job")
+                .expect_err("malformed identifier")
+                .code,
+            "invalid_request"
+        );
+        assert!(state.jobs.is_empty());
+    }
+
+    #[test]
+    fn join_failure_always_releases_admission() {
+        let mut state = DesktopState::default();
+        let first_id = uuid::Uuid::new_v4().to_string();
+        begin_job(&mut state, &first_id).expect("first job");
+        let result: Result<(), DesktopIpcError> =
+            finish_joined_job(&mut state, &first_id, Err::<(), ()>(()));
+        assert_eq!(result.expect_err("join failure").code, "storage");
+        let second_id = uuid::Uuid::new_v4().to_string();
+        assert!(begin_job(&mut state, &second_id).is_ok());
+    }
+
+    #[test]
+    fn cancellation_during_atomic_create_keeps_session_and_admission_recoverable() {
+        use std::sync::mpsc;
+
+        let mut state = DesktopState::default();
+        let active = create_project_at(
+            &mut state,
+            retained_path("active-before-cancel"),
+            "Active project".into(),
+            1_800_000_000_000,
+        )
+        .expect("active project");
+        let active_id = active.project.expect("project").project_id;
+        let cancelled_path = retained_path("cancelled-create");
+        let worker_path = cancelled_path.clone();
+        let job_id = uuid::Uuid::new_v4().to_string();
+        let control = begin_job(&mut state, &job_id).expect("job");
+        let task_control = Arc::clone(&control);
+        let (entered_tx, entered_rx) = mpsc::channel();
+        let (release_tx, release_rx) = mpsc::channel();
+
+        let worker = std::thread::spawn(move || {
+            run_atomic_project_step(&task_control, || {
+                entered_tx.send(()).expect("entered");
+                release_rx.recv().expect("release");
+                let name = kyberia_domain::identity::Text::new("Cancelled project".to_owned())
+                    .expect("name");
+                Application.create(CreateProject {
+                    path: worker_path.clone(),
+                    name,
+                    created_utc_ms: 1_800_000_000_001,
+                })?;
+                Ok(worker_path)
+            })
+        });
+        entered_rx.recv().expect("worker entered atomic step");
+        cancel_job(&state, &job_id).expect("cancel");
+        release_tx.send(()).expect("release worker");
+        let completed_path = worker
+            .join()
+            .expect("worker join")
+            .expect_err("cancelled after atomic work");
+        assert_eq!(completed_path.code, "cancelled");
+        finish_job(&mut state, &job_id);
+
+        Application
+            .open(OpenProject {
+                path: cancelled_path,
+                mode: SessionMode::ReadOnly,
+            })
+            .expect("atomic create left a complete canonical project");
+
+        let current = current_project(&state).expect("current project");
+        assert_eq!(
+            current.project.expect("active project").project_id,
+            active_id
+        );
+        let next_id = uuid::Uuid::new_v4().to_string();
+        assert!(begin_job(&mut state, &next_id).is_ok());
+    }
+
+    #[test]
+    fn open_grants_are_bounded_and_expire() {
+        let mut state = DesktopState::default();
+        let mut first_id = String::new();
+        for index in 0..=MAX_OPEN_GRANTS {
+            let root = retained_path(&format!("bounded-grant-{index}"));
+            std::fs::create_dir_all(&root).expect("project root");
+            let issued = issue_open_grant(&mut state, root).expect("grant");
+            if index == 0 {
+                first_id = issued.selection.expect("selection").grant_id;
+            }
+        }
+        assert_eq!(state.grants.len(), MAX_OPEN_GRANTS);
+        assert!(!state.grants.contains_key(&first_id));
+
+        let expiring = state.grants.keys().next().expect("grant").clone();
+        state.grants.get_mut(&expiring).expect("grant").issued_at =
+            Instant::now() - OPEN_GRANT_TTL - Duration::from_secs(1);
+        assert_eq!(
+            consume_open_grant(&mut state, &expiring, None)
+                .expect_err("expired")
+                .code,
+            "invalid_grant"
+        );
+    }
+
+    #[test]
+    fn busy_open_does_not_consume_a_valid_grant() {
+        let mut state = DesktopState::default();
+        let root = retained_path("busy-grant");
+        std::fs::create_dir_all(&root).expect("project root");
+        let selected = issue_open_grant(&mut state, root).expect("grant");
+        let selection = selected.selection.expect("selection");
+        let active_id = uuid::Uuid::new_v4().to_string();
+        begin_job(&mut state, &active_id).expect("active job");
+
+        let blocked_id = uuid::Uuid::new_v4().to_string();
+        assert_eq!(
+            begin_open_job(
+                &mut state,
+                &blocked_id,
+                &selection.grant_id,
+                Some(&selection.display_name),
+            )
+            .expect_err("busy")
+            .code,
+            "resource_limit"
+        );
+        finish_job(&mut state, &active_id);
+
+        let retry_id = uuid::Uuid::new_v4().to_string();
+        assert!(
+            begin_open_job(
+                &mut state,
+                &retry_id,
+                &selection.grant_id,
+                Some(&selection.display_name),
+            )
+            .is_ok()
+        );
     }
 
     #[test]

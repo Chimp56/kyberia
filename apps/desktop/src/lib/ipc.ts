@@ -1,11 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import {
   assertResponse,
+  assertJobCancelResponse,
+  assertJobStatusResponse,
   assertOpenProjectSelectionResponse,
   type CreateBlankProjectRequest,
   type CurrentProjectResponse,
   IPC_SCHEMA,
   type DesktopIpc,
+  type JobRequest,
   type OpenProjectGrantRequest,
   type OpenProjectSelectionResponse,
 } from "./contracts";
@@ -38,7 +41,9 @@ const tauriIpc: DesktopIpc = {
   createBlankProject: (request: CreateBlankProjectRequest) => invokeProject("project_create_blank", request, assertResponse),
   selectOpenProject: () => invokeProject<OpenProjectSelectionResponse>("project_select_open", { schema: IPC_SCHEMA }, assertOpenProjectSelectionResponse),
   openProject: (request: OpenProjectGrantRequest) => invokeProject("project_open_grant", request, assertResponse),
-  currentProject: () => invokeProject("project_current", { schema: IPC_SCHEMA }, assertResponse),
+  currentProject: (request: JobRequest) => invokeProject("project_current", request, assertResponse),
+  jobStatus: (request: JobRequest) => invokeProject("project_job_status", request, assertJobStatusResponse),
+  cancelJob: (request: JobRequest) => invokeProject("project_cancel", request, assertJobCancelResponse),
 };
 
 export function getDesktopIpc(): DesktopIpc {

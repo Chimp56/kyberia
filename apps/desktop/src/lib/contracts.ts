@@ -39,14 +39,34 @@ export interface IpcErrorPayload {
 
 export interface CreateBlankProjectRequest {
   schema: typeof IPC_SCHEMA;
+  jobId: string;
   name: string;
 }
 
 export interface OpenProjectGrantRequest {
   schema: typeof IPC_SCHEMA;
+  jobId: string;
   grantId: string;
   mode: "read_only" | "read_write";
   expectedName?: string;
+}
+
+export interface JobRequest {
+  schema: typeof IPC_SCHEMA;
+  jobId: string;
+}
+
+export interface JobStatusResponse {
+  schema: typeof IPC_SCHEMA;
+  jobId: string;
+  state: "running" | "cancelling";
+  progress: number;
+}
+
+export interface JobCancelResponse {
+  schema: typeof IPC_SCHEMA;
+  jobId: string;
+  state: "cancelling";
 }
 
 export interface OpenProjectSelection {
@@ -64,7 +84,9 @@ export interface DesktopIpc {
   createBlankProject(request: CreateBlankProjectRequest): Promise<CurrentProjectResponse>;
   selectOpenProject(): Promise<OpenProjectSelectionResponse>;
   openProject(request: OpenProjectGrantRequest): Promise<CurrentProjectResponse>;
-  currentProject(): Promise<CurrentProjectResponse>;
+  currentProject(request: JobRequest): Promise<CurrentProjectResponse>;
+  jobStatus(request: JobRequest): Promise<JobStatusResponse>;
+  cancelJob(request: JobRequest): Promise<JobCancelResponse>;
 }
 
 export function isIpcErrorPayload(value: unknown): value is IpcErrorPayload {
@@ -218,6 +240,41 @@ export function assertOpenProjectSelectionResponse(value: unknown): OpenProjectS
     throw invalidResponse("The desktop adapter returned a malformed project selection.");
   }
   return value as OpenProjectSelectionResponse;
+}
+
+function isCanonicalJobId(value: unknown): value is string {
+  return typeof value === "string"
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(value);
+}
+
+export function assertJobStatusResponse(value: unknown): JobStatusResponse {
+  if (!value || typeof value !== "object" || (value as { schema?: unknown }).schema !== IPC_SCHEMA) {
+    throw invalidResponse("The desktop adapter returned an unknown job-status schema.");
+  }
+  const candidate = value as Partial<JobStatusResponse>;
+  if (!hasOnlyKeys(value, ["schema", "jobId", "state", "progress"])
+    || !isCanonicalJobId(candidate.jobId)
+    || (candidate.state !== "running" && candidate.state !== "cancelling")
+    || typeof candidate.progress !== "number"
+    || !Number.isSafeInteger(candidate.progress)
+    || candidate.progress < 0
+    || candidate.progress > 100) {
+    throw invalidResponse("The desktop adapter returned a malformed job status.");
+  }
+  return value as JobStatusResponse;
+}
+
+export function assertJobCancelResponse(value: unknown): JobCancelResponse {
+  if (!value || typeof value !== "object" || (value as { schema?: unknown }).schema !== IPC_SCHEMA) {
+    throw invalidResponse("The desktop adapter returned an unknown cancellation schema.");
+  }
+  const candidate = value as Partial<JobCancelResponse>;
+  if (!hasOnlyKeys(value, ["schema", "jobId", "state"])
+    || !isCanonicalJobId(candidate.jobId)
+    || candidate.state !== "cancelling") {
+    throw invalidResponse("The desktop adapter returned a malformed cancellation response.");
+  }
+  return value as JobCancelResponse;
 }
 
 function scrubRendererMessage(message: string): string {
