@@ -245386,8 +245386,8 @@
         {
           "path": "docs/validation/kyberia-lab-mcp.md",
           "description": "Focused contract validation",
-          "revision": "92fdc25ccc3372df8d55763a60340ada99e3d8047d64773dac59a5b9b59e092d",
-          "sha256": "92fdc25ccc3372df8d55763a60340ada99e3d8047d64773dac59a5b9b59e092d",
+          "revision": "f46de80f230408a80043a2eab00d7c32b4cbaea4f1cc80b96fb0917eca0332a1",
+          "sha256": "f46de80f230408a80043a2eab00d7c32b4cbaea4f1cc80b96fb0917eca0332a1",
           "command": "cd tools/lab-mcp && pnpm run check && python3 -m unittest -v test/test_windows_process.py",
           "scope": "authenticated_lab_mcp_contract",
           "result": "PASS"
