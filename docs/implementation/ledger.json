@@ -104448,8 +104448,8 @@
       "adr": {
         "path": "docs/architecture/ADR/0028-canonical-capture-session-record.md",
         "description": "Canonical acquisition-session record and outward storage boundary",
-        "revision": "1a4d5bcf4ffa736f77d47cb4380d0cdfb514721082c65d920b684021416f1ce3",
-        "sha256": "1a4d5bcf4ffa736f77d47cb4380d0cdfb514721082c65d920b684021416f1ce3",
+        "revision": "91d945e7020975e38171e21407554c0ffd0abacb3f519d8f6857a879a2f7e006",
+        "sha256": "91d945e7020975e38171e21407554c0ffd0abacb3f519d8f6857a879a2f7e006",
         "decision_status": "ACCEPTED",
         "accepted_by": "/root after independent Luna xhigh review",
         "reason": "Preserve exact capture-session identity and evidence closure across durable publication",

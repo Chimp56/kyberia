@@ -190,8 +190,9 @@ The exact retained logs are under
 worktree. The Kismet live HTTP fixtures remain outside the reproducible
 workspace command because this sandbox cannot create their local sockets;
 that environment limitation is not evidence about the session record.
-Independent rereview of these corrections is still pending, so this ADR does
-not claim acceptance or product feature completion.
+Independent rereview and the combined integration review approved these
+corrections. This accepted ADR covers the bounded capture-session and spool
+contracts; it does not claim product feature completion.
 
 ## Consequences
 
