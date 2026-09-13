@@ -102396,14 +102396,49 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Tauri 2 owns the desktop command boundary and exposes project lifecycle through versioned IPC DTOs",
+        "Native picker work remains cancellable and observable while the command handler stays available to status and cancel requests"
+      ],
+      "implementation": [
+        {
+          "path": "docs/architecture/ADR/0033-tauri-react-versioned-ipc.md",
+          "description": "Bounded Tauri 2 desktop shell and versioned IPC decision",
+          "revision": "84d04e7b7d6d5a34e41474cdc7879d3ee9b4c1bcf99064027916484ad2047ade",
+          "sha256": "84d04e7b7d6d5a34e41474cdc7879d3ee9b4c1bcf99064027916484ad2047ade"
+        },
+        {
+          "path": "apps/desktop/src-tauri/src/main.rs",
+          "description": "Async Tauri command boundary and owned native picker lifecycle",
+          "revision": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142",
+          "sha256": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142"
+        }
+      ],
+      "validation": [
+        {
+          "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
+          "description": "Rendered Tauri shell lifecycle, progress, cancellation, and session preservation contract",
+          "revision": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
+          "sha256": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
+          "command": "npm run e2e",
+          "scope": "contract",
+          "result": "PASS (10 Chromium tests)"
+        },
+        {
+          "path": "docs/validation/desktop-shell.md",
+          "description": "Desktop shell integration and native lifecycle validation with open product gates",
+          "revision": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "sha256": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "command": "npm run tauri:build; cargo test -p kyberia-desktop --locked --offline",
+          "scope": "integration",
+          "result": "PASS (author-side bounded validation)"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -102439,14 +102474,55 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "React/TypeScript renders honest project, loading, cancellation, and error states from versioned IPC responses",
+        "Renderer operations retain one caller-owned job identity and never receive a filesystem path"
+      ],
+      "implementation": [
+        {
+          "path": "apps/desktop/src/App.tsx",
+          "description": "React desktop shell composition and project-state presentation",
+          "revision": "b3f54f8194d8f488256b40463d536280cc09317cc210c994332b5cab90af294d",
+          "sha256": "b3f54f8194d8f488256b40463d536280cc09317cc210c994332b5cab90af294d"
+        },
+        {
+          "path": "apps/desktop/src/lib/contracts.ts",
+          "description": "Strict versioned IPC DTO and progress/cancellation validation",
+          "revision": "17bc2c3e0ecb84d397114d8c2ca094ed056a7e433a24ece10f947512ce9e8ab2",
+          "sha256": "17bc2c3e0ecb84d397114d8c2ca094ed056a7e433a24ece10f947512ce9e8ab2"
+        },
+        {
+          "path": "apps/desktop/src/lib/useProjectSession.ts",
+          "description": "Renderer operation admission, polling, cancellation, and retry lifecycle",
+          "revision": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8",
+          "sha256": "2155954127306e855c3d4c9c10c2909635b0828715b0046e64564a7c849e10f8"
+        }
+      ],
+      "validation": [
+        {
+          "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
+          "description": "Rendered React lifecycle, accessibility, progress, cancellation, retry, and responsive usability checks",
+          "revision": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
+          "sha256": "bdea4c25a5bc72d9f96688bd678e198a811d0c3d3ec2aeb917aa2367e1726ce1",
+          "command": "npm run e2e",
+          "scope": "contract",
+          "result": "PASS (10 Chromium tests)"
+        },
+        {
+          "path": "docs/validation/desktop-shell.md",
+          "description": "Frontend type, unit, build, and rendered desktop validation record",
+          "revision": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "sha256": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "command": "npm run typecheck; npm test -- --run; npm run build",
+          "scope": "integration",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -103118,14 +103194,52 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "architecture",
       "phase": 0,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "The root Cargo workspace and desktop lock graph resolve reproducibly with locked offline metadata",
+        "The desktop package has a reproducible npm ci install path and the no-bundle Tauri build is exercised"
+      ],
+      "implementation": [
+        {
+          "path": "Cargo.toml",
+          "description": "Root Cargo workspace membership and canonical dependency graph",
+          "revision": "9d69d09cc7444ad6c3c6d8ee1a872d7a76bf7eb80f7917db3a3dcff7d968e87d",
+          "sha256": "9d69d09cc7444ad6c3c6d8ee1a872d7a76bf7eb80f7917db3a3dcff7d968e87d"
+        },
+        {
+          "path": "apps/desktop/src-tauri/Cargo.toml",
+          "description": "Exact desktop Cargo dependency pins",
+          "revision": "936626e4be230b0ab6aa5f673f40412bd1bc0cc8d29af28e5c5a3100b3702ba1",
+          "sha256": "936626e4be230b0ab6aa5f673f40412bd1bc0cc8d29af28e5c5a3100b3702ba1"
+        },
+        {
+          "path": "Cargo.lock",
+          "description": "Canonical locked Rust dependency resolution",
+          "revision": "d946c1ef9495547bb86d83af4b4d29608855a1f2ef8fed3bcce2c80873e2a35e",
+          "sha256": "d946c1ef9495547bb86d83af4b4d29608855a1f2ef8fed3bcce2c80873e2a35e"
+        },
+        {
+          "path": "apps/desktop/package-lock.json",
+          "description": "Reproducible desktop npm dependency resolution",
+          "revision": "155ed6e60f5f7b43f502628937a529918c3f37f61a7a78e9b27a5f4d0a2acf50",
+          "sha256": "155ed6e60f5f7b43f502628937a529918c3f37f61a7a78e9b27a5f4d0a2acf50"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/desktop-shell.md",
+          "description": "Locked Cargo metadata, npm ci dry-run, source inventory, and Tauri build evidence",
+          "revision": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "sha256": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "command": "npm ci --dry-run; cargo metadata --format-version 1 --locked --offline; npm run tauri:build",
+          "scope": "integration",
+          "result": "PASS (author-side reproducibility checks)"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -178738,14 +178852,39 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "specification/review",
       "phase": null,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Desktop Tauri, React, Cargo, and npm project boundaries are documented with their remaining integration constraints"
+      ],
+      "implementation": [
+        {
+          "path": "docs/architecture/ADR/0033-tauri-react-versioned-ipc.md",
+          "description": "Plan-alias ADR-006 records the Tauri/React/versioned IPC boundary",
+          "revision": "84d04e7b7d6d5a34e41474cdc7879d3ee9b4c1bcf99064027916484ad2047ade",
+          "sha256": "84d04e7b7d6d5a34e41474cdc7879d3ee9b4c1bcf99064027916484ad2047ade"
+        },
+        {
+          "path": "docs/validation/desktop-shell.md",
+          "description": "Desktop workspace boundary, validation commands, and limitations",
+          "revision": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "sha256": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/desktop-shell.md",
+          "description": "Workspace and desktop gate evidence with explicit missing root pnpm package context",
+          "revision": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "sha256": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "command": "python3 tools/architecture.py; /Users/vincent/code/kyberia/.tools/venv/bin/python tools/source_inventory.py check; python3 tools/ledger.py check",
+          "scope": "integration",
+          "result": "PASS (author-side checks); independent review remains open"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -190333,16 +190472,16 @@
         {
           "path": "docs/architecture/ADR/0033-tauri-react-versioned-ipc.md",
           "description": "ADR-006 plan alias recorded as repository ADR-0033 with bounded Tauri/React/Rust decision, alternatives, evidence, limits, reversibility, and validation",
-          "revision": "325b201b6a58fd35e8a4041d128fe4230c73ac271bbdb6a614e8667b34365448",
-          "sha256": "325b201b6a58fd35e8a4041d128fe4230c73ac271bbdb6a614e8667b34365448"
+          "revision": "84d04e7b7d6d5a34e41474cdc7879d3ee9b4c1bcf99064027916484ad2047ade",
+          "sha256": "84d04e7b7d6d5a34e41474cdc7879d3ee9b4c1bcf99064027916484ad2047ade"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/desktop-shell.md",
           "description": "Author-side desktop shell validation and explicit open product lifecycle gates",
-          "revision": "485b5607f8a6c03fe7f4b879ad53f1c8301ebf4543902bf7b2848090aa840ca4",
-          "sha256": "485b5607f8a6c03fe7f4b879ad53f1c8301ebf4543902bf7b2848090aa840ca4",
+          "revision": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "sha256": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
           "command": "cargo test -p kyberia-desktop --locked --offline; npm run typecheck; npm test -- --run; npm run build; npm run e2e; npm run tauri:build",
           "scope": "integration",
           "result": "PASS (author-side bounded desktop validation)"
@@ -236734,8 +236873,8 @@
         {
           "path": "apps/desktop/src-tauri/src/main.rs",
           "description": "Tauri command progress, cancellation and session-publication boundary",
-          "revision": "b7b2bbcc3e5597278ce6e8427961388968b22bcce30ba63dde078b1d72ca9912",
-          "sha256": "b7b2bbcc3e5597278ce6e8427961388968b22bcce30ba63dde078b1d72ca9912"
+          "revision": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142",
+          "sha256": "e073ceb8c69b25965fd67ed870fb6408c5b972a13c51c9b72086a19ef6563142"
         },
         {
           "path": "apps/desktop/src/lib/useProjectSession.ts",
@@ -236772,8 +236911,8 @@
         {
           "path": "docs/validation/desktop-shell.md",
           "description": "Desktop boundary decisions, test evidence and explicit native/browser limitations",
-          "revision": "485b5607f8a6c03fe7f4b879ad53f1c8301ebf4543902bf7b2848090aa840ca4",
-          "sha256": "485b5607f8a6c03fe7f4b879ad53f1c8301ebf4543902bf7b2848090aa840ca4",
+          "revision": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
+          "sha256": "dfaaef825ca300134d855530e007b8abd065343a080dd925a92a96d38ad0feb0",
           "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/venv/bin/python python3 tools/dev.py desktop",
           "scope": "integration",
           "result": "PASS"

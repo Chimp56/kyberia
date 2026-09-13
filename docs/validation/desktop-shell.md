@@ -11,7 +11,11 @@ never receives or submits a filesystem path.
 
 The native selector is an owned child-process adapter. It polls a caller-owned
 job control, applies a five-minute timeout, and terminates and reaps the child
-on cancellation or timeout. Windows additionally requests process-tree
+on cancellation or timeout. The adapter records both the termination request
+and the child's wait status; either missing is a retryable storage error. The
+async `project_select_open` command admits the job before moving the picker to
+`spawn_blocking`, leaving the shared command state available for concurrent
+status and cancellation. Windows additionally requests process-tree
 termination through the absolute `taskkill.exe` path; macOS, Linux, and
 Windows close their selector when the owned process exits. Unsupported host
 targets return `capability_unavailable` rather than claiming cancellation
@@ -37,7 +41,7 @@ measurement, floor-plan, or calibration data is fabricated.
 | `npm test -- --run` | PASS (14 tests) |
 | `npm run build` | PASS |
 | `cargo fmt --all -- --check` | PASS |
-| `cargo test -p kyberia-desktop --locked --offline` | PASS (20 tests: 17 Rust library, 3 native picker adapter) |
+| `cargo test -p kyberia-desktop --locked --offline` | PASS (24 tests: 17 Rust library, 5 native picker/command boundary; 2 IPC boundary tests are included in the package total) |
 | `cargo test --workspace --locked --offline` | PASS (workspace, including desktop; refreshed after corrections) |
 | `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | PASS |
 | `python3 tools/architecture.py` | PASS |
@@ -100,6 +104,12 @@ shown as measured.
   reserves the whole create/open operation before the native picker and keeps
   that picker job visible and cancellable. Job IDs are canonical UUIDs;
   progress and cancellation responses are strictly validated by the renderer.
+  The async picker command's shared-state regression keeps a real owned child
+  live while status and cancel execute through the command-state path; cancel
+  reaches the live worker before it finishes and the worker returns a truthful
+  cancelled result. The picker adapter's evidence assertion requires both a
+  termination request and a wait status, so a kill-without-wait mutation
+  fails the test.
   Join failure always releases admission, cancellation never swaps the active
   session, and an open grant is not consumed when job admission fails.
 - Current-project queries retain a shared session owner outside the blocking

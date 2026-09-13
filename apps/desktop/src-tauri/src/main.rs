@@ -4,9 +4,8 @@ use kyberia_desktop_lib::{
     CreateBlankProjectRequest, DesktopIpcError, DesktopState, JobCancellation,
     OpenProjectGrantRequest, OpenProjectSelectionResponse, SchemaRequest, SelectOpenProjectRequest,
     begin_job, begin_open_job, blank_project_path, cancel_created_project, cancel_job,
-    cancelled_error, current_project_job, error, finish_created_project_job, finish_job,
-    finish_joined_job, issue_open_grant, response_for_with_cancel, retain_cancelled_project,
-    run_atomic_project_step,
+    cancelled_error, current_project_job, error, finish_created_project_job, finish_joined_job,
+    issue_open_grant, response_for_with_cancel, retain_cancelled_project, run_atomic_project_step,
 };
 use std::{
     io::Read,
@@ -19,8 +18,20 @@ use tauri::{Manager, State};
 
 const NATIVE_PICKER_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 
+#[derive(Debug)]
+struct PickerTerminationEvidence {
+    termination_requested: bool,
+    wait_status: Option<std::process::ExitStatus>,
+}
+
 fn lock_state<'a>(
     state: &'a State<'_, Mutex<DesktopState>>,
+) -> Result<std::sync::MutexGuard<'a, DesktopState>, DesktopIpcError> {
+    lock_state_ref(state.inner())
+}
+
+fn lock_state_ref<'a>(
+    state: &'a Mutex<DesktopState>,
 ) -> Result<std::sync::MutexGuard<'a, DesktopState>, DesktopIpcError> {
     state.lock().map_err(|_| {
         error(
@@ -32,7 +43,8 @@ fn lock_state<'a>(
     })
 }
 
-fn terminate_and_reap_picker(child: &mut Child) {
+fn terminate_and_reap_picker(child: &mut Child) -> PickerTerminationEvidence {
+    let mut termination_requested = false;
     #[cfg(target_os = "windows")]
     {
         let taskkill = std::env::var_os("WINDIR")
@@ -41,12 +53,26 @@ fn terminate_and_reap_picker(child: &mut Child) {
             .unwrap_or_else(|| PathBuf::from(r"C:\Windows"))
             .join("System32")
             .join("taskkill.exe");
-        let _ = Command::new(taskkill)
+        termination_requested = Command::new(taskkill)
             .args(["/PID", &child.id().to_string(), "/T", "/F"])
-            .status();
+            .status()
+            .is_ok_and(|status| status.success());
     }
-    let _ = child.kill();
-    let _ = child.wait();
+    termination_requested |= child.kill().is_ok();
+    let wait_status = child.wait().ok();
+    PickerTerminationEvidence {
+        termination_requested,
+        wait_status,
+    }
+}
+
+fn picker_reap_error() -> DesktopIpcError {
+    error(
+        "storage",
+        "The native project selector could not be reaped safely.",
+        Some("Restart RF Atlas before choosing a project again."),
+        true,
+    )
 }
 
 fn run_owned_picker(
@@ -73,11 +99,17 @@ fn run_owned_picker(
     let started = Instant::now();
     loop {
         if control.is_cancelled() {
-            terminate_and_reap_picker(&mut child);
+            let evidence = terminate_and_reap_picker(&mut child);
+            if !evidence.termination_requested || evidence.wait_status.is_none() {
+                return Err(picker_reap_error());
+            }
             return Err(cancelled_error());
         }
         if started.elapsed() >= timeout {
-            terminate_and_reap_picker(&mut child);
+            let evidence = terminate_and_reap_picker(&mut child);
+            if !evidence.termination_requested || evidence.wait_status.is_none() {
+                return Err(picker_reap_error());
+            }
             return Err(error(
                 "timeout",
                 "Native project selection timed out.",
@@ -116,7 +148,10 @@ fn run_owned_picker(
             }
             Ok(None) => std::thread::sleep(Duration::from_millis(20)),
             Err(_) => {
-                terminate_and_reap_picker(&mut child);
+                let evidence = terminate_and_reap_picker(&mut child);
+                if !evidence.termination_requested || evidence.wait_status.is_none() {
+                    return Err(picker_reap_error());
+                }
                 return Err(error(
                     "capability_unavailable",
                     "Native project selection could not be monitored.",
@@ -307,21 +342,27 @@ async fn project_create_blank(
     }
 }
 
-#[tauri::command]
-fn project_select_open(
-    state: State<'_, Mutex<DesktopState>>,
+async fn project_select_open_with_picker<F>(
+    state: &Mutex<DesktopState>,
     request: SelectOpenProjectRequest,
-) -> Result<OpenProjectSelectionResponse, DesktopIpcError> {
+    picker: F,
+) -> Result<OpenProjectSelectionResponse, DesktopIpcError>
+where
+    F: FnOnce(Arc<kyberia_desktop_lib::JobControl>) -> Result<Option<PathBuf>, DesktopIpcError>
+        + Send
+        + 'static,
+{
     kyberia_desktop_lib::require_schema(&request.schema)?;
     let job_id = request.job_id;
     let control = {
-        let mut guard = lock_state(&state)?;
+        let mut guard = lock_state_ref(state)?;
         begin_job(&mut guard, &job_id)?
     };
     control.set_progress(5);
-    let selected = native_project_selection(&control);
-    let mut guard = lock_state(&state)?;
-    finish_job(&mut guard, &job_id);
+    let task_control = Arc::clone(&control);
+    let joined = tauri::async_runtime::spawn_blocking(move || picker(task_control)).await;
+    let mut guard = lock_state_ref(state)?;
+    let selected = finish_joined_job(&mut guard, &job_id, joined)?;
     if control.is_cancelled() {
         return Err(cancelled_error());
     }
@@ -338,6 +379,17 @@ fn project_select_open(
             selection: None,
         }),
     }
+}
+
+#[tauri::command]
+async fn project_select_open(
+    state: State<'_, Mutex<DesktopState>>,
+    request: SelectOpenProjectRequest,
+) -> Result<OpenProjectSelectionResponse, DesktopIpcError> {
+    project_select_open_with_picker(state.inner(), request, |control| {
+        native_project_selection(&control)
+    })
+    .await
 }
 
 #[tauri::command]
@@ -415,13 +467,12 @@ async fn project_current(
     current_project_job(&state, request.job_id).await
 }
 
-#[tauri::command]
-fn project_cancel(
-    state: State<'_, Mutex<DesktopState>>,
+fn project_cancel_with_state(
+    state: &Mutex<DesktopState>,
     request: kyberia_desktop_lib::JobRequest,
 ) -> Result<kyberia_desktop_lib::JobCancelResponse, DesktopIpcError> {
     kyberia_desktop_lib::require_schema(&request.schema)?;
-    let guard = lock_state(&state)?;
+    let guard = lock_state_ref(state)?;
     cancel_job(&guard, &request.job_id)?;
     Ok(kyberia_desktop_lib::JobCancelResponse {
         schema: kyberia_desktop_lib::IPC_SCHEMA,
@@ -431,12 +482,19 @@ fn project_cancel(
 }
 
 #[tauri::command]
-fn project_job_status(
+fn project_cancel(
     state: State<'_, Mutex<DesktopState>>,
+    request: kyberia_desktop_lib::JobRequest,
+) -> Result<kyberia_desktop_lib::JobCancelResponse, DesktopIpcError> {
+    project_cancel_with_state(state.inner(), request)
+}
+
+fn project_job_status_with_state(
+    state: &Mutex<DesktopState>,
     request: kyberia_desktop_lib::JobRequest,
 ) -> Result<kyberia_desktop_lib::JobStatusResponse, DesktopIpcError> {
     kyberia_desktop_lib::require_schema(&request.schema)?;
-    let guard = lock_state(&state)?;
+    let guard = lock_state_ref(state)?;
     let Some(control) = kyberia_desktop_lib::job_control(&guard, &request.job_id) else {
         return Err(error(
             "invalid_request",
@@ -455,6 +513,14 @@ fn project_job_status(
         },
         progress: control.progress(),
     })
+}
+
+#[tauri::command]
+fn project_job_status(
+    state: State<'_, Mutex<DesktopState>>,
+    request: kyberia_desktop_lib::JobRequest,
+) -> Result<kyberia_desktop_lib::JobStatusResponse, DesktopIpcError> {
+    project_job_status_with_state(state.inner(), request)
 }
 
 fn main() {
@@ -523,6 +589,76 @@ mod tests {
             .expect("picker output");
         assert!(output.status.success());
         assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "ready");
+    }
+
+    #[test]
+    fn picker_termination_records_kill_and_wait_evidence() {
+        let mut command = long_picker_command();
+        command
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+        let mut child = command.spawn().expect("long picker child");
+        let evidence = terminate_and_reap_picker(&mut child);
+        assert!(evidence.termination_requested);
+        assert!(evidence.wait_status.is_some());
+    }
+
+    #[test]
+    fn async_picker_command_state_path_accepts_live_status_and_cancel() {
+        use std::sync::mpsc;
+
+        let state = Arc::new(Mutex::new(DesktopState::default()));
+        let state_for_picker = Arc::clone(&state);
+        let job_id = uuid::Uuid::new_v4().to_string();
+        let request = SelectOpenProjectRequest {
+            schema: kyberia_desktop_lib::IPC_SCHEMA.to_owned(),
+            job_id: job_id.clone(),
+        };
+        let (live_tx, live_rx) = mpsc::channel();
+        let worker = std::thread::spawn(move || {
+            tauri::async_runtime::block_on(project_select_open_with_picker(
+                &state_for_picker,
+                request,
+                move |control| {
+                    live_tx.send(()).expect("picker worker entered");
+                    run_owned_picker(long_picker_command(), &control, Duration::from_secs(2))
+                        .map(|_| None)
+                },
+            ))
+        });
+        live_rx
+            .recv_timeout(Duration::from_secs(1))
+            .expect("picker worker is live");
+
+        let status = project_job_status_with_state(
+            &state,
+            kyberia_desktop_lib::JobRequest {
+                schema: kyberia_desktop_lib::IPC_SCHEMA.to_owned(),
+                job_id: job_id.clone(),
+            },
+        )
+        .expect("status while picker is live");
+        assert_eq!(status.state, "running");
+        assert_eq!(status.progress, 5);
+        let cancellation = project_cancel_with_state(
+            &state,
+            kyberia_desktop_lib::JobRequest {
+                schema: kyberia_desktop_lib::IPC_SCHEMA.to_owned(),
+                job_id: job_id.clone(),
+            },
+        )
+        .expect("cancel while picker is live");
+        assert_eq!(cancellation.state, "cancelling");
+        let result = worker
+            .join()
+            .expect("picker command join")
+            .expect_err("picker command cancellation");
+        assert_eq!(result.code, "cancelled");
+        assert!(
+            kyberia_desktop_lib::job_control(&state.lock().expect("state after picker"), &job_id,)
+                .is_none()
+        );
     }
 
     #[test]
