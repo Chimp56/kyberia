@@ -34,10 +34,27 @@ agent is correcting those in an isolated worktree. The preceding run proved
 that macOS passes the complete Rust/Python regression step and exposed a stale
 Cargo-lock digest, now corrected.
 
-The generated traceability matrix currently reports **66 VALIDATED, 80
-IN_PROGRESS, and 3,189 NOT_STARTED leaf obligations**, with zero
+The generated traceability matrix currently reports **66 VALIDATED, 82
+IN_PROGRESS, and 3,187 NOT_STARTED leaf obligations**, with zero
 BLOCKED_EXTERNAL or DEFERRED_BY_ADR. These are source-coverage records rather
 than a product completion percentage.
+
+## Windows active loopback correction — 2026-09-13
+
+Hosted run `34765174889` at `c11ff5857cd6a7299ea6845a175e45e5786314e7` passes
+Ubuntu and macOS and fails Windows only in
+`real_loopback_adapter_records_success_and_refusal_without_external_network`.
+The public annotations provide no diagnostic detail, and hosted logs require
+administrator authentication. Code/contract analysis identifies the
+Windows-portability defect as relying on combined readable/writable interest
+for nonblocking TCP connect completion: Mio's Windows AFD backend also reports
+receive/close events as readable. The isolated correction registers writable
+interest only and rearms it after a transient `NotConnected`/`WouldBlock` peer
+query. A repeated bounded loopback regression covers immediate peer close
+after acceptance. Authorized macOS focused tests and the Windows-target Cargo
+check pass; native Windows hosted verification remains pending until this
+correction is pushed and rerun. The active foundation remains in correction
+pending independent review and hosted confirmation.
 
 ## Prior progress audit — 2026-09-12
 

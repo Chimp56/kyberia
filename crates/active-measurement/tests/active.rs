@@ -1346,6 +1346,39 @@ fn real_loopback_adapter_records_success_and_refusal_without_external_network() 
 }
 
 #[test]
+fn real_loopback_connector_accepts_immediate_peer_close_after_writable_completion() {
+    const ATTEMPTS: usize = 32;
+    let Ok(listener) = TcpListener::bind(("127.0.0.1", 0)) else {
+        eprintln!(
+            "SKIP: active loopback integration requires local listener permission; no runtime pass recorded"
+        );
+        return;
+    };
+    let success_port = listener.local_addr().unwrap().port();
+    let (ready_tx, ready_rx) = mpsc::channel();
+    let server = thread::spawn(move || {
+        ready_tx.send(()).unwrap();
+        for _ in 0..ATTEMPTS {
+            let (stream, _) = listener.accept().unwrap();
+            drop(stream);
+        }
+    });
+    ready_rx.recv().unwrap();
+
+    let target = endpoint(1, success_port, ActiveEndpointTier::LanReference)
+        .target()
+        .address();
+    let mut connector = StdTcpConnector::new();
+    for _ in 0..ATTEMPTS {
+        assert_eq!(
+            connector.connect(target, Duration::from_millis(500), &NeverCancelled),
+            ConnectResult::Connected
+        );
+    }
+    server.join().unwrap();
+}
+
+#[test]
 fn pure_module_does_not_import_socket_or_process_apis() {
     let source =
         std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/src/pure.rs")).unwrap();

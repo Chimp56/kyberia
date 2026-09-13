@@ -61,11 +61,16 @@ an explicit numeric TCP port in `1..=65535`.
    sample.  Cancellation emits `Cancelled`; an overall deadline emits
    `Timeout`; neither silently drops the remainder.
 3. `adapter` supplies a real `StdTcpConnector` backed by Mio's nonblocking OS
-   TCP stream and a literal address.  It polls connection readiness and
-   cancellation in 25 ms bounded slices, then requires both a clear socket
-   error and a connected peer before recording success.  This prevents
-   pending/WouldBlock state from becoming a false connection.  The clock
-   adapter uses the same bounded cancellation-aware sleep port.  It never
+   TCP stream and a literal address. It registers writable interest, Mio's
+   cross-platform signal that a nonblocking connect has completed, and ignores
+   readable interest because the Windows AFD backend also uses it for receive
+   and close events. It polls readiness and cancellation in 25 ms bounded
+   slices, then requires both a clear socket error and a connected peer before
+   recording success. If the peer query races completion and reports a
+   transient not-connected state, writable interest is rearmed before waiting
+   again. This prevents pending/WouldBlock state from becoming a false
+   connection while retaining bounded timeout and cancellation behavior. The
+   clock adapter uses the same bounded cancellation-aware sleep port. It never
    resolves names, spawns a process, accepts command fragments, or contacts a
    target outside the endpoint contract.
 
@@ -129,10 +134,12 @@ checks malformed ports and units, target/tier and authorization mismatch,
 unknown attribution, deterministic ordering and identities, bounded sample
 limits, typed success/refusal/timeout/cancellation outcomes, deadline
 completion, connect-timing/failure-burst invariants, and a loopback integration path
-when the sandbox permits listener creation.  The integration test uses only
-127.0.0.1 and skips when the host denies local listener creation.  Fake clock
-and connector ports cover all lifecycle branches without external network
-access.
+when the sandbox permits listener creation. The integration tests use only
+127.0.0.1 and include repeated immediate-peer-close connects to exercise the
+writable completion path; they skip when the host denies local listener
+creation. Fake clock and connector ports cover all lifecycle branches without
+external network access. Native Windows execution of the correction remains a
+hosted validation gate.
 
 The domain crate contains no adapter or storage dependency.  The architecture
 policy records the active crate as an adapter depending on the canonical

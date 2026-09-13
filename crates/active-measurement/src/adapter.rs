@@ -104,11 +104,14 @@ impl TcpConnector for StdTcpConnector {
             Ok(poll) => poll,
             Err(error) => return classify(error),
         };
-        if let Err(error) = poll.registry().register(
-            &mut stream,
-            Token(0),
-            Interest::READABLE | Interest::WRITABLE,
-        ) {
+        // Mio documents writable readiness as the cross-platform signal that
+        // a nonblocking TCP connect has completed. Readable readiness also
+        // includes close/receive events and is not a connect-completion signal
+        // on Windows' AFD backend.
+        if let Err(error) = poll
+            .registry()
+            .register(&mut stream, Token(0), Interest::WRITABLE)
+        {
             return classify(error);
         }
         let mut events = Events::with_capacity(1);
@@ -131,16 +134,32 @@ impl TcpConnector for StdTcpConnector {
                 match stream.take_error() {
                     Ok(Some(error)) => return classify(error),
                     Err(error)
-                        if error.kind() == io::ErrorKind::NotConnected
-                            || error.kind() == io::ErrorKind::WouldBlock => {}
+                        if matches!(
+                            error.kind(),
+                            io::ErrorKind::NotConnected | io::ErrorKind::WouldBlock
+                        ) => {}
                     Err(error) => return classify(error),
                     Ok(None) => {}
                 }
                 match stream.peer_addr() {
                     Ok(_) => return ConnectResult::Connected,
                     Err(error)
-                        if error.kind() == io::ErrorKind::NotConnected
-                            || error.kind() == io::ErrorKind::WouldBlock => {}
+                        if matches!(
+                            error.kind(),
+                            io::ErrorKind::NotConnected | io::ErrorKind::WouldBlock
+                        ) =>
+                    {
+                        // Mio's Windows backend clears a readiness bit after
+                        // delivering its edge-triggered event. A connection
+                        // completion can race the peer-address query, so
+                        // restore writable interest before waiting again.
+                        if let Err(error) =
+                            poll.registry()
+                                .reregister(&mut stream, Token(0), Interest::WRITABLE)
+                        {
+                            return classify(error);
+                        }
+                    }
                     Err(error) => return classify(error),
                 }
             }

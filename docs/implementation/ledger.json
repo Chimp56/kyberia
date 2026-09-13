@@ -172598,14 +172598,39 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "active measurement",
       "phase": 1,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Literal endpoint tiers, target-tier matching, and bounded loopback/Internet distinctions are represented in the active domain and adapter; UI/topology expansion remains open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/active-measurement/src/adapter.rs",
+          "description": "Mio nonblocking literal TCP connector with Windows-portable writable readiness and transient peer-query rearm",
+          "revision": "210ed4cbb6db29f4cfeb1df58f0f4cc586d3750c8849942e6821e99503e44993",
+          "sha256": "210ed4cbb6db29f4cfeb1df58f0f4cc586d3750c8849942e6821e99503e44993"
+        },
+        {
+          "path": "crates/active-measurement/tests/active.rs",
+          "description": "Bounded loopback/refusal and repeated immediate-peer-close regression",
+          "revision": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c",
+          "sha256": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/active-measurement-foundation.md",
+          "description": "Focused active-measurement suite, Windows failure analysis, and pending native gate",
+          "revision": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
+          "sha256": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
+          "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
+          "scope": "macOS runtime and Windows-target compilation; native Windows hosted run remains open",
+          "result": "PASS: macOS active suite 15/15 and Windows-target check; native Windows pending"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -172641,14 +172666,39 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "active measurement",
       "phase": 1,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "TCP connect timing preserves typed refusal/error/cancellation/timeout outcomes and unknown duration on failure; ICMP/UDP and complete loss/RTT distributions remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/active-measurement/src/adapter.rs",
+          "description": "Mio nonblocking literal TCP connector with Windows-portable writable readiness and transient peer-query rearm",
+          "revision": "210ed4cbb6db29f4cfeb1df58f0f4cc586d3750c8849942e6821e99503e44993",
+          "sha256": "210ed4cbb6db29f4cfeb1df58f0f4cc586d3750c8849942e6821e99503e44993"
+        },
+        {
+          "path": "crates/active-measurement/tests/active.rs",
+          "description": "Bounded loopback/refusal and repeated immediate-peer-close regression",
+          "revision": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c",
+          "sha256": "954c1d33580a6bb16d08b9fa0be439367ea45445f068d9ed68e0455d73be460c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/active-measurement-foundation.md",
+          "description": "Focused active-measurement suite, Windows failure analysis, and pending native gate",
+          "revision": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
+          "sha256": "7eb44d9fd9a27b150da09db8b9790ef02ac6de5ef976f3e17dfab834c91ddca8",
+          "command": "cargo test -p kyberia-active-measurement --locked --offline; cargo check -p kyberia-active-measurement --target x86_64-pc-windows-gnu --locked --offline",
+          "scope": "macOS runtime and Windows-target compilation; native Windows hosted run remains open",
+          "result": "PASS: macOS active suite 15/15 and Windows-target check; native Windows pending"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,

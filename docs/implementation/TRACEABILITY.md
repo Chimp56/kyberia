@@ -9,7 +9,7 @@ Inventory: 3335 leaf obligations; 433 obligation groups; 1624 coverage-only bloc
 
 Source SHA-256: `57b6bb686456a567f882a8e4a1eec7bcdcfafea843dd060f224e76c7122328ea`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 80 | NOT_STARTED: 3189 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 82 | NOT_STARTED: 3187 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3642,8 +3642,8 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 80 | NO
 | `source:spacing:01ba4719c80b6fe911b0:1035` | [L4284](../../plan.md#L4284) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:table_row:0bd212b038e8e0d96e4e:5` | [L4285](../../plan.md#L4285) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ID &#124; Pri &#124; Work item &#124; Acceptance evidence &#124; | obligation | NOT_STARTED |  |
 | `source:table_separator:13da3925573fa31a966f:5` | [L4286](../../plan.md#L4286) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124;---&#124;---:&#124;---&#124;---&#124; | structure | COVERAGE_ONLY |  |
-| `backlog:ACTB-001:1` | [L4287](../../plan.md#L4287) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ACTB-001 &#124; P0 &#124; Endpoint topology model &#124; Gateway/LAN/Internet distinctions in schema/UI &#124; | obligation | NOT_STARTED |  |
-| `backlog:ACTB-002:1` | [L4288](../../plan.md#L4288) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ACTB-002 &#124; P0 &#124; ICMP/UDP/TCP lightweight probes &#124; Loss/RTT distributions and timeout semantics &#124; | obligation | NOT_STARTED |  |
+| `backlog:ACTB-001:1` | [L4287](../../plan.md#L4287) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ACTB-001 &#124; P0 &#124; Endpoint topology model &#124; Gateway/LAN/Internet distinctions in schema/UI &#124; | obligation | IN_PROGRESS | [implementation](../../crates/active-measurement/src/adapter.rs), [implementation](../../crates/active-measurement/tests/active.rs), [validation](../../docs/validation/active-measurement-foundation.md) |
+| `backlog:ACTB-002:1` | [L4288](../../plan.md#L4288) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ACTB-002 &#124; P0 &#124; ICMP/UDP/TCP lightweight probes &#124; Loss/RTT distributions and timeout semantics &#124; | obligation | IN_PROGRESS | [implementation](../../crates/active-measurement/src/adapter.rs), [implementation](../../crates/active-measurement/tests/active.rs), [validation](../../docs/validation/active-measurement-foundation.md) |
 | `backlog:ACTB-003:1` | [L4289](../../plan.md#L4289) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ACTB-003 &#124; P0 &#124; Authenticated LAN active agent &#124; Rate limits and mutual auth &#124; | obligation | NOT_STARTED |  |
 | `backlog:ACTB-004:1` | [L4290](../../plan.md#L4290) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ACTB-004 &#124; P0 &#124; iPerf3 orchestration/JSON ingestion &#124; Upload/download/UDP fixtures &#124; | obligation | IN_PROGRESS |  |
 | `backlog:ACTB-005:1` | [L4291](../../plan.md#L4291) RF Atlas / 18. Prioritized engineering backlog / 18.5 Active measurement — &#124; ACTB-005 &#124; P1 &#124; Active point profile &#124; Reproducible test sequence and impact metadata &#124; | obligation | NOT_STARTED |  |
