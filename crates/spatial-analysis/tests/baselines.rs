@@ -83,6 +83,36 @@ fn estimate(model: &Model, x: f64, y: f64) -> Cell {
 fn value(cell: &Cell) -> f64 {
     cell.value.as_known().unwrap().get()
 }
+fn material(loss_db: f64, traversal_m: f64, policy: BarrierPolicy) -> BarrierMaterial {
+    BarrierMaterial::new(
+        Meters::new(traversal_m).unwrap(),
+        Db::new(loss_db).unwrap(),
+        policy,
+    )
+    .unwrap()
+}
+fn barrier(
+    id: u32,
+    start: (f64, f64),
+    end: (f64, f64),
+    material: BarrierMaterial,
+) -> BarrierSegment {
+    BarrierSegment::new(
+        BarrierId::new(id).unwrap(),
+        point(start.0, start.1),
+        point(end.0, end.1),
+        material,
+    )
+    .unwrap()
+}
+fn barrier_model(samples: Vec<Sample>, barriers: Vec<BarrierSegment>) -> Model {
+    Model::new_with_barriers(
+        inputs(samples),
+        config(),
+        BarrierSet::new(barriers).unwrap(),
+    )
+    .unwrap()
+}
 fn grid(width: u32, height: u32) -> Grid {
     Grid {
         floor_id: FloorId::from_bytes([1; 16]).unwrap(),
@@ -94,6 +124,321 @@ fn grid(width: u32, height: u32) -> Grid {
         width,
         height,
     }
+}
+
+#[test]
+fn one_wall_changes_neighbor_ranking_and_value() {
+    let plain = model(vec![
+        sample(1, 1.0, 0.0, -40.0),
+        sample(2, -3.0, 0.0, -80.0),
+    ]);
+    let barrier_model = barrier_model(
+        vec![sample(1, 1.0, 0.0, -40.0), sample(2, -3.0, 0.0, -80.0)],
+        vec![barrier(
+            1,
+            (0.0, -10.0),
+            (0.0, 10.0),
+            material(40.0, 0.0, BarrierPolicy::Passable),
+        )],
+    );
+    let plain_cell = estimate(&plain, -0.1, 0.0);
+    let wall_cell = estimate(&barrier_model, -0.1, 0.0);
+    // Location groups are canonically ordered by coordinates (the left
+    // sample is group 0), while neighbor order is by effective distance.
+    assert_eq!(plain_cell.contributors[0].location_group, 1);
+    assert_eq!(wall_cell.contributors[0].location_group, 0);
+    assert!(value(&wall_cell) < -79.0);
+    assert!(wall_cell.nearest_distance.as_known().unwrap().get() > 0.0);
+}
+
+#[test]
+fn two_wall_path_cost_is_retained_and_affects_support() {
+    let m = barrier_model(
+        vec![sample(1, 4.0, 0.0, -40.0)],
+        vec![
+            barrier(
+                10,
+                (1.0, -2.0),
+                (1.0, 2.0),
+                material(0.0, 2.0, BarrierPolicy::Passable),
+            ),
+            barrier(
+                20,
+                (2.0, -2.0),
+                (2.0, 2.0),
+                material(0.0, 3.0, BarrierPolicy::Passable),
+            ),
+        ],
+    );
+    let path = m.path_to_group(point(0.0, 0.0), 0, &mut || false).unwrap();
+    let cost = path.path_cost.as_known().unwrap();
+    assert_eq!(cost.geometric_distance.get(), 4.0);
+    assert_eq!(cost.traversal_cost.get(), 5.0);
+    assert_eq!(cost.total_cost.get(), 9.0);
+    assert_eq!(
+        cost.crossed_barriers,
+        vec![BarrierId::new(10).unwrap(), BarrierId::new(20).unwrap()]
+    );
+    assert_eq!(
+        estimate(&m, 0.0, 0.0)
+            .nearest_distance
+            .as_known()
+            .unwrap()
+            .get(),
+        9.0
+    );
+    assert_eq!(
+        m.path_assessments(point(0.0, 0.0), &mut || false)
+            .unwrap()
+            .len(),
+        1
+    );
+}
+
+#[test]
+fn equal_distance_material_loss_changes_contributor_weight() {
+    let m = barrier_model(
+        vec![sample(1, 2.0, 0.0, -40.0), sample(2, 0.0, 2.0, -80.0)],
+        vec![
+            barrier(
+                1,
+                (1.0, -2.0),
+                (1.0, 2.0),
+                material(0.0, 0.0, BarrierPolicy::Passable),
+            ),
+            barrier(
+                2,
+                (-2.0, 1.0),
+                (2.0, 1.0),
+                material(30.0, 0.0, BarrierPolicy::Passable),
+            ),
+        ],
+    );
+    let cell = estimate(&m, 0.0, 0.0);
+    assert_eq!(cell.contributors.len(), 2);
+    assert!(cell.contributors[0].weight.get() > cell.contributors[1].weight.get() * 100.0);
+    assert!(value(&cell) < -39.0 && value(&cell) > -81.0);
+}
+
+#[test]
+fn impassable_barrier_preserves_unknown_and_path_diagnosis() {
+    let m = barrier_model(
+        vec![sample(1, 1.0, 0.0, -40.0)],
+        vec![barrier(
+            7,
+            (0.5, -10.0),
+            (0.5, 10.0),
+            material(0.0, 0.0, BarrierPolicy::Impassable),
+        )],
+    );
+    let cell = estimate(&m, 0.0, 0.0);
+    assert_eq!(cell.class, CellClass::Unknown);
+    assert_eq!(
+        cell.value,
+        Evidence::Unknown(UnknownReason::OutsideEvidenceSupport)
+    );
+    assert!(cell.contributors.is_empty());
+    let path = m.path_to_group(point(0.0, 0.0), 0, &mut || false).unwrap();
+    assert_eq!(
+        path.path_cost,
+        Evidence::Unknown(UnknownReason::OutsideEvidenceSupport)
+    );
+    assert_eq!(path.blocked_by, vec![BarrierId::new(7).unwrap()]);
+    assert_eq!(path.crossed_barriers, path.blocked_by);
+    let all = m.path_assessments(point(0.0, 0.0), &mut || false).unwrap();
+    assert_eq!(all[0].blocked_by, path.blocked_by);
+}
+
+#[test]
+fn barrier_extrapolation_is_explicit_and_uses_path_cost_radius() {
+    let mut cfg = config();
+    cfg.extrapolation = Extrapolation::WithinRadius(Meters::new(10.0).unwrap());
+    let m = Model::new_with_barriers(
+        inputs(vec![sample(1, 4.0, 0.0, -40.0)]),
+        cfg,
+        BarrierSet::new(vec![barrier(
+            1,
+            (2.0, -2.0),
+            (2.0, 2.0),
+            material(0.0, 2.0, BarrierPolicy::Passable),
+        )])
+        .unwrap(),
+    )
+    .unwrap();
+    let cell = estimate(&m, 0.0, 0.0);
+    assert_eq!(cell.class, CellClass::Extrapolated);
+    assert_eq!(cell.support_locations, 0);
+    assert_eq!(cell.nearest_distance.as_known().unwrap().get(), 6.0);
+}
+
+#[test]
+fn barrier_contract_rejects_malformed_and_duplicate_segments() {
+    let id = BarrierId::new(1).unwrap();
+    assert!(BarrierId::new(0).is_err());
+    assert!(
+        BarrierSegment::new(
+            id,
+            point(0.0, 0.0),
+            point(0.0, 0.0),
+            material(0.0, 0.0, BarrierPolicy::Passable),
+        )
+        .is_err()
+    );
+    assert!(
+        BarrierMaterial::new(
+            Meters::new(0.0).unwrap(),
+            Db::new(-1.0).unwrap(),
+            BarrierPolicy::Passable,
+        )
+        .is_err()
+    );
+    assert!(
+        BarrierSet::new(vec![
+            barrier(
+                1,
+                (0.0, 0.0),
+                (0.0, 1.0),
+                material(0.0, 0.0, BarrierPolicy::Passable)
+            ),
+            barrier(
+                1,
+                (1.0, 0.0),
+                (1.0, 1.0),
+                material(0.0, 0.0, BarrierPolicy::Passable)
+            ),
+        ])
+        .is_err()
+    );
+    let huge = BarrierSegment::new(
+        BarrierId::new(2).unwrap(),
+        point(MAX_BARRIER_COORDINATE + 1.0, 0.0),
+        point(MAX_BARRIER_COORDINATE + 2.0, 0.0),
+        material(0.0, 0.0, BarrierPolicy::Passable),
+    );
+    assert!(huge.is_err());
+    let malformed = serde_json::json!({
+        "barriers": [{
+            "id": 3,
+            "start": {"x": 0.0, "y": 0.0},
+            "end": {"x": 0.0, "y": 0.0},
+            "material": {"traversal_cost": 0.0, "attenuation_db": 0.0, "policy": "passable"}
+        }]
+    });
+    assert!(serde_json::from_value::<BarrierSet>(malformed).is_err());
+    let unknown_point_field = serde_json::json!({
+        "barriers": [{
+            "id": 3,
+            "start": {"x": 0.0, "y": 0.0, "z": 1.0},
+            "end": {"x": 0.0, "y": 1.0},
+            "material": {"traversal_cost": 0.0, "attenuation_db": 0.0, "policy": "passable"}
+        }]
+    });
+    assert!(serde_json::from_value::<BarrierSet>(unknown_point_field).is_err());
+}
+
+#[test]
+fn barrier_order_and_translation_are_deterministic() {
+    let first = vec![
+        barrier(
+            2,
+            (1.0, -4.0),
+            (1.0, 4.0),
+            material(6.0, 1.0, BarrierPolicy::Passable),
+        ),
+        barrier(
+            1,
+            (2.0, -4.0),
+            (2.0, 4.0),
+            material(2.0, 1.0, BarrierPolicy::Passable),
+        ),
+    ];
+    let reverse = first.iter().rev().copied().collect::<Vec<_>>();
+    let a = barrier_model(vec![sample(1, 3.0, 0.0, -40.0)], first);
+    let b = barrier_model(vec![sample(1, 3.0, 0.0, -40.0)], reverse);
+    assert_eq!(
+        a.barriers().canonical_bytes().unwrap(),
+        b.barriers().canonical_bytes().unwrap()
+    );
+    let decoded: BarrierSet =
+        serde_json::from_slice(&a.barriers().canonical_bytes().unwrap()).unwrap();
+    assert_eq!(&decoded, a.barriers());
+    assert_eq!(
+        decoded.content_hash().unwrap(),
+        a.barriers().content_hash().unwrap()
+    );
+    assert_eq!(estimate(&a, 0.0, 0.0), estimate(&b, 0.0, 0.0));
+
+    let shifted = barrier_model(
+        vec![sample(1, 13.0, -7.0, -40.0)],
+        vec![
+            barrier(
+                2,
+                (11.0, -11.0),
+                (11.0, -3.0),
+                material(6.0, 1.0, BarrierPolicy::Passable),
+            ),
+            barrier(
+                1,
+                (12.0, -11.0),
+                (12.0, -3.0),
+                material(2.0, 1.0, BarrierPolicy::Passable),
+            ),
+        ],
+    );
+    assert_eq!(estimate(&a, 0.0, 0.0), estimate(&shifted, 10.0, -7.0));
+}
+
+#[test]
+fn barrier_tile_serialization_retains_canonical_barrier_identity() {
+    let m = barrier_model(
+        vec![sample(1, 2.0, 0.0, -40.0)],
+        vec![barrier(
+            3,
+            (1.0, -2.0),
+            (1.0, 2.0),
+            material(10.0, 1.0, BarrierPolicy::Passable),
+        )],
+    );
+    let tile = m.tile(grid(1, 1), || false).unwrap();
+    assert_eq!(tile.algorithm_version, BARRIER_ALGORITHM_VERSION);
+    let json = serde_json::to_value(&tile).unwrap();
+    assert!(json.get("barriers").is_some());
+    assert_eq!(json["barriers"]["barriers"][0]["id"], serde_json::json!(3));
+}
+
+#[test]
+fn barrier_work_and_cancellation_are_bounded() {
+    let samples = (0_u32..25_000)
+        .map(|id| sample(u128::from(id + 1), 0.0, f64::from(id), -40.0))
+        .collect::<Vec<_>>();
+    let barriers = (1..=MAX_BARRIERS)
+        .map(|id| {
+            barrier(
+                id as u32,
+                (100.0, 0.0),
+                (100.0, 1.0),
+                material(0.0, 0.0, BarrierPolicy::Passable),
+            )
+        })
+        .collect::<Vec<_>>();
+    let m = barrier_model(samples, barriers);
+    assert_eq!(
+        m.estimate(point(0.0, 0.0), &mut || false),
+        Err(Error::ResourceLimit("barrier evaluations"))
+    );
+    let small = barrier_model(
+        vec![sample(1, 1.0, 0.0, -40.0)],
+        vec![barrier(
+            1,
+            (0.5, -2.0),
+            (0.5, 2.0),
+            material(1.0, 1.0, BarrierPolicy::Passable),
+        )],
+    );
+    assert_eq!(
+        small.estimate(point(0.0, 0.0), &mut || true),
+        Err(Error::Cancelled)
+    );
 }
 
 #[test]

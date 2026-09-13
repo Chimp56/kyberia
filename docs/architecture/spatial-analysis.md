@@ -247,3 +247,56 @@ full metric registry, wall/TIN/hull/RBF/kriging/GP methods, blocked spatial
 cross-validation, calibrated intervals, floor transitions, GPU parity, numerical
 GeoTIFF/Parquet export, report methodology generation, and user workflow tests
 remain open. No external dependency blocks those independent requirements.
+
+## Barrier-aware IDW increment
+
+The barrier-aware constructor (`Model::new_with_barriers`) adds an inward-owned
+`BarrierSet` of finite planar segments. It does not import `geo`, CAD, or any
+foreign geometry object. Each segment has a stable nonzero `BarrierId` and a
+typed `BarrierMaterial`: a nonnegative `traversal_cost` in meters, a
+nonnegative `attenuation_db` loss, and either `Passable` or `Impassable`
+policy. Sets are bounded, reject duplicate IDs, reject degenerate/out-of-range
+segments, and sort by ID before any path calculation or serialization.
+
+For a query and a location group, the core tests the direct segment against
+each barrier. A reachable path retains:
+
+```text
+geometric_distance + sum(traversal_cost)
+```
+
+as its total path cost and retains all crossed IDs plus summed attenuation.
+IDW neighbor selection minimizes an attenuation-adjusted path score, while its
+weight is:
+
+```text
+(minimum_total_cost / total_cost)^power * 10^(-attenuation_db / 10)
+```
+
+The first term makes corridor/wall traversal cost affect proximity. The second
+term applies material loss in linear power, so equal-distance samples behind
+different materials have different influence. No-barrier models continue to
+use the original Euclidean implementation and retain the existing tile bytes.
+
+An impassable crossed barrier removes that source from support and leaves the
+cell `Unknown(OutsideEvidenceSupport)`. `path_to_group` and
+`path_assessments` expose the blocked IDs and reachable `PathCost` records so
+an evidence drawer can explain an unknown result. Exact coordinates remain
+`Observed` before barrier policy is applied. Normal support and explicit
+`WithinRadius` extrapolation use total path cost, and extrapolated cells retain
+their `Extrapolated` class. `nearest_distance` is the minimum effective path
+cost for a barrier-aware model; it remains Euclidean for the legacy model.
+
+Barrier work is bounded by `MAX_BARRIER_EVALUATIONS` in addition to the
+existing cell/location limit. Cancellation is checked during both group and
+barrier scans. The barrier tile uses the distinct
+`kyberia-spatial/barrier-idw/1` algorithm identity and includes the canonical
+barrier set only when nonempty; this keeps legacy `numeric-rssi-tile/2`
+serialization compatible while preventing a barrier result from being
+mistaken for the old Euclidean analysis. The increment reports no calibrated
+uncertainty: `uncertainty_db` remains `Unknown(NotMeasured)`.
+
+The path is a direct barrier-crossing metric. It does not claim a general
+shortest-path solver around polygonal obstacles, floor transitions, or learned
+material behavior. Those require a future geometry/topology contract and
+remain separate from this bounded early numerical increment.

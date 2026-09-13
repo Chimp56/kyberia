@@ -76,6 +76,10 @@ pub struct Tile {
     pub location_groups: Vec<LocationGroup>,
     pub grid: Grid,
     pub cells: Vec<Cell>,
+    /// Present only for barrier-aware output. Omitting an empty set preserves
+    /// the legacy tile wire shape for existing Euclidean analysis artifacts.
+    #[serde(skip_serializing_if = "BarrierSet::is_empty")]
+    pub barriers: BarrierSet,
 }
 impl Tile {
     pub const fn signal_aggregation(&self) -> SignalAggregationSelection {
@@ -100,6 +104,15 @@ impl Model {
                 "distance evaluations; request smaller tiles",
             ));
         }
+        if count
+            .checked_mul(self.groups.len())
+            .and_then(|work| work.checked_mul(self.barriers.len()))
+            .is_none_or(|work| work > MAX_BARRIER_EVALUATIONS)
+        {
+            return Err(Error::ResourceLimit(
+                "barrier evaluations; request smaller tiles",
+            ));
+        }
         if cancelled() {
             return Err(Error::Cancelled);
         }
@@ -114,13 +127,18 @@ impl Model {
         }
         Ok(Tile {
             schema_version: "kyberia.numeric-rssi-tile/2",
-            algorithm_version: ALGORITHM_VERSION,
+            algorithm_version: if self.barriers.is_empty() {
+                ALGORITHM_VERSION
+            } else {
+                BARRIER_ALGORITHM_VERSION
+            },
             signal_aggregation: self.inputs.metric_definition.signal_aggregation(),
             inputs: self.inputs.clone(),
             configuration: self.config,
             location_groups: self.groups.clone(),
             grid,
             cells,
+            barriers: self.barriers.clone(),
         })
     }
 }

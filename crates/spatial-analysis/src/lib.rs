@@ -1,8 +1,10 @@
 //! Pure numerical RSSI tiles with explicit geometric support policy.
 //! See docs/architecture/spatial-analysis.md for assumptions and limitations.
+mod barrier;
 mod model;
 mod registry;
 mod tile;
+pub use barrier::*;
 pub use model::*;
 pub use registry::*;
 pub use tile::*;
@@ -18,6 +20,7 @@ use serde::{Deserialize, Serialize};
 pub use kyberia_wifi_semantics::{AggregateMethod, SignalAggregate, SignalAlgorithmVersion};
 
 pub const ALGORITHM_VERSION: &str = "kyberia-spatial/2";
+pub const BARRIER_ALGORITHM_VERSION: &str = "kyberia-spatial/barrier-idw/1";
 pub const MAX_SAMPLES: usize = 100_000;
 pub const MAX_CELLS: usize = 100_000;
 pub const MAX_NEIGHBORS: usize = 64;
@@ -50,6 +53,7 @@ pub enum Error {
     TemporalAggregationRequiresMonotonicEvidence,
     InvalidAggregationConfiguration(&'static str),
     SpatialMethodMismatch,
+    InvalidBarrier(&'static str),
     Cancelled,
 }
 impl std::fmt::Display for Error {
