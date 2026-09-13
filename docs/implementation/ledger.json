@@ -43059,9 +43059,9 @@
         },
         {
           "path": "research/active/process.py",
-          "description": "Bounded POSIX research supervisor",
-          "revision": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5",
-          "sha256": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5"
+          "description": "Bounded cross-platform research supervisor",
+          "revision": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b",
+          "sha256": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b"
         }
       ],
       "validation": [
@@ -169467,9 +169467,9 @@
       "implementation": [
         {
           "path": "tools/supply_chain.py",
-          "description": "Pinned bounded SBOM and audit orchestration",
-          "revision": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3",
-          "sha256": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3"
+          "description": "Pinned bounded portable SBOM and audit orchestration",
+          "revision": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc",
+          "sha256": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc"
         },
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
@@ -177694,9 +177694,9 @@
       "implementation": [
         {
           "path": "tools/supply_chain.py",
-          "description": "Pinned bounded SBOM and audit orchestration",
-          "revision": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3",
-          "sha256": "09f3528a0298eae21e7a6f6cb29c10589fea0a7a03c498b04863c813721ce1e3"
+          "description": "Pinned bounded portable SBOM and audit orchestration",
+          "revision": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc",
+          "sha256": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc"
         },
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
@@ -239673,9 +239673,9 @@
         },
         {
           "path": "research/active/process.py",
-          "description": "Bounded POSIX research supervisor",
-          "revision": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5",
-          "sha256": "e26256d80e8997a5f1e48df60b83f70b90b8be39c3355a1d00e55a9665909bb5"
+          "description": "Bounded cross-platform research supervisor",
+          "revision": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b",
+          "sha256": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b"
         }
       ],
       "validation": [

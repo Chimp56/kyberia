@@ -1,6 +1,7 @@
 """Contract/lifecycle tests run without Sionna; real engine proof is separate."""
 
 from copy import deepcopy
+import io
 import json
 import signal
 import subprocess
@@ -11,6 +12,8 @@ import time
 import tempfile
 import unittest
 import venv
+from types import SimpleNamespace
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "workers/sionna"))
@@ -106,6 +109,64 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(result["returncode"], 0)
         self.assertEqual(result["stdout"], b"{}")
         self.assertIn(b"diagnostic", result["stderr"])
+
+    def test_windows_pipe_supervisor_contract(self):
+        """Windows anonymous pipes use the threaded transport, not select()."""
+        from rfatlas_sionna import client
+
+        class Process:
+            def __init__(self):
+                class Input(io.BytesIO):
+                    def close(self):
+                        self.closed_by_supervisor = True
+
+                self.stdin = Input()
+                self.stdin.closed_by_supervisor = False
+                self.stdout = io.BytesIO(b"result")
+                self.stderr = io.BytesIO(b"diagnostic")
+                self.returncode = 0
+                self.killed = False
+
+            def poll(self):
+                return self.returncode
+
+            def kill(self):
+                self.killed = True
+
+            def wait(self, timeout=None):
+                return self.returncode
+
+        process = Process()
+        with mock.patch.object(client.os, "name", "nt"):
+            result = client._supervise_windows(process, b"{}", 1, None)
+        self.assertEqual(result["state"], "exited")
+        self.assertEqual(result["stdout"], b"result")
+        self.assertEqual(result["stderr"], b"diagnostic")
+        self.assertEqual(process.stdin.getvalue(), b"{}")
+        self.assertTrue(process.stdin.closed_by_supervisor)
+        self.assertTrue(process.killed)
+
+    def test_windows_incomplete_input_reader_is_cancellable(self):
+        from workers.sionna import worker
+
+        released = threading.Event()
+
+        class BlockingStream:
+            def read(self, _maximum):
+                released.wait(2)
+                return b""
+
+        cancellation = threading.Event()
+        stream = SimpleNamespace(buffer=BlockingStream())
+        timer = threading.Timer(0.05, cancellation.set)
+        timer.start()
+        try:
+            with mock.patch.object(worker.os, "name", "nt"), mock.patch.object(worker.sys, "stdin", stream):
+                with self.assertRaisesRegex(ContractError, "cancelled"):
+                    worker.read_request(cancellation)
+        finally:
+            released.set()
+            timer.join()
 
     def test_crash_and_next_process_recovery(self):
         result = self.supervise("import os; os._exit(37)")

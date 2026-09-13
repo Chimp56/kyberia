@@ -3,6 +3,7 @@
 import argparse
 import os
 from pathlib import Path
+import queue
 import signal
 import selectors
 import sys
@@ -14,6 +15,34 @@ from rfatlas_sionna.contract import ContractError, MAX_REQUEST_BYTES, canonical_
 
 
 def read_request(cancellation):
+    if os.name == "nt":
+        # Windows anonymous stdin pipes cannot be registered with
+        # SelectSelector.  Keep the blocking read in a daemon thread so the
+        # signal handler can still cancel an incomplete request promptly.
+        result = queue.Queue(maxsize=1)
+
+        def read_blocking():
+            try:
+                result.put(("ok", sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1)))
+            except (OSError, ValueError) as error:
+                result.put(("error", error))
+
+        threading.Thread(target=read_blocking, daemon=True).start()
+        deadline = time.monotonic() + 5
+        while True:
+            if cancellation.is_set():
+                raise ContractError("cancelled while reading request")
+            if time.monotonic() >= deadline:
+                raise ContractError("request input deadline exceeded")
+            try:
+                state, value = result.get(timeout=0.02)
+            except queue.Empty:
+                continue
+            if state == "error":
+                raise value
+            if len(value) > MAX_REQUEST_BYTES:
+                raise ContractError("request exceeds byte limit")
+            return value
     data = bytearray()
     descriptor = sys.stdin.fileno()
     os.set_blocking(descriptor, False)

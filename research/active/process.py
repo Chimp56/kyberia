@@ -1,13 +1,15 @@
-"""Bounded POSIX process supervision; no shell or request-supplied commands."""
+"""Bounded process supervision; no shell or request-supplied commands."""
 import hashlib
 import os
 from pathlib import Path
 import platform
+import queue
 import re
 import selectors
 import select
 import signal
 import subprocess
+import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass
@@ -30,6 +32,17 @@ class Execution:
 
 
 def _stop(child):
+    if os.name == "nt":
+        # Windows has no POSIX process groups. Popen.kill is the portable
+        # direct-child primitive; the trusted caller receives a structured
+        # cleanup error if termination cannot be completed.
+        try:
+            child.kill()
+        except ProcessLookupError:
+            pass
+        finally:
+            child.wait(timeout=2)
+        return
     try:
         try:
             os.killpg(child.pid, signal.SIGKILL)
@@ -47,6 +60,129 @@ def _stop(child):
             raise
     finally:
         child.wait(timeout=2)
+
+
+def _portable_environment():
+    """Keep locale deterministic while retaining Windows launch essentials."""
+    if os.name == "nt":
+        # CreateProcess/Python may require these values even when the trusted
+        # executable path is absolute. Do not pass application secrets or
+        # arbitrary environment state into the measurement child.
+        names = ("PATH", "PATHEXT", "SystemRoot", "WINDIR", "TEMP", "TMP",
+                 "SYSTEMDRIVE", "COMSPEC")
+        return {name: os.environ[name] for name in names if os.environ.get(name)}
+    return {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"}
+
+
+def _popen_options():
+    options = {"shell": False, "env": _portable_environment()}
+    if os.name == "posix":
+        options["start_new_session"] = True
+    elif os.name == "nt":
+        # Keep the child in a distinct console process group when supported;
+        # this is separate from direct-child termination below.
+        options["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    return options
+
+
+def _pipe_reader(pipe, label, events):
+    try:
+        while True:
+            chunk = pipe.read(16384)
+            if not chunk:
+                break
+            # Bound queued data while the supervisor drains it. This prevents
+            # an output flood from becoming an unbounded parent allocation.
+            while True:
+                try:
+                    events.put(("data", label, chunk), timeout=0.05)
+                    break
+                except queue.Full:
+                    continue
+    except (OSError, ValueError):
+        pass
+    finally:
+        while True:
+            try:
+                events.put(("eof", label, b""), timeout=0.05)
+                return
+            except queue.Full:
+                continue
+
+
+def _execute_windows(argv, timeout_s, cancel, stdout_limit):
+    """Supervise anonymous Windows pipes without POSIX select semantics."""
+    start, utc = time.monotonic_ns(), time.time_ns()
+    if cancel and cancel.is_set():
+        return Execution("cancelled", None, b"", b"", start, time.monotonic_ns(), utc)
+    output = {"stdout": bytearray(), "stderr": bytearray()}
+    status = "completed"
+    cleanup_error = None
+    child = None
+    events = queue.Queue(maxsize=8)
+    readers = []
+    try:
+        child = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, **_popen_options())
+        for label, pipe in (("stdout", child.stdout), ("stderr", child.stderr)):
+            thread = threading.Thread(target=_pipe_reader, args=(pipe, label, events), daemon=True)
+            thread.start()
+            readers.append(thread)
+        while True:
+            if cancel and cancel.is_set():
+                status = "cancelled"
+                break
+            if (time.monotonic_ns() - start) / 1e9 >= timeout_s:
+                status = "timeout"
+                break
+            try:
+                while True:
+                    kind, label, chunk = events.get_nowait()
+                    if kind == "eof":
+                        continue
+                    limit = stdout_limit if label == "stdout" else MAX_STDERR
+                    remaining = limit - len(output[label])
+                    output[label].extend(chunk[:max(0, remaining)])
+                    if len(chunk) > remaining:
+                        status = "output_limit"
+                        break
+            except queue.Empty:
+                pass
+            if status != "completed" or child.poll() is not None:
+                break
+            time.sleep(0.01)
+    except FileNotFoundError:
+        status = "unavailable"
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        status = "process_error"
+        output["stderr"] = str(exc).encode()[:MAX_STDERR]
+    finally:
+        if child:
+            try:
+                _stop(child)
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                cleanup_error = str(exc)[:1024]
+                status = "process_error"
+            # A short join publishes bytes already buffered by the child while
+            # avoiding a second deadline that could be held by stale handles.
+            for thread in readers:
+                thread.join(timeout=0.2)
+            while True:
+                try:
+                    kind, label, chunk = events.get_nowait()
+                except queue.Empty:
+                    break
+                if kind == "data":
+                    limit = stdout_limit if label == "stdout" else MAX_STDERR
+                    remaining = limit - len(output[label])
+                    output[label].extend(chunk[:max(0, remaining)])
+            for pipe in (child.stdout, child.stderr):
+                pipe.close()
+    if status == "completed" and child and child.returncode != 0:
+        status = "process_error"
+    return Execution(status, child.returncode if child else None,
+                     bytes(output["stdout"]), bytes(output["stderr"]), start,
+                     time.monotonic_ns(), utc, cleanup_error)
 
 
 class _ExitObserver:
@@ -80,8 +216,10 @@ class _ExitObserver:
 
 
 def execute(argv, timeout_s, cancel=None, stdout_limit=MAX_JSON):
-    """Internal trusted argv only. Pipes are capped; owned groups are stopped and the direct child is reaped."""
+    """Internal trusted argv only. Pipes are capped and the child is reaped."""
     number(timeout_s, 0.05, 12)
+    if os.name == "nt":
+        return _execute_windows(argv, timeout_s, cancel, stdout_limit)
     start, utc = time.monotonic_ns(), time.time_ns()
     if cancel and cancel.is_set():
         return Execution("cancelled", None, b"", b"", start, time.monotonic_ns(), utc)
@@ -92,8 +230,7 @@ def execute(argv, timeout_s, cancel=None, stdout_limit=MAX_JSON):
     cleanup_error = None
     try:
         child = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, shell=False, start_new_session=True,
-                                 env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"})
+                                 stderr=subprocess.PIPE, **_popen_options())
         observer = _ExitObserver(child.pid)
         with selectors.DefaultSelector() as selector:
             for name, pipe in (("stdout", child.stdout), ("stderr", child.stderr)):

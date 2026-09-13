@@ -232,6 +232,19 @@ class SupplyChainTests(unittest.TestCase):
             source["metadata"]["component"]["purl"],
         )
 
+        # Windows cargo output may use either URI drive-letter spelling and
+        # may retain native separators. All are workspace-local references.
+        windows_workspace = Path("C:/Users/runner/work/kyberia")
+        for prefix in ("path+file://C:/Users/runner/work/kyberia",
+                       "path+file:///C:/Users/runner/work/kyberia",
+                       "path+file://C:\\Users\\runner\\work\\kyberia"):
+            with self.subTest(prefix=prefix):
+                document = {"ref": prefix + "/apps/cli#kyberia-cli@0.1.0"}
+                self.assertEqual(
+                    MODULE._replace_workspace_paths(document, windows_workspace)["ref"],
+                    "path+file://workspace/apps/cli#kyberia-cli@0.1.0",
+                )
+
     def test_minimal_bom_without_provenance_is_rejected(self):
         document = {
             "bomFormat": "CycloneDX",

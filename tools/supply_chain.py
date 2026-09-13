@@ -368,9 +368,21 @@ def _replace_workspace_paths(value: Any, workspace_root: Path) -> Any:
         return {key: _replace_workspace_paths(item, workspace_root) for key, item in value.items()}
     if not isinstance(value, str):
         return value
-    prefix = "path+file://" + workspace_root.as_posix()
-    if value.startswith(prefix):
-        remainder = value[len(prefix):]
+    # cargo-cyclonedx emits URI paths differently on POSIX and Windows:
+    # ``path+file:///tmp/workspace`` versus ``path+file://C:/workspace``.
+    # Normalize separators for matching, but leave unrelated file:// URLs
+    # untouched.  Drive-letter paths also occur with the URI's optional third
+    # slash, so accept both spellings.
+    normalized = value.replace("\\", "/")
+    root = workspace_root.as_posix().replace("\\", "/")
+    roots = {root}
+    if root and not root.startswith("/"):
+        roots.add("/" + root)
+    for candidate_root in sorted(roots, key=len, reverse=True):
+        prefix = "path+file://" + candidate_root
+        if not normalized.startswith(prefix):
+            continue
+        remainder = normalized[len(prefix):]
         if remainder and not remainder.startswith("/") and not remainder.startswith("#"):
             return value
         return "path+file://workspace" + remainder

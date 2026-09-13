@@ -13,7 +13,7 @@ from types import SimpleNamespace
 import uuid
 
 from research.active.contract import Invalid, MAX_JSON, Request, parse_result, strict_json
-from research.active.process import MAX_STDERR, execute, run
+from research.active.process import Execution, MAX_STDERR, execute, run
 from research.active.acceptance import loopback, server_summary
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +36,11 @@ class ContractTests(unittest.TestCase):
     def test_zombie_group_permission_error_requires_post_reap_absence(self):
         from research.active.process import _stop
         child = mock.Mock(pid=12345)
+        if os.name == "nt":
+            _stop(child)
+            child.kill.assert_called_once_with()
+            child.wait.assert_called_once_with(timeout=2)
+            return
         with mock.patch("research.active.process.os.killpg", side_effect=[PermissionError("zombie"), ProcessLookupError()]) as kill:
             _stop(child)
         self.assertEqual(kill.call_args_list, [mock.call(12345, signal.SIGKILL), mock.call(12345, 0)])
@@ -226,7 +231,7 @@ class FakeProcessTests(unittest.TestCase):
     """Fake executables exercise supervision, never live network validation."""
     @classmethod
     def setUpClass(cls):
-        cls.directory = ROOT / ".tools/active-tests" / str(uuid.uuid4())
+        cls.directory = ROOT / ".trash/test-runs" / ("active-process-" + str(uuid.uuid4()))
         cls.directory.mkdir(parents=True)
 
     def fake(self, body):
@@ -235,12 +240,35 @@ class FakeProcessTests(unittest.TestCase):
         path.chmod(0o700)
         return path
 
+    @staticmethod
+    def execution_message(value):
+        return (
+            f"status={value.status!r}, returncode={value.returncode!r}, "
+            f"stdout_bytes={len(value.stdout)}, stderr_bytes={len(value.stderr)}, "
+            f"cleanup_error={value.cleanup_error!r}"
+        )
+
+    @staticmethod
+    def result_message(value):
+        return f"result={value!r}"
+
+    @staticmethod
+    def completed_execution(stdout):
+        now = time.monotonic_ns()
+        return Execution("completed", 0, stdout, b"", now, now + 1, time.time_ns())
+
+    def stable_version_probe(self, argv, timeout_s, cancel=None, stdout_limit=MAX_JSON):
+        if argv[-1] == "--version":
+            return self.completed_execution(b"iperf 3.20 (cJSON 1.7.15)\nFake test executable\n")
+        return execute(argv, timeout_s, cancel, stdout_limit)
+
     def test_exit_crash_and_unavailable_are_not_throughput(self):
         for code in ("raise SystemExit(7)", "import os,signal; os.kill(os.getpid(),signal.SIGKILL)"):
             value = execute([sys.executable, "-c", code], 1)
-            self.assertEqual(value.status, "process_error")
-            self.assertNotEqual(value.returncode, 0)
-        self.assertEqual(run(request(), "/does/not/exist")["status"], "unavailable")
+            self.assertEqual(value.status, "process_error", msg=self.execution_message(value))
+            self.assertNotEqual(value.returncode, 0, msg=self.execution_message(value))
+        value = run(request(), "/does/not/exist")
+        self.assertEqual(value["status"], "unavailable", msg=self.result_message(value))
 
     def test_cleanup_failure_is_structured_and_cannot_report_success(self):
         from research.active.process import _stop
@@ -249,8 +277,8 @@ class FakeProcessTests(unittest.TestCase):
             raise PermissionError("synthetic group cleanup denial")
         with mock.patch("research.active.process._stop", side_effect=failed_cleanup):
             value = execute([sys.executable, "-c", "print('ok')"], 1)
-        self.assertEqual(value.status, "process_error")
-        self.assertIn("synthetic group cleanup denial", value.cleanup_error)
+        self.assertEqual(value.status, "process_error", msg=self.execution_message(value))
+        self.assertIn("synthetic group cleanup denial", value.cleanup_error, msg=self.execution_message(value))
 
     def test_successful_parent_cannot_leave_a_background_descendant(self):
         pidfile = self.directory / (str(uuid.uuid4()) + ".pid")
@@ -268,7 +296,7 @@ class FakeProcessTests(unittest.TestCase):
                 "Path(" + repr(str(pidfile)) + ").write_text(str(pid))\nos._exit(0)\n")
         try:
             result = execute([sys.executable, "-c", code], 1)
-            self.assertEqual(result.status, "completed")
+            self.assertEqual(result.status, "completed", msg=self.execution_message(result))
             time.sleep(0.5)
             self.assertFalse(escaped.exists(), "background descendant executed after terminal success")
         finally:
@@ -280,34 +308,65 @@ class FakeProcessTests(unittest.TestCase):
     def test_timeout_cancel_and_recovery(self):
         child = [sys.executable, "-c", "import time; time.sleep(10)"]
         began = time.monotonic()
-        self.assertEqual(execute(child, .1).status, "timeout")
+        value = execute(child, .1)
+        self.assertEqual(value.status, "timeout", msg=self.execution_message(value))
         event = threading.Event(); timer = threading.Timer(.1, event.set); timer.start()
-        try: self.assertEqual(execute(child, 2, event).status, "cancelled")
+        try:
+            value = execute(child, 2, event)
+            self.assertEqual(value.status, "cancelled", msg=self.execution_message(value))
         finally: timer.join()
         self.assertLess(time.monotonic() - began, 2)
-        self.assertEqual(execute([sys.executable, "-c", "print('ok')"], 1).stdout, b"ok\n")
-        self.assertEqual(execute(child, 1, event).status, "cancelled")
+        value = execute([sys.executable, "-c", "print('ok')"], 1)
+        self.assertEqual(value.stdout, b"ok\n", msg=self.execution_message(value))
+        value = execute(child, 1, event)
+        self.assertEqual(value.status, "cancelled", msg=self.execution_message(value))
 
     def test_bounded_stdout_stderr_and_inherited_pipe(self):
         for fd, limit in ((1, MAX_JSON), (2, MAX_STDERR)):
             value = execute([sys.executable, "-c", "import os; os.write(" + str(fd) + ",b'x'*1000000)"], 1)
-            self.assertEqual(value.status, "output_limit")
-            self.assertLessEqual(len(value.stdout if fd == 1 else value.stderr), limit)
+            self.assertEqual(value.status, "output_limit", msg=self.execution_message(value))
+            self.assertLessEqual(len(value.stdout if fd == 1 else value.stderr), limit, msg=self.execution_message(value))
         child = "import os,time; pid=os.fork(); time.sleep(5) if pid==0 else os._exit(0)"
-        self.assertEqual(execute([sys.executable, "-c", child], .15).status, "timeout")
+        value = execute([sys.executable, "-c", child], .15)
+        self.assertEqual(value.status, "timeout", msg=self.execution_message(value))
 
     def test_version_probe_and_partial_output_failures(self):
         wrong = self.fake("print('iperf 3.99 (cJSON 1.7.15)')\n")
-        self.assertEqual(run(request(), wrong)["status"], "unsupported")
-        partial = self.fake("import sys\nif '--version' in sys.argv: print('iperf 3.20 (cJSON 1.7.15)\\nFake test executable')\nelse: print('{}')\n")
-        value = run(request(), partial)
-        self.assertEqual(value["status"], "invalid_output")
-        self.assertIsNone(value["measurement"])
-        self.assertGreaterEqual(value["process_window"]["end_ns"], value["process_window"]["start_ns"])
+        value = run(request(), wrong)
+        self.assertEqual(value["status"], "unsupported", msg=self.result_message(value))
+        partial = self.fake("")
+        with mock.patch("research.active.process.execute", side_effect=[
+            self.completed_execution(b"iperf 3.20 (cJSON 1.7.15)\nFake test executable\n"),
+            self.completed_execution(b"{}\n"),
+        ]) as executor:
+            value = run(request(), partial)
+        self.assertEqual(executor.call_count, 2, msg=self.result_message(value))
+        self.assertEqual(value["status"], "invalid_output", msg=self.result_message(value))
+        self.assertIsNone(value["measurement"], msg=self.result_message(value))
+        self.assertGreaterEqual(value["process_window"]["end_ns"], value["process_window"]["start_ns"], msg=self.result_message(value))
         failure = self.fake("import sys\nif '--version' in sys.argv: print('iperf 3.20 (cJSON 1.7.15)\\nFake test executable')\nelse: raise SystemExit(2)\n")
-        value = run(request(), failure)
-        self.assertEqual(value["status"], "process_error")
-        self.assertIsNone(value["measurement"])
+        with mock.patch("research.active.process.execute", side_effect=self.stable_version_probe):
+            value = run(request(), failure)
+        self.assertEqual(value["status"], "process_error", msg=self.result_message(value))
+        self.assertIsNone(value["measurement"], msg=self.result_message(value))
+
+    def test_real_client_malformed_output_remains_covered(self):
+        partial = self.fake("import sys\nif '--version' in sys.argv: print('iperf 3.20 (cJSON 1.7.15)\\nFake test executable')\nelse: print('{}')\n")
+        with mock.patch("research.active.process.execute", side_effect=self.stable_version_probe):
+            value = run(request(), partial)
+        self.assertEqual(value["status"], "invalid_output", msg=self.result_message(value))
+        self.assertIsNone(value["measurement"], msg=self.result_message(value))
+
+    def test_version_probe_timeout_is_reported_at_probe_boundary(self):
+        slow = self.fake(
+            "import sys,time\n"
+            "if '--version' in sys.argv: time.sleep(2.2); print('iperf 3.20 (cJSON 1.7.15)')\n"
+            "else: print('{}')\n"
+        )
+        value = run(request(), slow)
+        self.assertEqual(value["status"], "timeout", msg=self.result_message(value))
+        self.assertEqual(value["reason"], "version_probe_failed", msg=self.result_message(value))
+        self.assertIsNone(value["measurement"], msg=self.result_message(value))
 
 
 if __name__ == "__main__": unittest.main()

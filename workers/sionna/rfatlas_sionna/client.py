@@ -4,9 +4,11 @@ from datetime import datetime, timezone
 import hashlib
 import os
 from pathlib import Path
+import queue
 import selectors
 import signal
 import subprocess
+import threading
 import time
 
 from .contract import (ContractError, MAX_LOG_BYTES, MAX_REQUEST_BYTES, MAX_RESULT_BYTES,
@@ -14,12 +16,124 @@ from .contract import (ContractError, MAX_LOG_BYTES, MAX_REQUEST_BYTES, MAX_RESU
 
 
 def _stop(process):
-    # All worker jobs start in their own session. Reap after every exit path.
+    # POSIX jobs start in their own session; Windows uses direct-child kill.
+    # Reap after every exit path.
+    if os.name == "nt":
+        try:
+            process.kill()
+        except ProcessLookupError:
+            pass
+        process.wait(timeout=2)
+        return
     try:
         os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
     process.wait()
+
+
+def _popen_options(env):
+    options = {"env": env}
+    if os.name == "posix":
+        options["start_new_session"] = True
+    elif os.name == "nt":
+        options["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    return options
+
+
+def _pipe_reader(stream, label, events):
+    try:
+        while True:
+            chunk = stream.read(8192)
+            if not chunk:
+                break
+            while True:
+                try:
+                    events.put(("data", label, chunk), timeout=0.05)
+                    break
+                except queue.Full:
+                    continue
+    except (OSError, ValueError):
+        pass
+    finally:
+        while True:
+            try:
+                events.put(("eof", label, b""), timeout=0.05)
+                return
+            except queue.Full:
+                continue
+
+
+def _pipe_writer(stream, payload, events):
+    try:
+        stream.write(payload)
+        stream.flush()
+    except (BrokenPipeError, OSError, ValueError):
+        pass
+    finally:
+        try:
+            stream.close()
+        except (OSError, ValueError):
+            pass
+        events.put(("stdin_done", "stdin", b""))
+
+
+def _supervise_windows(process, request_bytes, timeout_s, cancel):
+    """Use threads for Windows anonymous pipes, which SelectSelector cannot poll."""
+    start = time.monotonic()
+    output, logs = bytearray(), bytearray()
+    events = queue.Queue(maxsize=8)
+    threads = []
+    for stream, label in ((process.stdout, "stdout"), (process.stderr, "stderr")):
+        thread = threading.Thread(target=_pipe_reader, args=(stream, label, events), daemon=True)
+        thread.start()
+        threads.append(thread)
+    writer = threading.Thread(target=_pipe_writer, args=(process.stdin, request_bytes, events), daemon=True)
+    writer.start()
+    threads.append(writer)
+    status = "exited"
+    try:
+        while True:
+            if cancel is not None and cancel.is_set():
+                status = "cancelled"
+                break
+            if time.monotonic() - start >= timeout_s:
+                status = "timed_out"
+                break
+            try:
+                while True:
+                    kind, label, chunk = events.get_nowait()
+                    if kind != "data":
+                        continue
+                    target = output if label == "stdout" else logs
+                    bound = MAX_RESULT_BYTES if label == "stdout" else MAX_LOG_BYTES
+                    target.extend(chunk[:max(0, bound-len(target))])
+                    if len(target) >= bound:
+                        status = "output_limit"
+                        break
+            except queue.Empty:
+                pass
+            if status != "exited":
+                break
+            if process.poll() is not None:
+                break
+            time.sleep(0.01)
+    finally:
+        _stop(process)
+        for thread in threads:
+            thread.join(timeout=0.2)
+        while True:
+            try:
+                kind, label, chunk = events.get_nowait()
+            except queue.Empty:
+                break
+            if kind == "data":
+                target = output if label == "stdout" else logs
+                bound = MAX_RESULT_BYTES if label == "stdout" else MAX_LOG_BYTES
+                target.extend(chunk[:max(0, bound-len(target))])
+    return {"state": status, "returncode": process.returncode,
+            "stdout": bytes(output), "stderr": bytes(logs),
+            "elapsed_s": time.monotonic() - start}
 
 
 def supervise(command, request_bytes, timeout_s, cancel=None, env=None):
@@ -29,7 +143,9 @@ def supervise(command, request_bytes, timeout_s, cancel=None, env=None):
     start = time.monotonic()
     output, logs = bytearray(), bytearray()
     with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE, start_new_session=True, env=env) as process:
+                          stderr=subprocess.PIPE, **_popen_options(env)) as process:
+        if os.name == "nt":
+            return _supervise_windows(process, request_bytes, timeout_s, cancel)
         with selectors.DefaultSelector() as selector:
             for stream, label in ((process.stdout, "stdout"), (process.stderr, "stderr")):
                 os.set_blocking(stream.fileno(), False)
