@@ -5,9 +5,23 @@ state only through the versioned `kyberia.desktop-ipc/1` adapter. Blank-project
 creation and current-project queries use the canonical application boundary;
 long operations run in bounded `spawn_blocking` jobs. The renderer supplies a
 validated UUID before invocation, polls strict progress responses, and can invoke
-Cancel while the original command is pending. Opening a project first uses a native folder selector,
-then consumes a single-use opaque grant. The renderer never receives or submits
-a filesystem path.
+Cancel while the original command is pending. Opening a project first uses a
+native folder selector, then consumes a single-use opaque grant. The renderer
+never receives or submits a filesystem path.
+
+The native selector is an owned child-process adapter. It polls a caller-owned
+job control, applies a five-minute timeout, and terminates and reaps the child
+on cancellation or timeout. Windows additionally requests process-tree
+termination through the absolute `taskkill.exe` path; macOS, Linux, and
+Windows close their selector when the owned process exits. Unsupported host
+targets return `capability_unavailable` rather than claiming cancellation
+support they do not provide.
+
+Create finalization retains the exact newly created bundle under a unique
+`.trash/cancelled-*` path if the worker unwinds after storage creation. The
+active session is published only after a successful worker join, so cancellation
+and worker failure preserve the previous session. Retained test fixtures stay
+under `.trash/test-runs/` and are never recursively removed.
 
 Floor-plan decoding and calibration are still outside the current application
 command boundary. Import and dropped files therefore enter an explicit
@@ -18,10 +32,12 @@ measurement, floor-plan, or calibration data is fabricated.
 
 | Check | Result |
 | --- | --- |
+| `npm ci --dry-run` | PASS (package-lock.json is install-reproducible) |
 | `npm run typecheck` | PASS |
 | `npm test -- --run` | PASS (14 tests) |
 | `npm run build` | PASS |
 | `cargo fmt --all -- --check` | PASS |
+| `cargo test -p kyberia-desktop --locked --offline` | PASS (20 tests: 17 Rust library, 3 native picker adapter) |
 | `cargo test --workspace --locked --offline` | PASS (workspace, including desktop; refreshed after corrections) |
 | `cargo clippy --workspace --all-targets --locked --offline -- -D warnings` | PASS |
 | `python3 tools/architecture.py` | PASS |
@@ -73,6 +89,9 @@ shown as measured.
   `/usr/bin/kdialog` on Linux). Rust
   canonicalizes the selected root, rejects symlink roots, requires a `.rfatlas`
   directory, and stores the path only behind an opaque grant ID.
+  The adapter owns the selector child, polls its job control, applies a bounded
+  timeout, and terminates/reaps on cancellation or timeout; Linux falls back
+  from `zenity` to `kdialog` only when the primary executable is unavailable.
 - `project_open_grant` consumes the grant once and checks the optional expected
   display name. Forged, reused, mismatched, traversal, and symlink selections
   are rejected before application open.

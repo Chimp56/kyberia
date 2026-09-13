@@ -535,9 +535,9 @@ pub fn blank_project_path(app_data_dir: PathBuf) -> Result<PathBuf, DesktopIpcEr
 /// Move a project that was created by a cancelled operation into the owning
 /// recovery bin. Keeping the bundle makes cancellation recoverable while
 /// avoiding a half-admitted project at the path chosen by the application.
-pub fn retain_cancelled_project(path: &std::path::Path) -> Result<(), DesktopIpcError> {
+pub fn retain_cancelled_project(path: &std::path::Path) -> Result<PathBuf, DesktopIpcError> {
     if !path.exists() {
-        return Ok(());
+        return Ok(path.to_path_buf());
     }
     let parent = path.parent().ok_or_else(|| {
         error(
@@ -568,7 +568,8 @@ pub fn retain_cancelled_project(path: &std::path::Path) -> Result<(), DesktopIpc
             Some("Keep the application data directory writable and retry."),
             true,
         )
-    })
+    })?;
+    Ok(destination)
 }
 
 pub fn cancel_created_project(
@@ -578,7 +579,7 @@ pub fn cancel_created_project(
     if !control.is_cancelled() {
         return Ok(());
     }
-    retain_cancelled_project(path)?;
+    let _retained_path = retain_cancelled_project(path)?;
     Err(cancelled_error())
 }
 
@@ -773,6 +774,24 @@ pub fn finish_joined_job<T, E>(
             true,
         )
     })
+}
+
+/// Release a create job and retain a bundle when its worker unwinds after the
+/// application has created it. The active session is intentionally untouched;
+/// callers publish a new session only after this boundary returns success.
+pub fn finish_created_project_job<T, E>(
+    state: &mut DesktopState,
+    job_id: &str,
+    created_path: &std::path::Path,
+    joined: Result<T, E>,
+) -> Result<T, DesktopIpcError> {
+    match finish_joined_job(state, job_id, joined) {
+        Ok(value) => Ok(value),
+        Err(join_error) => {
+            let _retained_path = retain_cancelled_project(created_path)?;
+            Err(join_error)
+        }
+    }
 }
 
 async fn current_project_job_with<F>(
@@ -1020,6 +1039,95 @@ mod tests {
     }
 
     #[test]
+    fn post_create_worker_panic_retains_exact_bundle_and_preserves_session() {
+        use std::panic::AssertUnwindSafe;
+
+        let mut state = DesktopState::default();
+        let active_id = create_project_at(
+            &mut state,
+            retained_path("active-before-create-panic"),
+            "Active before create panic".into(),
+            1_800_000_000_000,
+        )
+        .expect("active project")
+        .project
+        .expect("active project summary")
+        .project_id;
+        let created_path = retained_path("post-create-panic");
+        let created_name = created_path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .expect("created project name")
+            .to_owned();
+        let expected_manifest = Arc::new(Mutex::new(None::<Vec<u8>>));
+        let manifest_slot = Arc::clone(&expected_manifest);
+        let panic_result = std::panic::catch_unwind(AssertUnwindSafe(|| {
+            let name =
+                kyberia_domain::identity::Text::new("Panic project".to_owned()).expect("name");
+            let session = Application
+                .create(CreateProject {
+                    path: created_path.clone(),
+                    name,
+                    created_utc_ms: 1_800_000_000_001,
+                })
+                .expect("created bundle");
+            *manifest_slot.lock().expect("manifest slot") =
+                Some(std::fs::read(created_path.join("manifest.json")).expect("manifest"));
+            drop(session);
+            panic!("injected post-create panic");
+        }));
+        assert!(panic_result.is_err());
+        let expected_manifest = expected_manifest
+            .lock()
+            .expect("manifest slot")
+            .clone()
+            .expect("manifest captured before panic");
+
+        let job_id = uuid::Uuid::new_v4().to_string();
+        begin_job(&mut state, &job_id).expect("admit create");
+        let result =
+            finish_created_project_job(&mut state, &job_id, &created_path, Err::<(), ()>(()));
+        assert_eq!(result.expect_err("join failure").code, "storage");
+        assert!(!created_path.exists());
+        let entries = std::fs::read_dir(
+            created_path
+                .parent()
+                .expect("created project parent")
+                .join(".trash"),
+        )
+        .expect("recovery trash")
+        .filter_map(Result::ok)
+        .filter(|entry| {
+            entry
+                .file_name()
+                .to_str()
+                .is_some_and(|value| value.ends_with(&created_name))
+        })
+        .collect::<Vec<_>>();
+        assert_eq!(entries.len(), 1);
+        let retained = entries[0].path();
+        assert!(
+            retained
+                .file_name()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.ends_with(&created_name))
+        );
+        assert_eq!(
+            std::fs::read(retained.join("manifest.json")).expect("retained manifest"),
+            expected_manifest
+        );
+        assert!(state.jobs.is_empty());
+        assert_eq!(
+            current_project(&state)
+                .expect("old session remains")
+                .project
+                .expect("old project")
+                .project_id,
+            active_id
+        );
+    }
+
+    #[test]
     fn current_project_join_failure_preserves_session_and_releases_admission() {
         let state = Mutex::new(DesktopState::default());
         let active_id = {
@@ -1078,6 +1186,11 @@ mod tests {
         .expect("active project");
         let active_id = active.project.expect("project").project_id;
         let cancelled_path = retained_path("cancelled-create");
+        let cancelled_name = cancelled_path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .expect("cancelled project name")
+            .to_owned();
         let worker_path = cancelled_path.clone();
         let job_id = uuid::Uuid::new_v4().to_string();
         let control = begin_job(&mut state, &job_id).expect("job");
@@ -1098,28 +1211,47 @@ mod tests {
                 })
                 .map_err(DesktopIpcError::from)?;
             drop(session);
-            cancel_created_project(&worker_path, &task_control).map(|_| worker_path)
+            let manifest = std::fs::read(worker_path.join("manifest.json")).expect("manifest");
+            let cancellation = cancel_created_project(&worker_path, &task_control)
+                .expect_err("cancelled after atomic work");
+            Ok::<_, DesktopIpcError>((cancellation, manifest))
         });
         entered_rx.recv().expect("worker entered atomic step");
         cancel_job(&state, &job_id).expect("cancel");
         release_tx.send(()).expect("release worker");
-        let completed_path = worker
+        let (completed_path, expected_manifest) = worker
             .join()
             .expect("worker join")
-            .expect_err("cancelled after atomic work");
+            .expect("worker completes cancellation");
         assert_eq!(completed_path.code, "cancelled");
         finish_job(&mut state, &job_id);
 
         assert!(!cancelled_path.exists());
+        let entries = cancelled_path
+            .parent()
+            .expect("cancelled project parent")
+            .join(".trash")
+            .read_dir()
+            .expect("recovery trash")
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                entry
+                    .file_name()
+                    .to_str()
+                    .is_some_and(|value| value.ends_with(&cancelled_name))
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(entries.len(), 1);
+        let retained = entries[0].path();
         assert!(
-            cancelled_path
-                .parent()
-                .expect("cancelled project parent")
-                .join(".trash")
-                .read_dir()
-                .expect("recovery trash")
-                .next()
-                .is_some()
+            retained
+                .file_name()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.ends_with(&cancelled_name))
+        );
+        assert_eq!(
+            std::fs::read(retained.join("manifest.json")).expect("retained manifest"),
+            expected_manifest
         );
 
         let current = current_project(&state).expect("current project");

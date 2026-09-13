@@ -36,6 +36,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0030](0030-barrier-aware-idw.md) | Accepted bounded numerical increment; polygon paths and publication remain open | Inward-owned finite planar barriers add deterministic path cost, attenuation and impassable support boundaries to IDW |
 | [0031](0031-active-measurement-foundation.md) | Proposed bounded foundation; independent review and product wiring remain open | Versioned, consented TCP-connect timing records with literal-target safety, deterministic scheduling, typed outcomes and recomputable statistics |
 | [0032](0032-kyberia-lab-mcp.md) | Proposed; independent review and physical-host gates open | Stdio MCP coordinator with immutable revisions, mutually signed runner envelopes, static command allowlists and sanitized evidence |
+| [0033 (plan ADR-006)](0033-tauri-react-versioned-ipc.md) | Proposed bounded shell boundary; product lifecycle gates open | Tauri 2 + React/TypeScript + Rust application boundary with versioned IPC, owned jobs, opaque grants, and honest cancellation |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

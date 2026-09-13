@@ -92,29 +92,47 @@ test("native selector exposes progress and cancellation while it is open", async
   await page.addInitScript((response) => {
     let rejectSelection: ((reason: unknown) => void) | null = null;
     let pickerJobId = "";
+    let cancellationRequestedAt = 0;
+    let cancelCalls = 0;
+    let pickerPoll: number | null = null;
     window.__RF_ATLAS_IPC__ = {
       currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: async () => response,
       selectOpenProject: ({ jobId }) => {
         pickerJobId = jobId;
-        return new Promise((_, reject) => { rejectSelection = reject; });
+        cancellationRequestedAt = 0;
+        return new Promise((_, reject) => {
+          rejectSelection = reject;
+          pickerPoll = window.setInterval(() => {
+            if (cancellationRequestedAt > 0 && Date.now() - cancellationRequestedAt >= 1000 && pickerPoll !== null) {
+              window.clearInterval(pickerPoll);
+              pickerPoll = null;
+              rejectSelection?.({ schema: "kyberia.desktop-ipc/1", code: "cancelled", message: "The desktop project operation was cancelled.", remediation: "Run the operation again when ready.", retryable: true });
+            }
+          }, 3000);
+        });
       },
       openProject: async () => response,
       jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 18 }),
       cancelJob: async ({ jobId }) => {
         if (jobId !== pickerJobId) throw new Error("wrong picker job");
-        rejectSelection?.({ schema: "kyberia.desktop-ipc/1", code: "cancelled", message: "The desktop project operation was cancelled.", remediation: "Run the operation again when ready.", retryable: true });
+        cancellationRequestedAt = Date.now();
+        cancelCalls += 1;
         return { schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" };
       },
     };
+    (window as unknown as { __CANCEL_CALLS__?: () => number }).__CANCEL_CALLS__ = () => cancelCalls;
   }, baselineResponse);
   await page.goto("/");
   await page.getByRole("button", { name: "Open project" }).click();
   await expect(page.getByRole("heading", { name: "Choosing project" })).toBeVisible();
   await expect(page.getByText("Working — 18%")).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByText("Cancelling — 18%")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cancelling…" })).toBeDisabled();
   await expect(page.getByRole("heading", { name: "Operation cancelled" })).toBeVisible();
   await expect(page.getByText("Run the operation again when ready.")).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __CANCEL_CALLS__: () => number }).__CANCEL_CALLS__())).toBe(1);
 });
 
 test("a second open command cannot race an admitted native selection", async ({ page }) => {
