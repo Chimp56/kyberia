@@ -26,6 +26,8 @@ pub const MAX_ACTIVE_CONCURRENCY: u16 = 8;
 pub const MAX_ACTIVE_TIMEOUT_SECONDS: f64 = 60.0;
 pub const MAX_ACTIVE_DURATION_SECONDS: f64 = 3_600.0;
 pub const MAX_ACTIVE_SPACING_SECONDS: f64 = 3_600.0;
+const EXACT_FAILURE_BURST_FEASIBILITY_LIMIT: u32 = 12;
+const FLOAT_FEASIBILITY_EPSILON: f64 = 1e-12;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -1598,6 +1600,42 @@ impl TryFrom<ConnectTimingDistributionWire> for ConnectTimingDistribution {
                     ),
                 ));
             }
+            if value.successful_samples == 2 {
+                let Evidence::Known(median) = &value.median else {
+                    unreachable!("validated connect timing median is known")
+                };
+                let Evidence::Known(maximum) = &value.max else {
+                    unreachable!("validated connect timing maximum is known")
+                };
+                let minimum = median.get() * 2.0 - maximum.get();
+                if !minimum.is_finite()
+                    || minimum < 0.0
+                    || minimum > maximum.get()
+                    || [
+                        minimum + (maximum.get() - minimum) * 0.50,
+                        minimum + (maximum.get() - minimum) * 0.90,
+                        minimum + (maximum.get() - minimum) * 0.95,
+                        minimum + (maximum.get() - minimum) * 0.99,
+                        maximum.get(),
+                    ]
+                    .iter()
+                    .zip(values)
+                    .any(|(expected, actual)| {
+                        let Evidence::Known(actual) = actual else {
+                            unreachable!("validated connect timing percentile is known")
+                        };
+                        (expected - actual.get()).abs()
+                            > FLOAT_FEASIBILITY_EPSILON
+                                * expected.abs().max(actual.get().abs()).max(1.0)
+                    })
+                {
+                    return Err(ActiveValidationError::Domain(
+                        ValidationError::Inconsistent(
+                            "two-success connect timing percentiles are infeasible",
+                        ),
+                    ));
+                }
+            }
         }
         Ok(Self {
             successful_samples: value.successful_samples,
@@ -1735,12 +1773,18 @@ impl TryFrom<TcpAttemptFailureBurstDistributionWire> for TcpAttemptFailureBurstD
                 }
                 previous = *percentile;
             }
+            let observed_percentiles = percentiles.map(|percentile| match percentile {
+                Evidence::Known(value) => *value,
+                Evidence::Unknown(_) => unreachable!("validated failure percentile is known"),
+            });
             let minimum_possible_max = value.failed_samples / value.burst_count
                 + u32::from(!value.failed_samples.is_multiple_of(value.burst_count));
             let Evidence::Known(maximum) = &value.max else {
                 unreachable!("validated failure burst maximum is known")
             };
+            let maximum_possible_max = value.failed_samples - (value.burst_count - 1);
             if *maximum < minimum_possible_max
+                || *maximum > maximum_possible_max
                 || (value.burst_count == 1
                     && percentiles
                         .iter()
@@ -1753,6 +1797,19 @@ impl TryFrom<TcpAttemptFailureBurstDistributionWire> for TcpAttemptFailureBurstD
                 return Err(ActiveValidationError::Domain(
                     ValidationError::Inconsistent(
                         "active failure burst count and percentiles are inconsistent",
+                    ),
+                ));
+            }
+            if value.failed_samples <= EXACT_FAILURE_BURST_FEASIBILITY_LIMIT
+                && !failure_burst_percentiles_are_feasible(
+                    value.failed_samples,
+                    value.burst_count,
+                    observed_percentiles,
+                )
+            {
+                return Err(ActiveValidationError::Domain(
+                    ValidationError::Inconsistent(
+                        "active failure burst percentiles are infeasible for the counts",
                     ),
                 ));
             }
@@ -2096,6 +2153,71 @@ fn max_count(values: &[u32], unknown: UnknownReason) -> Evidence<u32> {
         .copied()
         .map(Evidence::Known)
         .unwrap_or(Evidence::Unknown(unknown))
+}
+
+fn failure_burst_percentiles_are_feasible(
+    failed_samples: u32,
+    burst_count: u32,
+    observed: [u32; 5],
+) -> bool {
+    fn search(
+        values: &mut Vec<u32>,
+        index: u32,
+        minimum: u32,
+        remaining: u32,
+        burst_count: u32,
+        observed: [u32; 5],
+    ) -> bool {
+        if index + 1 == burst_count {
+            if remaining < minimum {
+                return false;
+            }
+            values.push(remaining);
+            let expected = [
+                percentile_count(values, 0.50, UnknownReason::NotApplicable),
+                percentile_count(values, 0.90, UnknownReason::NotApplicable),
+                percentile_count(values, 0.95, UnknownReason::NotApplicable),
+                percentile_count(values, 0.99, UnknownReason::NotApplicable),
+                max_count(values, UnknownReason::NotApplicable),
+            ];
+            let matches = expected
+                .iter()
+                .enumerate()
+                .all(|(index, value)| *value == Evidence::Known(observed[index]));
+            values.pop();
+            return matches;
+        }
+
+        let remaining_bursts = burst_count - index - 1;
+        let maximum = remaining / (remaining_bursts + 1);
+        for candidate in minimum..=maximum {
+            values.push(candidate);
+            if search(
+                values,
+                index + 1,
+                candidate,
+                remaining - candidate,
+                burst_count,
+                observed,
+            ) {
+                return true;
+            }
+            values.pop();
+        }
+        false
+    }
+
+    if failed_samples == 0 || burst_count == 0 || burst_count > failed_samples {
+        return false;
+    }
+    search(
+        &mut Vec::with_capacity(burst_count as usize),
+        0,
+        1,
+        failed_samples,
+        burst_count,
+        observed,
+    )
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

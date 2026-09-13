@@ -27,7 +27,7 @@ when the source cannot provide it.
 
 An active run requires explicit user consent and a tier allow-list.  Target
 validation rejects unspecified, multicast, and broadcast addresses.  Loopback
-Loopback targets require both the corresponding authorization flag and a local
+targets require both the corresponding authorization flag and a local
 gateway/LAN tier.  IPv4 link-local targets are likewise tier- and
 authorization-gated.  Gateway/LAN targets must be local-only addresses;
 Internet-control targets must not be local-only.  The literal address contract
@@ -85,6 +85,12 @@ percentile shape, one-sample and one-burst feasibility, success/failure and
 cancellation counts, the exact attempt-failure percentage, and the rule that
 TCP connect supplies no packet-loss evidence. A complete result additionally
 recomputes its statistics from retained samples.
+For two successful timings, wire admission reconstructs the two order
+statistics from median and max and checks every documented interpolated
+quantile, within a bounded floating-point tolerance.  Failure-burst wire
+admission enforces positive integer partition bounds; it exactly reconstructs
+all possible sorted burst partitions when failed samples are at most 12 and
+uses sound count/max/monotonic bounds above that limit.
 
 Hard limits in this increment are 32 endpoints, 4,096 total samples, eight
 concurrent operations (the shipped executor uses one), 60 seconds per

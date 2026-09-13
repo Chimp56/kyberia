@@ -304,11 +304,13 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
             run.id(),
             interval.id(),
             &run.endpoints()[0],
-            vec![sample.clone(), duplicate_id_sample],
+            vec![sample.clone(), duplicate_id_sample.clone()],
         )
         .is_err()
     );
-    let stats = kyberia_domain::active::ActiveStatistics::from_samples(&[sample]).unwrap();
+    let stats =
+        kyberia_domain::active::ActiveStatistics::from_samples(std::slice::from_ref(&sample))
+            .unwrap();
     assert_eq!(
         stats.packet_loss_percent(),
         &Evidence::Unknown(UnknownReason::NotMeasured)
@@ -316,6 +318,18 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     assert_eq!(
         stats.tcp_attempt_failure_bursts().median(),
         &Evidence::Unknown(UnknownReason::NotApplicable)
+    );
+    let two_sample_stats =
+        kyberia_domain::active::ActiveStatistics::from_samples(&[sample, duplicate_id_sample])
+            .unwrap();
+    let mut impossible_two_sample_timing =
+        serde_json::to_value(two_sample_stats.connect_timing()).unwrap();
+    impossible_two_sample_timing["max"] = json!({"state": "known", "detail": 2.0});
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::ConnectTimingDistribution>(
+            impossible_two_sample_timing
+        )
+        .is_err()
     );
     let mut bad_timing = serde_json::to_value(stats.connect_timing()).unwrap();
     bad_timing["successful_samples"] = json!(0);
@@ -390,6 +404,81 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     assert!(
         serde_json::from_value::<kyberia_domain::active::TcpAttemptFailureBurstDistribution>(
             impossible_failure_burst
+        )
+        .is_err()
+    );
+    let make_failed_sample = |id_value: u8, ordinal: u32| {
+        ActiveSample::new(
+            id::<ActiveSampleId>(id_value),
+            run.id(),
+            interval.id(),
+            id(1),
+            ActiveEndpointTier::LanReference,
+            unknown_attribution(),
+            ordinal,
+            run.started(),
+            run.started(),
+            ActiveSampleOutcome::ConnectionRefused,
+            Evidence::Unknown(UnknownReason::FailedTest),
+            run.provenance().clone(),
+        )
+        .unwrap()
+    };
+    let successful_break = ActiveSample::new(
+        id::<ActiveSampleId>(212),
+        run.id(),
+        interval.id(),
+        id(1),
+        ActiveEndpointTier::LanReference,
+        unknown_attribution(),
+        1,
+        run.started(),
+        MonotonicTimestamp {
+            epoch: run.started().epoch,
+            nanoseconds: run.started().nanoseconds + 1_000_000,
+        },
+        ActiveSampleOutcome::Success,
+        Evidence::Known(Milliseconds::new(1.0).unwrap()),
+        run.provenance().clone(),
+    )
+    .unwrap();
+    let failure_sequence_stats = kyberia_domain::active::ActiveStatistics::from_samples(&[
+        make_failed_sample(210, 0),
+        successful_break,
+        make_failed_sample(213, 2),
+        make_failed_sample(214, 3),
+    ])
+    .unwrap();
+    assert_eq!(
+        failure_sequence_stats
+            .tcp_attempt_failure_bursts()
+            .burst_count(),
+        2
+    );
+    assert_eq!(
+        failure_sequence_stats
+            .tcp_attempt_failure_bursts()
+            .failed_samples(),
+        3
+    );
+    let mut impossible_failure_max =
+        serde_json::to_value(failure_sequence_stats.tcp_attempt_failure_bursts()).unwrap();
+    impossible_failure_max["max"] = json!({"state": "known", "detail": 3});
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::TcpAttemptFailureBurstDistribution>(
+            impossible_failure_max
+        )
+        .is_err()
+    );
+    let mut impossible_failure_quantiles =
+        serde_json::to_value(failure_sequence_stats.tcp_attempt_failure_bursts()).unwrap();
+    for field in ["median", "p90", "p95", "p99"] {
+        impossible_failure_quantiles[field] = json!({"state": "known", "detail": 1});
+    }
+    impossible_failure_quantiles["max"] = json!({"state": "known", "detail": 2});
+    assert!(
+        serde_json::from_value::<kyberia_domain::active::TcpAttemptFailureBurstDistribution>(
+            impossible_failure_quantiles
         )
         .is_err()
     );

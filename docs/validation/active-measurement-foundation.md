@@ -53,7 +53,8 @@ The focused Rust suite covers:
 - standalone connect-timing, TCP-attempt-failure-burst, statistics, timestamp,
   and window wire revalidation, including evidence-reason, count, percentile,
   percentage, resource-ceiling, packet-loss-not-measured, and rejection of the
-  prior misleading TCP-connect method version;
+  prior misleading TCP-connect method version, with exact small-count timing
+  and failure-burst feasibility regressions;
 - a real std TCP connector against a bounded loopback listener and a local
   refused port. The integration case exits early when the host sandbox denies
   listener creation; no test contacts an external address.
