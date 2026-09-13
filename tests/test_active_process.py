@@ -4,7 +4,6 @@ from dataclasses import asdict
 import io
 import json
 import os
-import queue
 import signal
 from pathlib import Path
 import sys
@@ -82,24 +81,27 @@ class ContractTests(unittest.TestCase):
         child.wait.assert_called_once_with(timeout=2)
         child.kill.assert_not_called()
 
-    def test_windows_pipe_readers_fit_capped_output_without_consumer(self):
+    def test_windows_hostile_stdout_cannot_starve_stderr_or_terminal_events(self):
+        """Each data stream is bounded independently from terminal signalling."""
         from research.active import process
 
-        events = queue.Queue(maxsize=process._WINDOW_PIPE_QUEUE_SIZE)
+        events = {"stdout": process._PipeEvents(process._WINDOW_PIPE_STDOUT_EVENTS),
+                  "stderr": process._PipeEvents(process._WINDOW_PIPE_STDERR_EVENTS)}
         stop_event = threading.Event()
-        streams = ((b"x" * MAX_JSON, "stdout"),
+        streams = ((b"x" * (MAX_JSON + 2 * MAX_STDERR), "stdout"),
                    (b"x" * MAX_STDERR, "stderr"))
         threads = []
         try:
             for payload, label in streams:
                 reader = threading.Thread(target=process._pipe_reader,
-                                           args=(io.BytesIO(payload), label, events, stop_event),
+                                           args=(io.BytesIO(payload), label, events[label], stop_event),
                                            daemon=True)
                 reader.start()
                 threads.append(reader)
-            for thread in threads:
-                thread.join(timeout=1)
-            self.assertFalse(any(thread.is_alive() for thread in threads))
+            threads[1].join(timeout=1)
+            self.assertFalse(threads[1].is_alive())
+            self.assertTrue(threads[0].is_alive(),
+                            "hostile stdout should block only on its own data quota")
         finally:
             stop_event.set()
             for thread in threads:
@@ -108,7 +110,7 @@ class ContractTests(unittest.TestCase):
         process._consume_pipe_events(events, output, eof, MAX_JSON)
         self.assertEqual(len(output["stdout"]), MAX_JSON)
         self.assertEqual(len(output["stderr"]), MAX_STDERR)
-        self.assertEqual(eof, {"stdout", "stderr"})
+        self.assertIn("stderr", eof)
 
     def test_windows_stop_escalates_after_job_and_reap_failures(self):
         from research.active import process
@@ -390,8 +392,9 @@ class ContractTests(unittest.TestCase):
         from research.active import process
         for label, bound in (("stdout", MAX_JSON), ("stderr", MAX_STDERR)):
             for size in (bound, bound + 1):
-                events = queue.Queue()
-                events.put(("data", label, b"x" * size))
+                events = {"stdout": process._PipeEvents(process._WINDOW_PIPE_STDOUT_EVENTS),
+                          "stderr": process._PipeEvents(process._WINDOW_PIPE_STDERR_EVENTS)}
+                events[label].data.put(("data", label, b"x" * size))
                 output = {"stdout": bytearray(), "stderr": bytearray()}
                 status = process._consume_pipe_events(events, output, set(), MAX_JSON)
                 self.assertEqual(status, "output_limit")
@@ -410,11 +413,12 @@ class ContractTests(unittest.TestCase):
                 released.set()
 
         stop_event = threading.Event()
-        events = queue.Queue()
+        events = {"stdout": process._PipeEvents(process._WINDOW_PIPE_STDOUT_EVENTS),
+                  "stderr": process._PipeEvents(process._WINDOW_PIPE_STDERR_EVENTS)}
         reader = threading.Thread(target=process._pipe_reader,
-                                   args=(BlockingRead(), "stdout", events, stop_event), daemon=True)
+                                   args=(BlockingRead(), "stdout", events["stdout"], stop_event), daemon=True)
         reader2 = threading.Thread(target=process._pipe_reader,
-                                    args=(BlockingRead(), "stderr", events, stop_event), daemon=True)
+                                    args=(BlockingRead(), "stderr", events["stderr"], stop_event), daemon=True)
         reader.start(); reader2.start()
         errors = process._join_pipe_threads([("stdout", reader), ("stderr", reader2)])
         self.assertEqual(len(errors), 2)

@@ -35,9 +35,7 @@ _WINDOW_PIPE_STDOUT_EVENTS = ((MAX_JSON + _WINDOW_PIPE_READ_BYTES - 1)
                               // _WINDOW_PIPE_READ_BYTES)
 _WINDOW_PIPE_STDERR_EVENTS = ((MAX_STDERR + _WINDOW_PIPE_READ_BYTES - 1)
                              // _WINDOW_PIPE_READ_BYTES)
-_WINDOW_PIPE_TERMINAL_EVENTS = 7  # two EOFs, stdin completion, and four errors
-_WINDOW_PIPE_QUEUE_SIZE = (_WINDOW_PIPE_STDOUT_EVENTS + _WINDOW_PIPE_STDERR_EVENTS
-                           + _WINDOW_PIPE_TERMINAL_EVENTS)
+_WINDOW_PIPE_TERMINAL_QUEUE_SIZE = 3  # one reader error and EOF, with headroom
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
 _WINDOW_HANDLE_CLOSE_ATTEMPTS = 2
@@ -53,6 +51,13 @@ class Execution:
     end_ns: int
     started_unix_ns: int
     cleanup_error: object = None
+
+
+class _PipeEvents:
+    """Independent bounded data and terminal channels for one output pipe."""
+    def __init__(self, data_capacity):
+        self.data = queue.Queue(maxsize=data_capacity)
+        self.terminal = queue.Queue(maxsize=_WINDOW_PIPE_TERMINAL_QUEUE_SIZE)
 
 
 class _WindowsIoCounters(ctypes.Structure):
@@ -483,10 +488,11 @@ def _popen_options():
     return options
 
 
-def _put_pipe_event(events, event, stop_event):
+def _put_pipe_event(events, event, stop_event, terminal=False):
+    target = events.terminal if terminal else events.data
     while not stop_event.is_set():
         try:
-            events.put(event, timeout=0.05)
+            target.put(event, timeout=0.05)
             return True
         except queue.Full:
             continue
@@ -504,33 +510,43 @@ def _pipe_reader(pipe, label, events, stop_event):
     except (OSError, ValueError):
         pass
     except BaseException as error:
-        _put_pipe_event(events, ("pipe_error", label, str(error).encode()[:1024]), stop_event)
+        _put_pipe_event(events, ("pipe_error", label, str(error).encode()[:1024]),
+                        stop_event, terminal=True)
     finally:
-        _put_pipe_event(events, ("eof", label, b""), stop_event)
+        _put_pipe_event(events, ("eof", label, b""), stop_event, terminal=True)
 
 
 def _consume_pipe_events(events, output, eof, stdout_limit):
     status = "completed"
-    while True:
-        try:
-            kind, label, chunk = events.get_nowait()
-        except queue.Empty:
-            return status
-        if kind == "eof":
-            eof.add(label)
-            continue
-        if kind == "pipe_error":
-            status = "process_error"
-            continue
-        if kind != "data":
-            continue
-        bound = stdout_limit if label == "stdout" else MAX_STDERR
-        remaining = bound - len(output[label])
-        if len(chunk) >= remaining:
-            output[label].extend(chunk[:max(0, remaining)])
-            status = "output_limit"
-        else:
-            output[label].extend(chunk)
+    # Terminal channels are separate from data channels, so a hostile data
+    # stream cannot prevent EOF/error delivery from the other output pipe.
+    for pipe in events.values():
+        while True:
+            try:
+                kind, label, _chunk = pipe.terminal.get_nowait()
+            except queue.Empty:
+                break
+            if kind == "eof":
+                eof.add(label)
+            elif kind == "pipe_error":
+                status = "process_error"
+    for label in ("stdout", "stderr"):
+        pipe = events[label]
+        while True:
+            try:
+                kind, _, chunk = pipe.data.get_nowait()
+            except queue.Empty:
+                break
+            if kind != "data":
+                continue
+            bound = stdout_limit if label == "stdout" else MAX_STDERR
+            remaining = bound - len(output[label])
+            if len(chunk) >= remaining:
+                output[label].extend(chunk[:max(0, remaining)])
+                status = "output_limit"
+            else:
+                output[label].extend(chunk)
+    return status
 
 
 def _close_pipes(child):
@@ -563,7 +579,8 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
     status = "completed"
     cleanup_error = None
     child = None
-    events = queue.Queue(maxsize=_WINDOW_PIPE_QUEUE_SIZE)
+    events = {"stdout": _PipeEvents(_WINDOW_PIPE_STDOUT_EVENTS),
+              "stderr": _PipeEvents(_WINDOW_PIPE_STDERR_EVENTS)}
     stop_event = threading.Event()
     eof = set()
     readers = []
@@ -573,7 +590,7 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
         _attach_windows_job(child)
         for label, pipe in (("stdout", child.stdout), ("stderr", child.stderr)):
             thread = threading.Thread(target=_pipe_reader,
-                                       args=(pipe, label, events, stop_event), daemon=True)
+                                       args=(pipe, label, events[label], stop_event), daemon=True)
             thread.start()
             readers.append((label, thread))
         while True:

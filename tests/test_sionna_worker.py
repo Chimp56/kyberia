@@ -7,7 +7,6 @@ import importlib.util
 import io
 import json
 import os
-import queue
 import signal
 import socket
 import subprocess
@@ -157,6 +156,43 @@ class EngineRuntimeTests(unittest.TestCase):
                 self.assertRaisesRegex(RuntimeError, "posix_resource_unavailable"):
             engine._apply_cpu_limit(3)
 
+    def test_cpu_provenance_distinguishes_confirmation_and_unsupported(self):
+        from rfatlas_sionna import client
+
+        execution = {"state": "exited", "returncode": 0, "stderr": b""}
+        response = {"status": "failed"}
+        with mock.patch.object(client.os, "name", "posix"):
+            confirmed = client._cpu_enforcement_provenance(3, execution, response)
+            pending = client._cpu_enforcement_provenance(
+                3, {"state": "timed_out", "returncode": None, "stderr": b""})
+        self.assertEqual(confirmed,
+                         {"requested_s": 3, "enforced": True, "status": "enforced",
+                          "mechanism": "posix_setrlimit"})
+        self.assertEqual(pending["requested_s"], 3)
+        self.assertIsNone(pending["enforced"])
+        self.assertEqual(pending["status"], "not_confirmed")
+        with mock.patch.object(client.os, "name", "nt"):
+            unsupported = client._cpu_enforcement_provenance(
+                3, execution, response)
+        self.assertEqual(unsupported["mechanism"], "windows_job_object")
+        self.assertTrue(unsupported["enforced"])
+        with mock.patch.object(client.os, "name", "java"):
+            unsupported = client._cpu_enforcement_provenance(3, execution, response)
+        self.assertEqual(unsupported,
+                         {"requested_s": 3, "enforced": False, "status": "unsupported",
+                          "mechanism": "unsupported"})
+
+    def test_cpu_provenance_marks_posix_resource_failure_unsupported(self):
+        from rfatlas_sionna import client
+
+        result = client._cpu_enforcement_provenance(
+            3, {"state": "exited", "returncode": 0,
+                "stderr": b"RuntimeError: posix_resource_unavailable"},
+            {"status": "failed"})
+        self.assertEqual(result["requested_s"], 3)
+        self.assertFalse(result["enforced"])
+        self.assertEqual(result["status"], "unsupported")
+
 
 class LifecycleTests(unittest.TestCase):
     def supervise(self, program, timeout=2, cancel=None, payload=b"{}"):
@@ -265,8 +301,8 @@ class LifecycleTests(unittest.TestCase):
     def test_windows_pipe_reader_stops_after_consumer_shutdown(self):
         from rfatlas_sionna import client
 
-        events = queue.Queue(maxsize=1)
-        events.put(("data", "stdout", b"queued"))
+        events = client._PipeEvents(1)
+        events.data.put(("data", "stdout", b"queued"))
         stop_event = threading.Event()
         started = threading.Event()
 
@@ -283,41 +319,46 @@ class LifecycleTests(unittest.TestCase):
         reader.join(timeout=1)
         self.assertFalse(reader.is_alive())
 
-    def test_windows_pipe_readers_fit_capped_output_without_consumer(self):
-        """A scheduler pause cannot strand a complete bounded result in readers."""
+    def test_windows_hostile_stdout_cannot_starve_stderr_or_terminal_events(self):
+        """Each data stream is bounded independently from terminal signalling."""
         from rfatlas_sionna import client
 
-        events = queue.Queue(maxsize=client._WINDOW_PIPE_QUEUE_SIZE)
+        events = {"stdout": client._PipeEvents(client._WINDOW_PIPE_STDOUT_EVENTS),
+                  "stderr": client._PipeEvents(client._WINDOW_PIPE_STDERR_EVENTS),
+                  "stdin": client._PipeEvents(1)}
         stop_event = threading.Event()
-        streams = ((b"x" * MAX_RESULT_BYTES, "stdout"),
+        streams = ((b"x" * (MAX_RESULT_BYTES + 2 * MAX_LOG_BYTES), "stdout"),
                    (b"x" * MAX_LOG_BYTES, "stderr"))
         readers = []
-        readers_alive = []
         try:
             for payload, label in streams:
                 reader = threading.Thread(target=client._pipe_reader,
-                                           args=(io.BytesIO(payload), label, events, stop_event),
+                                           args=(io.BytesIO(payload), label, events[label], stop_event),
                                            daemon=True)
                 reader.start()
                 readers.append(reader)
             writer = threading.Thread(target=client._pipe_writer,
-                                      args=(io.BytesIO(), b"{}", events, stop_event),
+                                      args=(io.BytesIO(), b"{}", events["stdin"], stop_event),
                                       daemon=True)
             writer.start()
             readers.append(writer)
-            for reader in readers:
-                reader.join(timeout=1)
-            readers_alive = [reader for reader in readers if reader.is_alive()]
+            readers[1].join(timeout=1)
+            writer.join(timeout=1)
+            self.assertFalse(readers[1].is_alive())
+            self.assertFalse(writer.is_alive())
+            self.assertTrue(readers[0].is_alive(),
+                            "hostile stdout should block only on its own data quota")
+            self.assertGreater(events["stdin"].terminal.qsize(), 0,
+                               "stdin terminal signalling must have its own quota")
         finally:
             stop_event.set()
             for reader in readers:
                 reader.join(timeout=1)
-        self.assertFalse(readers_alive)
         output, logs, eof = bytearray(), bytearray(), set()
         client._consume_pipe_events(events, output, logs, eof)
         self.assertEqual(len(output), MAX_RESULT_BYTES)
         self.assertEqual(len(logs), MAX_LOG_BYTES)
-        self.assertEqual(eof, {"stdout", "stderr"})
+        self.assertIn("stderr", eof)
 
     def test_windows_cleanup_interrupts_blocked_read_and_write(self):
         from rfatlas_sionna import client
@@ -734,6 +775,36 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(kernel.CloseHandle.call_args_list,
                          [mock.call(77), mock.call(77)])
 
+    def test_windows_job_constructor_configures_cpu_before_assignment(self):
+        from rfatlas_sionna import client
+
+        kernel = mock.Mock()
+        kernel.CreateJobObjectW.return_value = 77
+        kernel.SetInformationJobObject.return_value = 1
+        kernel.CloseHandle.return_value = 1
+        with mock.patch.object(client.os, "name", "nt"), \
+                mock.patch.object(client.ctypes, "WinDLL", return_value=kernel, create=True):
+            job = client._WindowsJobObject(3)
+        limits_arg = kernel.SetInformationJobObject.call_args.args[2]
+        limits = ctypes.cast(
+            limits_arg, ctypes.POINTER(client._WindowsExtendedLimitInformation)).contents
+        self.assertEqual(limits.BasicLimitInformation.LimitFlags,
+                         client._JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+                         | client._JOB_OBJECT_LIMIT_JOB_TIME)
+        self.assertEqual(limits.BasicLimitInformation.PerJobUserTime,
+                         3 * client._WINDOW_CPU_TICKS_PER_SECOND)
+        job.close()
+
+    def test_windows_attach_forwards_cpu_limit_to_job_before_resume(self):
+        from rfatlas_sionna import client
+
+        process = mock.Mock()
+        job = mock.Mock()
+        with mock.patch.object(client, "_WindowsJobObject", return_value=job) as job_type:
+            self.assertIs(client._attach_windows_job(process, 3), job)
+        job_type.assert_called_once_with(3)
+        job.assign_and_resume.assert_called_once_with(process)
+
     def test_windows_nested_job_assignment_failure_is_reported_after_cleanup(self):
         from rfatlas_sionna import client
         process = mock.Mock()
@@ -832,6 +903,10 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(result["status"], "failed")
         self.assertEqual(result["error"], "engine_unavailable")
         self.assertNotIn("data", result.get("result", {}))
+        enforcement = result["resource_limits"]["cpu_enforcement"]
+        self.assertEqual(enforcement["requested_s"], request()["limits"]["cpu_s"])
+        self.assertTrue(enforcement["enforced"])
+        self.assertEqual(enforcement["status"], "enforced")
 
     def test_cli_cancellation_while_input_is_incomplete(self):
         worker = ROOT / "workers/sionna/worker.py"

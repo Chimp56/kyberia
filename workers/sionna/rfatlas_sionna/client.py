@@ -18,6 +18,8 @@ from .contract import (ContractError, MAX_LOG_BYTES, MAX_REQUEST_BYTES, MAX_RESU
 
 _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
 _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
+_JOB_OBJECT_LIMIT_JOB_TIME = 0x0004
+_WINDOW_CPU_TICKS_PER_SECOND = 10_000_000
 _ERROR_INVALID_HANDLE = 6
 _ERROR_NO_MORE_FILES = 18
 _CREATE_SUSPENDED = 0x00000004
@@ -34,13 +36,18 @@ _WINDOW_PIPE_STDOUT_EVENTS = ((MAX_RESULT_BYTES + _WINDOW_PIPE_READ_BYTES - 1)
                                // _WINDOW_PIPE_READ_BYTES)
 _WINDOW_PIPE_STDERR_EVENTS = ((MAX_LOG_BYTES + _WINDOW_PIPE_READ_BYTES - 1)
                               // _WINDOW_PIPE_READ_BYTES)
-_WINDOW_PIPE_TERMINAL_EVENTS = 7  # two EOFs, stdin completion, and four errors
-_WINDOW_PIPE_QUEUE_SIZE = (_WINDOW_PIPE_STDOUT_EVENTS + _WINDOW_PIPE_STDERR_EVENTS
-                           + _WINDOW_PIPE_TERMINAL_EVENTS)
+_WINDOW_PIPE_TERMINAL_QUEUE_SIZE = 3  # reader error+EOF or writer error+close+done
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
 _WINDOW_CANCEL_GRACE_S = 0.5
 _WINDOW_HANDLE_CLOSE_ATTEMPTS = 2
+
+
+class _PipeEvents:
+    """Independent bounded data and terminal channels for one pipe."""
+    def __init__(self, data_capacity):
+        self.data = queue.Queue(maxsize=data_capacity)
+        self.terminal = queue.Queue(maxsize=_WINDOW_PIPE_TERMINAL_QUEUE_SIZE)
 
 
 class _WindowsIoCounters(ctypes.Structure):
@@ -94,9 +101,12 @@ def _windows_handle(value):
 
 class _WindowsJobObject:
     """Own a suspended child and every descendant through a kill-on-close job."""
-    def __init__(self):
+    def __init__(self, cpu_s=None):
         if os.name != "nt":
             raise OSError("Windows job objects are unavailable on this platform")
+        if (cpu_s is not None
+                and (type(cpu_s) is not int or not 1 <= cpu_s <= 120)):
+            raise ValueError("cpu_s must be an integer from 1 through 120")
         self._kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
         self._kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p]
         self._kernel32.CreateJobObjectW.restype = ctypes.c_void_p
@@ -134,6 +144,10 @@ class _WindowsJobObject:
         self._owned_handles = {}
         limits = _WindowsExtendedLimitInformation()
         limits.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        if cpu_s is not None:
+            limits.BasicLimitInformation.LimitFlags |= _JOB_OBJECT_LIMIT_JOB_TIME
+            limits.BasicLimitInformation.PerJobUserTime = (
+                cpu_s * _WINDOW_CPU_TICKS_PER_SECOND)
         if not self._kernel32.SetInformationJobObject(
                 self._handle, _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
                 ctypes.byref(limits), ctypes.sizeof(limits)):
@@ -328,11 +342,11 @@ def _close_windows_job(job, cleanup_errors):
             cleanup_errors.append(OSError("Windows containment unknown: Job Object handle remains open"))
 
 
-def _attach_windows_job(process):
+def _attach_windows_job(process, cpu_s=None):
     job = None
     primary_error = None
     try:
-        job = _WindowsJobObject()
+        job = _WindowsJobObject(cpu_s)
         process._kyberia_windows_job = job
         initialization_error = getattr(job, "_initialization_error", None)
         if isinstance(initialization_error, BaseException):
@@ -452,10 +466,11 @@ def _popen_options(env):
     return options
 
 
-def _put_pipe_event(events, event, stop_event):
+def _put_pipe_event(events, event, stop_event, terminal=False):
+    target = events.terminal if terminal else events.data
     while not stop_event.is_set():
         try:
-            events.put(event, timeout=0.05)
+            target.put(event, timeout=0.05)
             return True
         except queue.Full:
             continue
@@ -473,9 +488,10 @@ def _pipe_reader(stream, label, events, stop_event):
     except (OSError, ValueError):
         pass
     except BaseException as error:
-        _put_pipe_event(events, ("pipe_error", label, str(error).encode()[:1024]), stop_event)
+        _put_pipe_event(events, ("pipe_error", label, str(error).encode()[:1024]),
+                        stop_event, terminal=True)
     finally:
-        _put_pipe_event(events, ("eof", label, b""), stop_event)
+        _put_pipe_event(events, ("eof", label, b""), stop_event, terminal=True)
 
 
 def _pipe_writer(stream, payload, events, stop_event):
@@ -485,38 +501,49 @@ def _pipe_writer(stream, payload, events, stop_event):
     except (BrokenPipeError, OSError, ValueError):
         pass
     except BaseException as error:
-        _put_pipe_event(events, ("pipe_error", "stdin", str(error).encode()[:1024]), stop_event)
+        _put_pipe_event(events, ("pipe_error", "stdin", str(error).encode()[:1024]),
+                        stop_event, terminal=True)
     finally:
         try:
             stream.close()
         except BaseException as error:
-            _put_pipe_event(events, ("pipe_error", "stdin", str(error).encode()[:1024]), stop_event)
-        _put_pipe_event(events, ("stdin_done", "stdin", b""), stop_event)
+            _put_pipe_event(events, ("pipe_error", "stdin", str(error).encode()[:1024]),
+                            stop_event, terminal=True)
+        _put_pipe_event(events, ("stdin_done", "stdin", b""), stop_event, terminal=True)
 
 
 def _consume_pipe_events(events, output, logs, eof):
     status = "exited"
-    while True:
-        try:
-            kind, label, chunk = events.get_nowait()
-        except queue.Empty:
-            return status
-        if kind == "eof":
-            eof.add(label)
-            continue
-        if kind == "pipe_error":
-            status = "process_error"
-            continue
-        if kind != "data":
-            continue
-        target = output if label == "stdout" else logs
-        bound = MAX_RESULT_BYTES if label == "stdout" else MAX_LOG_BYTES
-        remaining = bound - len(target)
-        if len(chunk) >= remaining:
-            target.extend(chunk[:max(0, remaining)])
-            status = "output_limit"
-        else:
-            target.extend(chunk)
+    # Terminal channels are separate from data channels, so a hostile data
+    # stream cannot prevent EOF/error delivery from any other pipe.
+    for pipe in events.values():
+        while True:
+            try:
+                kind, label, chunk = pipe.terminal.get_nowait()
+            except queue.Empty:
+                break
+            if kind == "eof":
+                eof.add(label)
+            elif kind == "pipe_error":
+                status = "process_error"
+    for label in ("stdout", "stderr"):
+        pipe = events[label]
+        while True:
+            try:
+                kind, _, chunk = pipe.data.get_nowait()
+            except queue.Empty:
+                break
+            if kind != "data":
+                continue
+            target = output if label == "stdout" else logs
+            bound = MAX_RESULT_BYTES if label == "stdout" else MAX_LOG_BYTES
+            remaining = bound - len(target)
+            if len(chunk) >= remaining:
+                target.extend(chunk[:max(0, remaining)])
+                status = "output_limit"
+            else:
+                target.extend(chunk)
+    return status
 
 
 def _close_pipes(process):
@@ -540,11 +567,38 @@ def _join_pipe_threads(threads):
     return errors
 
 
+def _cpu_enforcement_provenance(cpu_s, execution=None, worker_response=None):
+    """Report CPU-limit intent and confirmation without inferring enforcement."""
+    if cpu_s is None:
+        return {"requested_s": None, "enforced": False, "status": "not_requested",
+                "mechanism": "none"}
+    if os.name == "posix":
+        mechanism = "posix_setrlimit"
+    elif os.name == "nt":
+        mechanism = "windows_job_object"
+    else:
+        return {"requested_s": cpu_s, "enforced": False, "status": "unsupported",
+                "mechanism": "unsupported"}
+    if (execution is not None
+            and b"posix_resource_unavailable" in execution.get("stderr", b"")):
+        return {"requested_s": cpu_s, "enforced": False, "status": "unsupported",
+                "mechanism": mechanism}
+    confirmed = (execution is not None
+                 and execution.get("state") == "exited"
+                 and execution.get("returncode") == 0
+                 and worker_response is not None)
+    return {"requested_s": cpu_s, "enforced": True if confirmed else None,
+            "status": "enforced" if confirmed else "not_confirmed",
+            "mechanism": mechanism}
+
+
 def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
     """Use threads for Windows anonymous pipes, which SelectSelector cannot poll."""
     start = time.monotonic()
     output, logs = bytearray(), bytearray()
-    events = queue.Queue(maxsize=_WINDOW_PIPE_QUEUE_SIZE)
+    events = {"stdout": _PipeEvents(_WINDOW_PIPE_STDOUT_EVENTS),
+              "stderr": _PipeEvents(_WINDOW_PIPE_STDERR_EVENTS),
+              "stdin": _PipeEvents(1)}
     stop_event = threading.Event()
     eof = set()
     threads = []
@@ -555,11 +609,11 @@ def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
     try:
         for stream, label in ((process.stdout, "stdout"), (process.stderr, "stderr")):
             thread = threading.Thread(target=_pipe_reader,
-                                       args=(stream, label, events, stop_event), daemon=True)
+                                       args=(stream, label, events[label], stop_event), daemon=True)
             thread.start()
             threads.append((label, thread))
         writer = threading.Thread(target=_pipe_writer,
-                                  args=(process.stdin, request_bytes, events, stop_event), daemon=True)
+                                  args=(process.stdin, request_bytes, events["stdin"], stop_event), daemon=True)
         writer.start()
         threads.append(("stdin writer", writer))
         while True:
@@ -639,7 +693,7 @@ def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
             "cancel_error": cancel_error if cancel_requested else None}
 
 
-def supervise(command, request_bytes, timeout_s, cancel=None, env=None):
+def supervise(command, request_bytes, timeout_s, cancel=None, env=None, cpu_s=None):
     """Trusted caller supplies command; protocol cannot select executables or paths."""
     if len(request_bytes) > MAX_REQUEST_BYTES:
         raise ContractError("request exceeds byte limit")
@@ -652,7 +706,7 @@ def supervise(command, request_bytes, timeout_s, cancel=None, env=None):
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, **_popen_options(env))
         try:
-            job = _attach_windows_job(process)
+            job = _attach_windows_job(process, cpu_s)
             return _supervise_windows(process, request_bytes, timeout_s, cancel, job)
         except BaseException as primary_error:
             cleanup_errors = []
@@ -733,9 +787,11 @@ def run(request, python_executable, cancel=None):
     started = datetime.now(timezone.utc).isoformat()
     worker = Path(__file__).resolve().with_name("engine.py")
     timeout = request.get("limits", {}).get("timeout_s", 60)
+    cpu_s = request.get("limits", {}).get("cpu_s", 30)
     # Runtime paths belong to the trusted launcher, never supplied by a scene/request.
     env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "PYTHONHOME")}
-    execution = supervise([str(python_executable), "-I", str(worker)], payload, timeout, cancel, env)
+    execution = supervise([str(python_executable), "-I", str(worker)], payload, timeout, cancel,
+                          env, cpu_s)
     envelope = {"schema_version": 1, "request_id": request["request_id"],
                 "request_sha256": digest(request), "started_utc": started,
                 "ended_utc": datetime.now(timezone.utc).isoformat(),
@@ -745,7 +801,8 @@ def run(request, python_executable, cancel=None):
                 "cleanup_error": execution.get("cleanup_error"),
                 "cancel_error": execution.get("cancel_error"),
                 "resource_limits": {"wall_timeout_s": timeout,
-                    "cpu_s": request.get("limits", {}).get("cpu_s", 30),
+                    "cpu_s": cpu_s,
+                    "cpu_enforcement": _cpu_enforcement_provenance(cpu_s, execution),
                     "request_bytes": MAX_REQUEST_BYTES, "result_bytes": MAX_RESULT_BYTES,
                     "log_bytes": MAX_LOG_BYTES, "hard_memory_limit": "not_implemented"}}
     if execution["state"] != "exited" or execution["returncode"] != 0:
@@ -755,6 +812,8 @@ def run(request, python_executable, cancel=None):
     try:
         response = decode(execution["stdout"], MAX_RESULT_BYTES)
         validate_result(response, request)
+        envelope["resource_limits"]["cpu_enforcement"] = (
+            _cpu_enforcement_provenance(cpu_s, execution, response))
         envelope["result"] = response
         envelope["status"] = response["status"]
         if response["status"] == "failed":
