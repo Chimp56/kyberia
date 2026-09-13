@@ -93,7 +93,7 @@ addresses their platform assumptions:
   only after reaping its direct child and proving the group absent with an
   `ESRCH` probe, without risking a signal to a reused group ID.
 
-The focused correction suites pass locally: Sionna 49 tests with two native
+The focused correction suites pass locally: Sionna 50 tests with two native
 Windows tests skipped, and active-process 39 tests with one native Windows test
 skipped. These are contract results on macOS; they do not close the native
 Windows runtime gate. The next hosted run must show the five named tests
@@ -105,12 +105,33 @@ exact-limit lifecycle contract and the zombie-group contract passed 600
 repeated executions with zero failures, errors or skips. Independent patch
 review and a hosted Windows rerun remain required before integration.
 
+Independent review `92c8d345` identified that an exit-zero worker response
+could be mistaken for CPU-limit confirmation when POSIX `setrlimit` had failed,
+and that this document's ledger references needed to follow its final content.
+The corrected protocol now requires an explicit typed acknowledgement for each
+supported mechanism. The POSIX engine acknowledges `posix_setrlimit` only after
+the call succeeds; import absence is `false`/`unsupported`, while `OSError` or
+`ValueError` is `null`/`not_confirmed` and fails closed with
+`resource_limit_unavailable` before backend execution. The Windows supervisor
+acknowledges `windows_job_object` only after the configured job has successfully
+assigned and resumed the suspended child. Process exit, decoded output and log
+text are never treated as proof. Missing, mismatched or malformed
+acknowledgements remain `null`/`not_confirmed`.
+
+The correction reran the complete Sionna suite (50 tests, two native Windows
+skips), the complete active-process suite (39 tests, one native Windows skip),
+and 100 repetitions of four adversarial acknowledgement and fair-drain tests
+(400 tests total), all without failures. Native Windows evidence is still
+limited to the failing hosted baseline run/job `34736703085`/`103669296874`;
+these corrected acknowledgements and the five baseline lifecycle cases require
+a new hosted rerun before the gate can advance.
+
 The corrected source evidence is content-addressed for review:
 
 | Path | SHA-256 |
 |---|---|
-| `workers/sionna/rfatlas_sionna/engine.py` | `9a4fecb24117a862e9772d4cd17818eb602e6578aec2a28d4ba25db1b7631345` |
-| `workers/sionna/rfatlas_sionna/client.py` | `c47a6bd43ca863b4f12df6c83336f0afb6202d3bd411acb1e55e74cc9528ed46` |
-| `tests/test_sionna_worker.py` | `0b8cfeb76ad4616a9b6c320f8a7eddb810d4dc71a8243d767d483ed8ffa9f634` |
+| `workers/sionna/rfatlas_sionna/engine.py` | `91fbe5270501ac1505853f70a364949971d6f66edb8b4b9581d493edb0ceffe3` |
+| `workers/sionna/rfatlas_sionna/client.py` | `90b402b82fdbb08fc4df6cd526f86d97e51ea0e9a3d9c6411df19631fd4a84f3` |
+| `tests/test_sionna_worker.py` | `a7c53dbaac7548fb81a44664779b6466a88d14f99756880f8e1e9b4e93455461` |
 | `research/active/process.py` | `c04484875d4a7b82d54276e58fd9eb5b831ad95c4f15714c09ffa456c3f1e1d9` |
 | `tests/test_active_process.py` | `1822082e9ff8772c4fff300481b0032254163743f9bfbcd4134d19536600e14f` |

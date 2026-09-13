@@ -138,8 +138,11 @@ class EngineRuntimeTests(unittest.TestCase):
         posix_resource = mock.Mock(RLIMIT_CPU=9)
         with mock.patch.object(engine.os, "name", "posix"), \
                 mock.patch.dict(sys.modules, {"resource": posix_resource}):
-            engine._apply_cpu_limit(3)
+            result = engine._apply_cpu_limit(3)
         posix_resource.setrlimit.assert_called_once_with(9, (3, 4))
+        self.assertEqual(result,
+                         {"requested_s": 3, "enforced": True, "status": "enforced",
+                          "mechanism": "posix_setrlimit"})
 
     def test_posix_resource_import_failure_is_explicit(self):
         from rfatlas_sionna import engine
@@ -152,15 +155,19 @@ class EngineRuntimeTests(unittest.TestCase):
             return original_import(name, *args, **kwargs)
 
         with mock.patch.object(engine.os, "name", "posix"), \
-                mock.patch.object(builtins, "__import__", side_effect=deny_resource), \
-                self.assertRaisesRegex(RuntimeError, "posix_resource_unavailable"):
-            engine._apply_cpu_limit(3)
+                mock.patch.object(builtins, "__import__", side_effect=deny_resource):
+            result = engine._apply_cpu_limit(3)
+        self.assertEqual(result,
+                         {"requested_s": 3, "enforced": False, "status": "unsupported",
+                          "mechanism": "posix_setrlimit"})
 
     def test_cpu_provenance_distinguishes_confirmation_and_unsupported(self):
         from rfatlas_sionna import client
 
         execution = {"state": "exited", "returncode": 0, "stderr": b""}
-        response = {"status": "failed"}
+        response = {"status": "failed", "cpu_enforcement": {
+            "requested_s": 3, "enforced": True, "status": "enforced",
+            "mechanism": "posix_setrlimit"}}
         with mock.patch.object(client.os, "name", "posix"):
             confirmed = client._cpu_enforcement_provenance(3, execution, response)
             pending = client._cpu_enforcement_provenance(
@@ -173,7 +180,9 @@ class EngineRuntimeTests(unittest.TestCase):
         self.assertEqual(pending["status"], "not_confirmed")
         with mock.patch.object(client.os, "name", "nt"):
             unsupported = client._cpu_enforcement_provenance(
-                3, execution, response)
+                3, {**execution, "cpu_enforcement": {
+                    "requested_s": 3, "enforced": True, "status": "enforced",
+                    "mechanism": "windows_job_object"}}, response)
         self.assertEqual(unsupported["mechanism"], "windows_job_object")
         self.assertTrue(unsupported["enforced"])
         with mock.patch.object(client.os, "name", "java"):
@@ -182,16 +191,36 @@ class EngineRuntimeTests(unittest.TestCase):
                          {"requested_s": 3, "enforced": False, "status": "unsupported",
                           "mechanism": "unsupported"})
 
-    def test_cpu_provenance_marks_posix_resource_failure_unsupported(self):
+    def test_posix_setrlimit_failure_is_not_reported_as_enforced(self):
+        from rfatlas_sionna import client, engine
+
+        requested = request()
+        posix_resource = mock.Mock(RLIMIT_CPU=9)
+        posix_resource.setrlimit.side_effect = OSError("setrlimit rejected")
+        with mock.patch.object(engine.os, "name", "posix"), \
+                mock.patch.dict(sys.modules, {"resource": posix_resource}), \
+                mock.patch.object(engine, "execute") as execute:
+            response = engine._handle_request(canonical_bytes(requested))
+        execute.assert_not_called()
+        execution = {"state": "exited", "returncode": 0, "stderr": b"",
+                     "stdout": canonical_bytes(response), "elapsed_s": 0.01}
+        with mock.patch.object(client.os, "name", "posix"), \
+                mock.patch.object(client, "supervise", return_value=execution):
+            result = client.run(requested, sys.executable)
+        enforcement = result["resource_limits"]["cpu_enforcement"]
+        self.assertEqual(result["error"], "resource_limit_unavailable")
+        self.assertIsNone(enforcement["enforced"])
+        self.assertEqual(enforcement["status"], "not_confirmed")
+        self.assertNotIn("data", result.get("result", {}))
+
+    def test_process_success_without_acknowledgement_is_not_confirmation(self):
         from rfatlas_sionna import client
 
-        result = client._cpu_enforcement_provenance(
-            3, {"state": "exited", "returncode": 0,
-                "stderr": b"RuntimeError: posix_resource_unavailable"},
-            {"status": "failed"})
-        self.assertEqual(result["requested_s"], 3)
-        self.assertFalse(result["enforced"])
-        self.assertEqual(result["status"], "unsupported")
+        execution = {"state": "exited", "returncode": 0, "stderr": b""}
+        with mock.patch.object(client.os, "name", "posix"):
+            result = client._cpu_enforcement_provenance(3, execution, {"status": "failed"})
+        self.assertIsNone(result["enforced"])
+        self.assertEqual(result["status"], "not_confirmed")
 
 
 class LifecycleTests(unittest.TestCase):
@@ -843,6 +872,14 @@ class LifecycleTests(unittest.TestCase):
                          | client._JOB_OBJECT_LIMIT_JOB_TIME)
         self.assertEqual(limits.BasicLimitInformation.PerJobUserTime,
                          3 * client._WINDOW_CPU_TICKS_PER_SECOND)
+        kernel.OpenProcess.return_value = 44
+        kernel.AssignProcessToJobObject.return_value = 1
+        kernel.ResumeThread.return_value = 1
+        with mock.patch.object(job, "_open_suspended_thread", return_value=33):
+            job.assign_and_resume(mock.Mock(pid=700))
+        self.assertEqual(job._cpu_enforcement,
+                         {"requested_s": 3, "enforced": True, "status": "enforced",
+                          "mechanism": "windows_job_object"})
         job.close()
 
     def test_windows_attach_forwards_cpu_limit_to_job_before_resume(self):

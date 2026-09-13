@@ -16,14 +16,21 @@ from rfatlas_sionna.contract import (MAX_REQUEST_BYTES, canonical_bytes, decode,
 
 
 def _apply_cpu_limit(cpu_s):
-    """Apply the POSIX CPU budget without importing its optional stdlib module on Windows."""
+    """Apply the POSIX CPU budget and return an explicit acknowledgement."""
     if os.name != "posix":
         return
     try:
         import resource
-    except ImportError as error:
-        raise RuntimeError("posix_resource_unavailable") from error
-    resource.setrlimit(resource.RLIMIT_CPU, (cpu_s, cpu_s + 1))
+    except ImportError:
+        return {"requested_s": cpu_s, "enforced": False, "status": "unsupported",
+                "mechanism": "posix_setrlimit"}
+    try:
+        resource.setrlimit(resource.RLIMIT_CPU, (cpu_s, cpu_s + 1))
+    except (OSError, ValueError):
+        return {"requested_s": cpu_s, "enforced": None, "status": "not_confirmed",
+                "mechanism": "posix_setrlimit"}
+    return {"requested_s": cpu_s, "enforced": True, "status": "enforced",
+            "mechanism": "posix_setrlimit"}
 
 
 def execute(request):
@@ -128,16 +135,19 @@ def execute(request):
                          "Final Wi-Fi SINR, airtime and capacity require RF Atlas composition."]}
 
 
-def main():
-    # Reserve a protocol FD; quarantine Python and native stdout as bounded logs.
-    protocol = os.fdopen(os.dup(sys.stdout.fileno()), "wb", buffering=0)
-    os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
+def _handle_request(payload):
+    """Return the canonical engine response for one already-bounded payload."""
     result = {"schema_version": 1, "status": "failed", "error": "invalid_request"}
     try:
-        request = validate(decode(sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1)))
-        cpu_s = request.get("limits", {}).get("cpu_s", 30)
-        _apply_cpu_limit(cpu_s)
+        request = validate(decode(payload))
         result.update({"request_id": request["request_id"], "request_sha256": digest(request)})
+        cpu_s = request.get("limits", {}).get("cpu_s", 30)
+        cpu_enforcement = _apply_cpu_limit(cpu_s)
+        if cpu_enforcement is not None:
+            result["cpu_enforcement"] = cpu_enforcement
+            if cpu_enforcement["enforced"] is not True:
+                result["error"] = "resource_limit_unavailable"
+                return result
         result.update(execute(request))
         result["status"] = "completed"
         result.pop("error", None)
@@ -149,6 +159,14 @@ def main():
     except Exception as error:
         print(type(error).__name__ + ": " + str(error), file=sys.stderr)
         result["error"] = "engine_failure"
+    return result
+
+
+def main():
+    # Reserve a protocol FD; quarantine Python and native stdout as bounded logs.
+    protocol = os.fdopen(os.dup(sys.stdout.fileno()), "wb", buffering=0)
+    os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
+    result = _handle_request(sys.stdin.buffer.read(MAX_REQUEST_BYTES + 1))
     protocol.write(canonical_bytes(result))
     protocol.close()
 

@@ -43083,8 +43083,8 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Cross-platform Windows lifecycle correction contracts, CPU provenance and hosted failure analysis",
-          "revision": "04bea5f859945e8662cc5cbf3aecf9431981004f586d60daf37a20af1ad06a20",
-          "sha256": "04bea5f859945e8662cc5cbf3aecf9431981004f586d60daf37a20af1ad06a20",
+          "revision": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
+          "sha256": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_active_process.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
           "result": "PASS: 39 tests, 1 skipped"
@@ -177879,21 +177879,21 @@
         },
         {
           "path": "workers/sionna/rfatlas_sionna/client.py",
-          "description": "Bounded fair per-stream Windows pipe transport, CPU-limited Job Object containment, explicit enforcement provenance and proven POSIX zombie cleanup",
-          "revision": "c47a6bd43ca863b4f12df6c83336f0afb6202d3bd411acb1e55e74cc9528ed46",
-          "sha256": "c47a6bd43ca863b4f12df6c83336f0afb6202d3bd411acb1e55e74cc9528ed46"
+          "description": "Bounded fair per-stream Windows pipe transport, CPU-limited Job Object containment, typed enforcement acknowledgement and proven POSIX zombie cleanup",
+          "revision": "90b402b82fdbb08fc4df6cd526f86d97e51ea0e9a3d9c6411df19631fd4a84f3",
+          "sha256": "90b402b82fdbb08fc4df6cd526f86d97e51ea0e9a3d9c6411df19631fd4a84f3"
         },
         {
           "path": "workers/sionna/rfatlas_sionna/engine.py",
-          "description": "Portable deferred POSIX CPU limit and explicit engine absence boundary",
-          "revision": "9a4fecb24117a862e9772d4cd17818eb602e6578aec2a28d4ba25db1b7631345",
-          "sha256": "9a4fecb24117a862e9772d4cd17818eb602e6578aec2a28d4ba25db1b7631345"
+          "description": "Portable fail-closed POSIX CPU limit with typed acknowledgement and explicit engine absence boundary",
+          "revision": "91fbe5270501ac1505853f70a364949971d6f66edb8b4b9581d493edb0ceffe3",
+          "sha256": "91fbe5270501ac1505853f70a364949971d6f66edb8b4b9581d493edb0ceffe3"
         },
         {
           "path": "tests/test_sionna_worker.py",
           "description": "Windows per-stream pipe quotas, fair bounded drain, cleanup, cancellation readiness, CPU Job Object, engine portability and POSIX zombie contract tests",
-          "revision": "0b8cfeb76ad4616a9b6c320f8a7eddb810d4dc71a8243d767d483ed8ffa9f634",
-          "sha256": "0b8cfeb76ad4616a9b6c320f8a7eddb810d4dc71a8243d767d483ed8ffa9f634"
+          "revision": "a7c53dbaac7548fb81a44664779b6466a88d14f99756880f8e1e9b4e93455461",
+          "sha256": "a7c53dbaac7548fb81a44664779b6466a88d14f99756880f8e1e9b4e93455461"
         }
       ],
       "validation": [
@@ -177909,11 +177909,11 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Windows per-stream pipe, CPU provenance and process-lifecycle correction contracts with hosted failure evidence",
-          "revision": "04bea5f859945e8662cc5cbf3aecf9431981004f586d60daf37a20af1ad06a20",
-          "sha256": "04bea5f859945e8662cc5cbf3aecf9431981004f586d60daf37a20af1ad06a20",
+          "revision": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
+          "sha256": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_sionna_worker.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
-          "result": "PASS: 49 tests, 2 skipped"
+          "result": "PASS: 50 tests, 2 skipped"
         }
       ],
       "reviews": [

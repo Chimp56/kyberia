@@ -140,6 +140,8 @@ class _WindowsJobObject:
             self._raise_last_error("CreateJobObjectW")
         self._closed = False
         self._process_assigned = False
+        self._cpu_s = cpu_s
+        self._cpu_enforcement = None
         self._initialization_error = None
         self._owned_handles = {}
         limits = _WindowsExtendedLimitInformation()
@@ -279,6 +281,11 @@ class _WindowsJobObject:
             raise primary_error
         if close_errors:
             raise OSError("handle close failures: " + "; ".join(map(str, close_errors)))
+        cpu_s = getattr(self, "_cpu_s", None)
+        if cpu_s is not None:
+            self._cpu_enforcement = {
+                "requested_s": cpu_s, "enforced": True, "status": "enforced",
+                "mechanism": "windows_job_object"}
 
     def request_cancel(self, process):
         if not self._kernel32.GenerateConsoleCtrlEvent(_CTRL_BREAK_EVENT, process.pid):
@@ -595,16 +602,27 @@ def _cpu_enforcement_provenance(cpu_s, execution=None, worker_response=None):
     else:
         return {"requested_s": cpu_s, "enforced": False, "status": "unsupported",
                 "mechanism": "unsupported"}
-    if (execution is not None
-            and b"posix_resource_unavailable" in execution.get("stderr", b"")):
-        return {"requested_s": cpu_s, "enforced": False, "status": "unsupported",
-                "mechanism": mechanism}
-    confirmed = (execution is not None
-                 and execution.get("state") == "exited"
-                 and execution.get("returncode") == 0
-                 and worker_response is not None)
-    return {"requested_s": cpu_s, "enforced": True if confirmed else None,
-            "status": "enforced" if confirmed else "not_confirmed",
+    candidates = []
+    if execution is not None:
+        candidates.append(execution.get("cpu_enforcement"))
+    if worker_response is not None:
+        candidates.append(worker_response.get("cpu_enforcement"))
+    for acknowledgement in candidates:
+        enforced = (acknowledgement.get("enforced")
+                    if isinstance(acknowledgement, dict) else "invalid")
+        status = (acknowledgement.get("status")
+                  if isinstance(acknowledgement, dict) else "invalid")
+        valid_state = ((enforced is True and status == "enforced")
+                       or (enforced is False and status == "unsupported")
+                       or (enforced is None and status == "not_confirmed"))
+        if (isinstance(acknowledgement, dict)
+                and type(acknowledgement.get("requested_s")) is int
+                and acknowledgement.get("requested_s") == cpu_s
+                and acknowledgement.get("mechanism") == mechanism
+                and valid_state):
+            return {key: acknowledgement[key]
+                    for key in ("requested_s", "enforced", "status", "mechanism")}
+    return {"requested_s": cpu_s, "enforced": None, "status": "not_confirmed",
             "mechanism": mechanism}
 
 
@@ -706,7 +724,8 @@ def _supervise_windows(process, request_bytes, timeout_s, cancel, job=None):
     return {"state": status, "returncode": process.returncode,
             "stdout": bytes(output), "stderr": bytes(logs),
             "elapsed_s": time.monotonic() - start, "cleanup_error": cleanup_error,
-            "cancel_error": cancel_error if cancel_requested else None}
+            "cancel_error": cancel_error if cancel_requested else None,
+            "cpu_enforcement": getattr(job, "_cpu_enforcement", None)}
 
 
 def supervise(command, request_bytes, timeout_s, cancel=None, env=None, cpu_s=None):
