@@ -227,6 +227,42 @@ class LifecycleTests(unittest.TestCase):
         reader.join(timeout=1)
         self.assertFalse(reader.is_alive())
 
+    def test_windows_pipe_readers_fit_capped_output_without_consumer(self):
+        """A scheduler pause cannot strand a complete bounded result in readers."""
+        from rfatlas_sionna import client
+
+        events = queue.Queue(maxsize=client._WINDOW_PIPE_QUEUE_SIZE)
+        stop_event = threading.Event()
+        streams = ((b"x" * MAX_RESULT_BYTES, "stdout"),
+                   (b"x" * MAX_LOG_BYTES, "stderr"))
+        readers = []
+        readers_alive = []
+        try:
+            for payload, label in streams:
+                reader = threading.Thread(target=client._pipe_reader,
+                                           args=(io.BytesIO(payload), label, events, stop_event),
+                                           daemon=True)
+                reader.start()
+                readers.append(reader)
+            writer = threading.Thread(target=client._pipe_writer,
+                                      args=(io.BytesIO(), b"{}", events, stop_event),
+                                      daemon=True)
+            writer.start()
+            readers.append(writer)
+            for reader in readers:
+                reader.join(timeout=1)
+            readers_alive = [reader for reader in readers if reader.is_alive()]
+        finally:
+            stop_event.set()
+            for reader in readers:
+                reader.join(timeout=1)
+        self.assertFalse(readers_alive)
+        output, logs, eof = bytearray(), bytearray(), set()
+        client._consume_pipe_events(events, output, logs, eof)
+        self.assertEqual(len(output), MAX_RESULT_BYTES)
+        self.assertEqual(len(logs), MAX_LOG_BYTES)
+        self.assertEqual(eof, {"stdout", "stderr"})
+
     def test_windows_cleanup_interrupts_blocked_read_and_write(self):
         from rfatlas_sionna import client
 
@@ -314,6 +350,19 @@ class LifecycleTests(unittest.TestCase):
 
         process = mock.Mock()
         process.poll.return_value = None
+        job = mock.Mock()
+        process._kyberia_windows_job = job
+        with mock.patch.object(client.os, "name", "nt"):
+            client._stop(process)
+        job.terminate.assert_called_once_with()
+        process.wait.assert_called_once_with(timeout=2)
+        process.kill.assert_not_called()
+
+    def test_windows_stop_terminates_descendants_after_parent_exit(self):
+        from rfatlas_sionna import client
+
+        process = mock.Mock()
+        process.poll.return_value = 0
         job = mock.Mock()
         process._kyberia_windows_job = job
         with mock.patch.object(client.os, "name", "nt"):
@@ -722,7 +771,8 @@ class LifecycleTests(unittest.TestCase):
         tools_dir.mkdir(exist_ok=True)
         directory = Path(tempfile.mkdtemp(prefix="sionna-absent-", dir=tools_dir))
         venv.EnvBuilder(with_pip=False).create(directory)
-        result = run(request(), directory / "bin/python")
+        python_path = directory / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        result = run(request(), python_path)
         self.assertEqual(result["status"], "failed")
         self.assertEqual(result["error"], "engine_unavailable")
         self.assertNotIn("data", result.get("result", {}))
@@ -755,7 +805,10 @@ class LifecycleTests(unittest.TestCase):
     @unittest.skipUnless(os.name == "nt", "Windows CTRL_BREAK worker contract")
     def test_windows_supervisor_gets_canonical_cooperative_cancellation(self):
         event = threading.Event()
-        timer = threading.Timer(0.1, event.set)
+        # The child is created suspended while it is attached to its Job
+        # Object. Give the Windows runner enough startup margin for Python to
+        # install SIGBREAK before requesting cooperative cancellation.
+        timer = threading.Timer(0.5, event.set)
         program = ("import signal,sys,time\n"
                    "def cancel(*_):\n"
                    " sys.stdout.write('{\\\"status\\\":\\\"failed\\\",\\\"error\\\":\\\"cancelled\\\"}\\n'); sys.stdout.flush(); raise SystemExit(2)\n"
@@ -764,7 +817,7 @@ class LifecycleTests(unittest.TestCase):
                    "time.sleep(10)\n")
         timer.start()
         try:
-            result = supervise([sys.executable, "-c", program], b"{}", 1, event)
+            result = supervise([sys.executable, "-c", program], b"{}", 2, event)
         finally:
             timer.join()
         self.assertEqual(result["state"], "cancelled", result)

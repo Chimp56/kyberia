@@ -1,6 +1,7 @@
 """Deterministic parser tests and explicitly fake child-process lifecycle tests."""
 import ctypes
 from dataclasses import asdict
+import io
 import json
 import os
 import queue
@@ -40,6 +41,10 @@ class ContractTests(unittest.TestCase):
         child = mock.Mock(pid=12345)
         if os.name == "nt":
             child.poll.return_value = None
+            # Mock creates unknown attributes on access.  An actual Popen
+            # instance has no Kyberia job attribute until the supervisor has
+            # attached one, so model the direct-kill fallback explicitly.
+            child._kyberia_windows_job = None
             _stop(child)
             child.kill.assert_called_once_with()
             child.wait.assert_called_once_with(timeout=2)
@@ -63,6 +68,47 @@ class ContractTests(unittest.TestCase):
         job.terminate.assert_called_once_with()
         child.wait.assert_called_once_with(timeout=2)
         child.kill.assert_not_called()
+
+    def test_windows_stop_terminates_descendants_after_parent_exit(self):
+        from research.active import process
+
+        child = mock.Mock()
+        child.poll.return_value = 0
+        job = mock.Mock()
+        child._kyberia_windows_job = job
+        with mock.patch.object(process.os, "name", "nt"):
+            process._stop(child)
+        job.terminate.assert_called_once_with()
+        child.wait.assert_called_once_with(timeout=2)
+        child.kill.assert_not_called()
+
+    def test_windows_pipe_readers_fit_capped_output_without_consumer(self):
+        from research.active import process
+
+        events = queue.Queue(maxsize=process._WINDOW_PIPE_QUEUE_SIZE)
+        stop_event = threading.Event()
+        streams = ((b"x" * MAX_JSON, "stdout"),
+                   (b"x" * MAX_STDERR, "stderr"))
+        threads = []
+        try:
+            for payload, label in streams:
+                reader = threading.Thread(target=process._pipe_reader,
+                                           args=(io.BytesIO(payload), label, events, stop_event),
+                                           daemon=True)
+                reader.start()
+                threads.append(reader)
+            for thread in threads:
+                thread.join(timeout=1)
+            self.assertFalse(any(thread.is_alive() for thread in threads))
+        finally:
+            stop_event.set()
+            for thread in threads:
+                thread.join(timeout=1)
+        output, eof = {"stdout": bytearray(), "stderr": bytearray()}, set()
+        process._consume_pipe_events(events, output, eof, MAX_JSON)
+        self.assertEqual(len(output["stdout"]), MAX_JSON)
+        self.assertEqual(len(output["stderr"]), MAX_STDERR)
+        self.assertEqual(eof, {"stdout", "stderr"})
 
     def test_windows_stop_escalates_after_job_and_reap_failures(self):
         from research.active import process

@@ -27,7 +27,15 @@ _THREAD_SUSPEND_RESUME = 0x0002
 _PROCESS_TERMINATE = 0x0001
 _PROCESS_SET_QUOTA = 0x0100
 _CTRL_BREAK_EVENT = 1
-_WINDOW_PIPE_QUEUE_SIZE = 8
+_WINDOW_PIPE_READ_BYTES = 8192
+# The queue remains bounded, but must be able to hold one capped stdout and
+# stderr stream plus the stdin completion and reader terminal events while the
+# supervisor is being scheduled out. A queue of eight 8 KiB events can take
+# longer than the drain budget to publish the 1 MiB result cap on a loaded
+# hosted runner.
+_WINDOW_PIPE_QUEUE_SIZE = ((MAX_RESULT_BYTES + MAX_LOG_BYTES
+                            + _WINDOW_PIPE_READ_BYTES - 1)
+                           // _WINDOW_PIPE_READ_BYTES + 5)
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
 _WINDOW_CANCEL_GRACE_S = 0.5
@@ -380,11 +388,15 @@ def _stop(process):
         poll = getattr(process, "poll", None)
         errors = []
         try:
-            if poll is None or poll() is None:
-                if job is not None:
-                    job.terminate()
-                else:
-                    process.kill()
+            # A direct child may have exited while a descendant still owns
+            # an inherited pipe. Terminate the owned job even after the
+            # parent reports an exit so containment does not depend on the
+            # kill-on-close operation racing the descendant.
+            child_live = poll is None or poll() is None
+            if job is not None:
+                job.terminate()
+            elif child_live:
+                process.kill()
         except ProcessLookupError:
             pass
         except BaseException as error:
@@ -452,7 +464,7 @@ def _put_pipe_event(events, event, stop_event):
 def _pipe_reader(stream, label, events, stop_event):
     try:
         while True:
-            chunk = stream.read(8192)
+            chunk = stream.read(_WINDOW_PIPE_READ_BYTES)
             if not chunk:
                 break
             if not _put_pipe_event(events, ("data", label, chunk), stop_event):

@@ -28,7 +28,11 @@ _TH32CS_SNAPTHREAD = 0x00000004
 _THREAD_SUSPEND_RESUME = 0x0002
 _PROCESS_TERMINATE = 0x0001
 _PROCESS_SET_QUOTA = 0x0100
-_WINDOW_PIPE_QUEUE_SIZE = 8
+_WINDOW_PIPE_READ_BYTES = 8192
+# stdout/stderr data can fill the queue while the supervisor is descheduled;
+# reserve terminal events for both readers, stdin completion, and pipe errors.
+_WINDOW_PIPE_QUEUE_SIZE = ((MAX_JSON + MAX_STDERR + _WINDOW_PIPE_READ_BYTES - 1)
+                           // _WINDOW_PIPE_READ_BYTES + 5)
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
 _WINDOW_HANDLE_CLOSE_ATTEMPTS = 2
@@ -387,11 +391,15 @@ def _stop(child):
         poll = getattr(child, "poll", None)
         errors = []
         try:
-            if poll is None or poll() is None:
-                if job is not None:
-                    job.terminate()
-                else:
-                    child.kill()
+            # A direct child may have exited while a descendant still owns
+            # an inherited pipe. Terminate the owned job even after the
+            # parent reports an exit so containment does not depend on the
+            # kill-on-close operation racing the descendant.
+            child_live = poll is None or poll() is None
+            if job is not None:
+                job.terminate()
+            elif child_live:
+                child.kill()
         except ProcessLookupError:
             pass
         except BaseException as error:
@@ -483,7 +491,7 @@ def _put_pipe_event(events, event, stop_event):
 def _pipe_reader(pipe, label, events, stop_event):
     try:
         while True:
-            chunk = pipe.read(16384)
+            chunk = pipe.read(_WINDOW_PIPE_READ_BYTES)
             if not chunk:
                 break
             if not _put_pipe_event(events, ("data", label, chunk), stop_event):
