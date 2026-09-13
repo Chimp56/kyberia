@@ -602,26 +602,26 @@ def _cpu_enforcement_provenance(cpu_s, execution=None, worker_response=None):
     else:
         return {"requested_s": cpu_s, "enforced": False, "status": "unsupported",
                 "mechanism": "unsupported"}
-    candidates = []
-    if execution is not None:
-        candidates.append(execution.get("cpu_enforcement"))
-    if worker_response is not None:
-        candidates.append(worker_response.get("cpu_enforcement"))
-    for acknowledgement in candidates:
-        enforced = (acknowledgement.get("enforced")
-                    if isinstance(acknowledgement, dict) else "invalid")
-        status = (acknowledgement.get("status")
-                  if isinstance(acknowledgement, dict) else "invalid")
-        valid_state = ((enforced is True and status == "enforced")
-                       or (enforced is False and status == "unsupported")
-                       or (enforced is None and status == "not_confirmed"))
-        if (isinstance(acknowledgement, dict)
-                and type(acknowledgement.get("requested_s")) is int
-                and acknowledgement.get("requested_s") == cpu_s
-                and acknowledgement.get("mechanism") == mechanism
-                and valid_state):
-            return {key: acknowledgement[key]
-                    for key in ("requested_s", "enforced", "status", "mechanism")}
+    # The process boundary that installs the limit is the only authority for
+    # that platform. The Windows worker cannot attest to its parent's Job
+    # Object, and the POSIX supervisor cannot attest to the child's setrlimit.
+    authority = execution if os.name == "nt" else worker_response
+    acknowledgement = (authority.get("cpu_enforcement")
+                       if isinstance(authority, dict) else None)
+    enforced = (acknowledgement.get("enforced")
+                if isinstance(acknowledgement, dict) else "invalid")
+    status = (acknowledgement.get("status")
+              if isinstance(acknowledgement, dict) else "invalid")
+    valid_state = ((enforced is True and status == "enforced")
+                   or (enforced is False and status == "unsupported")
+                   or (enforced is None and status == "not_confirmed"))
+    if (isinstance(acknowledgement, dict)
+            and type(acknowledgement.get("requested_s")) is int
+            and acknowledgement.get("requested_s") == cpu_s
+            and acknowledgement.get("mechanism") == mechanism
+            and valid_state):
+        return {key: acknowledgement[key]
+                for key in ("requested_s", "enforced", "status", "mechanism")}
     return {"requested_s": cpu_s, "enforced": None, "status": "not_confirmed",
             "mechanism": mechanism}
 

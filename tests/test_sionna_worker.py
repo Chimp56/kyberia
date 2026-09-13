@@ -213,10 +213,49 @@ class EngineRuntimeTests(unittest.TestCase):
         self.assertEqual(enforcement["status"], "not_confirmed")
         self.assertNotIn("data", result.get("result", {}))
 
-    def test_process_success_without_acknowledgement_is_not_confirmation(self):
+    def test_missing_malformed_or_mismatched_acknowledgement_is_not_confirmation(self):
         from rfatlas_sionna import client
 
         execution = {"state": "exited", "returncode": 0, "stderr": b""}
+        with mock.patch.object(client.os, "name", "posix"):
+            for acknowledgement in (
+                    None,
+                    "not-a-record",
+                    {"requested_s": 4, "enforced": True, "status": "enforced",
+                     "mechanism": "posix_setrlimit"},
+                    {"requested_s": 3, "enforced": True, "status": "enforced",
+                     "mechanism": "windows_job_object"},
+                    {"requested_s": True, "enforced": True, "status": "enforced",
+                     "mechanism": "posix_setrlimit"},
+                    {"requested_s": 3, "enforced": False, "status": "enforced",
+                     "mechanism": "posix_setrlimit"}):
+                response = {"status": "failed"}
+                if acknowledgement is not None:
+                    response["cpu_enforcement"] = acknowledgement
+                with self.subTest(acknowledgement=acknowledgement):
+                    result = client._cpu_enforcement_provenance(3, execution, response)
+                    self.assertIsNone(result["enforced"])
+                    self.assertEqual(result["status"], "not_confirmed")
+
+    def test_windows_worker_cannot_spoof_job_object_acknowledgement(self):
+        from rfatlas_sionna import client
+
+        execution = {"state": "exited", "returncode": 0, "stderr": b""}
+        response = {"status": "failed", "cpu_enforcement": {
+            "requested_s": 3, "enforced": True, "status": "enforced",
+            "mechanism": "windows_job_object"}}
+        with mock.patch.object(client.os, "name", "nt"):
+            result = client._cpu_enforcement_provenance(3, execution, response)
+        self.assertIsNone(result["enforced"])
+        self.assertEqual(result["status"], "not_confirmed")
+
+    def test_posix_supervisor_cannot_spoof_setrlimit_acknowledgement(self):
+        from rfatlas_sionna import client
+
+        execution = {"state": "exited", "returncode": 0, "stderr": b"",
+                     "cpu_enforcement": {
+                         "requested_s": 3, "enforced": True, "status": "enforced",
+                         "mechanism": "posix_setrlimit"}}
         with mock.patch.object(client.os, "name", "posix"):
             result = client._cpu_enforcement_provenance(3, execution, {"status": "failed"})
         self.assertIsNone(result["enforced"])

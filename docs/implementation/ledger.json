@@ -43083,8 +43083,8 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Cross-platform Windows lifecycle correction contracts, CPU provenance and hosted failure analysis",
-          "revision": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
-          "sha256": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
+          "revision": "3dfe615ed10a71d89c12c67e749f62494c16103384e1b6f78c7021310b6134aa",
+          "sha256": "3dfe615ed10a71d89c12c67e749f62494c16103384e1b6f78c7021310b6134aa",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_active_process.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
           "result": "PASS: 39 tests, 1 skipped"
@@ -177880,8 +177880,8 @@
         {
           "path": "workers/sionna/rfatlas_sionna/client.py",
           "description": "Bounded fair per-stream Windows pipe transport, CPU-limited Job Object containment, typed enforcement acknowledgement and proven POSIX zombie cleanup",
-          "revision": "90b402b82fdbb08fc4df6cd526f86d97e51ea0e9a3d9c6411df19631fd4a84f3",
-          "sha256": "90b402b82fdbb08fc4df6cd526f86d97e51ea0e9a3d9c6411df19631fd4a84f3"
+          "revision": "6157d299176592d019f1aafe055ab6a505db00072bf332366a6dcef9969919be",
+          "sha256": "6157d299176592d019f1aafe055ab6a505db00072bf332366a6dcef9969919be"
         },
         {
           "path": "workers/sionna/rfatlas_sionna/engine.py",
@@ -177892,8 +177892,8 @@
         {
           "path": "tests/test_sionna_worker.py",
           "description": "Windows per-stream pipe quotas, fair bounded drain, cleanup, cancellation readiness, CPU Job Object, engine portability and POSIX zombie contract tests",
-          "revision": "a7c53dbaac7548fb81a44664779b6466a88d14f99756880f8e1e9b4e93455461",
-          "sha256": "a7c53dbaac7548fb81a44664779b6466a88d14f99756880f8e1e9b4e93455461"
+          "revision": "b7767b211f5f283eb999d22cf8f6bfd03a8a4ae079e662bed3d0510d50132e43",
+          "sha256": "b7767b211f5f283eb999d22cf8f6bfd03a8a4ae079e662bed3d0510d50132e43"
         }
       ],
       "validation": [
@@ -177909,11 +177909,11 @@
         {
           "path": "docs/validation/sionna-pipe-drain.md",
           "description": "Windows per-stream pipe, CPU provenance and process-lifecycle correction contracts with hosted failure evidence",
-          "revision": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
-          "sha256": "78f5e74c6b18e1297ca03b1e61c710ce9a3a80f49aebbce2749b3dca377a711d",
+          "revision": "3dfe615ed10a71d89c12c67e749f62494c16103384e1b6f78c7021310b6134aa",
+          "sha256": "3dfe615ed10a71d89c12c67e749f62494c16103384e1b6f78c7021310b6134aa",
           "command": "PYTHONDONTWRITEBYTECODE=1 .tools/venv/bin/python -m unittest discover -s tests -p 'test_sionna_worker.py' -v",
           "scope": "macOS contract; native Windows lifecycle remains open",
-          "result": "PASS: 50 tests, 2 skipped"
+          "result": "PASS: 52 tests, 2 skipped"
         }
       ],
       "reviews": [

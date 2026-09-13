@@ -93,7 +93,7 @@ addresses their platform assumptions:
   only after reaping its direct child and proving the group absent with an
   `ESRCH` probe, without risking a signal to a reused group ID.
 
-The focused correction suites pass locally: Sionna 50 tests with two native
+The focused correction suites pass locally: Sionna 52 tests with two native
 Windows tests skipped, and active-process 39 tests with one native Windows test
 skipped. These are contract results on macOS; they do not close the native
 Windows runtime gate. The next hosted run must show the five named tests
@@ -118,11 +118,21 @@ assigned and resumed the suspended child. Process exit, decoded output and log
 text are never treated as proof. Missing, mismatched or malformed
 acknowledgements remain `null`/`not_confirmed`.
 
-The correction reran the complete Sionna suite (50 tests, two native Windows
+Correction rereview `018d209` found that acknowledgement shape alone did not
+bind the claim to the process boundary that installed the limit. Authority is
+now platform-specific: Windows accepts only the supervisor execution record
+created after Job Object assignment and resume, while POSIX accepts only the
+engine response created after `setrlimit`. A perfectly shaped claim from the
+Windows worker or POSIX supervisor is ignored as `null`/`not_confirmed`.
+
+The correction reran the complete Sionna suite (52 tests, two native Windows
 skips), the complete active-process suite (39 tests, one native Windows skip),
 and 100 repetitions of four adversarial acknowledgement and fair-drain tests
-(400 tests total), all without failures. Native Windows evidence is still
-limited to the failing hosted baseline run/job `34736703085`/`103669296874`;
+(400 tests total), all without failures. The authority correction additionally
+passed 100 repetitions of the Windows worker-spoof, POSIX supervisor-spoof and
+malformed/mismatched acknowledgement tests (300 tests). Native Windows evidence
+is still limited to the failing hosted baseline run/job
+`34736703085`/`103669296874`;
 these corrected acknowledgements and the five baseline lifecycle cases require
 a new hosted rerun before the gate can advance.
 
@@ -131,7 +141,7 @@ The corrected source evidence is content-addressed for review:
 | Path | SHA-256 |
 |---|---|
 | `workers/sionna/rfatlas_sionna/engine.py` | `91fbe5270501ac1505853f70a364949971d6f66edb8b4b9581d493edb0ceffe3` |
-| `workers/sionna/rfatlas_sionna/client.py` | `90b402b82fdbb08fc4df6cd526f86d97e51ea0e9a3d9c6411df19631fd4a84f3` |
-| `tests/test_sionna_worker.py` | `a7c53dbaac7548fb81a44664779b6466a88d14f99756880f8e1e9b4e93455461` |
+| `workers/sionna/rfatlas_sionna/client.py` | `6157d299176592d019f1aafe055ab6a505db00072bf332366a6dcef9969919be` |
+| `tests/test_sionna_worker.py` | `b7767b211f5f283eb999d22cf8f6bfd03a8a4ae079e662bed3d0510d50132e43` |
 | `research/active/process.py` | `c04484875d4a7b82d54276e58fd9eb5b831ad95c4f15714c09ffa456c3f1e1d9` |
 | `tests/test_active_process.py` | `1822082e9ff8772c4fff300481b0032254163743f9bfbcd4134d19536600e14f` |
