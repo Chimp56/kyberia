@@ -19,7 +19,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
-pub const ACTIVE_SCHEMA_METHOD_VERSION: &str = "rf-atlas-active-tcp-connect/v1";
+pub const ACTIVE_SCHEMA_METHOD_VERSION: &str = "rf-atlas-active-tcp-connect-timing/v1";
 pub const MAX_ACTIVE_ENDPOINTS: usize = 32;
 pub const MAX_ACTIVE_SAMPLES: u32 = 4_096;
 pub const MAX_ACTIVE_CONCURRENCY: u16 = 8;
@@ -237,7 +237,7 @@ impl ActiveSocketAddr {
             || (matches!(address, ActiveIpAddress::V6(_)) && address.is_link_local())
         {
             return Err(ValidationError::OutOfRange(
-                "active TCP unicast address (IPv6 link-local requires a scope)",
+                "active TCP unicast address (IPv6 link-local unsupported in this schema)",
             ));
         }
         Ok(Self { address, port })

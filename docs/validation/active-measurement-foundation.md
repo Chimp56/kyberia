@@ -1,6 +1,7 @@
 # Active-measurement foundation validation
 
-This record covers the bounded TCP-connect active-measurement increment. It
+This record covers the bounded TCP-connect-timing method version
+`rf-atlas-active-tcp-connect-timing/v1`. It
 does not close ACT-001/ACT-005, Phase 1, iPerf Gate D, persistent active-test
 storage, or product/UI acceptance.
 
@@ -47,10 +48,12 @@ The focused Rust suite covers:
   provenance substitutions;
 - rejection of IPv4-mapped loopback/private/public/multicast/broadcast
   addresses;
-- rejection of unscoped IPv6 link-local addresses;
+- rejection of IPv6 link-local addresses (scoped representation is not
+  supported in this method version);
 - standalone connect-timing, TCP-attempt-failure-burst, statistics, timestamp,
   and window wire revalidation, including evidence-reason, count, percentile,
-  percentage, resource-ceiling, and packet-loss-not-measured invariants;
+  percentage, resource-ceiling, packet-loss-not-measured, and rejection of the
+  prior misleading TCP-connect method version;
 - a real std TCP connector against a bounded loopback listener and a local
   refused port. The integration case exits early when the host sandbox denies
   listener creation; no test contacts an external address.

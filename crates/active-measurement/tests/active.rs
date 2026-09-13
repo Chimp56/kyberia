@@ -71,7 +71,7 @@ fn provenance(epoch: ClockEpochId) -> ActiveMeasurementProvenance {
     ActiveMeasurementProvenance::new(
         text("test-adapter"),
         text("test/1"),
-        text("rf-atlas-active-tcp-connect/v1"),
+        text("rf-atlas-active-tcp-connect-timing/v1"),
         epoch,
         Evidence::Unknown(UnknownReason::SourceDidNotProvide),
         Evidence::Unknown(UnknownReason::SourceDidNotProvide),
@@ -277,6 +277,9 @@ fn canonical_active_wire_revalidates_schema_and_socket_limits() {
     let mut inconsistent_duration = serde_json::to_value(&sample).unwrap();
     inconsistent_duration["tcp_connect_duration"]["detail"] = json!(2.0);
     assert!(serde_json::from_value::<ActiveSample>(inconsistent_duration).is_err());
+    let mut legacy_method_version = serde_json::to_value(&sample).unwrap();
+    legacy_method_version["provenance"]["method_version"] = json!("rf-atlas-active-tcp-connect/v1");
+    assert!(serde_json::from_value::<ActiveSample>(legacy_method_version).is_err());
     let duplicate_id_sample = ActiveSample::new(
         sample.id(),
         run.id(),

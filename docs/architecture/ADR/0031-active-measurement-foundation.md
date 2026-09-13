@@ -20,9 +20,10 @@ RF Atlas owns a versioned active domain contract in
 contract includes distinct endpoint, run, interval, sample, and result
 identities; endpoint tiers (`gateway`, `lan_reference`, `internet_control`,
 and `application`); literal IPv4/IPv6 socket targets; TCP plus the explicit
-`TcpConnectTiming` method; and endpoint attribution for interface, route, and
-BSSID.  Attribution uses `Evidence<T>` and remains unknown when the source
-cannot provide it.
+`TcpConnectTiming` method at method version
+`rf-atlas-active-tcp-connect-timing/v1`; and endpoint attribution for
+interface, route, and BSSID. Attribution uses `Evidence<T>` and remains unknown
+when the source cannot provide it.
 
 An active run requires explicit user consent and a tier allow-list.  Target
 validation rejects unspecified, multicast, and broadcast addresses.  Loopback
@@ -103,7 +104,8 @@ Internet claims are outside this module.
    policy.  A future resolver adapter must have its own bounded contract.
 3. **Represent failures as zero-valued metrics.** Rejected because zero ms is
    a valid-looking measurement.  Failed samples retain typed outcomes and
-   `Evidence::Unknown` TCP connect duration; packet loss remains explicitly
+   `Evidence::Unknown` TCP connect duration; the prior TCP-connect method
+   version is not accepted as a compatibility alias; packet loss remains explicitly
    unmeasured.
 4. **Put socket I/O in the domain crate.** Rejected because clocks, network
    APIs, and cancellation are side effects that must remain behind ports and
