@@ -31,3 +31,33 @@ class DeveloperFailureTests(unittest.TestCase):
 
     def test_local_failure_preserves_exit_without_actions_annotation(self):
         self.assertEqual(self.run_failure("false"), "")
+
+
+class LabPackageManagerTests(unittest.TestCase):
+    def test_repository_pnpm_is_preferred_when_bootstrapped(self):
+        with patch.object(Path, "is_file", return_value=True), patch.object(
+            DEV, "run"
+        ) as run:
+            DEV.lab_pnpm("run", "check")
+        run.assert_called_once_with(
+            "node",
+            DEV.ROOT / ".tools/pnpm/package/bin/pnpm.mjs",
+            "--dir",
+            "tools/lab-mcp",
+            "run",
+            "check",
+        )
+
+    def test_corepack_cache_is_confined_to_the_worktree(self):
+        with patch.object(Path, "is_file", return_value=False), patch.object(
+            DEV, "run"
+        ) as run:
+            DEV.lab_pnpm("run", "check")
+        args, kwargs = run.call_args
+        self.assertEqual(
+            args[:4], ("corepack", "pnpm@12.3.4", "--dir", "tools/lab-mcp")
+        )
+        self.assertEqual(
+            kwargs["env"]["COREPACK_HOME"],
+            str(DEV.ROOT / "tools/lab-mcp/.tools/corepack"),
+        )

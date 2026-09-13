@@ -39,7 +39,7 @@ def _write_raw(chunk):
         sys.stdout.flush()
 
 
-def _run_streamed(command, diagnostic_kind=None):
+def _run_streamed(command, diagnostic_kind=None, env=None):
     parser = parser_for(diagnostic_kind, ROOT) if diagnostic_kind is not None else None
     command_guard = None
     if github_actions_enabled():
@@ -62,6 +62,7 @@ def _run_streamed(command, diagnostic_kind=None):
             cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            env=env,
         )
         assert process.stdout is not None
         while True:
@@ -97,16 +98,16 @@ def _run_streamed(command, diagnostic_kind=None):
         raise subprocess.CalledProcessError(returncode, command)
 
 
-def run(*args, diagnostics=None):
+def run(*args, diagnostics=None, env=None):
     command = list(map(str, args))
     actions = github_actions_enabled()
     if actions and diagnostics == "cargo":
         command = _cargo_json_command(command)
     print("+ " + " ".join(command), flush=True)
     if actions:
-        _run_streamed(command, diagnostics)
+        _run_streamed(command, diagnostics, env)
     else:
-        subprocess.run(command, cwd=ROOT, check=True)
+        subprocess.run(command, cwd=ROOT, check=True, env=env)
 
 
 def python(*args, diagnostics=None):
@@ -119,13 +120,30 @@ def supply_chain(*args):
     python("tools/supply_chain.py", *args)
 
 
+def lab_pnpm(*args):
+    local_pnpm = ROOT / ".tools/pnpm/package/bin/pnpm.mjs"
+    if local_pnpm.is_file():
+        run("node", local_pnpm, "--dir", "tools/lab-mcp", *args)
+        return
+    environment = dict(os.environ)
+    environment["COREPACK_HOME"] = str(ROOT / "tools/lab-mcp/.tools/corepack")
+    run(
+        "corepack",
+        "pnpm@12.3.4",
+        "--dir",
+        "tools/lab-mcp",
+        *args,
+        env=environment,
+    )
+
+
 def command(name):
     if name == "bootstrap":
         run(sys.executable, "-m", "venv", ROOT / ".tools/venv")
         python("-m", "pip", "install", "--require-hashes", "--only-binary=:all:", "--no-cache-dir", "-r", "tools/requirements.txt")
         run("rustup", "show", "active-toolchain")
         run("cargo", "fetch", "--locked")
-        run("corepack", "pnpm@12.3.4", "install", "--dir", "tools/lab-mcp", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
+        lab_pnpm("install", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
     elif name == "clean":
         # The clean helper is stdlib-only and deliberately runs with the
         # invoking interpreter, so it remains available before bootstrap.
@@ -170,11 +188,11 @@ def command(name):
     elif name == "supply-chain-refresh":
         supply_chain("refresh-advisories")
     elif name == "lab-mcp-bootstrap":
-        run("corepack", "pnpm@12.3.4", "install", "--dir", "tools/lab-mcp", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
+        lab_pnpm("install", "--frozen-lockfile", "--store-dir", "tools/lab-mcp/.tools/pnpm-store")
     elif name == "lab-mcp-build":
-        run("corepack", "pnpm@12.3.4", "--dir", "tools/lab-mcp", "run", "build")
+        lab_pnpm("run", "build")
     elif name == "lab-mcp-check":
-        run("corepack", "pnpm@12.3.4", "--dir", "tools/lab-mcp", "run", "check")
+        lab_pnpm("run", "check")
         run(sys.executable, "-m", "unittest", "-v", "tools/lab-mcp/test/test_windows_process.py")
     elif name == "check":
         for step in ["lint", "typecheck", "test", "lab-mcp-check", "source-check", "evidence-check"]:
