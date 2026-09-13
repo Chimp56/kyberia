@@ -1,4 +1,5 @@
 """Bounded process supervision; no shell or request-supplied commands."""
+import ctypes
 import hashlib
 import os
 from pathlib import Path
@@ -17,6 +18,14 @@ from dataclasses import asdict, dataclass
 from .contract import Invalid, MAX_JSON, VERSION, Request, number, parse_result
 
 MAX_STDERR = 16384
+_JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
+_JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
+_ERROR_INVALID_HANDLE = 6
+_CREATE_SUSPENDED = 0x00000004
+_WAIT_FAILED = 0xFFFFFFFF
+_WINDOW_PIPE_QUEUE_SIZE = 8
+_WINDOW_PIPE_DRAIN_S = 0.5
+_WINDOW_PIPE_JOIN_S = 0.2
 
 
 @dataclass(frozen=True)
@@ -31,15 +40,152 @@ class Execution:
     cleanup_error: object = None
 
 
+class _WindowsIoCounters(ctypes.Structure):
+    _fields_ = [("ReadOperationCount", ctypes.c_ulonglong),
+                ("WriteOperationCount", ctypes.c_ulonglong),
+                ("OtherOperationCount", ctypes.c_ulonglong),
+                ("ReadTransferCount", ctypes.c_ulonglong),
+                ("WriteTransferCount", ctypes.c_ulonglong),
+                ("OtherTransferCount", ctypes.c_ulonglong)]
+
+
+class _WindowsBasicLimitInformation(ctypes.Structure):
+    _fields_ = [("PerProcessUserTime", ctypes.c_longlong),
+                ("PerJobUserTime", ctypes.c_longlong),
+                ("LimitFlags", ctypes.c_uint32),
+                ("MinimumWorkingSetSize", ctypes.c_size_t),
+                ("MaximumWorkingSetSize", ctypes.c_size_t),
+                ("ActiveProcessLimit", ctypes.c_uint32),
+                ("Affinity", ctypes.c_size_t),
+                ("Priority", ctypes.c_uint32),
+                ("SchedulingClass", ctypes.c_uint32)]
+
+
+class _WindowsExtendedLimitInformation(ctypes.Structure):
+    _fields_ = [("BasicLimitInformation", _WindowsBasicLimitInformation),
+                ("IoInfo", _WindowsIoCounters),
+                ("ProcessMemoryLimit", ctypes.c_size_t),
+                ("JobMemoryLimit", ctypes.c_size_t),
+                ("PeakProcessMemoryUsed", ctypes.c_size_t),
+                ("PeakJobMemoryUsed", ctypes.c_size_t)]
+
+
+def _windows_handle(value):
+    try:
+        return ctypes.c_void_p(int(value))
+    except (TypeError, ValueError, AttributeError) as error:
+        raise OSError("Windows process handle is not available") from error
+
+
+class _WindowsJobObject:
+    """Own a suspended child and every descendant through a kill-on-close job."""
+    def __init__(self):
+        if os.name != "nt":
+            raise OSError("Windows job objects are unavailable on this platform")
+        self._kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        self._kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p]
+        self._kernel32.CreateJobObjectW.restype = ctypes.c_void_p
+        self._kernel32.SetInformationJobObject.argtypes = [ctypes.c_void_p, ctypes.c_uint32,
+                                                            ctypes.c_void_p, ctypes.c_uint32]
+        self._kernel32.SetInformationJobObject.restype = ctypes.c_int
+        self._kernel32.AssignProcessToJobObject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        self._kernel32.AssignProcessToJobObject.restype = ctypes.c_int
+        self._kernel32.TerminateJobObject.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+        self._kernel32.TerminateJobObject.restype = ctypes.c_int
+        self._kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
+        self._kernel32.CloseHandle.restype = ctypes.c_int
+        self._kernel32.ResumeThread.argtypes = [ctypes.c_void_p]
+        self._kernel32.ResumeThread.restype = ctypes.c_uint32
+        self._handle = self._kernel32.CreateJobObjectW(None, None)
+        if not self._handle:
+            self._raise_last_error("CreateJobObjectW")
+        self._closed = False
+        limits = _WindowsExtendedLimitInformation()
+        limits.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        if not self._kernel32.SetInformationJobObject(
+                self._handle, _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
+                ctypes.byref(limits), ctypes.sizeof(limits)):
+            try:
+                self._kernel32.CloseHandle(self._handle)
+            finally:
+                self._handle = None
+            self._raise_last_error("SetInformationJobObject")
+
+    @staticmethod
+    def _raise_last_error(operation):
+        code = ctypes.get_last_error()
+        raise OSError(code, f"{operation} failed: {ctypes.FormatError(code)}")
+
+    def assign_and_resume(self, process):
+        if not self._kernel32.AssignProcessToJobObject(self._handle,
+                                                        _windows_handle(process._handle)):
+            self._raise_last_error("AssignProcessToJobObject")
+        if self._kernel32.ResumeThread(_windows_handle(process._thread_handle)) == _WAIT_FAILED:
+            self._raise_last_error("ResumeThread")
+
+    def terminate(self):
+        if self._closed or not self._handle:
+            return
+        if not self._kernel32.TerminateJobObject(self._handle, 1):
+            code = ctypes.get_last_error()
+            if code != _ERROR_INVALID_HANDLE:
+                self._raise_last_error("TerminateJobObject")
+
+    def close(self):
+        if self._closed:
+            return
+        handle = self._handle
+        self._handle = None
+        self._closed = True
+        if handle and not self._kernel32.CloseHandle(handle):
+            self._raise_last_error("CloseHandle")
+
+
+def _attach_windows_job(process):
+    job = None
+    try:
+        job = _WindowsJobObject()
+        process._kyberia_windows_job = job
+        job.assign_and_resume(process)
+    except BaseException:
+        if job is not None:
+            try:
+                job.terminate()
+            except BaseException:
+                pass
+        try:
+            process.kill()
+        except BaseException:
+            pass
+        try:
+            process.wait(timeout=2)
+        except BaseException:
+            pass
+        if job is not None:
+            try:
+                job.close()
+            except BaseException:
+                pass
+        raise
+    return job
+
+
 def _stop(child):
     if os.name == "nt":
-        # Windows has no POSIX process groups. Popen.kill is the portable
-        # direct-child primitive; the trusted caller receives a structured
-        # cleanup error if termination cannot be completed.
+        # The job owns the complete descendant tree. Closing it is handled by
+        # the supervisor after this reaping step so inherited pipe handles are
+        # released before the readers are joined.
+        job = getattr(child, "_kyberia_windows_job", None)
+        poll = getattr(child, "poll", None)
         try:
-            child.kill()
-        except ProcessLookupError:
-            pass
+            if poll is None or poll() is None:
+                try:
+                    if job is not None:
+                        job.terminate()
+                    else:
+                        child.kill()
+                except ProcessLookupError:
+                    pass
         finally:
             child.wait(timeout=2)
         return
@@ -79,35 +225,64 @@ def _popen_options():
     if os.name == "posix":
         options["start_new_session"] = True
     elif os.name == "nt":
-        # Keep the child in a distinct console process group when supported;
-        # this is separate from direct-child termination below.
-        options["creationflags"] = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        options["creationflags"] = (getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                                     | getattr(subprocess, "CREATE_SUSPENDED", _CREATE_SUSPENDED))
     return options
 
 
-def _pipe_reader(pipe, label, events):
+def _put_pipe_event(events, event, stop_event):
+    while not stop_event.is_set():
+        try:
+            events.put(event, timeout=0.05)
+            return True
+        except queue.Full:
+            continue
+    return False
+
+
+def _pipe_reader(pipe, label, events, stop_event):
     try:
         while True:
             chunk = pipe.read(16384)
             if not chunk:
                 break
-            # Bound queued data while the supervisor drains it. This prevents
-            # an output flood from becoming an unbounded parent allocation.
-            while True:
-                try:
-                    events.put(("data", label, chunk), timeout=0.05)
-                    break
-                except queue.Full:
-                    continue
+            if not _put_pipe_event(events, ("data", label, chunk), stop_event):
+                return
     except (OSError, ValueError):
         pass
     finally:
-        while True:
-            try:
-                events.put(("eof", label, b""), timeout=0.05)
-                return
-            except queue.Full:
-                continue
+        _put_pipe_event(events, ("eof", label, b""), stop_event)
+
+
+def _consume_pipe_events(events, output, eof, stdout_limit):
+    status = "completed"
+    while True:
+        try:
+            kind, label, chunk = events.get_nowait()
+        except queue.Empty:
+            return status
+        if kind == "eof":
+            eof.add(label)
+            continue
+        if kind != "data":
+            continue
+        bound = stdout_limit if label == "stdout" else MAX_STDERR
+        remaining = bound - len(output[label])
+        if len(chunk) > remaining:
+            output[label].extend(chunk[:max(0, remaining)])
+            status = "output_limit"
+        else:
+            output[label].extend(chunk)
+
+
+def _close_pipes(child):
+    for pipe in (child.stdin, child.stdout, child.stderr):
+        if pipe is None:
+            continue
+        try:
+            pipe.close()
+        except (OSError, ValueError):
+            pass
 
 
 def _execute_windows(argv, timeout_s, cancel, stdout_limit):
@@ -119,13 +294,17 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
     status = "completed"
     cleanup_error = None
     child = None
-    events = queue.Queue(maxsize=8)
+    events = queue.Queue(maxsize=_WINDOW_PIPE_QUEUE_SIZE)
+    stop_event = threading.Event()
+    eof = set()
     readers = []
     try:
         child = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE, **_popen_options())
+        _attach_windows_job(child)
         for label, pipe in (("stdout", child.stdout), ("stderr", child.stderr)):
-            thread = threading.Thread(target=_pipe_reader, args=(pipe, label, events), daemon=True)
+            thread = threading.Thread(target=_pipe_reader,
+                                       args=(pipe, label, events, stop_event), daemon=True)
             thread.start()
             readers.append(thread)
         while True:
@@ -135,19 +314,8 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
             if (time.monotonic_ns() - start) / 1e9 >= timeout_s:
                 status = "timeout"
                 break
-            try:
-                while True:
-                    kind, label, chunk = events.get_nowait()
-                    if kind == "eof":
-                        continue
-                    limit = stdout_limit if label == "stdout" else MAX_STDERR
-                    remaining = limit - len(output[label])
-                    output[label].extend(chunk[:max(0, remaining)])
-                    if len(chunk) > remaining:
-                        status = "output_limit"
-                        break
-            except queue.Empty:
-                pass
+            if status == "completed":
+                status = _consume_pipe_events(events, output, eof, stdout_limit)
             if status != "completed" or child.poll() is not None:
                 break
             time.sleep(0.01)
@@ -163,21 +331,30 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
             except (OSError, subprocess.TimeoutExpired) as exc:
                 cleanup_error = str(exc)[:1024]
                 status = "process_error"
-            # A short join publishes bytes already buffered by the child while
-            # avoiding a second deadline that could be held by stale handles.
-            for thread in readers:
-                thread.join(timeout=0.2)
-            while True:
+            if getattr(child, "_kyberia_windows_job", None) is not None:
                 try:
-                    kind, label, chunk = events.get_nowait()
-                except queue.Empty:
+                    child._kyberia_windows_job.close()
+                except OSError as exc:
+                    cleanup_error = str(exc)[:1024]
+                    status = "process_error"
+            drain_deadline = time.monotonic() + _WINDOW_PIPE_DRAIN_S
+            while eof != {"stdout", "stderr"} and time.monotonic() < drain_deadline:
+                drained = _consume_pipe_events(events, output, eof, stdout_limit)
+                if status == "completed" and drained != "completed":
+                    status = drained
+                if eof == {"stdout", "stderr"}:
                     break
-                if kind == "data":
-                    limit = stdout_limit if label == "stdout" else MAX_STDERR
-                    remaining = limit - len(output[label])
-                    output[label].extend(chunk[:max(0, remaining)])
-            for pipe in (child.stdout, child.stderr):
-                pipe.close()
+                time.sleep(0.005)
+            if eof != {"stdout", "stderr"}:
+                cleanup_error = cleanup_error or "pipe readers did not reach EOF before cleanup bound"
+                status = "process_error"
+            stop_event.set()
+            _close_pipes(child)
+            for thread in readers:
+                thread.join(timeout=_WINDOW_PIPE_JOIN_S)
+            drained = _consume_pipe_events(events, output, eof, stdout_limit)
+            if status == "completed" and drained != "completed":
+                status = drained
     if status == "completed" and child and child.returncode != 0:
         status = "process_error"
     return Execution(status, child.returncode if child else None,

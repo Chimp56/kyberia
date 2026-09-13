@@ -59,6 +59,7 @@ SCHEMA_PINS = {
     "spdx.schema.json": "ea6e844ee6fba1e93473d94834d0ee0996970533497935f932f73d488ffdf4a3",
     "jsf-0.82.schema.json": "8bae002c25e723db7ee1f26afde680ae1a2b1a8f6b4b4b0fd65dc3becb090aae",
 }
+_ABSOLUTE_WINDOWS_PATH_REF = re.compile(r"path\+file:///?[A-Za-z]:/")
 
 
 class SupplyChainError(RuntimeError):
@@ -496,7 +497,8 @@ def validate_sbom(
         if properties.get(key) != value:
             raise SupplyChainError(f"CycloneDX provenance property {key} is missing or stale")
     serialized = json.dumps(document, ensure_ascii=False)
-    if "path+file:///" in serialized:
+    normalized = serialized.replace("\\", "/")
+    if "path+file:///" in normalized or _ABSOLUTE_WINDOWS_PATH_REF.search(normalized):
         raise SupplyChainError("CycloneDX output retains an absolute workspace path")
 
 

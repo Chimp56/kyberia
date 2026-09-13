@@ -43060,8 +43060,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b",
-          "sha256": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b"
+          "revision": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570",
+          "sha256": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570"
         }
       ],
       "validation": [
@@ -169468,8 +169468,8 @@
         {
           "path": "tools/supply_chain.py",
           "description": "Pinned bounded portable SBOM and audit orchestration",
-          "revision": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc",
-          "sha256": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc"
+          "revision": "fcf71fd2097a5a0d5699313dd29f0239f91d498afbfc22677ab5e52fe36d2573",
+          "sha256": "fcf71fd2097a5a0d5699313dd29f0239f91d498afbfc22677ab5e52fe36d2573"
         },
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
@@ -177695,8 +177695,8 @@
         {
           "path": "tools/supply_chain.py",
           "description": "Pinned bounded portable SBOM and audit orchestration",
-          "revision": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc",
-          "sha256": "f13f5ee813f7a8e51b976c5634ec981afeff6b04ac4d1a65b1245621b81574bc"
+          "revision": "fcf71fd2097a5a0d5699313dd29f0239f91d498afbfc22677ab5e52fe36d2573",
+          "sha256": "fcf71fd2097a5a0d5699313dd29f0239f91d498afbfc22677ab5e52fe36d2573"
         },
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
@@ -239674,8 +239674,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b",
-          "sha256": "a42a54c7fc090088de626fcf5d499d1035e81fad292a4832a739251915f3997b"
+          "revision": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570",
+          "sha256": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570"
         }
       ],
       "validation": [

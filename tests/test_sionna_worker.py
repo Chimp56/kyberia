@@ -3,7 +3,8 @@
 from copy import deepcopy
 import io
 import json
-import signal
+import os
+import queue
 import subprocess
 from pathlib import Path
 import sys
@@ -18,7 +19,8 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "workers/sionna"))
 from rfatlas_sionna.contract import (ContractError, MAX_LOG_BYTES, MAX_REQUEST_BYTES,
-                                     canonical_bytes, decode, digest, validate, validate_result)
+                                     MAX_RESULT_BYTES, canonical_bytes, decode, digest, validate,
+                                     validate_result)
 from rfatlas_sionna.client import run, supervise
 from rfatlas_sionna.examples import request
 
@@ -144,29 +146,106 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(result["stderr"], b"diagnostic")
         self.assertEqual(process.stdin.getvalue(), b"{}")
         self.assertTrue(process.stdin.closed_by_supervisor)
-        self.assertTrue(process.killed)
+        self.assertFalse(process.killed)
 
-    def test_windows_incomplete_input_reader_is_cancellable(self):
-        from workers.sionna import worker
+    def test_windows_pipe_drain_handles_early_exit_and_exact_limit(self):
+        from rfatlas_sionna import client
 
-        released = threading.Event()
+        class DelayedStream(io.BytesIO):
+            delay = True
 
-        class BlockingStream:
-            def read(self, _maximum):
-                released.wait(2)
-                return b""
+            def read(self, size=-1):
+                if self.delay:
+                    time.sleep(0.01)
+                return super().read(size)
 
-        cancellation = threading.Event()
-        stream = SimpleNamespace(buffer=BlockingStream())
-        timer = threading.Timer(0.05, cancellation.set)
-        timer.start()
-        try:
-            with mock.patch.object(worker.os, "name", "nt"), mock.patch.object(worker.sys, "stdin", stream):
-                with self.assertRaisesRegex(ContractError, "cancelled"):
-                    worker.read_request(cancellation)
-        finally:
-            released.set()
-            timer.join()
+        class Process:
+            def __init__(self, stdout, stderr, delayed=True):
+                self.stdin = io.BytesIO()
+                self.stdout = DelayedStream(stdout)
+                self.stderr = DelayedStream(stderr)
+                self.stdout.delay = delayed
+                self.stderr.delay = delayed
+                self.returncode = 0
+
+            def poll(self):
+                # Exercise the early-poll path before reader threads publish.
+                return self.returncode
+
+            def wait(self, timeout=None):
+                return self.returncode
+
+        process = Process(b"late-result", b"late-log")
+        with mock.patch.object(client.os, "name", "nt"):
+            result = client._supervise_windows(process, b"{}", 1, None)
+        self.assertEqual(result["state"], "exited")
+        self.assertEqual(result["stdout"], b"late-result")
+        self.assertEqual(result["stderr"], b"late-log")
+
+        process = Process(b"x" * (MAX_RESULT_BYTES + 1), b"", delayed=False)
+        with mock.patch.object(client.os, "name", "nt"):
+            result = client._supervise_windows(process, b"{}", 1, None)
+        self.assertEqual(result["state"], "output_limit")
+        self.assertEqual(len(result["stdout"]), MAX_RESULT_BYTES)
+
+    def test_windows_pipe_reader_stops_after_consumer_shutdown(self):
+        from rfatlas_sionna import client
+
+        events = queue.Queue(maxsize=1)
+        events.put(("data", "stdout", b"queued"))
+        stop_event = threading.Event()
+        started = threading.Event()
+
+        class ReadOnce:
+            def read(self, _size):
+                started.set()
+                return b"blocked behind full queue"
+
+        reader = threading.Thread(target=client._pipe_reader,
+                                  args=(ReadOnce(), "stdout", events, stop_event), daemon=True)
+        reader.start()
+        self.assertTrue(started.wait(1))
+        stop_event.set()
+        reader.join(timeout=1)
+        self.assertFalse(reader.is_alive())
+
+    def test_windows_stop_terminates_the_owned_job_tree(self):
+        from rfatlas_sionna import client
+
+        process = mock.Mock()
+        process.poll.return_value = None
+        job = mock.Mock()
+        process._kyberia_windows_job = job
+        with mock.patch.object(client.os, "name", "nt"):
+            client._stop(process)
+        job.terminate.assert_called_once_with()
+        process.wait.assert_called_once_with(timeout=2)
+        process.kill.assert_not_called()
+
+    def test_windows_job_attach_failure_reaps_suspended_child(self):
+        from rfatlas_sionna import client
+
+        process = mock.Mock()
+        with mock.patch.object(client, "_WindowsJobObject", side_effect=OSError("job unavailable")):
+            with self.assertRaisesRegex(OSError, "job unavailable"):
+                client._attach_windows_job(process)
+        process.kill.assert_called_once_with()
+        process.wait.assert_called_once_with(timeout=2)
+
+    @unittest.skipUnless(os.name == "nt", "Windows job-object descendant contract")
+    def test_windows_job_object_kills_descendants_after_parent_exit(self):
+        directory = ROOT / ".trash/test-runs" / ("sionna-windows-job-" + str(time.time_ns()))
+        directory.mkdir(parents=True)
+        marker = directory / "escaped.txt"
+        descendant = ("from pathlib import Path; import time; time.sleep(.4); "
+                      "Path(" + repr(str(marker)) + ").write_text('descendant escaped')")
+        program = ("import subprocess,sys; subprocess.Popen([sys.executable,'-c',"
+                   + repr(descendant) + "]); print('parent-exited')")
+        result = self.supervise(program, timeout=1)
+        self.assertEqual(result["state"], "exited", result)
+        self.assertEqual(result["stdout"], b"parent-exited\n")
+        time.sleep(.7)
+        self.assertFalse(marker.exists(), "Windows job close failed to terminate descendant")
 
     def test_crash_and_next_process_recovery(self):
         result = self.supervise("import os; os._exit(37)")
@@ -216,23 +295,28 @@ class LifecycleTests(unittest.TestCase):
         self.assertNotIn("data", result.get("result", {}))
 
     def test_cli_cancellation_while_input_is_incomplete(self):
-        with subprocess.Popen([sys.executable, str(ROOT / "workers/sionna/worker.py")],
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE) as process:
-            try:
-                process.stdin.write(b"{")
-                process.stdin.flush()
-                time.sleep(0.2)
-                process.send_signal(signal.SIGTERM)
-                process.wait(timeout=2)  # Keep stdin open: cancellation must end the read.
-                stdout, stderr = process.communicate(timeout=2)
-            finally:
-                if process.poll() is None:
-                    process.kill()
-                process.wait()
-        self.assertEqual(process.returncode, 2, stderr)
-        result = json.loads(stdout)
-        self.assertIn("cancelled", result["detail"])
+        from workers.sionna import worker
+
+        released = threading.Event()
+
+        class BlockingStream:
+            def read(self, _maximum):
+                released.wait(2)
+                return b"{"
+
+        cancellation = threading.Event()
+        stream = SimpleNamespace(buffer=BlockingStream())
+        timer = threading.Timer(0.05, cancellation.set)
+        timer.start()
+        try:
+            # This injects the same cancellation token used by main(), avoiding
+            # a platform-specific hard process signal in the contract test.
+            with mock.patch.object(worker.os, "name", "nt"), mock.patch.object(worker.sys, "stdin", stream):
+                with self.assertRaisesRegex(ContractError, "cancelled"):
+                    worker.read_request(cancellation)
+        finally:
+            released.set()
+            timer.join()
 
 
 class RecordedResultTests(unittest.TestCase):

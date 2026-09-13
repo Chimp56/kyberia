@@ -231,6 +231,8 @@ class SupplyChainTests(unittest.TestCase):
             normalized["metadata"]["component"]["purl"],
             source["metadata"]["component"]["purl"],
         )
+        relative = {"ref": "path+file://workspace-relative/apps/cli"}
+        self.assertEqual(MODULE._replace_workspace_paths(relative, workspace), relative)
 
         # Windows cargo output may use either URI drive-letter spelling and
         # may retain native separators. All are workspace-local references.
@@ -244,6 +246,43 @@ class SupplyChainTests(unittest.TestCase):
                     MODULE._replace_workspace_paths(document, windows_workspace)["ref"],
                     "path+file://workspace/apps/cli#kyberia-cli@0.1.0",
                 )
+
+    def test_unresolved_windows_absolute_bom_refs_are_rejected(self):
+        base = {
+            "bomFormat": "CycloneDX",
+            "specVersion": "1.5",
+            "version": 1,
+            "metadata": {
+                "tools": [{"name": "cargo-cyclonedx", "version": "0.5.9"}],
+                "component": {"name": "kyberia", "type": "application", "bom-ref": "root"},
+                "properties": [{"name": "cdx:rustc:sbom:target:triple", "value": "x86_64-pc-windows-msvc"}],
+            },
+            "components": [{"name": "fixture", "type": "library", "bom-ref": "fixture"}],
+            "dependencies": [{"ref": "root", "dependsOn": ["fixture"]}, {"ref": "fixture"}],
+            "properties": [
+                {"name": "kyberia:target", "value": "x86_64-pc-windows-msvc"},
+                {"name": "kyberia:git-revision", "value": "r"},
+                {"name": "kyberia:cargo-lock-sha256", "value": "l"},
+                {"name": "kyberia:cli-manifest-sha256", "value": "m"},
+                {"name": "kyberia:cargo-describe", "value": "binaries"},
+                {"name": "kyberia:cargo-all-dependencies", "value": "true"},
+                {"name": "kyberia:cargo-offline", "value": "true"},
+                {"name": "kyberia:cargo-lock-guard", "value": "pre-post-sha256"},
+            ],
+        }
+        for ref in ("path+file://D:/other/workspace/src",
+                    "path+file:///D:/other/workspace/src",
+                    "path+file://D:\\other\\workspace\\src"):
+            with self.subTest(ref=ref):
+                document = json.loads(json.dumps(base))
+                document["components"][0]["bom-ref"] = ref
+                document["dependencies"] = [{"ref": "root", "dependsOn": [ref]}, {"ref": ref}]
+                with mock.patch.object(MODULE, "validate_cyclonedx_schema"), self.assertRaisesRegex(
+                        MODULE.SupplyChainError, "absolute workspace path"):
+                    MODULE.validate_sbom(
+                        document, target="x86_64-pc-windows-msvc", revision="r",
+                        lock_sha256="l", manifest_sha256="m",
+                    )
 
     def test_minimal_bom_without_provenance_is_rejected(self):
         document = {

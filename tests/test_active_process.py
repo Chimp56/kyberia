@@ -37,6 +37,7 @@ class ContractTests(unittest.TestCase):
         from research.active.process import _stop
         child = mock.Mock(pid=12345)
         if os.name == "nt":
+            child.poll.return_value = None
             _stop(child)
             child.kill.assert_called_once_with()
             child.wait.assert_called_once_with(timeout=2)
@@ -48,6 +49,18 @@ class ContractTests(unittest.TestCase):
         for probe in (None, PermissionError("still denied")):
             with mock.patch("research.active.process.os.killpg", side_effect=[PermissionError("denied"), probe]):
                 with self.assertRaises(PermissionError): _stop(child)
+
+    def test_windows_stop_terminates_the_owned_job_tree(self):
+        from research.active import process
+        child = mock.Mock()
+        child.poll.return_value = None
+        job = mock.Mock()
+        child._kyberia_windows_job = job
+        with mock.patch.object(process.os, "name", "nt"):
+            process._stop(child)
+        job.terminate.assert_called_once_with()
+        child.wait.assert_called_once_with(timeout=2)
+        child.kill.assert_not_called()
 
     def test_acceptance_fails_on_server_thread_or_cleanup_error(self):
         for effect in (PermissionError("synthetic thread failure"),
@@ -367,6 +380,23 @@ class FakeProcessTests(unittest.TestCase):
         self.assertEqual(value["status"], "timeout", msg=self.result_message(value))
         self.assertEqual(value["reason"], "version_probe_failed", msg=self.result_message(value))
         self.assertIsNone(value["measurement"], msg=self.result_message(value))
+
+
+@unittest.skipUnless(os.name == "nt", "Windows job-object descendant contract")
+class WindowsExecutionTests(unittest.TestCase):
+    def test_windows_job_object_kills_descendants_after_parent_exit(self):
+        directory = ROOT / ".trash/test-runs" / ("active-windows-job-" + str(time.time_ns()))
+        directory.mkdir(parents=True)
+        marker = directory / "escaped.txt"
+        descendant = ("from pathlib import Path; import time; time.sleep(.4); "
+                      "Path(" + repr(str(marker)) + ").write_text('descendant escaped')")
+        program = ("import subprocess,sys; subprocess.Popen([sys.executable,'-c',"
+                   + repr(descendant) + "]); print('parent-exited')")
+        result = execute([sys.executable, "-I", "-c", program], 1)
+        self.assertEqual(result.status, "completed", result)
+        self.assertEqual(result.stdout, b"parent-exited\n")
+        time.sleep(.7)
+        self.assertFalse(marker.exists(), "Windows job close failed to terminate descendant")
 
 
 if __name__ == "__main__": unittest.main()
