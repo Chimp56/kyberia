@@ -72,13 +72,19 @@ def main():
     parser.add_argument("--python", type=Path, default=Path(sys.executable))
     args = parser.parse_args()
     cancellation = threading.Event()
-    signal.signal(signal.SIGINT, lambda *_: cancellation.set())
-    signal.signal(signal.SIGTERM, lambda *_: cancellation.set())
+    cancel_signal = lambda *_: cancellation.set()
+    signal.signal(signal.SIGINT, cancel_signal)
+    signal.signal(signal.SIGTERM, cancel_signal)
+    if hasattr(signal, "SIGBREAK"):
+        signal.signal(signal.SIGBREAK, cancel_signal)
     try:
         result = run(decode(read_request(cancellation)), args.python, cancellation)
     except (ContractError, ValueError, OSError) as error:
-        result = {"schema_version": 1, "status": "failed", "error": "invalid_request_or_runtime",
-                  "detail": str(error)}
+        if cancellation.is_set():
+            result = {"schema_version": 1, "status": "failed", "error": "cancelled"}
+        else:
+            result = {"schema_version": 1, "status": "failed", "error": "invalid_request_or_runtime",
+                      "detail": str(error)}
     sys.stdout.buffer.write(canonical_bytes(result) + b"\n")
     return 0 if result["status"] == "completed" else 2
 

@@ -1,7 +1,9 @@
 """Deterministic parser tests and explicitly fake child-process lifecycle tests."""
+import ctypes
 from dataclasses import asdict
 import json
 import os
+import queue
 import signal
 from pathlib import Path
 import sys
@@ -61,6 +63,154 @@ class ContractTests(unittest.TestCase):
         job.terminate.assert_called_once_with()
         child.wait.assert_called_once_with(timeout=2)
         child.kill.assert_not_called()
+
+    @staticmethod
+    def fake_windows_job(kernel):
+        from research.active import process
+        job = object.__new__(process._WindowsJobObject)
+        job._kernel32 = kernel
+        job._handle = 99
+        job._closed = False
+        job._process_assigned = False
+        return job
+
+    @staticmethod
+    def fake_thread_entry(process, thread_id, process_id):
+        def fill(_snapshot, pointer):
+            entry = ctypes.cast(pointer, ctypes.POINTER(process._WindowsThreadEntry32)).contents
+            entry.th32ThreadID = thread_id
+            entry.th32OwnerProcessID = process_id
+            return 1
+        return fill
+
+    def test_windows_thread_discovery_rejects_missing_multiple_and_unopenable(self):
+        from research.active import process
+        for mode in ("missing", "multiple", "unopenable"):
+            kernel = mock.Mock()
+            kernel.CreateToolhelp32Snapshot.return_value = 10
+            kernel.CloseHandle.return_value = 1
+            if mode == "missing":
+                kernel.Thread32First.return_value = 0
+                last_error = [18]
+            else:
+                kernel.Thread32First.side_effect = self.fake_thread_entry(process, 22, 700)
+                if mode == "multiple":
+                    seen = [False]
+                    def next_entry(_snapshot, pointer):
+                        if not seen[0]:
+                            seen[0] = True
+                            return self.fake_thread_entry(process, 23, 700)(_snapshot, pointer)
+                        return 0
+                    kernel.Thread32Next.side_effect = next_entry
+                else:
+                    kernel.Thread32Next.return_value = 0
+                kernel.OpenThread.return_value = 0 if mode == "unopenable" else 33
+                last_error = [18, 5] if mode == "unopenable" else [18]
+            job = self.fake_windows_job(kernel)
+            expected_error = {"missing": "no thread", "multiple": "multiple", "unopenable": "OpenThread"}[mode]
+            with self.subTest(mode=mode), mock.patch.object(
+                    process.ctypes, "get_last_error", side_effect=last_error, create=True):
+                with self.assertRaisesRegex(OSError, expected_error):
+                    job._open_suspended_thread(700)
+            kernel.CloseHandle.assert_called_once_with(10)
+
+    def test_windows_resume_failure_and_close_failure_are_structured(self):
+        from research.active import process
+        kernel = mock.Mock()
+        kernel.OpenProcess.return_value = 44
+        kernel.AssignProcessToJobObject.return_value = 1
+        kernel.ResumeThread.return_value = process._WAIT_FAILED
+        kernel.CloseHandle.return_value = 1
+        job = self.fake_windows_job(kernel)
+        child = mock.Mock(pid=700, _handle=44)
+        kernel.AssignProcessToJobObject.return_value = 0
+        with mock.patch.object(job, "_open_suspended_thread", return_value=32), \
+                mock.patch.object(process.ctypes, "get_last_error", return_value=5, create=True), \
+                self.assertRaisesRegex(OSError, "AssignProcessToJobObject"):
+            job.assign_and_resume(child)
+        self.assertFalse(job._process_assigned)
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(44), mock.call(32)])
+
+        kernel.reset_mock()
+        kernel.OpenProcess.return_value = 44
+        kernel.AssignProcessToJobObject.return_value = 1
+        with mock.patch.object(job, "_open_suspended_thread", return_value=33), \
+                mock.patch.object(process.ctypes, "get_last_error", return_value=5, create=True), \
+                self.assertRaisesRegex(OSError, "ResumeThread"):
+            job.assign_and_resume(child)
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(44), mock.call(33)])
+
+        kernel.CloseHandle.return_value = 0
+        with mock.patch.object(job, "_open_suspended_thread", return_value=34), \
+                mock.patch.object(process.ctypes, "get_last_error", return_value=6, create=True), \
+                self.assertRaisesRegex(OSError, "handle close"):
+            job.assign_and_resume(child)
+
+    def test_windows_job_close_failure_does_not_mark_closed(self):
+        from research.active import process
+        kernel = mock.Mock()
+        kernel.CloseHandle.return_value = 0
+        job = self.fake_windows_job(kernel)
+        with mock.patch.object(process.ctypes, "get_last_error", return_value=5, create=True), \
+                self.assertRaises(OSError):
+            job.close()
+        self.assertFalse(job._closed)
+        self.assertEqual(job._handle, 99)
+
+    def test_windows_attach_cleanup_failures_are_not_suppressed(self):
+        from research.active import process
+        child = mock.Mock()
+        job = mock.Mock()
+        job.assign_and_resume.side_effect = OSError("resume setup failed")
+        job.terminate.side_effect = OSError("terminate failed")
+        job.close.side_effect = OSError("close failed")
+        child.kill.side_effect = OSError("kill failed")
+        child.wait.side_effect = TimeoutError("wait failed")
+        with mock.patch.object(process, "_WindowsJobObject", return_value=job), \
+                self.assertRaisesRegex(OSError, "resume setup failed.*cleanup failures"):
+            process._attach_windows_job(child)
+        job.terminate.assert_called_once_with()
+        job.close.assert_called_once_with()
+        self.assertEqual(child.kill.call_count, 2)
+        self.assertEqual(child.wait.call_count, 2)
+
+    def test_windows_output_consumer_limits_exact_and_over_bound(self):
+        from research.active import process
+        for label, bound in (("stdout", MAX_JSON), ("stderr", MAX_STDERR)):
+            for size in (bound, bound + 1):
+                events = queue.Queue()
+                events.put(("data", label, b"x" * size))
+                output = {"stdout": bytearray(), "stderr": bytearray()}
+                status = process._consume_pipe_events(events, output, set(), MAX_JSON)
+                self.assertEqual(status, "output_limit")
+                self.assertEqual(len(output[label]), bound)
+
+    def test_windows_blocked_read_and_write_are_joined_after_close(self):
+        from research.active import process
+        released = threading.Event()
+
+        class BlockingRead:
+            def read(self, _size):
+                released.wait(2)
+                return b""
+
+            def close(self):
+                released.set()
+
+        stop_event = threading.Event()
+        events = queue.Queue()
+        reader = threading.Thread(target=process._pipe_reader,
+                                   args=(BlockingRead(), "stdout", events, stop_event), daemon=True)
+        reader2 = threading.Thread(target=process._pipe_reader,
+                                    args=(BlockingRead(), "stderr", events, stop_event), daemon=True)
+        reader.start(); reader2.start()
+        errors = process._join_pipe_threads([("stdout", reader), ("stderr", reader2)])
+        self.assertEqual(len(errors), 2)
+        stop_event.set()
+        released.set()
+        self.assertFalse(process._join_pipe_threads([("stdout", reader), ("stderr", reader2)]))
 
     def test_acceptance_fails_on_server_thread_or_cleanup_error(self):
         for effect in (PermissionError("synthetic thread failure"),
@@ -339,6 +489,13 @@ class FakeProcessTests(unittest.TestCase):
             value = execute([sys.executable, "-c", "import os; os.write(" + str(fd) + ",b'x'*1000000)"], 1)
             self.assertEqual(value.status, "output_limit", msg=self.execution_message(value))
             self.assertLessEqual(len(value.stdout if fd == 1 else value.stderr), limit, msg=self.execution_message(value))
+
+    def test_posix_exact_output_limits_are_terminal(self):
+        for fd, bound in ((1, MAX_JSON), (2, MAX_STDERR)):
+            value = execute([sys.executable, "-c", "import os; os.write(%d,b'x'*%d)" % (fd, bound)], 1)
+            self.assertEqual(value.status, "output_limit", msg=self.execution_message(value))
+            self.assertEqual(len(value.stdout if fd == 1 else value.stderr), bound,
+                             msg=self.execution_message(value))
         child = "import os,time; pid=os.fork(); time.sleep(5) if pid==0 else os._exit(0)"
         value = execute([sys.executable, "-c", child], .15)
         self.assertEqual(value.status, "timeout", msg=self.execution_message(value))

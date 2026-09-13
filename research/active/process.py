@@ -21,8 +21,13 @@ MAX_STDERR = 16384
 _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
 _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
 _ERROR_INVALID_HANDLE = 6
+_ERROR_NO_MORE_FILES = 18
 _CREATE_SUSPENDED = 0x00000004
 _WAIT_FAILED = 0xFFFFFFFF
+_TH32CS_SNAPTHREAD = 0x00000004
+_THREAD_SUSPEND_RESUME = 0x0002
+_PROCESS_TERMINATE = 0x0001
+_PROCESS_SET_QUOTA = 0x0100
 _WINDOW_PIPE_QUEUE_SIZE = 8
 _WINDOW_PIPE_DRAIN_S = 0.5
 _WINDOW_PIPE_JOIN_S = 0.2
@@ -70,8 +75,20 @@ class _WindowsExtendedLimitInformation(ctypes.Structure):
                 ("PeakJobMemoryUsed", ctypes.c_size_t)]
 
 
+class _WindowsThreadEntry32(ctypes.Structure):
+    _fields_ = [("dwSize", ctypes.c_uint32),
+                ("cntUsage", ctypes.c_uint32),
+                ("th32ThreadID", ctypes.c_uint32),
+                ("th32OwnerProcessID", ctypes.c_uint32),
+                ("tpBasePri", ctypes.c_long),
+                ("tpDeltaPri", ctypes.c_long),
+                ("dwFlags", ctypes.c_uint32)]
+
+
 def _windows_handle(value):
     try:
+        if isinstance(value, ctypes.c_void_p):
+            return value
         return ctypes.c_void_p(int(value))
     except (TypeError, ValueError, AttributeError) as error:
         raise OSError("Windows process handle is not available") from error
@@ -96,32 +113,132 @@ class _WindowsJobObject:
         self._kernel32.CloseHandle.restype = ctypes.c_int
         self._kernel32.ResumeThread.argtypes = [ctypes.c_void_p]
         self._kernel32.ResumeThread.restype = ctypes.c_uint32
+        self._kernel32.CreateToolhelp32Snapshot.argtypes = [ctypes.c_uint32, ctypes.c_uint32]
+        self._kernel32.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+        self._kernel32.Thread32First.argtypes = [ctypes.c_void_p,
+                                                  ctypes.POINTER(_WindowsThreadEntry32)]
+        self._kernel32.Thread32First.restype = ctypes.c_int
+        self._kernel32.Thread32Next.argtypes = [ctypes.c_void_p,
+                                                 ctypes.POINTER(_WindowsThreadEntry32)]
+        self._kernel32.Thread32Next.restype = ctypes.c_int
+        self._kernel32.OpenThread.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_uint32]
+        self._kernel32.OpenThread.restype = ctypes.c_void_p
+        self._kernel32.OpenProcess.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_uint32]
+        self._kernel32.OpenProcess.restype = ctypes.c_void_p
         self._handle = self._kernel32.CreateJobObjectW(None, None)
         if not self._handle:
             self._raise_last_error("CreateJobObjectW")
         self._closed = False
+        self._process_assigned = False
         limits = _WindowsExtendedLimitInformation()
         limits.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
         if not self._kernel32.SetInformationJobObject(
                 self._handle, _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
                 ctypes.byref(limits), ctypes.sizeof(limits)):
+            primary_error = None
             try:
-                self._kernel32.CloseHandle(self._handle)
-            finally:
-                self._handle = None
-            self._raise_last_error("SetInformationJobObject")
+                self._raise_last_error("SetInformationJobObject")
+            except BaseException as error:
+                primary_error = error
+            close_error = None
+            try:
+                self._close_native_handle(self._handle, "CloseHandle(job)")
+            except BaseException as error:
+                close_error = error
+            self._handle = None
+            if close_error is not None:
+                raise OSError(f"{primary_error}; job handle close failed: {close_error}") from primary_error
+            raise primary_error
 
     @staticmethod
     def _raise_last_error(operation):
         code = ctypes.get_last_error()
-        raise OSError(code, f"{operation} failed: {ctypes.FormatError(code)}")
+        detail = ctypes.FormatError(code) if hasattr(ctypes, "FormatError") else os.strerror(code)
+        raise OSError(code, f"{operation} failed: {detail}")
+
+    def _close_native_handle(self, handle, operation):
+        if handle and not self._kernel32.CloseHandle(handle):
+            self._raise_last_error(operation)
+
+    def _open_suspended_thread(self, process_id):
+        snapshot = self._kernel32.CreateToolhelp32Snapshot(_TH32CS_SNAPTHREAD, 0)
+        invalid = ctypes.c_void_p(-1).value
+        if not snapshot or int(snapshot) == invalid:
+            self._raise_last_error("CreateToolhelp32Snapshot")
+        thread_ids = []
+        primary_error = None
+        try:
+            entry = _WindowsThreadEntry32()
+            entry.dwSize = ctypes.sizeof(entry)
+            if not self._kernel32.Thread32First(snapshot, ctypes.byref(entry)):
+                code = ctypes.get_last_error()
+                if code != _ERROR_NO_MORE_FILES:
+                    self._raise_last_error("Thread32First")
+            else:
+                while True:
+                    if entry.th32OwnerProcessID == process_id:
+                        thread_ids.append(entry.th32ThreadID)
+                    entry.dwSize = ctypes.sizeof(entry)
+                    if not self._kernel32.Thread32Next(snapshot, ctypes.byref(entry)):
+                        code = ctypes.get_last_error()
+                        if code != _ERROR_NO_MORE_FILES:
+                            self._raise_last_error("Thread32Next")
+                        break
+        except BaseException as error:
+            primary_error = error
+        close_error = None
+        try:
+            self._close_native_handle(snapshot, "CloseHandle(thread snapshot)")
+        except BaseException as error:
+            close_error = error
+        if primary_error is not None:
+            if close_error is not None:
+                raise OSError(f"{primary_error}; thread snapshot close failed: {close_error}") from primary_error
+            raise primary_error
+        if close_error is not None:
+            raise close_error
+        if not thread_ids:
+            raise OSError(f"no thread found for suspended process {process_id}")
+        if len(thread_ids) != 1:
+            raise OSError(f"multiple threads found for suspended process {process_id}")
+        thread = self._kernel32.OpenThread(_THREAD_SUSPEND_RESUME, 0, thread_ids[0])
+        if not thread:
+            self._raise_last_error("OpenThread")
+        return thread
 
     def assign_and_resume(self, process):
-        if not self._kernel32.AssignProcessToJobObject(self._handle,
-                                                        _windows_handle(process._handle)):
-            self._raise_last_error("AssignProcessToJobObject")
-        if self._kernel32.ResumeThread(_windows_handle(process._thread_handle)) == _WAIT_FAILED:
-            self._raise_last_error("ResumeThread")
+        thread = self._open_suspended_thread(process.pid)
+        primary_error = None
+        process_handle = None
+        try:
+            process_handle = self._kernel32.OpenProcess(
+                _PROCESS_TERMINATE | _PROCESS_SET_QUOTA, 0, process.pid)
+            if not process_handle:
+                self._raise_last_error("OpenProcess")
+            if not self._kernel32.AssignProcessToJobObject(self._handle,
+                                                            _windows_handle(process_handle)):
+                self._raise_last_error("AssignProcessToJobObject")
+            self._process_assigned = True
+            if self._kernel32.ResumeThread(_windows_handle(thread)) == _WAIT_FAILED:
+                self._raise_last_error("ResumeThread")
+        except BaseException as error:
+            primary_error = error
+        close_errors = []
+        if process_handle:
+            try:
+                self._close_native_handle(process_handle, "CloseHandle(process)")
+            except BaseException as error:
+                close_errors.append(error)
+        try:
+            self._close_native_handle(thread, "CloseHandle(thread)")
+        except BaseException as error:
+            close_errors.append(error)
+        if primary_error is not None:
+            if close_errors:
+                raise OSError(f"{primary_error}; handle close failures: {'; '.join(map(str, close_errors))}") from primary_error
+            raise primary_error
+        if close_errors:
+            raise OSError("handle close failures: " + "; ".join(map(str, close_errors)))
 
     def terminate(self):
         if self._closed or not self._handle:
@@ -135,39 +252,68 @@ class _WindowsJobObject:
         if self._closed:
             return
         handle = self._handle
-        self._handle = None
-        self._closed = True
         if handle and not self._kernel32.CloseHandle(handle):
             self._raise_last_error("CloseHandle")
+        self._handle = None
+        self._closed = True
+
+
+def _raise_lifecycle_error(primary, cleanup_errors):
+    if not cleanup_errors:
+        if primary is not None:
+            raise primary
+        return
+    detail = "; ".join(str(error) for error in cleanup_errors)
+    if primary is None:
+        raise OSError(f"Windows worker cleanup failed: {detail}")
+    raise OSError(f"{primary}; cleanup failures: {detail}") from primary
 
 
 def _attach_windows_job(process):
     job = None
+    primary_error = None
     try:
         job = _WindowsJobObject()
         process._kyberia_windows_job = job
         job.assign_and_resume(process)
-    except BaseException:
-        if job is not None:
-            try:
-                job.terminate()
-            except BaseException:
-                pass
+    except BaseException as error:
+        primary_error = error
+    if primary_error is None:
+        return job
+    cleanup_errors = []
+    terminate_failed = False
+    if job is not None:
+        try:
+            job.terminate()
+        except BaseException as error:
+            cleanup_errors.append(error)
+            terminate_failed = True
+    process_assigned = getattr(job, "_process_assigned", True) if job is not None else False
+    if job is None or terminate_failed or not process_assigned:
         try:
             process.kill()
-        except BaseException:
+        except BaseException as error:
+            cleanup_errors.append(error)
+    try:
+        process.wait(timeout=2)
+    except BaseException as error:
+        cleanup_errors.append(error)
+        try:
+            process.kill()
+        except ProcessLookupError:
             pass
+        except BaseException as kill_error:
+            cleanup_errors.append(kill_error)
         try:
             process.wait(timeout=2)
-        except BaseException:
-            pass
-        if job is not None:
-            try:
-                job.close()
-            except BaseException:
-                pass
-        raise
-    return job
+        except BaseException as reap_error:
+            cleanup_errors.append(reap_error)
+    if job is not None:
+        try:
+            job.close()
+        except BaseException as error:
+            cleanup_errors.append(error)
+    _raise_lifecycle_error(primary_error, cleanup_errors)
 
 
 def _stop(child):
@@ -250,6 +396,8 @@ def _pipe_reader(pipe, label, events, stop_event):
                 return
     except (OSError, ValueError):
         pass
+    except BaseException as error:
+        _put_pipe_event(events, ("pipe_error", label, str(error).encode()[:1024]), stop_event)
     finally:
         _put_pipe_event(events, ("eof", label, b""), stop_event)
 
@@ -264,11 +412,14 @@ def _consume_pipe_events(events, output, eof, stdout_limit):
         if kind == "eof":
             eof.add(label)
             continue
+        if kind == "pipe_error":
+            status = "process_error"
+            continue
         if kind != "data":
             continue
         bound = stdout_limit if label == "stdout" else MAX_STDERR
         remaining = bound - len(output[label])
-        if len(chunk) > remaining:
+        if len(chunk) >= remaining:
             output[label].extend(chunk[:max(0, remaining)])
             status = "output_limit"
         else:
@@ -276,13 +427,24 @@ def _consume_pipe_events(events, output, eof, stdout_limit):
 
 
 def _close_pipes(child):
+    errors = []
     for pipe in (child.stdin, child.stdout, child.stderr):
         if pipe is None:
             continue
         try:
             pipe.close()
-        except (OSError, ValueError):
-            pass
+        except BaseException as error:
+            errors.append(error)
+    return errors
+
+
+def _join_pipe_threads(threads):
+    errors = []
+    for label, thread in threads:
+        thread.join(timeout=_WINDOW_PIPE_JOIN_S)
+        if thread.is_alive():
+            errors.append(OSError(f"Windows {label} pipe thread did not stop"))
+    return errors
 
 
 def _execute_windows(argv, timeout_s, cancel, stdout_limit):
@@ -306,7 +468,7 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
             thread = threading.Thread(target=_pipe_reader,
                                        args=(pipe, label, events, stop_event), daemon=True)
             thread.start()
-            readers.append(thread)
+            readers.append((label, thread))
         while True:
             if cancel and cancel.is_set():
                 status = "cancelled"
@@ -346,12 +508,28 @@ def _execute_windows(argv, timeout_s, cancel, stdout_limit):
                     break
                 time.sleep(0.005)
             if eof != {"stdout", "stderr"}:
+                # Closing the parent pipe handles is the bounded interrupt for
+                # a native read that did not observe process termination.
+                cleanup_errors = _close_pipes(child)
+                interrupt_deadline = time.monotonic() + _WINDOW_PIPE_JOIN_S
+                while eof != {"stdout", "stderr"} and time.monotonic() < interrupt_deadline:
+                    drained = _consume_pipe_events(events, output, eof, stdout_limit)
+                    if status == "completed" and drained != "completed":
+                        status = drained
+                    if eof == {"stdout", "stderr"}:
+                        break
+                    time.sleep(0.005)
+            else:
+                cleanup_errors = []
+            if eof != {"stdout", "stderr"}:
                 cleanup_error = cleanup_error or "pipe readers did not reach EOF before cleanup bound"
                 status = "process_error"
             stop_event.set()
-            _close_pipes(child)
-            for thread in readers:
-                thread.join(timeout=_WINDOW_PIPE_JOIN_S)
+            cleanup_errors.extend(_close_pipes(child))
+            cleanup_errors.extend(_join_pipe_threads(readers))
+            if cleanup_errors:
+                cleanup_error = "; ".join(str(error) for error in cleanup_errors)[:1024]
+                status = "process_error"
             drained = _consume_pipe_events(events, output, eof, stdout_limit)
             if status == "completed" and drained != "completed":
                 status = drained
@@ -424,7 +602,7 @@ def execute(argv, timeout_s, cancel=None, stdout_limit=MAX_JSON):
                     limit = stdout_limit if key.data == "stdout" else MAX_STDERR
                     remaining = limit - len(output[key.data])
                     output[key.data].extend(chunk[:remaining])
-                    if len(chunk) > remaining: status = "output_limit"; break
+                    if len(chunk) >= remaining: status = "output_limit"; break
                 if status != "completed": break
     except FileNotFoundError:
         status = "unavailable"

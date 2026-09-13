@@ -43060,8 +43060,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570",
-          "sha256": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570"
+          "revision": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf",
+          "sha256": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf"
         }
       ],
       "validation": [
@@ -169474,8 +169474,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc",
-          "sha256": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc"
+          "revision": "ccdf9b7c4d685679de4e571910dc2d29eec0e4b8df7092693852238a7ce12699",
+          "sha256": "ccdf9b7c4d685679de4e571910dc2d29eec0e4b8df7092693852238a7ce12699"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -177701,8 +177701,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc",
-          "sha256": "e158f006a1559ec771d4c60ecd1b625705ab3d22a3971d1446960b6d09e083bc"
+          "revision": "ccdf9b7c4d685679de4e571910dc2d29eec0e4b8df7092693852238a7ce12699",
+          "sha256": "ccdf9b7c4d685679de4e571910dc2d29eec0e4b8df7092693852238a7ce12699"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -239674,8 +239674,8 @@
         {
           "path": "research/active/process.py",
           "description": "Bounded cross-platform research supervisor",
-          "revision": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570",
-          "sha256": "e1309168b0acbc427762d7733a6b609f65c58e1015012afeb9fea1c02283a570"
+          "revision": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf",
+          "sha256": "d108427bd27487f4ea1b54f2ec4a0d2c8885955e5eadd07939786b8160b2d5bf"
         }
       ],
       "validation": [

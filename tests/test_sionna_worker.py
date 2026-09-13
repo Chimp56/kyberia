@@ -1,10 +1,12 @@
 """Contract/lifecycle tests run without Sionna; real engine proof is separate."""
 
 from copy import deepcopy
+import ctypes
 import io
 import json
 import os
 import queue
+import signal
 import subprocess
 from pathlib import Path
 import sys
@@ -13,7 +15,6 @@ import time
 import tempfile
 import unittest
 import venv
-from types import SimpleNamespace
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -188,6 +189,23 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(result["state"], "output_limit")
         self.assertEqual(len(result["stdout"]), MAX_RESULT_BYTES)
 
+        for label, bound in (("stdout", MAX_RESULT_BYTES), ("stderr", MAX_LOG_BYTES)):
+            exact = {"stdout": b"", "stderr": b""}
+            exact[label] = b"x" * bound
+            process = Process(exact["stdout"], exact["stderr"], delayed=False)
+            with mock.patch.object(client.os, "name", "nt"):
+                result = client._supervise_windows(process, b"{}", 1, None)
+            self.assertEqual(result["state"], "output_limit")
+            self.assertEqual(len(result[label]), bound)
+
+            over = {"stdout": b"", "stderr": b""}
+            over[label] = b"x" * (bound + 1)
+            process = Process(over["stdout"], over["stderr"], delayed=False)
+            with mock.patch.object(client.os, "name", "nt"):
+                result = client._supervise_windows(process, b"{}", 1, None)
+            self.assertEqual(result["state"], "output_limit")
+            self.assertEqual(len(result[label]), bound)
+
     def test_windows_pipe_reader_stops_after_consumer_shutdown(self):
         from rfatlas_sionna import client
 
@@ -208,6 +226,88 @@ class LifecycleTests(unittest.TestCase):
         stop_event.set()
         reader.join(timeout=1)
         self.assertFalse(reader.is_alive())
+
+    def test_windows_cleanup_interrupts_blocked_read_and_write(self):
+        from rfatlas_sionna import client
+
+        class BlockingRead:
+            def __init__(self):
+                self.released = threading.Event()
+
+            def read(self, _size):
+                self.released.wait(2)
+                return b""
+
+            def close(self):
+                self.released.set()
+
+        class BlockingWrite:
+            def __init__(self):
+                self.released = threading.Event()
+
+            def write(self, _payload):
+                self.released.wait(2)
+                return 0
+
+            def flush(self):
+                return None
+
+            def close(self):
+                self.released.set()
+
+        class Process:
+            returncode = 0
+
+            def __init__(self):
+                self.stdin = BlockingWrite()
+                self.stdout = BlockingRead()
+                self.stderr = BlockingRead()
+
+            def poll(self):
+                return self.returncode
+
+            def wait(self, timeout=None):
+                return self.returncode
+
+        process = Process()
+        with mock.patch.object(client.os, "name", "nt"):
+            result = client._supervise_windows(process, b"{}", 1, None)
+        self.assertEqual(result["state"], "exited")
+        self.assertIsNone(result["cleanup_error"], result)
+
+    def test_windows_cleanup_reports_lingering_blocked_reader(self):
+        from rfatlas_sionna import client
+        released = threading.Event()
+
+        class NeverRead:
+            def read(self, _size):
+                released.wait(2)
+                return b""
+
+            def close(self):
+                # Simulate a native pipe close that cannot interrupt this read.
+                return None
+
+        class Process:
+            returncode = 0
+
+            def __init__(self):
+                self.stdin = io.BytesIO()
+                self.stdout = NeverRead()
+                self.stderr = io.BytesIO()
+
+            def poll(self):
+                return self.returncode
+
+            def wait(self, timeout=None):
+                return self.returncode
+
+        process = Process()
+        with mock.patch.object(client.os, "name", "nt"):
+            result = client._supervise_windows(process, b"{}", 1, None)
+        self.assertEqual(result["state"], "process_error")
+        self.assertIn("stdout pipe thread did not stop", result["cleanup_error"])
+        released.set()
 
     def test_windows_stop_terminates_the_owned_job_tree(self):
         from rfatlas_sionna import client
@@ -231,6 +331,132 @@ class LifecycleTests(unittest.TestCase):
                 client._attach_windows_job(process)
         process.kill.assert_called_once_with()
         process.wait.assert_called_once_with(timeout=2)
+
+    @staticmethod
+    def fake_windows_job(kernel):
+        from rfatlas_sionna import client
+        job = object.__new__(client._WindowsJobObject)
+        job._kernel32 = kernel
+        job._handle = 99
+        job._closed = False
+        job._process_assigned = False
+        return job
+
+    @staticmethod
+    def fake_thread_entry(client, thread_id, process_id):
+        def fill(_snapshot, pointer):
+            entry = ctypes.cast(pointer, ctypes.POINTER(client._WindowsThreadEntry32)).contents
+            entry.th32ThreadID = thread_id
+            entry.th32OwnerProcessID = process_id
+            return 1
+        return fill
+
+    def test_windows_thread_discovery_rejects_missing_multiple_and_unopenable(self):
+        from rfatlas_sionna import client
+        for mode in ("missing", "multiple", "unopenable"):
+            kernel = mock.Mock()
+            kernel.CreateToolhelp32Snapshot.return_value = 10
+            kernel.CloseHandle.return_value = 1
+            if mode == "missing":
+                kernel.Thread32First.return_value = 0
+                last_error = [18]
+            else:
+                kernel.Thread32First.side_effect = self.fake_thread_entry(client, 22, 700)
+                if mode == "multiple":
+                    seen = [False]
+                    def next_entry(_snapshot, pointer):
+                        if not seen[0]:
+                            seen[0] = True
+                            return self.fake_thread_entry(client, 23, 700)(_snapshot, pointer)
+                        return 0
+                    kernel.Thread32Next.side_effect = next_entry
+                else:
+                    kernel.Thread32Next.return_value = 0
+                kernel.OpenThread.return_value = 0 if mode == "unopenable" else 33
+                last_error = [18, 5] if mode == "unopenable" else [18]
+            job = self.fake_windows_job(kernel)
+            expected_error = {"missing": "no thread", "multiple": "multiple", "unopenable": "OpenThread"}[mode]
+            with self.subTest(mode=mode), mock.patch.object(
+                    client.ctypes, "get_last_error", side_effect=last_error, create=True):
+                with self.assertRaisesRegex(OSError, expected_error):
+                    job._open_suspended_thread(700)
+            kernel.CloseHandle.assert_called_once_with(10)
+
+    def test_windows_resume_failure_and_thread_handle_close_are_structured(self):
+        from rfatlas_sionna import client
+        kernel = mock.Mock()
+        kernel.OpenProcess.return_value = 44
+        kernel.AssignProcessToJobObject.return_value = 1
+        kernel.ResumeThread.return_value = client._WAIT_FAILED
+        kernel.CloseHandle.return_value = 1
+        job = self.fake_windows_job(kernel)
+        process = mock.Mock(pid=700, _handle=44)
+        kernel.AssignProcessToJobObject.return_value = 0
+        with mock.patch.object(job, "_open_suspended_thread", return_value=32), \
+                mock.patch.object(client.ctypes, "get_last_error", return_value=5, create=True), \
+                self.assertRaisesRegex(OSError, "AssignProcessToJobObject"):
+            job.assign_and_resume(process)
+        self.assertFalse(job._process_assigned)
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(44), mock.call(32)])
+
+        kernel.reset_mock()
+        kernel.OpenProcess.return_value = 44
+        kernel.AssignProcessToJobObject.return_value = 1
+        with mock.patch.object(job, "_open_suspended_thread", return_value=33), \
+                mock.patch.object(client.ctypes, "get_last_error", return_value=5, create=True), \
+                self.assertRaisesRegex(OSError, "ResumeThread"):
+            job.assign_and_resume(process)
+        self.assertEqual(kernel.CloseHandle.call_args_list,
+                         [mock.call(44), mock.call(33)])
+
+        kernel.ResumeThread.return_value = 1
+        kernel.CloseHandle.return_value = 0
+        with mock.patch.object(job, "_open_suspended_thread", return_value=34), \
+                mock.patch.object(client.ctypes, "get_last_error", return_value=6, create=True), \
+                self.assertRaisesRegex(OSError, "handle close"):
+            job.assign_and_resume(process)
+
+    def test_windows_job_close_failure_is_retryable_and_never_successful(self):
+        from rfatlas_sionna import client
+        kernel = mock.Mock()
+        kernel.CloseHandle.return_value = 0
+        job = self.fake_windows_job(kernel)
+        with mock.patch.object(client.ctypes, "get_last_error", return_value=5, create=True), \
+                self.assertRaises(OSError):
+            job.close()
+        self.assertFalse(job._closed)
+        self.assertEqual(job._handle, 99)
+
+    def test_windows_nested_job_assignment_failure_is_reported_after_cleanup(self):
+        from rfatlas_sionna import client
+        process = mock.Mock()
+        job = mock.Mock()
+        job.assign_and_resume.side_effect = OSError("nested job incompatible")
+        with mock.patch.object(client, "_WindowsJobObject", return_value=job), \
+                self.assertRaisesRegex(OSError, "nested job incompatible"):
+            client._attach_windows_job(process)
+        job.terminate.assert_called_once_with()
+        job.close.assert_called_once_with()
+        process.wait.assert_called_once_with(timeout=2)
+        process.kill.assert_not_called()
+
+    def test_windows_attach_cleanup_failures_are_not_suppressed(self):
+        from rfatlas_sionna import client
+        process = mock.Mock()
+        job = mock.Mock()
+        job.assign_and_resume.side_effect = OSError("resume setup failed")
+        job.terminate.side_effect = OSError("terminate failed")
+        job.close.side_effect = OSError("close failed")
+        process.kill.side_effect = OSError("kill failed")
+        process.wait.side_effect = TimeoutError("wait failed")
+        with mock.patch.object(client, "_WindowsJobObject", return_value=job), \
+                self.assertRaisesRegex(OSError, "resume setup failed.*cleanup failures"):
+            client._attach_windows_job(process)
+        job.terminate.assert_called_once_with()
+        job.close.assert_called_once_with()
+        self.assertEqual(process.kill.call_count, 2)
+        self.assertEqual(process.wait.call_count, 2)
 
     @unittest.skipUnless(os.name == "nt", "Windows job-object descendant contract")
     def test_windows_job_object_kills_descendants_after_parent_exit(self):
@@ -282,6 +508,12 @@ class LifecycleTests(unittest.TestCase):
             self.assertEqual(result["state"], "output_limit")
             self.assertLessEqual(len(result["stderr"]), MAX_LOG_BYTES)
 
+    def test_posix_exact_output_limits_are_terminal(self):
+        for fd, bound in ((1, MAX_RESULT_BYTES), (2, MAX_LOG_BYTES)):
+            result = self.supervise("import os; os.write(%d,b'x'*%d)" % (fd, bound))
+            self.assertEqual(result["state"], "output_limit")
+            self.assertEqual(len(result["stdout"] if fd == 1 else result["stderr"]), bound)
+
     def test_engine_absence_explicit_no_fallback(self):
         # A fresh stdlib-only environment guarantees absence on any supported POSIX host.
         # Preserve its tiny ignored directory; do not recursively clean test artifacts.
@@ -295,28 +527,47 @@ class LifecycleTests(unittest.TestCase):
         self.assertNotIn("data", result.get("result", {}))
 
     def test_cli_cancellation_while_input_is_incomplete(self):
-        from workers.sionna import worker
+        worker = ROOT / "workers/sionna/worker.py"
+        process = subprocess.Popen(
+            [sys.executable, str(worker), "--python", sys.executable],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            creationflags=(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                            if os.name == "nt" else 0),
+        )
+        try:
+            process.stdin.write(b"{")
+            process.stdin.flush()
+            time.sleep(0.25)
+            if os.name == "nt":
+                process.send_signal(getattr(signal, "CTRL_BREAK_EVENT", 1))
+            else:
+                process.send_signal(signal.SIGINT)
+            stdout, stderr = process.communicate(timeout=2)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=2)
+        result = json.loads(stdout)
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(result["error"], "cancelled")
 
-        released = threading.Event()
-
-        class BlockingStream:
-            def read(self, _maximum):
-                released.wait(2)
-                return b"{"
-
-        cancellation = threading.Event()
-        stream = SimpleNamespace(buffer=BlockingStream())
-        timer = threading.Timer(0.05, cancellation.set)
+    @unittest.skipUnless(os.name == "nt", "Windows CTRL_BREAK worker contract")
+    def test_windows_supervisor_gets_canonical_cooperative_cancellation(self):
+        event = threading.Event()
+        timer = threading.Timer(0.1, event.set)
+        program = ("import signal,sys,time\n"
+                   "def cancel(*_):\n"
+                   " sys.stdout.write('{\\\"status\\\":\\\"failed\\\",\\\"error\\\":\\\"cancelled\\\"}\\n'); sys.stdout.flush(); raise SystemExit(2)\n"
+                   "signal.signal(signal.SIGBREAK, cancel)\n"
+                   "sys.stdin.buffer.read()\n"
+                   "time.sleep(10)\n")
         timer.start()
         try:
-            # This injects the same cancellation token used by main(), avoiding
-            # a platform-specific hard process signal in the contract test.
-            with mock.patch.object(worker.os, "name", "nt"), mock.patch.object(worker.sys, "stdin", stream):
-                with self.assertRaisesRegex(ContractError, "cancelled"):
-                    worker.read_request(cancellation)
+            result = supervise([sys.executable, "-c", program], b"{}", 1, event)
         finally:
-            released.set()
             timer.join()
+        self.assertEqual(result["state"], "cancelled", result)
+        self.assertIn(b'"error":"cancelled"', result["stdout"])
 
 
 class RecordedResultTests(unittest.TestCase):
