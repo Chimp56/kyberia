@@ -30,6 +30,14 @@ BOOTSTRAP_STAGE_IDS = (
 _ACTIVE_BOOTSTRAP_STAGE = None
 
 
+def _corepack_command():
+    """Return the Corepack launcher that CreateProcess can start per OS."""
+    # The Windows Node distribution exposes Corepack as a .cmd launcher.  A
+    # bare `corepack` name is resolved by the interactive shell but is not a
+    # portable executable name for subprocess.Popen(shell=False).
+    return "corepack.cmd" if os.name == "nt" else "corepack"
+
+
 def _run_bootstrap_stage(stage, operation):
     """Run one bootstrap operation while retaining only its safe stage ID."""
     if stage not in BOOTSTRAP_STAGE_IDS:
@@ -181,7 +189,7 @@ def lab_pnpm(*args):
     environment = dict(os.environ)
     environment["COREPACK_HOME"] = str(ROOT / "tools/lab-mcp/.tools/corepack")
     run(
-        "corepack",
+        _corepack_command(),
         "pnpm@12.3.4",
         "--dir",
         "tools/lab-mcp",

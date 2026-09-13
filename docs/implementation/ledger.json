@@ -147331,8 +147331,8 @@
         {
           "path": "tools/dev.py",
           "description": "Discoverable validation commands with guarded diagnostics, Lab MCP checks, and CI-enforced desktop Playwright and native Tauri build checks",
-          "revision": "a2b7e82fd41ae362a2c791fbeb6dee6573f781c82bdebf95d3db15913e7ef241",
-          "sha256": "a2b7e82fd41ae362a2c791fbeb6dee6573f781c82bdebf95d3db15913e7ef241"
+          "revision": "cc5d65e2ebd5dfd95fd4fc930641d38bd211119178c862cc7fec822eef7b5807",
+          "sha256": "cc5d65e2ebd5dfd95fd4fc930641d38bd211119178c862cc7fec822eef7b5807"
         }
       ],
       "validation": [

@@ -62,6 +62,21 @@ class LabPackageManagerTests(unittest.TestCase):
             str(DEV.ROOT / "tools/lab-mcp/.tools/corepack"),
         )
 
+    def test_windows_uses_corepack_cmd_without_enabling_a_shell(self):
+        with patch.object(DEV.os, "name", "nt"), patch.object(
+            Path, "is_file", return_value=False
+        ), patch.object(DEV, "run") as run:
+            DEV.lab_pnpm("install", "--frozen-lockfile")
+
+        args, kwargs = run.call_args
+        self.assertEqual(args[:2], ("corepack.cmd", "pnpm@12.3.4"))
+        self.assertEqual(args[2:6], ("--dir", "tools/lab-mcp", "install", "--frozen-lockfile"))
+        self.assertNotIn("shell", kwargs)
+        self.assertEqual(
+            kwargs["env"]["COREPACK_HOME"],
+            str(DEV.ROOT / "tools/lab-mcp/.tools/corepack"),
+        )
+
     def test_lab_bootstrap_store_is_relative_to_package_directory(self):
         with patch.object(DEV, "lab_pnpm") as pnpm:
             DEV.command("lab-mcp-bootstrap")
