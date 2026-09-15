@@ -16,5 +16,5 @@ Local results on 2026-09-13: TypeScript formatting and typecheck passed; all 33 
 The real-host procedure is in the package README. A network-authorized
 `pnpm audit --prod --json` on 2026-09-13 reported zero vulnerabilities across
 92 production dependencies. Current macOS cannot execute the Windows Job Object
-branch, CUDA, authorized Kismet radios or a true spectrum source. These
+branch, authorized Kismet radios or a true spectrum source. These
 hardware/host gates are not reported as validated.

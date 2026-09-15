@@ -216,7 +216,7 @@ class EvidenceGateTests(unittest.TestCase):
     def setUp(self):
         self.base = Path(tempfile.mkdtemp(prefix="kyberia-gate-test-"))
         self.addCleanup(self.cleanup_files)
-        self.gate = gates.catalog()["sionna-cuda"]
+        self.gate = gates.catalog()["sionna-scenes-cpu"]
         self.log = self.base / "acceptance.log"
         self.log.write_text("unit-test-only fabricated report; never runtime evidence\n")
         self.ref = {"path": self.log.name, "sha256": hashlib.sha256(self.log.read_bytes()).hexdigest()}
@@ -246,7 +246,10 @@ class EvidenceGateTests(unittest.TestCase):
             self.assertEqual(gates.validate(doc, gate, self.base), [])
             self.assertEqual(doc["status"], "NOT_RUN")
             self.assertTrue(gate["procedure"])
-        self.assertEqual(len(gates.catalog()), 20)
+        self.assertEqual(len(gates.catalog()), 19)
+        encoded = json.dumps(catalog_generator.build()).lower()
+        self.assertNotIn("cuda", encoded)
+        self.assertNotIn("sionna-gpu", encoded)
 
     def test_pass_requires_complete_evidence(self):
         doc = gates.template(self.gate)
@@ -255,7 +258,7 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertEqual(gates.validate(self.pass_document(), self.gate, self.base), [])
 
     def test_missing_hardware_version_or_exact_pin_rejected(self):
-        for section, key in [("hardware", "gpu_model"), ("versions", "cuda"), ("versions", "sionna_rt")]:
+        for section, key in [("hardware", "cpu"), ("versions", "backend"), ("versions", "sionna_rt")]:
             doc = self.pass_document()
             doc[section][key] = "unknown"
             self.assertTrue(gates.validate(doc, self.gate, self.base))
@@ -278,7 +281,7 @@ class EvidenceGateTests(unittest.TestCase):
             self.assertTrue(gates.validate(doc, self.gate, self.base))
 
     def test_mock_or_contract_proof_cannot_satisfy_hardware(self):
-        for kind in ["synthetic", "synthetic_contract", "runtime", "measured_field"]:
+        for kind in ["synthetic", "synthetic_contract", "hardware_runtime", "measured_field"]:
             doc = self.pass_document()
             doc["evidence_kind"] = kind
             self.assertTrue(gates.validate(doc, self.gate, self.base))
@@ -304,9 +307,9 @@ class EvidenceGateTests(unittest.TestCase):
         doc = gates.template(self.gate)
         doc["status"] = "BLOCKED_EXTERNAL"
         self.assertTrue(gates.validate(doc, self.gate, self.base))
-        doc["external_blocker"] = {"category": "hardware", "dependency": "compatible CUDA GPU",
-                                   "reason": "test-only absent hardware", "requirement": "sionna-cuda",
-                                   "resume_procedure": "run pinned GPU acceptance suite", "evidence": self.ref}
+        doc["external_blocker"] = {"category": "hardware", "dependency": "CPU/LLVM runtime",
+                                   "reason": "test-only absent runtime", "requirement": "sionna-scenes-cpu",
+                                   "resume_procedure": "run pinned CPU acceptance suite", "evidence": self.ref}
         self.assertEqual(gates.validate(doc, self.gate, self.base), [])
         doc["external_blocker"]["category"] = "implementation_missing"
         self.assertTrue(gates.validate(doc, self.gate, self.base))
@@ -337,7 +340,7 @@ class EvidenceGateTests(unittest.TestCase):
 
     def test_whitespace_unknown_and_date_only_utc_rejected(self):
         doc = self.pass_document()
-        doc["versions"]["cuda"] = " unknown "
+        doc["versions"]["backend"] = " unknown "
         self.assertTrue(gates.validate(doc, self.gate, self.base))
         doc = self.pass_document()
         doc["executed_at_utc"] = "2026-09-06Z"

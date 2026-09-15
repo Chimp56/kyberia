@@ -48,13 +48,13 @@ class LedgerTests(unittest.TestCase):
         for record in self.data["records"]:
             self.assertEqual(record["source"]["start_line"], next_line)
             next_line = record["source"]["end_line"] + 1
-        self.assertEqual(next_line, 6202)
+        self.assertEqual(next_line, 6211)
 
     def test_all_explicit_occurrences_and_headings(self):
         inventory = self.data["inventory"]
         self.assertEqual(inventory["explicit_id_occurrences"], 438)
         self.assertEqual(inventory["unique_original_ids"], 341)
-        self.assertEqual(inventory["headings"], 446)
+        self.assertEqual(inventory["headings"], 447)
         self.assertEqual(len({r["id"] for r in self.data["records"]}), len(self.data["records"]))
 
     def test_conflicting_original_ids_are_not_merged(self):
@@ -253,10 +253,10 @@ class LedgerTests(unittest.TestCase):
 
     def test_blocker_and_adr_explanations_render(self):
         record = self.record()
-        record["blocker"] = {"reason": "CUDA device physically absent", "evidence": self.evidence()}
+        record["blocker"] = {"reason": "radio device physically absent", "evidence": self.evidence()}
         record["adr"] = {"reason": "Preserve reviewed compatibility", "path": "example.md"}
         trace = ledger.render_trace(self.data)
-        self.assertIn("CUDA device physically absent", trace)
+        self.assertIn("radio device physically absent", trace)
         self.assertIn("Preserve reviewed compatibility", trace)
 
     def test_malformed_collection_shapes_return_errors(self):

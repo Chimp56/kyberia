@@ -122,7 +122,7 @@ test(
     await writeFile(
       coordinatorPath,
       canonical({
-        schemaVersion: 1,
+        schemaVersion: 2,
         stateDirectory: join(state, "runs"),
         manifestPrivateKeyEnv: coordinator.privateName,
         manifestPublicKeyEnv: coordinator.publicName,

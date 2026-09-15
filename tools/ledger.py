@@ -442,7 +442,7 @@ def initial_dag(ledger):
         ("kismet-live-proof", ["kismet-offline-proof"], "Kismet integration", "Authentication, capabilities, source/dwell/drop context; separate live-radio gates", refs("OSS-001")),
         ("spatial-renderer-proof", ["contracts"], "spatial/UI", "Calibration and honest numerical renderer; renderer/geometry benchmark gates", refs("MAPB-001", "MAPB-002", "ANA-001", "OSS-010")),
         ("active-proof", ["contracts"], "active measurement", "Authenticated endpoint and topology-specific bounded probes", refs("ACTB-001", "ACTB-002", "ACTB-003", "ACTB-004")),
-        ("sionna-proof", ["contracts"], "Sionna RT", "Pinned CPU scene/result round trip; distinct CUDA and measured gates", refs("OSS-004", "OSS-005", "OSS-006")),
+        ("sionna-proof", ["contracts"], "Sionna RT", "Pinned CPU/LLVM scene/result round trip; accelerator selectors rejected; measured gates remain distinct", refs("OSS-004", "OSS-005", "OSS-006")),
         ("interchange-proof", ["contracts"], "architecture/documentation", "Neutral schema and independent deterministic round trips", refs("OSS-007")),
     ]
     nodes = [{"id": name, "kind": "prerequisite_proof", "depends_on": deps,

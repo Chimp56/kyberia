@@ -59,7 +59,7 @@ bootstrap step before runtime tests execute. Independently reviewed diagnostics
 now emit only one of five fixed bootstrap stage IDs and a bounded numeric exit,
 while suppressing command text, paths, environment and child output. A new
 hosted run must identify and correct that stage before the reviewed refusal
-fixtures receive native Windows execution. CUDA, physical-radio, Kismet and
+fixtures receive native Windows execution. Physical-radio, Kismet and
 spectrum executions remain runtime gates rather than simulated evidence.
 
 The generated traceability matrix currently reports **66 VALIDATED, 83
@@ -146,7 +146,7 @@ product capability is validated.
 | Barrier-aware measured interpolation | Integrated and independently approved at `425edfe` | Direct finite-segment path cost, stable weights, unknown support, budgets and cancellation are validated; polygon shortest paths, floors, calibrated uncertainty and publication remain open |
 | Active TCP measurement foundation | Integrated through `e4eec6d`; reviewed Windows fixture correction `f019928` | Reviewed scheduling, attribution, budgets, cancellation and statistics are integrated. Native Windows hosted validation of refusal completion remains |
 | Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
-| Kyberia Lab MCP | Integrated through `964a5ae`; merge correction `eb3574d` | Exact requested MCP surface and hardened coordinator/runner pass local checks and independent review. Provisioned authenticated hosts plus physical Windows/Kismet/CUDA/spectrum executions remain |
+| Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction in isolated integration, review pending | Exact requested MCP surface and hardened coordinator/runner pass local checks and independent review. The correction removes the accelerator suite/selector; provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
 | Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 
@@ -271,13 +271,15 @@ IDs must remain section-qualified.
    three-host CI gate, using native Windows results to accept or reject the
    refusal-race correction.
 2. Provision authenticated Lab runner configuration on available Windows,
-   Kismet, CUDA and spectrum hosts and execute the signed runtime gates.
-3. Implement defensive map-asset admission and operation-backed floorplan
+   Kismet and spectrum hosts and execute the signed runtime gates.
+3. Complete independent review and integrate the CPU/LLVM-only Sionna worker
+   correction; keep accelerator execution outside the application capability.
+4. Implement defensive map-asset admission and operation-backed floorplan
    calibration through application and desktop boundaries, with parser/security
    review and real UI evidence.
-4. Connect reviewed native capture, point-survey, active diagnostics, measured
+5. Connect reviewed native capture, point-survey, active diagnostics, measured
    interpolation, and project persistence into the usable Phase 1 workflow.
-5. Audit Phase 0/1 acceptance against the complete ledger, then continue the
+6. Audit Phase 0/1 acceptance against the complete ledger, then continue the
    remaining roadmap phases in dependency order.
 
 Earlier detailed checkpoints and validation histories are retained in

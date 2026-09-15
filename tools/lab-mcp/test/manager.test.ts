@@ -53,7 +53,7 @@ class Fake implements Executor {
       schemaVersion: 1 as const,
       hostId: challenge.hostId,
       challengeDigest: digest(canonical(challenge)),
-      capabilities: ["wifi", "cuda"],
+      capabilities: ["wifi", "cpu-llvm"],
     };
     return canonical({
       payload,
@@ -96,7 +96,7 @@ class Fake implements Executor {
       ).text,
       stderr: "",
       sanitization: "kyberia-lab-text-v2" as const,
-      capabilities: ["wifi", "cuda"],
+      capabilities: ["wifi", "cpu-llvm"],
       toolIdentities: [
         {
           role: "git" as const,
@@ -150,6 +150,10 @@ test("immutable revision, allowlists and strict identifiers reject hostile input
   await assert.rejects(
     manager.probe("lab-one", "sionna", { scene_set: "other" }),
   );
+  await assert.rejects(
+    manager.probe("lab-one", "sionna", { cpu_or_gpu: "gpu" }),
+    /unsupported probe parameter/,
+  );
   assert.throws(() => manager.status("../run"));
 });
 
@@ -186,6 +190,18 @@ test("configuration forbids forwarding the coordinator private key", () => {
     bundleSha256: "0".repeat(64),
   };
   assert.throws(() => Config.parse(retiredInvocation));
+  const retiredSuite = JSON.parse(JSON.stringify(setup.config));
+  retiredSuite.hosts[0].suites["sionna-gpu"] =
+    retiredSuite.hosts[0].suites.foundation;
+  assert.throws(() => Config.parse(retiredSuite));
+  for (const retiredCapability of ["cuda", "gpu", "sionna-gpu"]) {
+    const retiredHost = JSON.parse(JSON.stringify(setup.config));
+    retiredHost.hosts[0].capabilities.push(retiredCapability);
+    assert.throws(
+      () => Config.parse(retiredHost),
+      /retired accelerator capabilities/,
+    );
+  }
 });
 
 test("coordinator and host key fingerprints must be distinct and paired", () => {

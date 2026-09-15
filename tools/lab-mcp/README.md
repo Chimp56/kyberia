@@ -60,7 +60,7 @@ Keep signing keys in the launching service's secret environment rather than the 
 5. Read run status, signed manifest and artifact inventory; independently verify both host response and coordinator manifest signatures and every artifact SHA-256.
 6. Repeat a request to prove nonce replay rejection; tamper with host, key, revision and artifact bytes to prove failure.
 7. Cancel queued and running jobs and verify bounded descendant termination plus signed cancelled manifests.
-8. On authorized Linux/Kismet, CUDA and spectrum hosts, run their named gates. On Windows, run the Job Object descendant fixture and retain hosted evidence.
+8. On authorized Linux/Kismet and spectrum hosts, run their named gates. Run Sionna only through the CPU/LLVM gate. On Windows, run the Job Object descendant fixture and retain hosted evidence.
 
 Only UTF-8 text summaries and logs use artifact class `kyberia-lab-text-v2`. The sanitizer bounds its working set and removes colon/hyphen MAC addresses, IPv4/IPv6 addresses, SSID values, local paths, common JSON/plain secret fields, cloud key IDs and Basic/Bearer credentials. Raw PCAP, PCAPNG, KismetDB, spectrum IQ, location traces and arbitrary files are never returned by this server.
 

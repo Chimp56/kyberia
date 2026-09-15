@@ -23,11 +23,19 @@ export const SUITES = [
   "capture",
   "kismet-contract",
   "sionna-cpu",
-  "sionna-gpu",
   "spectrum",
 ] as const;
 export const Suite = z.enum(SUITES);
 export const Probe = z.enum(["wifi", "kismet", "sionna", "spectrum"]);
+
+const capabilities = z
+  .array(ID)
+  .max(64)
+  .refine((v) => new Set(v).size === v.length)
+  .refine(
+    (v) => !v.some((id) => ["cuda", "gpu", "sionna-gpu"].includes(id)),
+    "retired accelerator capabilities are unsupported",
+  );
 
 const command = z
   .object({
@@ -110,10 +118,7 @@ const host = z
     displayName: z.string().min(1).max(80),
     identity: z.string().regex(/^sha256:[A-Za-z0-9+/]{43}=$/),
     publicKeyEnv: z.string().regex(/^KYBERIA_LAB_[A-Z0-9_]+_PUBLIC_KEY$/),
-    capabilities: z
-      .array(ID)
-      .max(64)
-      .refine((v) => new Set(v).size === v.length),
+    capabilities,
     allowedKismetVersions: z
       .array(
         z
@@ -138,7 +143,7 @@ const host = z
 
 export const Config = z
   .object({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.literal(2),
     stateDirectory: z.string().min(1).max(1024),
     manifestPrivateKeyEnv: z
       .string()
@@ -241,10 +246,7 @@ export const RunnerConfig = z
     checkoutDirectory: z.string().min(1).max(1024),
     replayDirectory: z.string().min(1).max(1024),
     maximumClockSkewSeconds: z.number().int().min(1).max(300),
-    capabilities: z
-      .array(ID)
-      .max(64)
-      .refine((v) => new Set(v).size === v.length),
+    capabilities,
     inputManifests: z.record(
       z.string().regex(/^sha256:[0-9a-f]{64}$/),
       z
@@ -317,9 +319,7 @@ export const kismetProbeInput = z
   })
   .strict();
 export const kismetGateInput = z.object({ host: ID, fixture_set: ID }).strict();
-export const sionnaGateInput = z
-  .object({ host: ID, cpu_or_gpu: z.enum(["cpu", "gpu"]), scene_set: ID })
-  .strict();
+export const sionnaGateInput = z.object({ host: ID, scene_set: ID }).strict();
 export const artifactInput = z
   .object({ run_id: ID, artifact_name: ARTIFACT })
   .strict();

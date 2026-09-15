@@ -20,7 +20,7 @@ const resource = (uri: URL, value: unknown) => ({
   ],
 });
 export function createServer(manager: LabManager): McpServer {
-  const server = new McpServer({ name: "kyberia-lab", version: "0.1.0" });
+  const server = new McpServer({ name: "kyberia-lab", version: "0.2.0" });
   server.registerResource(
     "hosts",
     "lab://hosts",
@@ -133,13 +133,11 @@ export function createServer(manager: LabManager): McpServer {
   server.registerTool(
     "run_sionna_gate",
     {
-      inputSchema: z
-        .object({ host: ID, cpu_or_gpu: z.enum(["cpu", "gpu"]), scene_set: ID })
-        .strict(),
+      inputSchema: z.object({ host: ID, scene_set: ID }).strict(),
     },
-    async ({ host, cpu_or_gpu, scene_set }) =>
+    async ({ host, scene_set }) =>
       json({
-        run_id: await manager.probe(host, "sionna", { cpu_or_gpu, scene_set }),
+        run_id: await manager.probe(host, "sionna", { scene_set }),
       }),
   );
   server.registerTool(

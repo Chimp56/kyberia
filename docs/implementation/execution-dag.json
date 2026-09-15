@@ -109,7 +109,7 @@
         "contracts"
       ],
       "owner": "Sionna RT",
-      "acceptance": "Pinned CPU scene/result round trip; distinct CUDA and measured gates",
+      "acceptance": "Pinned CPU/LLVM scene/result round trip; accelerator selectors rejected; measured gates remain distinct",
       "requirements": [
         "backlog:OSS-004:1",
         "backlog:OSS-005:1",
@@ -156,7 +156,7 @@
         "source:list_item:f5ff8914a56a23d9d7bc:1",
         "source:list_item:83e9ad494df0237bfc98:1",
         "source:list_item:e32aedfa49b3327368c0:1",
-        "source:list_item:77365857ed40d682f3e3:1",
+        "source:list_item:300ba335c194e606a181:1",
         "source:list_item:803fb28e10d97209e732:1",
         "source:list_item:b58f71ca04fdd589a998:1",
         "source:list_item:61ba89f124d7ed1ec52e:1",
@@ -398,7 +398,7 @@
         "source:spacing:01ba4719c80b6fe911b0:1012",
         "source:paragraph:41f5ed7d0a29a6a5e576:8",
         "source:spacing:01ba4719c80b6fe911b0:1013",
-        "source:list_item:b435c8cb9d8437bad256:1",
+        "source:list_item:2c349bad3534ff1c3a02:1",
         "source:list_item:2a40f30eebb94216f8a6:1",
         "source:list_item:e08049d1e67fce28723e:1",
         "source:list_item:feffe905049bd8f60c4c:1",
@@ -412,7 +412,7 @@
         "source:spacing:01ba4719c80b6fe911b0:1015",
         "source:list_item:3b96010efc703f06c241:1",
         "source:list_item:fbc04b6d142c8d37f44b:1",
-        "source:list_item:5967a25ed7c7d60aafaf:1",
+        "source:list_item:5269a81e5d04ce55d10d:1",
         "source:list_item:cf6081f2cfb6ef925773:1",
         "source:list_item:4899c2edf5da93291e11:1",
         "source:spacing:01ba4719c80b6fe911b0:1016"
@@ -1123,7 +1123,7 @@
         "docs/architecture/ADR/0032-kyberia-lab-mcp.md",
         "docs/security/kyberia-lab-mcp-threat-model.md"
       ],
-      "acceptance": "Official-SDK stdio MCP with exact resources/tools, pre-work host proof, signed immutable jobs/results/manifests, closed runner allowlists, bounds, cancellation and sanitized artifacts. Independent review and native Windows/Kismet/CUDA/spectrum execution remain open."
+      "acceptance": "Official-SDK stdio MCP with exact resources/tools, pre-work host proof, signed immutable jobs/results/manifests, closed runner allowlists, bounds, cancellation and sanitized artifacts. Independent review and native Windows/Kismet/spectrum execution remain open."
     }
   ]
 }

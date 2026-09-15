@@ -393,56 +393,6 @@
     },
     {
       "checks": [
-        "fresh_gpu_environment",
-        "cuda_probe",
-        "upstream_tests",
-        "canonical_scenes",
-        "cpu_gpu_tolerance",
-        "deterministic_seed",
-        "convergence",
-        "cancellation",
-        "timeout",
-        "device_loss",
-        "numerical_regression"
-      ],
-      "evidence_kind": "hardware_runtime",
-      "id": "sionna-cuda",
-      "pinned_versions": {
-        "sionna_rt": "2.0.1",
-        "sionna_source_revision": "bc0549155c7b782c7614a0ec06a0ac4e32b979ae"
-      },
-      "procedure": [
-        "On compatible CUDA hardware, create a fresh pinned GPU worker environment and capture model/driver/CUDA/memory metadata.",
-        "Run upstream and canonical suites with the CPU gate's same immutable job manifests; compare within separately justified CPU/GPU tolerances.",
-        "Exercise cancellation, timeout and GPU device loss; keep this gate separate from CPU acceptance."
-      ],
-      "required_hardware": [
-        "cpu",
-        "gpu_model",
-        "gpu_memory"
-      ],
-      "required_versions": [
-        "kyberia",
-        "sionna_source_revision",
-        "sionna_rt",
-        "mitsuba",
-        "drjit",
-        "python",
-        "backend",
-        "os",
-        "worker",
-        "cuda",
-        "driver"
-      ],
-      "requirements": [
-        "8.16",
-        "16.13/Sionna",
-        "20/Gate I"
-      ],
-      "status": "NOT_RUN"
-    },
-    {
-      "checks": [
         "ground_truth_geometry",
         "calibration_state",
         "train_holdout_separation",

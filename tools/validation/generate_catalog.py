@@ -76,12 +76,6 @@ def build():
          "Record raw arrays, percentiles/errors against high-budget reference, confidence intervals, elapsed time, peak memory and worker startup overhead.",
          "Review error versus cost and define versioned per-scene defaults; never invent an accuracy claim from a plausible heatmap."],
         ["8.18", "16.13/Sionna", "20/Gate I", "Appendix I/Sionna gate"], pins)
-    add("sionna-cuda", "hardware_runtime", common_versions + " cuda driver", "cpu gpu_model gpu_memory",
-        "fresh_gpu_environment cuda_probe upstream_tests canonical_scenes cpu_gpu_tolerance deterministic_seed convergence cancellation timeout device_loss numerical_regression",
-        ["On compatible CUDA hardware, create a fresh pinned GPU worker environment and capture model/driver/CUDA/memory metadata.",
-         "Run upstream and canonical suites with the CPU gate's same immutable job manifests; compare within separately justified CPU/GPU tolerances.",
-         "Exercise cancellation, timeout and GPU device loss; keep this gate separate from CPU acceptance."],
-        ["8.16", "16.13/Sionna", "20/Gate I"], pins)
     add("sionna-field-holdout", "measured_field", common_versions + " p1_engine calibration_algorithm dataset", "cpu ap_model ap_firmware client_model sensor_driver reference_instrument",
         "ground_truth_geometry calibration_state train_holdout_separation room_holdout session_holdout identifiability priors convergence sensor_bias p0_comparison p1_comparison p2_comparison measured_comparison uncertainty_calibration no_unsupported_superiority",
         ["Acquire consented measured surveys with fixed AP power/channel and documented geometry/material/orientation uncertainty.",

@@ -61,7 +61,7 @@ def main():
         capabilities = job({"schema_version": 1, "request_id": "cpu-probe", "operation": "capabilities"})
         check("pinned_cpu_backend", capabilities["status"] == "completed")
         report["runtime"] = capabilities["result"]["versions"]
-        report["cuda"] = capabilities["result"]["capabilities"]["cuda"]
+        report["capability_schema_version"] = capabilities["result"]["capability_schema_version"]
         for frequency in (2.4e9, 5.2e9, 6.5e9):
             value = request(frequency_hz=frequency)
             value["receivers"] = [{"id": "rx%d" % distance, "position_m": [distance, 0, 4]}

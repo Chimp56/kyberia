@@ -189,9 +189,10 @@ def _mask_matches(values, masks):
     return masks == (values == 0)
 
 
-def validate_result(response, request):
+def validate_result(response, request, *, allow_legacy=False):
     """Reject correlated/checksummed but semantically malformed engine results."""
-    from . import AUDITED_REVISION, ENGINE_PINS, WORKER_VERSION
+    from . import (AUDITED_REVISION, CAPABILITY_SCHEMA_VERSION, ENGINE_PINS,
+                   WORKER_VERSION)
     if (type(response) is not dict or type(response.get("schema_version")) is not int
             or response["schema_version"] != 1 or response.get("request_id") != request["request_id"]
             or response.get("request_sha256") != digest(request)
@@ -204,7 +205,8 @@ def validate_result(response, request):
     versions = response.get("versions", {})
     source_pin = json.loads(Path(__file__).with_name("source_pin.json").read_text())
     if (type(versions) is not dict or any(versions.get(k) != v for k, v in ENGINE_PINS.items())
-            or versions.get("worker") != WORKER_VERSION
+            or (versions.get("worker") != WORKER_VERSION and not (
+                allow_legacy and versions.get("worker") == "0.1.0"))
             or versions.get("backend") != "llvm_ad_mono_polarized"
             or versions.get("audited_source_revision") != AUDITED_REVISION
             or versions.get("source_pin_sha256") != digest(source_pin)
@@ -223,6 +225,19 @@ def validate_result(response, request):
     native_hash = versions.get("llvm_library_sha256")
     if type(native_hash) is not str or not re.fullmatch(r"[0-9a-f]{64}", native_hash):
         raise ContractError("missing or malformed LLVM native-build hash")
+    legacy = allow_legacy and versions.get("worker") == "0.1.0"
+    if not legacy:
+        expected_capability_fields = {"cpu_llvm", "operations",
+                                      "scene_kinds", "product_tier_supported"}
+        if (response.get("capability_schema_version") != CAPABILITY_SCHEMA_VERSION
+                or type(response.get("capabilities")) is not dict
+                or set(response["capabilities"]) != expected_capability_fields
+                or response["capabilities"]["cpu_llvm"] is not True
+                or response["capabilities"]["operations"] != [
+                    "validate_scene", "path_query", "radio_map"]
+                or response["capabilities"]["scene_kinds"] != ["empty_space"]
+                or response["capabilities"]["product_tier_supported"] is not False):
+            raise ContractError("unsupported capability document")
     if request["operation"] == "capabilities":
         if type(response.get("capabilities")) is not dict or response["capabilities"].get("cpu_llvm") is not True:
             raise ContractError("CPU backend not available")

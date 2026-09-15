@@ -8,9 +8,9 @@ From the repository root:
 
 ```sh
 python3 tools/validation/runtime_gates.py list
-python3 tools/validation/runtime_gates.py template sionna-cuda > /tmp/kyberia-sionna-cuda-result.json
+python3 tools/validation/runtime_gates.py template sionna-scenes-cpu > /tmp/kyberia-sionna-cpu-result.json
 python3 tools/validation/runtime_gates.py hash /tmp/acceptance.log
-python3 tools/validation/runtime_gates.py check /tmp/kyberia-sionna-cuda-result.json
+python3 tools/validation/runtime_gates.py check /tmp/kyberia-sionna-cpu-result.json
 ```
 
 `template` emits an intentionally incomplete result. The final `check` exits **2**, with `valid: true, status: NOT_RUN`. Only a complete `PASS` record exits **0**; invalid evidence exits **1**, and any valid `FAIL`, `NOT_RUN`, or `BLOCKED_EXTERNAL` exits **2**. Callers must inspect both exit status and the JSON, never treat syntactic validity as runtime acceptance.
@@ -29,17 +29,17 @@ A runtime contract pass is different from a field/hardware pass:
 |---|---|
 | `synthetic_contract` | Original fixture, schema and deterministic-replay tests |
 | `runtime` | Actual pinned executable/worker/backend execution |
-| `hardware_runtime` | Actual supported OS/device/radio/GPU/analyzer execution |
+| `hardware_runtime` | Actual supported OS/device/radio/analyzer execution |
 | `measured_field` | Consent-based measured data with calibrated reference and held-out evaluation |
 | `behavioral` | Licensed competitor runs with permitted output and independent reference |
 | `review` | Review of the actual package/SBOM/notices and distribution obligations |
 
-The checker rejects a different evidence kind. Runtime Sionna CPU and hardware CUDA are separate gates; absent CUDA cannot block CPU work. The audited Sionna baseline is source `bc0549155c7b782c7614a0ec06a0ac4e32b979ae`, package `2.0.1`; Kismet is source `2d25ad004e9216ac963c4f156e9077331717959c`. These are plan pins, **not tested version claims**. Pin changes need source/license and numerical compatibility review. Kismet file parity additionally requires two distinct exact compatibility revisions before it can pass; only one audited baseline is presently specified.
+The checker rejects a different evidence kind. Runtime Sionna validation is CPU/LLVM-only. Accelerator hardware is neither a gate nor an external blocker. The audited Sionna baseline is source `bc0549155c7b782c7614a0ec06a0ac4e32b979ae`, package `2.0.1`; Kismet is source `2d25ad004e9216ac963c4f156e9077331717959c`. These are plan pins, **not tested version claims**. Pin changes need source/license and numerical compatibility review. Kismet file parity additionally requires two distinct exact compatibility revisions before it can pass; only one audited baseline is presently specified.
 
-For an external blocker, leave unaffected work runnable and set only the affected gate/result to `BLOCKED_EXTERNAL`. Add `external_blocker` with `category` (`hardware`, `credentials`, `legal`, `proprietary_data`, `os_access`, or `field_site`), `requirement`, exact `dependency`, observed `reason`, a runnable `resume_procedure`, and hashed `evidence: {path, sha256}`. For example, CUDA unavailability needs an actual capability probe/inventory report; inability to finish code is not evidence of unavailable hardware. Partial execution checks retain their own PASS/FAIL/NOT_RUN statuses and artifacts.
+For an external blocker, leave unaffected work runnable and set only the affected gate/result to `BLOCKED_EXTERNAL`. Add `external_blocker` with `category` (`hardware`, `credentials`, `legal`, `proprietary_data`, `os_access`, or `field_site`), `requirement`, exact `dependency`, observed `reason`, a runnable `resume_procedure`, and hashed `evidence: {path, sha256}`. Inability to finish code is not evidence of unavailable hardware. Partial execution checks retain their own PASS/FAIL/NOT_RUN statuses and artifacts.
 
 Kismet procedures cover authenticated source discovery; local/remote observations; time, channel, hopping/dwell, optional noise/per-chain, source identity; reconnect/hotplug/permission/errors; duplicates/drops/backpressure; malformed and unknown schemas; same-capture live/KismetDB/PCAPNG parity; read-only corruption handling; at least two-version upgrades; normalized replay without Kismet; benchmarks and distribution review.
 
-Sionna procedures cover fresh pinned CPU/CUDA installations and upstream tests; canonical geometry/material/antenna transforms; per-transmitter path gain and radio maps; all interaction flags; deterministic seeds/convergence/tolerances; cancellation/timeout/crash/OOM/device loss; cache inputs and artifact integrity; remote authentication/round trips; desktop worker absence; measured holdouts and identifiability; and Kyberia-owned Wi-Fi SINR recomposition. Reflection/diffraction fixture geometry is available, but high-fidelity numerical baselines remain open until actual worker execution and independent validation.
+Sionna procedures cover fresh pinned CPU/LLVM installations and upstream tests; canonical geometry/material/antenna transforms; per-transmitter path gain and radio maps; all interaction flags; deterministic seeds/convergence/tolerances; cancellation/timeout/crash/OOM; cache inputs and artifact integrity; remote authentication/round trips; desktop worker absence; measured holdouts and identifiability; and Kyberia-owned Wi-Fi SINR recomposition. Reflection/diffraction fixture geometry is available, but high-fidelity numerical baselines remain open until actual worker execution and independent validation.
 
 Native, mobile, lab, spectrum, cross-platform, and licensed competitor gates retain the plan's separate OS access, physical calibration, pose-drift, active-path attribution, performance, and clean-room obligations. No gate in this initial catalog has been executed merely by adding its procedure. The harness's own test results establish only that it rejects missing or mismatched evidence.

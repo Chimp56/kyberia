@@ -53,7 +53,7 @@ export function config(state: string): {
     coordinatorKeys: coordinator,
     hostKeys,
     config: {
-      schemaVersion: 1,
+      schemaVersion: 2,
       stateDirectory: resolve(state),
       manifestPrivateKeyEnv: coordinator.privateName,
       manifestPublicKeyEnv: coordinator.publicName,
@@ -65,7 +65,7 @@ export function config(state: string): {
           displayName: "Test lab",
           identity: hostKeys.identity,
           publicKeyEnv: hostKeys.publicName,
-          capabilities: ["wifi", "cuda"],
+          capabilities: ["wifi", "cpu-llvm"],
           allowedKismetVersions: ["2025.01"],
           allowedFixtureSets: ["golden-v1"],
           allowedSceneSets: ["canonical-v1"],

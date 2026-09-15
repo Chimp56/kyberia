@@ -4,7 +4,7 @@ Status: Proposed development-tooling boundary; independent review and physical-h
 
 ## Context
 
-Plan §§15–16 and Appendix I OPS-004 require authenticated remote execution, immutable inputs, bounded jobs, artifact hashes and reproducible CPU/GPU/platform evidence. Manual runs cannot preserve these guarantees consistently. A generic shell or SSH MCP would create an unacceptable remote execution surface.
+Plan §§15–16 and Appendix I OPS-004 require authenticated remote execution, immutable inputs, bounded jobs, artifact hashes and reproducible CPU/platform evidence. Manual runs cannot preserve these guarantees consistently. A generic shell or SSH MCP would create an unacceptable remote execution surface.
 
 ## Decision
 
@@ -28,7 +28,7 @@ Contract tests use both the official in-memory transport and a real stdio client
 
 ## Consequences
 
-Lab evidence is repeatable and inspectable without becoming canonical product truth. Operators must manage Ed25519 keys, generate complete commit manifests and refresh executable digests after approved tool upgrades. Executable verification relies on the host OS preventing mutation between the immediate digest check and process image loading; production runner/service accounts must not grant write access to pinned executables. Adding a suite requires an administrator config change at both boundaries. Captures remain summaries unless a future ADR defines a safe artifact class. Windows Job Object, physical radio, Kismet, spectrum and CUDA execution still need their respective hosts.
+Lab evidence is repeatable and inspectable without becoming canonical product truth. Operators must manage Ed25519 keys, generate complete commit manifests and refresh executable digests after approved tool upgrades. Executable verification relies on the host OS preventing mutation between the immediate digest check and process image loading; production runner/service accounts must not grant write access to pinned executables. Adding a suite requires an administrator config change at both boundaries. Captures remain summaries unless a future ADR defines a safe artifact class. Windows Job Object, physical radio, Kismet and spectrum execution still need their respective hosts. ADR 0043 removes accelerator selection from the Sionna tool surface.
 
 ## Reversibility and validation
 

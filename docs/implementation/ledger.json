@@ -2,15 +2,15 @@
   "schema_version": 1,
   "source": {
     "path": "plan.md",
-    "sha256": "57b6bb686456a567f882a8e4a1eec7bcdcfafea843dd060f224e76c7122328ea",
-    "line_count": 6201
+    "sha256": "6116fe493d9b211e06d01cb132dc875fc5b1b42c1464c206a31c72e2f900f3f1",
+    "line_count": 6210
   },
   "inventory": {
-    "blocks": 5392,
-    "obligations": 3335,
-    "obligation_groups": 433,
-    "coverage_only": 1624,
-    "headings": 446,
+    "blocks": 5396,
+    "obligations": 3336,
+    "obligation_groups": 434,
+    "coverage_only": 1626,
+    "headings": 447,
     "explicit_id_occurrences": 438,
     "unique_original_ids": 341,
     "matrices": {
@@ -425,7 +425,7 @@
       "parent_id": "source:heading:ece702094cc0cd18f1cc:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:2",
-        "source:paragraph:b49637fe04e1d2000895:1",
+        "source:paragraph:bb44be3273c715d5f87e:1",
         "source:spacing:01ba4719c80b6fe911b0:3",
         "source:separator:f52d711103d50a437830:1",
         "source:spacing:01ba4719c80b6fe911b0:4"
@@ -470,7 +470,7 @@
       "children": []
     },
     {
-      "id": "source:paragraph:b49637fe04e1d2000895:1",
+      "id": "source:paragraph:bb44be3273c715d5f87e:1",
       "original_id": null,
       "kind": "paragraph",
       "role": "obligation",
@@ -478,8 +478,8 @@
         "path": "plan.md",
         "start_line": 5,
         "end_line": 10,
-        "sha256": "b49637fe04e1d2000895d1c598470083c7953018c130b8080d9bf08157f81e86",
-        "text": "**Document:** `plan.md`  \n**Status:** Research-backed product, architecture, reuse, and implementation blueprint  \n**Version:** 0.2  \n**Research baseline:** 2026-08-30  \n**Open-source architecture audit baseline:** 2026-08-30  \n**Working name:** RF Atlas (codename only; perform a trademark search before public use)\n"
+        "sha256": "bb44be3273c715d5f87eedbc27fdffb7283907ff8511e33b5c757ed91bae9bf9",
+        "text": "**Document:** `plan.md`  \n**Status:** Research-backed product, architecture, reuse, and implementation blueprint  \n**Version:** 0.3\n**Research baseline:** 2026-08-30  \n**Open-source architecture audit baseline:** 2026-08-30  \n**Working name:** RF Atlas (codename only; perform a trademark search before public use)\n"
       },
       "ancestry": [
         {
@@ -82599,7 +82599,7 @@
         "source:heading:dc8efc84593cbce646a3:1",
         "source:heading:10f01f4056fd83a0e666:1",
         "source:heading:3e3b9ae0741d764f9990:1",
-        "source:heading:64a8a32444b7eb305489:1",
+        "source:heading:40a1c6654cba6494b462:1",
         "source:heading:6eec25e6322b59001e08:1",
         "source:heading:106618136745a033aab6:1"
       ]
@@ -82695,7 +82695,7 @@
         "source:table_row:5aa4161e040dd1706232:1",
         "source:table_row:8b572fb4a63aa65823ca:1",
         "source:spacing:01ba4719c80b6fe911b0:514",
-        "source:paragraph:cfd23c5b02471ca07851:1",
+        "source:paragraph:fd7aa6c5f85e195d8bb5:1",
         "source:spacing:01ba4719c80b6fe911b0:515"
       ]
     },
@@ -83173,7 +83173,7 @@
       "children": []
     },
     {
-      "id": "source:paragraph:cfd23c5b02471ca07851:1",
+      "id": "source:paragraph:fd7aa6c5f85e195d8bb5:1",
       "original_id": null,
       "kind": "paragraph",
       "role": "obligation",
@@ -83181,8 +83181,8 @@
         "path": "plan.md",
         "start_line": 1999,
         "end_line": 1999,
-        "sha256": "cfd23c5b02471ca07851243e695b6e1ac1fed0dd5bfee2d811886ed2cc4d70a7",
-        "text": "Results from different tiers never silently share a cache key or quality label. P2/P3 are optional: ordinary desktop surveying and fast planning remain functional without Python, Mitsuba, Dr.Jit, CUDA, or Sionna installed.\n"
+        "sha256": "fd7aa6c5f85e195d8bb5c3628ccb59599e4c9ccdb1843e6ca79052a44eb298f0",
+        "text": "Results from different tiers never silently share a cache key or quality label. P2/P3 are optional: ordinary desktop surveying and fast planning remain functional without Python, Mitsuba, Dr.Jit, or Sionna installed. The Sionna worker is CPU/LLVM-only; accelerator-specific Sionna execution is not an RF Atlas capability.\n"
       },
       "ancestry": [
         {
@@ -91583,7 +91583,7 @@
         "source:spacing:01ba4719c80b6fe911b0:580",
         "source:paragraph:c159d65f4d43c7ce1384:1",
         "source:spacing:01ba4719c80b6fe911b0:581",
-        "source:code_or_diagram:d6f47fb41a10806ca943:1",
+        "source:code_or_diagram:f62dc516fb26d29e1bc5:1",
         "source:spacing:01ba4719c80b6fe911b0:582"
       ]
     },
@@ -91732,7 +91732,7 @@
       "children": []
     },
     {
-      "id": "source:code_or_diagram:d6f47fb41a10806ca943:1",
+      "id": "source:code_or_diagram:f62dc516fb26d29e1bc5:1",
       "original_id": null,
       "kind": "code_or_diagram",
       "role": "obligation",
@@ -91740,8 +91740,8 @@
         "path": "plan.md",
         "start_line": 2235,
         "end_line": 2247,
-        "sha256": "d6f47fb41a10806ca9431a0c83af224b6210be78d5a39dd50b6219a3cdb75526",
-        "text": "```text\nrequest_id / schema_version\nscene_geometry_hash\nmaterial_catalog/version + project overrides\ntransmitters and receiver grid/query set\nfrequency / bandwidth / antenna configuration\nsolver kind: paths | planar-radio-map | mesh-radio-map\nLOS/reflection/refraction/diffraction/scattering flags\nmax depth / samples / convergence parameters\nseed\nbackend/resource limits\nrequested outputs\n```\n"
+        "sha256": "f62dc516fb26d29e1bc5336b6bbbd94d29460038dd5fd54b3799eee8da8dcf6a",
+        "text": "```text\nrequest_id / schema_version\nscene_geometry_hash\nmaterial_catalog/version + project overrides\ntransmitters and receiver grid/query set\nfrequency / bandwidth / antenna configuration\nsolver kind: paths | planar-radio-map | mesh-radio-map\nLOS/reflection/refraction/diffraction/scattering flags\nmax depth / samples / convergence parameters\nseed\nfixed CPU/LLVM runtime and resource limits\nrequested outputs\n```\n"
       },
       "ancestry": [
         {
@@ -92267,12 +92267,12 @@
       "parent_id": "source:heading:3e3b9ae0741d764f9990:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:587",
-        "source:list_item:3769cad8577cd99b8db1:1",
+        "source:list_item:7fd1452634e21ed92811:1",
         "source:list_item:7b391de0077df8d45d2a:1",
-        "source:list_item:ac1f955a9b2a4cfc4556:1",
+        "source:list_item:44301fded4073b54ed8e:1",
         "source:list_item:19a4a86ce7096c010403:1",
         "source:spacing:01ba4719c80b6fe911b0:588",
-        "source:paragraph:f4ddf1199a932c35bced:1",
+        "source:paragraph:fdedd9126c4387573ef8:1",
         "source:spacing:01ba4719c80b6fe911b0:589"
       ]
     },
@@ -92325,7 +92325,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:3769cad8577cd99b8db1:1",
+      "id": "source:list_item:7fd1452634e21ed92811:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -92333,8 +92333,8 @@
         "path": "plan.md",
         "start_line": 2268,
         "end_line": 2268,
-        "sha256": "3769cad8577cd99b8db1d0e371867dacfb45af8f7fcef70b28f02d80d70ee2bb",
-        "text": "- local venv/packaged worker over local socket or stdio;\n"
+        "sha256": "7fd1452634e21ed928118e624dba69451c000d30d8e536523a6cc653fa273e73",
+        "text": "- local CPU/LLVM venv/packaged worker over local socket or stdio;\n"
       },
       "ancestry": [
         {
@@ -92421,7 +92421,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:ac1f955a9b2a4cfc4556:1",
+      "id": "source:list_item:44301fded4073b54ed8e:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -92429,8 +92429,8 @@
         "path": "plan.md",
         "start_line": 2270,
         "end_line": 2270,
-        "sha256": "ac1f955a9b2a4cfc4556cd8ce1229baa078a3ae10e94b52128e2b024025cce08",
-        "text": "- remote authenticated worker;\n"
+        "sha256": "44301fded4073b54ed8e524a87d95f185be4b10b10e9ebb936333e6d6082de14",
+        "text": "- remote authenticated CPU/LLVM worker;\n"
       },
       "ancestry": [
         {
@@ -92565,7 +92565,7 @@
       "children": []
     },
     {
-      "id": "source:paragraph:f4ddf1199a932c35bced:1",
+      "id": "source:paragraph:fdedd9126c4387573ef8:1",
       "original_id": null,
       "kind": "paragraph",
       "role": "obligation",
@@ -92573,8 +92573,8 @@
         "path": "plan.md",
         "start_line": 2273,
         "end_line": 2273,
-        "sha256": "f4ddf1199a932c35bced9ce437041f92df4b388fbd5db7c1a2909f39cf0a4bb2",
-        "text": "Every mode implements the same capability handshake, cancellation, artifact, and provenance contract.\n"
+        "sha256": "fdedd9126c4387573ef84bf9561d6fc798a55ed3b87b7570bdb81f7feee1f244",
+        "text": "Every mode implements the same CPU/LLVM capability handshake, cancellation, artifact, and provenance contract. Requests do not select a Sionna device backend; former accelerator selectors are rejected.\n"
       },
       "ancestry": [
         {
@@ -92661,7 +92661,7 @@
       "children": []
     },
     {
-      "id": "source:heading:64a8a32444b7eb305489:1",
+      "id": "source:heading:40a1c6654cba6494b462:1",
       "original_id": null,
       "kind": "heading",
       "role": "obligation_group",
@@ -92669,8 +92669,8 @@
         "path": "plan.md",
         "start_line": 2275,
         "end_line": 2275,
-        "sha256": "64a8a32444b7eb3054899acea7ae95d20a25abd528289306c14743f295eec7eb",
-        "text": "### 8.16 GPU compute\n"
+        "sha256": "40a1c6654cba6494b462222dd5c1dd9b12811e29e9c4c09c2e983c7abbe6cba9",
+        "text": "### 8.16 Compute backends\n"
       },
       "ancestry": [
         {
@@ -92684,8 +92684,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -92706,7 +92706,7 @@
         "source:paragraph:210d854e0ac292b2bc9e:1",
         "source:spacing:01ba4719c80b6fe911b0:591",
         "source:list_item:ae5564a8db4bdba5d293:1",
-        "source:list_item:bfcc4e1c660cdec09758:1",
+        "source:list_item:2a09582ff3a893b3d357:1",
         "source:spacing:01ba4719c80b6fe911b0:592",
         "source:paragraph:da353129aa867a72d017:1",
         "source:spacing:01ba4719c80b6fe911b0:593"
@@ -92736,8 +92736,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -92752,7 +92752,7 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
@@ -92779,8 +92779,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -92795,7 +92795,7 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
@@ -92822,8 +92822,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -92838,7 +92838,7 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
@@ -92865,8 +92865,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -92881,11 +92881,11 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
-      "id": "source:list_item:bfcc4e1c660cdec09758:1",
+      "id": "source:list_item:2a09582ff3a893b3d357:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -92893,8 +92893,8 @@
         "path": "plan.md",
         "start_line": 2280,
         "end_line": 2280,
-        "sha256": "bfcc4e1c660cdec097580fc890378903131e039963fe4bd8e0e267b9c9804b59",
-        "text": "2. **Sionna/Mitsuba/Dr.Jit compute** inside `rfatlas-sionna-worker` for P2/P3 radio propagation. Backend/build versions are part of every result manifest; CUDA/LLVM/native dependency conflicts remain quarantined from the desktop.\n"
+        "sha256": "2a09582ff3a893b3d3575289743d26afe6dc3ab12367dbbfeb21391cb7289188",
+        "text": "2. **CPU/LLVM Sionna/Mitsuba/Dr.Jit compute** inside `rfatlas-sionna-worker` for P2/P3 radio propagation. The fixed backend/build versions are part of every result manifest; Python/LLVM/native dependency conflicts remain quarantined from the desktop.\n"
       },
       "ancestry": [
         {
@@ -92908,8 +92908,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -92924,7 +92924,7 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
@@ -92951,8 +92951,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -92967,7 +92967,7 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
@@ -92994,8 +92994,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -93010,7 +93010,7 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
@@ -93037,8 +93037,8 @@
           "level": 2
         },
         {
-          "id": "heading:8-16-gpu-compute:1",
-          "title": "8.16 GPU compute",
+          "id": "heading:8-16-compute-backends:1",
+          "title": "8.16 Compute backends",
           "level": 3
         }
       ],
@@ -93053,7 +93053,7 @@
       "reviews": [],
       "blocker": null,
       "adr": null,
-      "parent_id": "source:heading:64a8a32444b7eb305489:1",
+      "parent_id": "source:heading:40a1c6654cba6494b462:1",
       "children": []
     },
     {
@@ -115209,7 +115209,7 @@
         "source:list_item:96762396505b23010550:1",
         "source:list_item:0bd776ce5f1fc84b5e76:1",
         "source:list_item:0867a5299c2d8e725294:1",
-        "source:list_item:6199cc3270f6295274b5:1",
+        "source:list_item:0164d2fd0dd984d52cb3:1",
         "source:list_item:2d9a3a01e4d877ce46cd:1",
         "source:list_item:e0a3fba5e5f604d5c629:1",
         "source:spacing:01ba4719c80b6fe911b0:734",
@@ -115602,7 +115602,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:6199cc3270f6295274b5:1",
+      "id": "source:list_item:0164d2fd0dd984d52cb3:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -115610,8 +115610,8 @@
         "path": "plan.md",
         "start_line": 2905,
         "end_line": 2905,
-        "sha256": "6199cc3270f6295274b54dd10e2ed1cedc9c7baadfddeceb19af03e2af719de6",
-        "text": "- local CPU/CUDA and optional remote/HPC execution;\n"
+        "sha256": "0164d2fd0dd984d52cb3b751ef3030c4cd25b89ac0a42f5c5dfd8c4f2306e427",
+        "text": "- local CPU/LLVM and optional remote CPU/LLVM/HPC execution;\n"
       },
       "ancestry": [
         {
@@ -154897,9 +154897,9 @@
       "parent_id": "source:heading:b3181cb8071ea9fcd783:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:951",
-        "source:list_item:b3526f63dd91163603a7:1",
+        "source:list_item:4e41fc1642073f60ce38:1",
         "source:list_item:e61bd42a822204f7badb:1",
-        "source:list_item:91f127a1719cec9487e1:1",
+        "source:list_item:14e2c53eb38b564176de:1",
         "source:list_item:80cc5d66145454bce514:1",
         "source:list_item:2ca5424ef3400975affa:1",
         "source:list_item:b0c2cf8a2d2c2eab009a:1",
@@ -154956,7 +154956,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:b3526f63dd91163603a7:1",
+      "id": "source:list_item:4e41fc1642073f60ce38:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -154964,8 +154964,8 @@
         "path": "plan.md",
         "start_line": 3918,
         "end_line": 3918,
-        "sha256": "b3526f63dd91163603a7ed15fc87af1f66f9d7d24e0ae65bb27954eb2bb96efb",
-        "text": "- Build/run pinned worker on CPU and available CUDA hardware.\n"
+        "sha256": "4e41fc1642073f60ce388ccc0d39000a0d800ac53e413f9a3c434726f46da87d",
+        "text": "- Build/run the pinned CPU/LLVM worker environment.\n"
       },
       "ancestry": [
         {
@@ -155052,7 +155052,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:91f127a1719cec9487e1:1",
+      "id": "source:list_item:14e2c53eb38b564176de:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -155060,8 +155060,8 @@
         "path": "plan.md",
         "start_line": 3920,
         "end_line": 3920,
-        "sha256": "91f127a1719cec9487e1e197a5ea64cf980aca8b4a2f2edf9880a6ae7c745d08",
-        "text": "- Verify deterministic tolerance for fixed seed/backend and characterize Monte Carlo variance.\n"
+        "sha256": "14e2c53eb38b564176deaaaa263dc71f77ffec7f84bfea78967d87a3e5f90110",
+        "text": "- Verify deterministic tolerance for fixed seed and pinned CPU/LLVM backend and characterize Monte Carlo variance.\n"
       },
       "ancestry": [
         {
@@ -158125,7 +158125,7 @@
         "source:list_item:f5ff8914a56a23d9d7bc:1",
         "source:list_item:83e9ad494df0237bfc98:1",
         "source:list_item:e32aedfa49b3327368c0:1",
-        "source:list_item:77365857ed40d682f3e3:1",
+        "source:list_item:300ba335c194e606a181:1",
         "source:list_item:803fb28e10d97209e732:1",
         "source:list_item:b58f71ca04fdd589a998:1",
         "source:list_item:61ba89f124d7ed1ec52e:1",
@@ -158619,7 +158619,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:77365857ed40d682f3e3:1",
+      "id": "source:list_item:300ba335c194e606a181:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -158627,8 +158627,8 @@
         "path": "plan.md",
         "start_line": 3999,
         "end_line": 3999,
-        "sha256": "77365857ed40d682f3e3ca12f2539ff751bc1ccf01b9d5a0cf72c75479227f35",
-        "text": "- Sionna RT worker spike: pinned CPU/CUDA environment, capability handshake, one canonical scene, radio-map/path result round trip.\n"
+        "sha256": "300ba335c194e606a181b9bb9deb15a1dd11ccfc5d0422dd260d934ac7161c1a",
+        "text": "- Sionna RT worker spike: pinned CPU/LLVM environment, CPU-only capability handshake, one canonical scene, radio-map/path result round trip.\n"
       },
       "ancestry": [
         {
@@ -166029,7 +166029,7 @@
         "source:spacing:01ba4719c80b6fe911b0:1012",
         "source:paragraph:41f5ed7d0a29a6a5e576:8",
         "source:spacing:01ba4719c80b6fe911b0:1013",
-        "source:list_item:b435c8cb9d8437bad256:1",
+        "source:list_item:2c349bad3534ff1c3a02:1",
         "source:list_item:2a40f30eebb94216f8a6:1",
         "source:list_item:e08049d1e67fce28723e:1",
         "source:list_item:feffe905049bd8f60c4c:1",
@@ -166043,7 +166043,7 @@
         "source:spacing:01ba4719c80b6fe911b0:1015",
         "source:list_item:3b96010efc703f06c241:1",
         "source:list_item:fbc04b6d142c8d37f44b:1",
-        "source:list_item:5967a25ed7c7d60aafaf:1",
+        "source:list_item:5269a81e5d04ce55d10d:1",
         "source:list_item:cf6081f2cfb6ef925773:1",
         "source:list_item:4899c2edf5da93291e11:1",
         "source:spacing:01ba4719c80b6fe911b0:1016"
@@ -166265,7 +166265,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:b435c8cb9d8437bad256:1",
+      "id": "source:list_item:2c349bad3534ff1c3a02:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -166273,8 +166273,8 @@
         "path": "plan.md",
         "start_line": 4164,
         "end_line": 4164,
-        "sha256": "b435c8cb9d8437bad2562acd0059eb81d05d33ccbb41d6e58c7d19568b70a77f",
-        "text": "- Sionna RT P2/P3 path/radio-map worker hardened for local CPU/CUDA and remote/HPC jobs.\n"
+        "sha256": "2c349bad3534ff1c3a02615f14c10e98334449ebe62cea13c0ca37a83eb53f67",
+        "text": "- Sionna RT P2/P3 path/radio-map worker hardened for local and remote CPU/LLVM and HPC jobs.\n"
       },
       "ancestry": [
         {
@@ -166867,7 +166867,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:5967a25ed7c7d60aafaf:1",
+      "id": "source:list_item:5269a81e5d04ce55d10d:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -166875,8 +166875,8 @@
         "path": "plan.md",
         "start_line": 4178,
         "end_line": 4178,
-        "sha256": "5967a25ed7c7d60aafafc1c2bb9b198b40a808dc22627fef98404d506da3e7cd",
-        "text": "- Convergence and backend variance are characterized.\n"
+        "sha256": "5269a81e5d04ce55d10d210f13b9a90cfa4e26275b02a2c21c0dc5c0a4be53a1",
+        "text": "- Convergence and CPU/LLVM environment variance are characterized.\n"
       },
       "ancestry": [
         {
@@ -175419,8 +175419,8 @@
         "path": "plan.md",
         "start_line": 4341,
         "end_line": 4341,
-        "sha256": "3f6623d3f30aa1f1229a7038f0422f8d38b51d159b1418661485419da9bf5080",
-        "text": "| PREB-013 | P2 | Sionna worker productionization | Pinned env, cancellation, cache, crash recovery, CPU/CUDA/remote capability matrix |\n"
+        "sha256": "a658b848e5c9bbbd9af83162e315b2bac7586d1090579491863c057c20e51a46",
+        "text": "| PREB-013 | P2 | Sionna worker productionization | Pinned CPU/LLVM env, cancellation, cache, crash recovery, and remote execution matrix |\n"
       },
       "ancestry": [
         {
@@ -177909,20 +177909,7 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [
-        {
-          "path": "workers/sionna/rfatlas_sionna/contract.py",
-          "description": "Strict versioned bounded CPU proof contract; full engine support remains open",
-          "revision": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb",
-          "sha256": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb"
-        },
-        {
-          "path": "docs/adapters/sionna.md",
-          "description": "Exact audited installation, process boundary, scope and runtime procedure",
-          "revision": "4157c8adddb9f7c84550878986618b6e548a51416691d8ce5ba2ce9877eb06b2",
-          "sha256": "4157c8adddb9f7c84550878986618b6e548a51416691d8ce5ba2ce9877eb06b2"
-        }
-      ],
+      "implementation": [],
       "validation": [
         {
           "path": "workers/sionna/evidence/cpu-proof.json",
@@ -178002,8 +177989,8 @@
         "path": "plan.md",
         "start_line": 4396,
         "end_line": 4396,
-        "sha256": "544ca6a6ee00713621b38bccc8368ae6acc688d19e24c6a6c5bec2a7cd29c31c",
-        "text": "| OSS-006 | P1 | REIMPLEMENT | PropagationRequest/Result/artifact contract | CPU/CUDA round trip, cancellation, crash-safe artifacts |\n"
+        "sha256": "d28fcfc62386f373c3cfa1bc57a5a4bef49200bac6ad6e5e1510bf000b246744",
+        "text": "| OSS-006 | P1 | REIMPLEMENT | PropagationRequest/Result/artifact contract | CPU/LLVM round trip, accelerator-selector rejection, cancellation, crash-safe artifacts |\n"
       },
       "ancestry": [
         {
@@ -178030,34 +178017,10 @@
       "acceptance_cases": [],
       "implementation": [
         {
-          "path": "workers/sionna/rfatlas_sionna/contract.py",
-          "description": "Strict versioned bounded CPU proof contract; full engine support remains open",
-          "revision": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb",
-          "sha256": "206c9ab110a2f3064d9b74ad5c97c19880622c95b5a48f55ca236783660682eb"
-        },
-        {
-          "path": "docs/adapters/sionna.md",
-          "description": "Exact audited installation, process boundary, scope and runtime procedure",
-          "revision": "4157c8adddb9f7c84550878986618b6e548a51416691d8ce5ba2ce9877eb06b2",
-          "sha256": "4157c8adddb9f7c84550878986618b6e548a51416691d8ce5ba2ce9877eb06b2"
-        },
-        {
           "path": "workers/sionna/rfatlas_sionna/client.py",
           "description": "Bounded fair per-stream Windows pipe transport, CPU-limited Job Object containment, typed enforcement acknowledgement and proven POSIX zombie cleanup",
           "revision": "6157d299176592d019f1aafe055ab6a505db00072bf332366a6dcef9969919be",
           "sha256": "6157d299176592d019f1aafe055ab6a505db00072bf332366a6dcef9969919be"
-        },
-        {
-          "path": "workers/sionna/rfatlas_sionna/engine.py",
-          "description": "Portable fail-closed POSIX CPU limit with typed acknowledgement and explicit engine absence boundary",
-          "revision": "91fbe5270501ac1505853f70a364949971d6f66edb8b4b9581d493edb0ceffe3",
-          "sha256": "91fbe5270501ac1505853f70a364949971d6f66edb8b4b9581d493edb0ceffe3"
-        },
-        {
-          "path": "tests/test_sionna_worker.py",
-          "description": "Windows per-stream pipe quotas, fair bounded drain, cleanup, cancellation readiness, CPU Job Object, engine portability and POSIX zombie contract tests",
-          "revision": "b7767b211f5f283eb999d22cf8f6bfd03a8a4ae079e662bed3d0510d50132e43",
-          "sha256": "b7767b211f5f283eb999d22cf8f6bfd03a8a4ae079e662bed3d0510d50132e43"
         }
       ],
       "validation": [
@@ -183409,7 +183372,7 @@
       "parent_id": "source:heading:f7374993ecb0b600c91a:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:1077",
-        "source:list_item:814789d55941bef535f2:1",
+        "source:list_item:56b975b456af0956392d:1",
         "source:list_item:9661162dbde231ef1d50:1",
         "source:list_item:afebc8ac5a6d22ad5fc6:1",
         "source:list_item:0d072666750b9280357f:1",
@@ -183465,7 +183428,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:814789d55941bef535f2:1",
+      "id": "source:list_item:56b975b456af0956392d:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -183473,8 +183436,8 @@
         "path": "plan.md",
         "start_line": 4516,
         "end_line": 4516,
-        "sha256": "814789d55941bef535f27a773b37c4bf5eb317e77d3cab1491f8beb2b49b4cac",
-        "text": "- CPU/CUDA capability matrix and convergence sweeps.\n"
+        "sha256": "56b975b456af0956392d38ece1b24b1e260d0162b3c58987274de96232c818eb",
+        "text": "- CPU/LLVM capability and convergence sweeps across supported environments.\n"
       },
       "ancestry": [
         {
@@ -189481,7 +189444,7 @@
         "source:paragraph:ddff744296d527d50209:1",
         "source:spacing:01ba4719c80b6fe911b0:1110",
         "source:list_item:acdae90fecb144c9dfaa:1",
-        "source:list_item:bfc7e0a36002ec9142d9:1",
+        "source:list_item:4c810ad3cfc413a6f3f8:1",
         "source:list_item:646368dbe417c3adbe37:1",
         "source:list_item:8b15486d820478a5a608:1",
         "source:list_item:bc87236d897ed4380bd6:1",
@@ -189664,7 +189627,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:bfc7e0a36002ec9142d9:1",
+      "id": "source:list_item:4c810ad3cfc413a6f3f8:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -189672,8 +189635,8 @@
         "path": "plan.md",
         "start_line": 4615,
         "end_line": 4615,
-        "sha256": "bfc7e0a36002ec9142d9a7dfba0eabb85d2a3514ac10a508ceeb54f891f691b0",
-        "text": "- establish CPU/CUDA performance/convergence envelopes;\n"
+        "sha256": "4c810ad3cfc413a6f3f89fc4d9dd2905cd7f3dc398b6831d1ff6469c4a30651b",
+        "text": "- establish CPU/LLVM performance/convergence envelopes;\n"
       },
       "ancestry": [
         {
@@ -194784,7 +194747,7 @@
         "source:list_item:e10caf7ef1fa54914d2b:1",
         "source:list_item:b5daa823699504ccf5b2:1",
         "source:list_item:9da4e0fb860e7bd7975e:1",
-        "source:list_item:d659fba5c7cf2f0026dd:1",
+        "source:list_item:f168e3776d11eb5cd830:1",
         "source:list_item:acf35279400127e45672:1",
         "source:list_item:587fffd450150ea7b07b:1",
         "source:list_item:96a3d844965f8a2a31eb:1",
@@ -194964,7 +194927,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:d659fba5c7cf2f0026dd:1",
+      "id": "source:list_item:f168e3776d11eb5cd830:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -194972,8 +194935,8 @@
         "path": "plan.md",
         "start_line": 4736,
         "end_line": 4736,
-        "sha256": "d659fba5c7cf2f0026dd6a0519a4e5a34839c7dd9f051a17e2f3491b4d4ee825",
-        "text": "- How stable are Sionna results across CPU/CUDA backends at fixed seed and acceptable numerical tolerance?\n"
+        "sha256": "f168e3776d11eb5cd83022482956e09793b6e901c563fa613fea2e16461d073a",
+        "text": "- How stable are Sionna results across supported CPU architectures and pinned LLVM builds at fixed seed and acceptable numerical tolerance?\n"
       },
       "ancestry": [
         {
@@ -219998,7 +219961,8 @@
         "source:heading:0c60ffb04545ee9da6b5:1",
         "source:heading:7583f7d74a335fad04f5:1",
         "source:heading:414294efcb65ca4db554:1",
-        "source:heading:75d5a6bbc777e55c20d0:1"
+        "source:heading:75d5a6bbc777e55c20d0:1",
+        "source:heading:0d0ed91eeeec54959e46:1"
       ]
     },
     {
@@ -232304,7 +232268,7 @@
       "parent_id": "source:heading:ac633384d89bfdfe6e0b:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:1333",
-        "source:paragraph:6c87baad2d7174dd1ca4:1",
+        "source:paragraph:0e86728a23fadde414ea:1",
         "source:spacing:01ba4719c80b6fe911b0:1334",
         "source:paragraph:76fa2dac199c878dac18:1",
         "source:spacing:01ba4719c80b6fe911b0:1335",
@@ -232366,7 +232330,7 @@
       "children": []
     },
     {
-      "id": "source:paragraph:6c87baad2d7174dd1ca4:1",
+      "id": "source:paragraph:0e86728a23fadde414ea:1",
       "original_id": null,
       "kind": "paragraph",
       "role": "obligation",
@@ -232374,8 +232338,8 @@
         "path": "plan.md",
         "start_line": 5705,
         "end_line": 5705,
-        "sha256": "6c87baad2d7174dd1ca4d9e0227f27c47fab48209a966bc72c9621155a6f2894",
-        "text": "The package belongs in `rfatlas-sionna-worker`, a separately versioned optional component. The worker accepts canonical scene/job projections, emits content-addressed Arrow/Parquet or equivalent arrays plus a manifest, and can run locally on CPU/CUDA or remotely. RF Atlas should generally request per-transmitter path gain/RSS, then perform channel coupling, Wi-Fi PHY/MAC, capacity and policy evaluation itself.\n"
+        "sha256": "0e86728a23fadde414ea17bd04d83f73b7a7893bdefb84f73de9d82c23ac1031",
+        "text": "The package belongs in `rfatlas-sionna-worker`, a separately versioned optional component. The worker accepts canonical scene/job projections, emits content-addressed Arrow/Parquet or equivalent arrays plus a manifest, and runs on the pinned CPU/LLVM backend locally or remotely. RF Atlas should generally request per-transmitter path gain/RSS, then perform channel coupling, Wi-Fi PHY/MAC, capacity and policy evaluation itself.\n"
       },
       "ancestry": [
         {
@@ -245364,35 +245328,13 @@
       "acceptance_cases": [],
       "implementation": [
         {
-          "path": "tools/lab-mcp/src/server.ts",
-          "description": "Authenticated MCP coordinator and runner protocol",
-          "revision": "02c95653ffe5bf2789c46718e58322e1796f95fb6cdf224e14426d655c8da869",
-          "sha256": "02c95653ffe5bf2789c46718e58322e1796f95fb6cdf224e14426d655c8da869"
-        },
-        {
-          "path": "tools/lab-mcp/src/manager.ts",
-          "description": "Authenticated MCP coordinator and runner protocol",
-          "revision": "57a89b35bcd6db5cc41c3c446299c08424337dcc864664f5bfdb824f900204ae",
-          "sha256": "57a89b35bcd6db5cc41c3c446299c08424337dcc864664f5bfdb824f900204ae"
-        },
-        {
           "path": "tools/lab-mcp/src/runner.ts",
           "description": "Authenticated MCP coordinator and runner protocol",
           "revision": "fd8d466a31ef64e09734690915ab98dde8f5d636066a2bfd067afe6a7146a538",
           "sha256": "fd8d466a31ef64e09734690915ab98dde8f5d636066a2bfd067afe6a7146a538"
         }
       ],
-      "validation": [
-        {
-          "path": "docs/validation/kyberia-lab-mcp.md",
-          "description": "Focused contract validation",
-          "revision": "f46de80f230408a80043a2eab00d7c32b4cbaea4f1cc80b96fb0917eca0332a1",
-          "sha256": "f46de80f230408a80043a2eab00d7c32b4cbaea4f1cc80b96fb0917eca0332a1",
-          "command": "cd tools/lab-mcp && pnpm run check && python3 -m unittest -v test/test_windows_process.py",
-          "scope": "authenticated_lab_mcp_contract",
-          "result": "PASS"
-        }
-      ],
+      "validation": [],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -247006,7 +246948,7 @@
         "source:spacing:01ba4719c80b6fe911b0:1346",
         "source:paragraph:2144e164ed8c53b6dc81:1",
         "source:spacing:01ba4719c80b6fe911b0:1347",
-        "source:code_or_diagram:bbcc34e4a1132bc95606:1",
+        "source:code_or_diagram:2957d771c04cdc922fba:1",
         "source:spacing:01ba4719c80b6fe911b0:1348",
         "source:paragraph:5fd1b18870e406c415fd:1",
         "source:spacing:01ba4719c80b6fe911b0:1349",
@@ -247175,7 +247117,7 @@
       "children": []
     },
     {
-      "id": "source:code_or_diagram:bbcc34e4a1132bc95606:1",
+      "id": "source:code_or_diagram:2957d771c04cdc922fba:1",
       "original_id": null,
       "kind": "code_or_diagram",
       "role": "obligation",
@@ -247183,8 +247125,8 @@
         "path": "plan.md",
         "start_line": 6003,
         "end_line": 6008,
-        "sha256": "bbcc34e4a1132bc956065bf53a3153125ca7a35d9c042f606ee5c40935a67e93",
-        "text": "```text\ncontrol plane: versioned protobuf/JSON-RPC over local socket/stdio or mTLS remote channel\nbulk plane:    content-addressed scene bundles and Arrow IPC/Parquet/NumPy artifacts\nexecution:     pinned uv/venv or OCI image; CPU/LLVM and CUDA capability probes\nremote:        same immutable job bundle submitted through a Slurm adapter\n```\n"
+        "sha256": "2957d771c04cdc922fba01f841868c05ab1e0c6966cd46d2316c704d9ef5abfb",
+        "text": "```text\ncontrol plane: versioned protobuf/JSON-RPC over local socket/stdio or mTLS remote channel\nbulk plane:    content-addressed scene bundles and Arrow IPC/Parquet/NumPy artifacts\nexecution:     pinned uv/venv or OCI image; fixed CPU/LLVM capability probe\nremote:        same immutable job bundle submitted through a Slurm adapter\n```\n"
       },
       "ancestry": [
         {
@@ -253512,7 +253454,7 @@
       "parent_id": "source:heading:0c60ffb04545ee9da6b5:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:1379",
-        "source:list_item:fefafdb5976f2ace349c:1",
+        "source:list_item:734cb622d8b4b1e4ed83:1",
         "source:list_item:cd1baddd8670aaf89b0b:1",
         "source:list_item:e607fe177d77011b9789:1",
         "source:list_item:69dfb954e06cc7144091:1",
@@ -253571,7 +253513,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:fefafdb5976f2ace349c:1",
+      "id": "source:list_item:734cb622d8b4b1e4ed83:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -253579,8 +253521,8 @@
         "path": "plan.md",
         "start_line": 6145,
         "end_line": 6145,
-        "sha256": "fefafdb5976f2ace349cb52fdfba73bc01669d40d16a9764b0e2d526d99e5a71",
-        "text": "- build pinned CPU and CUDA worker images/environments;\n"
+        "sha256": "734cb622d8b4b1e4ed83df02c7cf850a6781e5324ee8abc02b14c220505740d9",
+        "text": "- build the pinned CPU/LLVM worker image/environment;\n"
       },
       "ancestry": [
         {
@@ -255959,7 +255901,8 @@
       "parent_id": "source:heading:695dadbf5648a02e450b:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:1390",
-        "source:paragraph:f88e44c7bf7d2e6cbefd:1"
+        "source:paragraph:f88e44c7bf7d2e6cbefd:1",
+        "source:spacing:01ba4719c80b6fe911b0:1391"
       ]
     },
     {
@@ -256046,6 +255989,181 @@
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:75d5a6bbc777e55c20d0:1",
+      "children": []
+    },
+    {
+      "id": "source:spacing:01ba4719c80b6fe911b0:1391",
+      "original_id": null,
+      "kind": "spacing",
+      "role": "structure",
+      "source": {
+        "path": "plan.md",
+        "start_line": 6202,
+        "end_line": 6202,
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "text": "\n"
+      },
+      "ancestry": [
+        {
+          "id": "heading:appendices:1",
+          "title": "Appendices",
+          "level": 1
+        },
+        {
+          "id": "heading:appendix-i-open-source-source-code-architectural-audit:1",
+          "title": "Appendix I — Open-source source-code architectural audit",
+          "level": 2
+        },
+        {
+          "id": "heading:plan-v0-2-integration-note:1",
+          "title": "Plan v0.2 integration note",
+          "level": 3
+        }
+      ],
+      "status": null,
+      "owner": null,
+      "phase": null,
+      "depends_on": [],
+      "related_requirements": [],
+      "acceptance_cases": [],
+      "implementation": [],
+      "validation": [],
+      "reviews": [],
+      "blocker": null,
+      "adr": null,
+      "parent_id": "source:heading:75d5a6bbc777e55c20d0:1",
+      "children": []
+    },
+    {
+      "id": "source:heading:0d0ed91eeeec54959e46:1",
+      "original_id": null,
+      "kind": "heading",
+      "role": "obligation_group",
+      "source": {
+        "path": "plan.md",
+        "start_line": 6203,
+        "end_line": 6203,
+        "sha256": "0d0ed91eeeec54959e46d920795d3fefb19fa3f852676cb924fc22947188e4f5",
+        "text": "### Plan v0.3 integration note\n"
+      },
+      "ancestry": [
+        {
+          "id": "heading:appendices:1",
+          "title": "Appendices",
+          "level": 1
+        },
+        {
+          "id": "heading:appendix-i-open-source-source-code-architectural-audit:1",
+          "title": "Appendix I — Open-source source-code architectural audit",
+          "level": 2
+        },
+        {
+          "id": "heading:plan-v0-3-integration-note:1",
+          "title": "Plan v0.3 integration note",
+          "level": 3
+        }
+      ],
+      "status": "NOT_STARTED",
+      "owner": "specification/review",
+      "phase": null,
+      "depends_on": [],
+      "related_requirements": [],
+      "acceptance_cases": [],
+      "implementation": [],
+      "validation": [],
+      "reviews": [],
+      "blocker": null,
+      "adr": null,
+      "parent_id": "source:heading:695dadbf5648a02e450b:1",
+      "children": [
+        "source:spacing:01ba4719c80b6fe911b0:1392",
+        "source:paragraph:596d356210a1503d927b:1"
+      ]
+    },
+    {
+      "id": "source:spacing:01ba4719c80b6fe911b0:1392",
+      "original_id": null,
+      "kind": "spacing",
+      "role": "structure",
+      "source": {
+        "path": "plan.md",
+        "start_line": 6204,
+        "end_line": 6204,
+        "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "text": "\n"
+      },
+      "ancestry": [
+        {
+          "id": "heading:appendices:1",
+          "title": "Appendices",
+          "level": 1
+        },
+        {
+          "id": "heading:appendix-i-open-source-source-code-architectural-audit:1",
+          "title": "Appendix I — Open-source source-code architectural audit",
+          "level": 2
+        },
+        {
+          "id": "heading:plan-v0-3-integration-note:1",
+          "title": "Plan v0.3 integration note",
+          "level": 3
+        }
+      ],
+      "status": null,
+      "owner": null,
+      "phase": null,
+      "depends_on": [],
+      "related_requirements": [],
+      "acceptance_cases": [],
+      "implementation": [],
+      "validation": [],
+      "reviews": [],
+      "blocker": null,
+      "adr": null,
+      "parent_id": "source:heading:0d0ed91eeeec54959e46:1",
+      "children": []
+    },
+    {
+      "id": "source:paragraph:596d356210a1503d927b:1",
+      "original_id": null,
+      "kind": "paragraph",
+      "role": "obligation",
+      "source": {
+        "path": "plan.md",
+        "start_line": 6205,
+        "end_line": 6210,
+        "sha256": "596d356210a1503d927b886dbdd1929733bf4da4c48704aae85cb8147181e0cd",
+        "text": "Version 0.3 removes accelerator-specific Sionna execution from the application,\nvalidation catalog, Lab MCP and roadmap. The optional Sionna worker is\nCPU/LLVM-only for local, remote and HPC execution. Former accelerator suite,\ncapability and device-selector inputs are rejected rather than mapped to CPU.\nThis decision does not remove portable WebGL/`wgpu` rendering or CPU/reference\ndifferential validation.\n"
+      },
+      "ancestry": [
+        {
+          "id": "heading:appendices:1",
+          "title": "Appendices",
+          "level": 1
+        },
+        {
+          "id": "heading:appendix-i-open-source-source-code-architectural-audit:1",
+          "title": "Appendix I — Open-source source-code architectural audit",
+          "level": 2
+        },
+        {
+          "id": "heading:plan-v0-3-integration-note:1",
+          "title": "Plan v0.3 integration note",
+          "level": 3
+        }
+      ],
+      "status": "NOT_STARTED",
+      "owner": "specification/review",
+      "phase": null,
+      "depends_on": [],
+      "related_requirements": [],
+      "acceptance_cases": [],
+      "implementation": [],
+      "validation": [],
+      "reviews": [],
+      "blocker": null,
+      "adr": null,
+      "parent_id": "source:heading:0d0ed91eeeec54959e46:1",
       "children": []
     }
   ]

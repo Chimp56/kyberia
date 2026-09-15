@@ -9,7 +9,7 @@ COMMANDS={
     "probe-wifi:default": (sys.executable,["-m","unittest","tests.test_windows_collector"]),
     "probe-kismet:expected_version=2025.01": (sys.executable,["-m","unittest","tests.test_kismet_live"]),
     "probe-kismet:fixture_set=golden-v1": (sys.executable,["-m","unittest","tests.test_kismet_database"]),
-    "probe-sionna:cpu_or_gpu=cpu&scene_set=canonical-v1": (sys.executable,["workers/sionna/acceptance.py"]),
+    "probe-sionna:scene_set=canonical-v1": (sys.executable,["workers/sionna/acceptance.py"]),
     "probe-spectrum:default": (sys.executable,["-m","unittest","tests.test_spectrum_probe"]),
 }
 def select(raw):

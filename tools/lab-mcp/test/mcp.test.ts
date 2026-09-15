@@ -29,7 +29,7 @@ test("real MCP client enumerates exact tools and resource templates", async () =
         schemaVersion: 1 as const,
         hostId: challenge.hostId,
         challengeDigest: digest(canonical(challenge)),
-        capabilities: ["wifi", "cuda"],
+        capabilities: ["wifi", "cpu-llvm"],
       };
       return canonical({
         payload,
@@ -48,7 +48,7 @@ test("real MCP client enumerates exact tools and resource templates", async () =
         stdout: "ok",
         stderr: "",
         sanitization: "kyberia-lab-text-v2" as const,
-        capabilities: ["wifi", "cuda"],
+        capabilities: ["wifi", "cpu-llvm"],
         toolIdentities: [
           {
             role: "git" as const,
@@ -154,6 +154,20 @@ test("real MCP client enumerates exact tools and resource templates", async () =
     arguments: { host: "lab-one", command: "whoami" },
   });
   assert.equal(unknown.isError, true);
+  const sionna = await client.callTool({
+    name: "run_sionna_gate",
+    arguments: { host: "lab-one", scene_set: "canonical-v1" },
+  });
+  assert.equal(sionna.isError, undefined);
+  const retiredSionnaSelector = await client.callTool({
+    name: "run_sionna_gate",
+    arguments: {
+      host: "lab-one",
+      scene_set: "canonical-v1",
+      cpu_or_gpu: "gpu",
+    },
+  });
+  assert.equal(retiredSionnaSelector.isError, true);
   await client.close();
   await server.close();
 });

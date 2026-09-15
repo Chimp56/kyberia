@@ -10,7 +10,8 @@ import sys
 import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from rfatlas_sionna import AUDITED_REVISION, ENGINE_PINS, WORKER_VERSION
+from rfatlas_sionna import (AUDITED_REVISION, CAPABILITY_SCHEMA_VERSION,
+                            ENGINE_PINS, WORKER_VERSION)
 from rfatlas_sionna.contract import (MAX_REQUEST_BYTES, canonical_bytes, decode,
                                      digest, validate)
 
@@ -46,7 +47,6 @@ def execute(request):
     import mitsuba as mi
     import drjit as dr
     # Select before importing sionna.rt: it binds native types on import.
-    variants = mi.variants()
     mi.set_variant("llvm_ad_mono_polarized")
     import sionna.rt as rt
     versions.update({"python": platform.python_version(), "os": platform.platform(),
@@ -59,12 +59,11 @@ def execute(request):
         raise RuntimeError("LLVM native-build provenance requires DRJIT_LIBLLVM_PATH")
     versions["llvm_library_sha256"] = hashlib.sha256(Path(llvm_path).read_bytes()).hexdigest()
     capabilities = {"cpu_llvm": bool(dr.has_backend(dr.JitBackend.LLVM)),
-                    "cuda": bool(dr.has_backend(dr.JitBackend.CUDA)),
-                    "compiled_variants": variants,
                     "operations": ["validate_scene", "path_query", "radio_map"],
                     "scene_kinds": ["empty_space"], "product_tier_supported": False}
     if request["operation"] == "capabilities":
-        return {"versions": versions, "capabilities": capabilities}
+        return {"capability_schema_version": CAPABILITY_SCHEMA_VERSION,
+                "versions": versions, "capabilities": capabilities}
     started = time.monotonic()
     scene = rt.load_scene()  # Original empty scene; no upstream scene assets.
     scene.frequency = request["frequency_hz"]
@@ -123,7 +122,8 @@ def execute(request):
                 "no_data_mask": (gain == 0).tolist(), "precision": str(gain.dtype),
                 "grid": grid, "orientation_rad": [0, 0, 0],
                 "combination": "monte_carlo_cell_average_power"}
-    return {"versions": versions, "capabilities": capabilities, "data": data,
+    return {"capability_schema_version": CAPABILITY_SCHEMA_VERSION,
+            "versions": versions, "capabilities": capabilities, "data": data,
             "data_sha256": digest(data), "scene_sha256": request["scene_sha256"],
             "profile_revision": request["profile_revision"],
             "solver": settings, "frequency_hz": request["frequency_hz"],

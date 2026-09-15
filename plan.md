@@ -4,7 +4,7 @@
 
 **Document:** `plan.md`  
 **Status:** Research-backed product, architecture, reuse, and implementation blueprint  
-**Version:** 0.2  
+**Version:** 0.3
 **Research baseline:** 2026-08-30  
 **Open-source architecture audit baseline:** 2026-08-30  
 **Working name:** RF Atlas (codename only; perform a trademark search before public use)
@@ -1996,7 +1996,7 @@ The engine exposes accuracy/cost tiers rather than a single opaque “quality”
 | **P3 Research** | Sensitivity, CIR/CFR/path studies, inverse calibration | **Sionna RT in explicitly configured research jobs** | Full solver parameters and seeds recorded; potentially expensive; outputs retained as artifacts |
 | **P4 Hybrid** | Post-deployment digital twin | RF Atlas measured-residual/calibration model around P1/P2 predictions | Best local fit where measurements exist; uncertainty grows away from evidence |
 
-Results from different tiers never silently share a cache key or quality label. P2/P3 are optional: ordinary desktop surveying and fast planning remain functional without Python, Mitsuba, Dr.Jit, CUDA, or Sionna installed.
+Results from different tiers never silently share a cache key or quality label. P2/P3 are optional: ordinary desktop surveying and fast planning remain functional without Python, Mitsuba, Dr.Jit, or Sionna installed. The Sionna worker is CPU/LLVM-only; accelerator-specific Sionna execution is not an RF Atlas capability.
 
 ### 8.2 Scene representation
 
@@ -2242,7 +2242,7 @@ solver kind: paths | planar-radio-map | mesh-radio-map
 LOS/reflection/refraction/diffraction/scattering flags
 max depth / samples / convergence parameters
 seed
-backend/resource limits
+fixed CPU/LLVM runtime and resource limits
 requested outputs
 ```
 
@@ -2265,19 +2265,19 @@ RF Atlas then computes Wi-Fi channel coupling, spectral overlap, measured activi
 
 #### Execution modes
 
-- local venv/packaged worker over local socket or stdio;
+- local CPU/LLVM venv/packaged worker over local socket or stdio;
 - local container for reproducibility/debugging;
-- remote authenticated worker;
+- remote authenticated CPU/LLVM worker;
 - optional Slurm/HPC backend for batch calibration or dense research jobs.
 
-Every mode implements the same capability handshake, cancellation, artifact, and provenance contract.
+Every mode implements the same CPU/LLVM capability handshake, cancellation, artifact, and provenance contract. Requests do not select a Sionna device backend; former accelerator selectors are rejected.
 
-### 8.16 GPU compute
+### 8.16 Compute backends
 
 There are two distinct GPU domains and they must not be conflated:
 
 1. **RF Atlas `wgpu` compute** for P0/P1 rasterization, vector obstruction kernels, interpolation, tile algebra, candidate scoring, and Monte Carlo uncertainty where cross-platform GPU portability matters. Maintain CPU reference implementations and differential tolerances.
-2. **Sionna/Mitsuba/Dr.Jit compute** inside `rfatlas-sionna-worker` for P2/P3 radio propagation. Backend/build versions are part of every result manifest; CUDA/LLVM/native dependency conflicts remain quarantined from the desktop.
+2. **CPU/LLVM Sionna/Mitsuba/Dr.Jit compute** inside `rfatlas-sionna-worker` for P2/P3 radio propagation. The fixed backend/build versions are part of every result manifest; Python/LLVM/native dependency conflicts remain quarantined from the desktop.
 
 Do not rewrite Sionna kernels in `wgpu` merely for language purity. Only migrate a high-fidelity operation if profiling and validation demonstrate a concrete product need that cannot be solved upstream or through the worker boundary.
 
@@ -2902,7 +2902,7 @@ Responsibilities:
 - `PropagationRequest` execution;
 - resource limits and cancellation;
 - content-addressed cache/artifact store;
-- local CPU/CUDA and optional remote/HPC execution;
+- local CPU/LLVM and optional remote CPU/LLVM/HPC execution;
 - return engine-neutral radio-map/path results with full backend provenance;
 - run upstream Sionna tests plus RF Atlas acceptance scenes in its build pipeline.
 
@@ -3915,9 +3915,9 @@ The source audit is static. Production adoption/integration requires runtime evi
 
 #### Sionna gate
 
-- Build/run pinned worker on CPU and available CUDA hardware.
+- Build/run the pinned CPU/LLVM worker environment.
 - Run upstream tests and RF Atlas canonical indoor scenes.
-- Verify deterministic tolerance for fixed seed/backend and characterize Monte Carlo variance.
+- Verify deterministic tolerance for fixed seed and pinned CPU/LLVM backend and characterize Monte Carlo variance.
 - Measure convergence versus samples/depth/features and define production defaults.
 - Test scene compilation, material/antenna transforms, multi-floor geometry, cancellation, timeout, OOM/crash recovery, cache correctness, and artifact checksums.
 - Compare P2 results against measured holdouts and P1 baseline before claiming superiority.
@@ -3996,7 +3996,7 @@ Deliverables:
 - Windows native scan prototype.
 - Kismet integration spike on Linux: capture helper, channel control, REST/WebSocket, KismetDB, PCAPNG, source/drop telemetry.
 - Independent Linux nl80211/radiotap replay/parser prototype for non-Kismet operation and differential testing.
-- Sionna RT worker spike: pinned CPU/CUDA environment, capability handshake, one canonical scene, radio-map/path result round trip.
+- Sionna RT worker spike: pinned CPU/LLVM environment, CPU-only capability handshake, one canonical scene, radio-map/path result round trip.
 - Deconflict neutral interchange schema proof and wifiheatmap clean-room TIN fixture.
 - macOS CoreWLAN prototype.
 - Android/iOS capability spikes.
@@ -4161,7 +4161,7 @@ Exit criteria:
 
 Deliverables:
 
-- Sionna RT P2/P3 path/radio-map worker hardened for local CPU/CUDA and remote/HPC jobs.
+- Sionna RT P2/P3 path/radio-map worker hardened for local and remote CPU/LLVM and HPC jobs.
 - Advanced canonical-to-Sionna scene compilation, antenna/material adapters, and path debugging.
 - Inverse material/power/bias calibration with identifiability controls and spatial holdouts.
 - Dynamic occupancy/material-state scenarios.
@@ -4175,7 +4175,7 @@ Exit criteria:
 
 - Sionna-backed P2 beats P1 on held-out field datasets for defined environments without overfitting; where it does not, the product reports that honestly.
 - Path debug view explains meaningful improvements/errors.
-- Convergence and backend variance are characterized.
+- Convergence and CPU/LLVM environment variance are characterized.
 - Uncertainty is calibrated and grows outside measured support.
 - No high-fidelity result bypasses RF Atlas Wi-Fi channel/PHY/MAC/capacity semantics.
 
@@ -4338,7 +4338,7 @@ Priority meanings:
 | PREB-010 | P2 | Sionna PathSolver integration | LOS/reflection/refraction/diffraction canonical scenes + path artifact contract |
 | PREB-011 | P2 | Sionna RadioMapSolver integration | Per-transmitter path-gain/RSS tiles, convergence and measured holdouts |
 | PREB-012 | P2 | Wi-Fi 7/MLO scenario model | Link policy/puncturing tests |
-| PREB-013 | P2 | Sionna worker productionization | Pinned env, cancellation, cache, crash recovery, CPU/CUDA/remote capability matrix |
+| PREB-013 | P2 | Sionna worker productionization | Pinned CPU/LLVM env, cancellation, cache, crash recovery, and remote execution matrix |
 
 ### 18.8 Optimizer
 
@@ -4393,7 +4393,7 @@ Priority meanings:
 | OSS-003 | P1 | REIMPLEMENT | Independent 802.11 parser/normalizer | Differential tests against captures/Kismet plus modern HT/VHT/HE/EHT fixtures |
 | OSS-004 | P1 | ADOPT | Sionna worker bootstrap | Pinned upstream tests + RF Atlas canonical scene pass |
 | OSS-005 | P1 | REIMPLEMENT | Canonical scene → Sionna compiler | Deterministic scene hash, geometry/material/antenna validation |
-| OSS-006 | P1 | REIMPLEMENT | PropagationRequest/Result/artifact contract | CPU/CUDA round trip, cancellation, crash-safe artifacts |
+| OSS-006 | P1 | REIMPLEMENT | PropagationRequest/Result/artifact contract | CPU/LLVM round trip, accelerator-selector rejection, cancellation, crash-safe artifacts |
 | OSS-007 | P2 | CONTRIBUTE | Deconflict deterministic seeds/objective breakdown/interchange improvements | Upstream PR or documented independent bridge; RF Atlas remains unblocked |
 | OSS-008 | P2 | CONTRIBUTE | Kismet generic EHT/MLO/source metadata gaps | Fixture-proven upstream issue/PR; adapter fallback retained |
 | OSS-009 | P2 | CONTRIBUTE | Sionna generic tabulated antenna/material import gaps | Upstream issue/PR with tests; local adapter works independently |
@@ -4513,7 +4513,7 @@ This is the recommended order for the first fourteen engineering iterations. It 
 
 ### Iteration 14 — Sionna detailed verification and calibration
 
-- CPU/CUDA capability matrix and convergence sweeps.
+- CPU/LLVM capability and convergence sweeps across supported environments.
 - Reflection/refraction/diffraction acceptance scenes.
 - Path-debug artifacts and worker crash/cancel/OOM handling.
 - Blocked measured holdout comparison versus P1.
@@ -4612,7 +4612,7 @@ If Kismet cannot preserve enough time-resolved survey context, keep it as raw/en
 Before making P2 a supported product tier:
 
 - pin a worker environment that runs upstream and RF Atlas acceptance tests;
-- establish CPU/CUDA performance/convergence envelopes;
+- establish CPU/LLVM performance/convergence envelopes;
 - validate geometry/material/antenna transforms;
 - verify cancellation/crash/OOM recovery and artifact integrity;
 - demonstrate held-out field improvement or clearly document where P1 remains preferable;
@@ -4733,7 +4733,7 @@ Do not begin a new in-house high-fidelity ray tracer unless this gate produces a
 - Which Kismet REST/WebSocket/KismetDB fields preserve enough per-packet/per-source timing and channel context for survey-grade correlation on each supported version?
 - Which Kismet EHT/MLO facts are currently complete enough to consume versus worth contributing upstream?
 - What default Sionna sample/depth/interaction settings give the best accuracy-per-second for residential, office, warehouse, and multi-floor scenes?
-- How stable are Sionna results across CPU/CUDA backends at fixed seed and acceptable numerical tolerance?
+- How stable are Sionna results across supported CPU architectures and pinned LLVM builds at fixed seed and acceptable numerical tolerance?
 - Which canonical antenna/material representations can map losslessly enough into Sionna while remaining engine-independent?
 - Which Deconflict interchange/reproducibility improvements are likely to be accepted upstream and useful beyond RF Atlas?
 - What is the cleanest licensing/distribution UX when Kismet is user-installed versus optionally bundled by platform/package?
@@ -5702,7 +5702,7 @@ These are not reasons to reject Sionna. They tell us exactly where to put the bo
 
 ##### Adoption shape
 
-The package belongs in `rfatlas-sionna-worker`, a separately versioned optional component. The worker accepts canonical scene/job projections, emits content-addressed Arrow/Parquet or equivalent arrays plus a manifest, and can run locally on CPU/CUDA or remotely. RF Atlas should generally request per-transmitter path gain/RSS, then perform channel coupling, Wi-Fi PHY/MAC, capacity and policy evaluation itself.
+The package belongs in `rfatlas-sionna-worker`, a separately versioned optional component. The worker accepts canonical scene/job projections, emits content-addressed Arrow/Parquet or equivalent arrays plus a manifest, and runs on the pinned CPU/LLVM backend locally or remotely. RF Atlas should generally request per-transmitter path gain/RSS, then perform channel coupling, Wi-Fi PHY/MAC, capacity and policy evaluation itself.
 
 Sionna’s differentiability makes measured calibration compelling. The upstream guide already demonstrates recovering material conductivity through gradient descent. RF Atlas can extend this into a constrained multi-location inverse problem, but it must own priors, sensor bias, train/validation splits, identifiability and uncertainty.
 
@@ -6003,7 +6003,7 @@ Recommended boundary:
 ```text
 control plane: versioned protobuf/JSON-RPC over local socket/stdio or mTLS remote channel
 bulk plane:    content-addressed scene bundles and Arrow IPC/Parquet/NumPy artifacts
-execution:     pinned uv/venv or OCI image; CPU/LLVM and CUDA capability probes
+execution:     pinned uv/venv or OCI image; fixed CPU/LLVM capability probe
 remote:        same immutable job bundle submitted through a Slurm adapter
 ```
 
@@ -6142,7 +6142,7 @@ The static audit is enough for architecture decisions, but adoption/integration 
 
 #### Sionna gate
 
-- build pinned CPU and CUDA worker images/environments;
+- build the pinned CPU/LLVM worker image/environment;
 - run upstream tests and RF Atlas canonical free-space/slab/reflection/diffraction scenes;
 - establish deterministic tolerance across seeds/backends;
 - benchmark path and radio-map jobs at representative home/office geometry sizes;
@@ -6199,3 +6199,12 @@ This preserves the two genuinely expensive upstream achievements—radio capture
 ### Plan v0.2 integration note
 
 Version 0.2 incorporates the 2026-08-30 source-code audit of Deconflict, Kismet, wifiheatmap, and Sionna RT. The principal changes are: Kismet-first external capture integration, Sionna RT adoption in an isolated high-fidelity worker, Deconflict contribution/interchange-only status, wifiheatmap reference-only status, and explicit canonical-model/foreign-schema boundaries across architecture, testing, roadmap, backlog, and ADRs.
+
+### Plan v0.3 integration note
+
+Version 0.3 removes accelerator-specific Sionna execution from the application,
+validation catalog, Lab MCP and roadmap. The optional Sionna worker is
+CPU/LLVM-only for local, remote and HPC execution. Former accelerator suite,
+capability and device-selector inputs are rejected rather than mapped to CPU.
+This decision does not remove portable WebGL/`wgpu` rendering or CPU/reference
+differential validation.

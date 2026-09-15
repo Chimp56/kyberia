@@ -58,8 +58,11 @@ Installed metadata does not confer rights to third-party scene assets.
 `workers/sionna/worker.py` accepts one JSON document on stdin and writes one JSON
 result on stdout. It starts one engine subprocess per request. A caller chooses
 the interpreter using the trusted `--python` launch argument, never through
-scene data. Capability requests have only `schema_version: 1`, a bounded
-`request_id`, and `operation: "capabilities"`.
+scene data. Capability requests have only transport `schema_version: 1`, a
+bounded `request_id`, and `operation: "capabilities"`. Active responses carry
+`capability_schema_version: 2` and advertise only the fixed CPU/LLVM backend.
+Worker version 0.2.0 removed the former accelerator observation. Archived
+worker-0.1 evidence remains readable only through the explicit legacy validator.
 
 To construct a complete example without copying a stale checksum:
 
@@ -70,7 +73,9 @@ DRJIT_LIBLLVM_PATH=/opt/homebrew/opt/llvm@18/lib/libLLVM.dylib MPLCONFIGDIR=.too
 
 Operations are `capabilities`, `validate_scene`, `path_query`, and `radio_map`.
 Use `request("radio_map")` for the original 4x4 grid. Unsupported fields,
-operations, backend choices, materials and interaction flags fail closed. The
+operations, backend choices, materials and interaction flags fail closed. Only
+`llvm_ad_mono_polarized` is accepted; former accelerator selectors are rejected
+rather than mapped to CPU. The
 request contains a scene revision/hash, profile revision, explicit Hz/K/m units,
 radio IDs, grid/receiver positions, seed, samples, depth, all interaction flags,
 array/loop configuration, and limits. Scene hashes and request hashes use sorted,
@@ -154,10 +159,10 @@ The early [PyPI undersampling failure](../../workers/sionna/evidence/initial-low
 is historical diagnostic evidence from the package that failed source equivalence;
 the final CPU proof uses the exact audited source.
 
-All repository `sionna-*` aggregate runtime gates remain open: neither a schema
-test nor this narrow runtime proof fulfills their complete check lists. CUDA is
-unavailable on this host (actual backend probe false and no compiled CUDA
-variant), independently of CPU progress. Reflection/refraction/diffraction,
+All repository CPU/LLVM Sionna aggregate runtime gates remain open: neither a
+schema test nor this narrow runtime proof fulfills their complete check lists.
+Accelerator execution is not a supported or planned application capability.
+Reflection/refraction/diffraction,
 materials/frequency updates/thin-wall limitations, geometry/antenna transforms,
 multi-floor scenes, representative performance, hard memory limits/OOM,
 remote artifacts, native product integration and measured holdouts remain

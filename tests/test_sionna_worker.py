@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT / "workers/sionna"))
 from rfatlas_sionna.contract import (ContractError, MAX_LOG_BYTES, MAX_REQUEST_BYTES,
                                      MAX_RESULT_BYTES, canonical_bytes, decode, digest, validate,
                                      validate_result)
+from rfatlas_sionna import CAPABILITY_SCHEMA_VERSION, WORKER_VERSION
 from rfatlas_sionna.client import run, supervise
 from rfatlas_sionna.examples import request
 
@@ -33,6 +34,28 @@ class ContractTests(unittest.TestCase):
         for operation in ("validate_scene", "path_query", "radio_map"):
             value = request(operation)
             self.assertEqual(validate(decode(canonical_bytes(value))), value)
+
+    def test_active_capability_contract_is_cpu_only_and_versioned(self):
+        report = json.loads((ROOT / "workers/sionna/evidence/cpu-proof.json").read_text())
+        job = next(x for x in report["jobs"] if x["request"]["operation"] == "capabilities")
+        result = deepcopy(job["response"]["result"])
+        result["versions"]["worker"] = WORKER_VERSION
+        result["capability_schema_version"] = CAPABILITY_SCHEMA_VERSION
+        result["capabilities"].pop("cuda")
+        result["capabilities"].pop("compiled_variants")
+        validate_result(result, job["request"])
+        self.assertEqual(set(result["capabilities"]), {
+            "cpu_llvm", "operations", "scene_kinds", "product_tier_supported",
+        })
+        for former in ("cuda", "gpu", "sionna-gpu"):
+            incompatible = deepcopy(result)
+            incompatible["capabilities"][former] = False
+            with self.assertRaises(ContractError):
+                validate_result(incompatible, job["request"])
+        unavailable = deepcopy(result)
+        unavailable["capabilities"]["cpu_llvm"] = False
+        with self.assertRaises(ContractError):
+            validate_result(unavailable, job["request"])
 
     def test_reject_malformed_envelopes(self):
         for payload in (b"null", b"[]", b'{"schema_version":true}', b"{", b'{"a":1,"a":2}',
@@ -55,6 +78,7 @@ class ContractTests(unittest.TestCase):
                     validate(candidate)
         for field, value in (("seed", -1), ("seed", True), ("samples", 1000001),
                              ("max_depth", 1), ("backend", "cuda_ad_mono_polarized"),
+                             ("backend", "gpu"),
                              ("loop_mode", "symbolic")):
             candidate = request()
             candidate["solver"][field] = value
@@ -105,6 +129,12 @@ class ContractTests(unittest.TestCase):
 
 
 class EngineRuntimeTests(unittest.TestCase):
+    def test_active_engine_does_not_probe_or_publish_accelerator_variants(self):
+        source = (ROOT / "workers/sionna/rfatlas_sionna/engine.py").read_text()
+        for retired in ("JitBackend.CUDA", "mi.variants()", '"compiled_variants"'):
+            with self.subTest(retired=retired):
+                self.assertNotIn(retired, source)
+
     def test_windows_without_resource_import_skips_cpu_limit(self):
         original_import = builtins.__import__
 
@@ -1118,7 +1148,7 @@ class RecordedResultTests(unittest.TestCase):
         report = json.loads((ROOT / "workers/sionna/evidence/cpu-proof.json").read_text())
         job = next(x for x in report["jobs"] if x["request"]["operation"] == "radio_map")
         original = job["response"]["result"]
-        validate_result(original, job["request"])
+        validate_result(original, job["request"], allow_legacy=True)
         for field, value in (("shape", [1, 3, 5]), ("units", "dBm"),
                              ("path_gain", [[[float("inf")]]]),
                              ("transmitter_ids", ["wrong-transmitter"]),
@@ -1149,7 +1179,7 @@ class RecordedResultTests(unittest.TestCase):
         report = json.loads((ROOT / "workers/sionna/evidence/cpu-proof.json").read_text())
         job = next(x for x in report["jobs"] if x["request"]["operation"] == "path_query")
         original = job["response"]["result"]
-        validate_result(original, job["request"])
+        validate_result(original, job["request"], allow_legacy=True)
         for mutate in (lambda d: d["delays_s"][0][0].__setitem__(0, -1),
                        lambda d: d["delays_s"][0][0].__setitem__(0, 0),
                        lambda d: d["delays_s"][0][0].__setitem__(0, 1),
@@ -1172,7 +1202,7 @@ class RecordedResultTests(unittest.TestCase):
                    "llvm_library_sha256": ({}, None, "", "unknown", "g"*64, "a"*63)}
         for job in jobs:
             original = job["response"]["result"]
-            validate_result(original, job["request"])
+            validate_result(original, job["request"], allow_legacy=True)
             for field, values in invalid.items():
                 result = deepcopy(original)
                 del result["versions"][field]

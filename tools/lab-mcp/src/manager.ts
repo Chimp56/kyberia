@@ -774,6 +774,14 @@ export class LabManager {
     parameters: Record<string, string> = {},
   ) {
     const host = this.host(hostId);
+    const allowedParameters =
+      probe === "kismet"
+        ? new Set(["expected_version", "fixture_set"])
+        : probe === "sionna"
+          ? new Set(["scene_set"])
+          : new Set<string>();
+    if (Object.keys(parameters).some((key) => !allowedParameters.has(key)))
+      throw new Error("unsupported probe parameter");
     if (
       probe === "kismet" &&
       parameters.expected_version &&
