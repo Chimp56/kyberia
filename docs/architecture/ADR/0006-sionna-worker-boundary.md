@@ -1,6 +1,6 @@
 # ADR-0006: Adopt audited Sionna RT behind a versioned process boundary
 
-Status: Accepted after independent architecture review by `/root/sionna_rt`. The source disposition and process boundary are mandatory plan constraints; only the bounded CPU proof has passed runtime review. Full Gate I remains open.
+Status: Superseded in part by [ADR-0043](0043-cpu-only-sionna-worker.md). The independently reviewed source disposition and process boundary remain accepted; the former accelerator-validation direction is retired. Only the bounded historical CPU proof has passed runtime review, and the current worker contract is CPU/LLVM-only. Full Gate I remains open.
 
 ## Context
 
@@ -14,7 +14,7 @@ Keep Sionna inside an optional, isolated worker launched by a trusted outer adap
 
 The current research implementation uses one process per request, a trusted interpreter/worker path, bounded input/result/log streams, cancellation, timeout and explicit crash/absence errors. It accepts an explicit seed. It returns linear path gain, complex path coefficients/delays and radio-map values with masks; Kyberia owns subsequent Wi-Fi channel overlap, association, airtime, contention, interference and capacity. It does not expose or use Sionna's generic SINR.
 
-Preserve the audited source build and its inventory independently from core dependencies. Do not silently substitute P0/P1 after a Sionna failure. Reject unsupported scene/interaction/backend requests with explicit capability information. The current empty-space CPU proof is labeled accordingly; it does not satisfy P2/P3 or material/antenna/diffraction requirements.
+Preserve the audited source build and its inventory independently from core dependencies. Do not silently substitute P0/P1 after a Sionna failure. Reject unsupported scene, interaction, or non-LLVM execution requests with explicit capability information. The current empty-space CPU proof is labeled accordingly; it does not satisfy P2/P3 or material/antenna/diffraction requirements. ADR-0043 fixes the supported Sionna execution contract to CPU/LLVM.
 
 ## Alternatives
 
@@ -28,7 +28,7 @@ The [adapter procedure](../../adapters/sionna.md), [source inventory](../../lice
 
 The desktop/core can remain usable when the optional runtime is absent or fails. Native-engine output is evidence requiring canonical normalization, not domain truth. Exact-source and dependency maintenance increase release work but make execution provenance inspectable. One process per request has startup cost; performance evidence must guide any pool. Process separation alone does not provide a hard memory limit, filesystem/network sandbox, distribution clearance or measured RF accuracy.
 
-Full scene compilation, materials, antennas/orientation effects, reflection, transmission, diffuse scattering, diffraction, GPU execution, cache artifacts, sustained-kernel cancellation, OOM containment and measured holdouts remain implementation/validation work. Native GPU hardware execution is a distinct gate from writing the surrounding contracts and CPU implementation.
+Full scene compilation, materials, antennas/orientation effects, reflection, transmission, diffuse scattering, diffraction, cache artifacts, sustained-kernel cancellation, OOM containment and measured holdouts remain implementation/validation work. Accelerator execution was contemplated when this ADR was accepted but is no longer a product gate or supported worker capability; ADR-0043 supersedes that part of the decision.
 
 ## Reversibility
 
@@ -36,4 +36,4 @@ Version the worker protocol independently of canonical observations and projects
 
 ## Validation plan
 
-Keep malformed-request/result, provenance, deterministic-seed/tolerance, timeout, cancellation and crash tests in ordinary CI without requiring the optional engine. Run fresh-environment source verification and actual CPU acceptance with pinned dependencies. Expand actual solver profiles only alongside independent numerical scenes and supported-interaction tests. Validate GPU on compatible hardware separately, and retain failed convergence evidence. Before declaring Gate I complete, run every normative runtime item, complete measured comparison and release isolation/license/SBOM checks; the current proof is insufficient for that declaration.
+Keep malformed-request/result, provenance, deterministic-seed/tolerance, timeout, cancellation and crash tests in ordinary CI without requiring the optional engine. Run fresh-environment source verification and actual CPU/LLVM acceptance with pinned dependencies. Expand actual solver profiles only alongside independent numerical scenes and supported-interaction tests. Retain failed convergence evidence. Before declaring Gate I complete, run every remaining normative CPU/LLVM runtime item, complete measured comparison and release isolation/license/SBOM checks; the current proof is insufficient for that declaration.

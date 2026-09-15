@@ -568,7 +568,7 @@ TamoGraph's virtual model includes:
 - 6 GHz AP classes and power spectral density behavior;
 - client capability and application templates;
 - optional higher-quality propagation effects such as reflections/Fresnel-related modeling;
-- CPU/GPU quality settings and background calculation.
+- `wgpu`/CPU-reference quality settings and background calculation.
 
 ### 5.20 Predictive propagation implementation [I]
 
@@ -2252,7 +2252,7 @@ requested outputs
 
 ```text
 request/input hashes
-Sionna/Mitsuba/Dr.Jit/Python/backend versions
+Sionna/Mitsuba/Dr.Jit/Python and fixed CPU/LLVM runtime versions
 completion/cancellation/failure state
 per-transmitter path gain or RSS tiles
 optional Paths/CIR/CFR/taps/Doppler artifacts
@@ -2274,7 +2274,7 @@ Every mode implements the same CPU/LLVM capability handshake, cancellation, arti
 
 ### 8.16 Compute backends
 
-There are two distinct GPU domains and they must not be conflated:
+There are two distinct compute domains and they must not be conflated:
 
 1. **RF Atlas `wgpu` compute** for P0/P1 rasterization, vector obstruction kernels, interpolation, tile algebra, candidate scoring, and Monte Carlo uncertainty where cross-platform GPU portability matters. Maintain CPU reference implementations and differential tolerances.
 2. **CPU/LLVM Sionna/Mitsuba/Dr.Jit compute** inside `rfatlas-sionna-worker` for P2/P3 radio propagation. The fixed backend/build versions are part of every result manifest; Python/LLVM/native dependency conflicts remain quarantined from the desktop.
@@ -2384,7 +2384,7 @@ A practical hybrid:
 geometry/candidate generator
        |
        v
-GPU/CPU propagation cache for candidate radios
+portable `wgpu`/CPU preview-propagation cache for candidate radios
        |
        v
 surrogate coverage/capacity coefficients
@@ -2903,7 +2903,7 @@ Responsibilities:
 - resource limits and cancellation;
 - content-addressed cache/artifact store;
 - local CPU/LLVM and optional remote CPU/LLVM/HPC execution;
-- return engine-neutral radio-map/path results with full backend provenance;
+- return engine-neutral radio-map/path results with fixed CPU/LLVM runtime provenance;
 - run upstream Sionna tests plus RF Atlas acceptance scenes in its build pipeline.
 
 It must **not** perform Wi-Fi channel assignment, final SINR, PHY/goodput, requirements, association, capacity, or optimization policy.
@@ -3146,7 +3146,7 @@ Use a tiled grid/pyramid for large sites:
 
 - independent compute tiles with halo for interpolation;
 - multi-resolution previews;
-- CPU/GPU scheduling;
+- portable `wgpu`/CPU scheduling;
 - content-addressed tile cache;
 - viewport-priority jobs;
 - deterministic merge at boundaries.
@@ -3534,10 +3534,10 @@ Keep formulas, grouping, aggregation, interpolation, requirement evaluation, and
 - OS APIs;
 - network I/O;
 - filesystem;
-- GPU execution;
+- portable `wgpu` execution;
 - database transactions.
 
-Inject seeds/clocks and compare CPU/GPU/reference implementations.
+Inject seeds/clocks and compare portable `wgpu` implementations with CPU references.
 
 ### 14.4 Domain units
 
@@ -3749,7 +3749,7 @@ Passive RF inventory and client-density analytics must be framed as network diag
 1. Pure unit tests for formulas, units, parsers, geometry, policy.
 2. Property tests for invariants and transformations.
 3. Golden tests for frames, survey fixtures, maps, and reports.
-4. CPU/GPU differential tests.
+4. Portable `wgpu`/CPU-reference differential tests.
 5. Collector contract tests with recorded platform events.
 6. Hardware-in-loop tests.
 7. Controlled RF lab tests.
@@ -3940,7 +3940,7 @@ The source audit is static. Production adoption/integration requires runtime evi
 Initial targets should be established empirically, then versioned. Candidate gates:
 
 - No raw observation loss on clean shutdown or crash-recovery fixture.
-- Deterministic analysis hashes and numerical results within defined CPU/GPU tolerances.
+- Deterministic analysis hashes and numerical results within defined `wgpu`/CPU-reference tolerances where portable acceleration is used; fixed CPU/LLVM Sionna results are compared across seeds.
 - Point-survey channel completeness accurately represented.
 - No unsupported metric displayed as measured.
 - Spatial transforms round-trip within map-calibration tolerance.
@@ -3957,7 +3957,7 @@ Do not set impressive-looking RF accuracy numbers until the lab has established 
 - Multi-hour/multi-day sensor captures.
 - Multi-floor sites from small home to stadium/warehouse scale.
 - High-resolution tiled maps.
-- GPU/CPU fallback.
+- `wgpu`/CPU-reference fallback for portable visualization compute.
 - Low-memory laptop behavior.
 - Project open/migration/recovery.
 - Remote sensor disconnect/replay/backpressure.
@@ -3974,7 +3974,7 @@ Do not set impressive-looking RF accuracy numbers until the lab has established 
 - sensor duplicate/reordered chunks.
 - corrupt bundle/chunk.
 - plugin crash/hang.
-- GPU device loss.
+- visualization-device loss with explicit CPU-reference fallback.
 
 Partial captures must remain usable and clearly marked incomplete.
 
@@ -4332,7 +4332,7 @@ Priority meanings:
 | PREB-004 | P1 | Antenna transform/gain engine | Axis/rotation golden tests |
 | PREB-005 | P1 | Bidirectional link budget | Low-power-client asymmetry case |
 | PREB-006 | P1 | PHY/PER/goodput engine | Lab/generic curve fixtures |
-| PREB-007 | P2 | GPU solver path | CPU differential tolerance |
+| PREB-007 | P2 | Portable `wgpu` preview-solver acceleration | CPU-reference differential tolerance |
 | PREB-008 | P2 | Measurement calibration | Identifiability checks and holdout report |
 | PREB-009 | P2 | Prediction uncertainty | Scenario percentiles and support map |
 | PREB-010 | P2 | Sionna PathSolver integration | LOS/reflection/refraction/diffraction canonical scenes + path artifact contract |
@@ -4681,7 +4681,7 @@ Do not begin a new in-house high-fidelity ray tracer unless this gate produces a
 | Kismet GPL/packaging boundary misunderstood | Distribution/legal friction | External process/API/file integration, notices/SBOM, explicit legal/license review before bundling |
 | Kismet schema/device aggregation becomes semantic authority | Lost survey timing/context and lock-in | Canonical ObservationEnvelope, independent parser, raw/replay fixtures, adapter-only foreign schema |
 | Sionna Python/native stack breaks desktop installation | Reliability/support burden | Optional isolated worker, pinned environment/container, capability handshake, desktop remains useful without it |
-| Sionna Monte Carlo/high-fidelity output is treated as exact | False precision | Convergence sweeps, measured holdouts, prediction uncertainty, P1/P2 comparison, backend/version provenance |
+| Sionna Monte Carlo/high-fidelity output is treated as exact | False precision | Convergence sweeps, measured holdouts, prediction uncertainty, P1/P2 comparison, fixed CPU/LLVM runtime/version provenance |
 | Upstream API/version drift | Reproducibility break | Pin audited versions, compatibility fixtures, content-addressed results, migration/engine-version policy |
 | Deconflict contribution work distracts core roadmap | Schedule slip | Upstream work only when generic and small; no production dependency on acceptance |
 | wifiheatmap code accidentally enters production | GPL coupling and old architecture debt | Clean-room synthetic oracle directory; architecture CI forbids production dependency |
@@ -4758,7 +4758,7 @@ A feature is done only when all applicable items are true:
 - Algorithm and assumptions documented.
 - Uncertainty/support behavior implemented.
 - Deterministic fixtures and property tests pass.
-- CPU/GPU or cross-platform parity tested where applicable.
+- `wgpu`/CPU-reference or cross-platform parity tested where applicable.
 - UI exposes provenance and selection context.
 - Export representation documented.
 - Report methodology generated.
@@ -4770,8 +4770,8 @@ A feature is done only when all applicable items are true:
 - Failure/crash/recovery behavior tested.
 - No canonical project record requires Kismet, Sionna, Deconflict, or wifiheatmap object schemas to interpret it.
 - Kismet can be disconnected/replaced and previously normalized surveys remain usable and reproducible.
-- Sionna worker can be absent, crashed, moved to another backend, or upgraded without corrupting project state.
-- Every P2/P3 propagation artifact identifies exact Sionna/Mitsuba/Dr.Jit/Python/backend versions and input hashes.
+- Sionna worker can be absent, crashed, moved between CPU/LLVM hosts, or upgraded without corrupting project state.
+- Every P2/P3 propagation artifact identifies exact Sionna/Mitsuba/Dr.Jit/Python and fixed CPU/LLVM runtime versions and input hashes.
 - Final Wi-Fi interference, PHY, capacity, requirements, and optimizer results are computed by RF Atlas semantics rather than raw Sionna/Deconflict scores.
 
 A heatmap is not done because it looks plausible.
@@ -4916,7 +4916,7 @@ Sources: [T2], [T5].
 | Application templates/requirements | [V] | Demand distributions and policy profiles |
 | Low/medium/good/best quality | [V] | Named solver tiers with explicit algorithms |
 | Reflection/Fresnel advanced effects | [V] | Open path records and canonical validation |
-| CPU/GPU compute and background precomputation | [V] | `wgpu` plus CPU reference and content-addressed tiles |
+| Portable accelerated compute and background precomputation | [V] | `wgpu` plus CPU reference and content-addressed tiles |
 | AP power best-practice guidance | [V] | Bidirectional optimizer and asymmetry maps |
 
 Sources: [T2], [T6].
@@ -5164,7 +5164,7 @@ Before shipping a metric, answer all rows.
 17. Auto-planner minimum clients/capacity constraints.
 18. Auto-planner channel/power reconfiguration behavior.
 19. Requirements area denominator with unknown/unsurveyed cells.
-20. CPU versus GPU output reproducibility.
+20. CPU-reference versus portable accelerated output reproducibility.
 
 ### F.2 NetSpot behavioral experiments
 
@@ -5571,7 +5571,7 @@ result:
   per-transmitter path gain/RSS tiles or point paths
   optional CIR/CFR/AoA/AoD/delay/Doppler artifacts
   convergence/sample metadata and warnings
-  engine/package/backend versions
+  engine/package and fixed CPU/LLVM runtime versions
   input/output content hashes
   uncertainty and unsupported-capability declarations
 ```
@@ -5775,7 +5775,7 @@ Sionna’s differentiability makes measured calibration compelling. The upstream
 | wifiheatmap | Unit tests and fixtures | REFERENCE-ONLY | Tests cover models, document, and heatmap behavior. | Translate concepts into clean-room golden cases; do not vendor GPL fixtures/code into a permissive core without an explicit license decision. |
 | wifiheatmap | Upstream fork/contribution program | REFERENCE-ONLY | Last audited branch commit is from August 2021. | Do not make delivery depend on revival. File isolated correctness fixes only if the maintainer re-engages; otherwise cite it as prior art and move on. |
 | Sionna RT | sionna-rt Python package | ADOPT | Apache-2.0 package, version 2.0.1 at the audited commit, built on Mitsuba 3 and Dr.Jit. | Make it a pinned direct dependency of an optional RF Atlas worker, not of the Rust/Tauri desktop process. |
-| Sionna RT | Mitsuba/Dr.Jit native runtime | ADOPT | Hardware-accelerated differentiable scene traversal and vectorized computation; exact versions are pinned upstream. | Adopt transitively only inside the worker environment. Isolate native dependency conflicts and record backend/build versions in every result. |
+| Sionna RT | Mitsuba/Dr.Jit native runtime | ADOPT | Differentiable scene traversal and vectorized computation; exact versions are pinned upstream. | Adopt transitively only inside the worker environment. Isolate native dependency conflicts and record the fixed CPU/LLVM runtime and build versions in every result. |
 | Sionna RT | Scene and scene-object runtime | ADOPT | Mitsuba-backed scene with objects, materials, transmitters/receivers, frequency, bandwidth, temperature, arrays, rendering, and parameter traversal. | Use as the worker’s execution scene, not RF Atlas’s canonical project model. |
 | Sionna RT | ITU and custom radio-material engine | ADOPT | Frequency-dependent ITU-R material models plus extensible Mitsuba BSDF interface, thickness, scattering and cross-polarization parameters. | Use for high-fidelity runs. Canonical material identity, priors, provenance, uncertainty, and measured calibration remain RF Atlas-owned. |
 | Sionna RT | Antenna patterns, polarization, and arrays | ADOPT | Registries and callable field patterns for isotropic, dipole, 3GPP and custom antennas; planar arrays and polarization models. | Use in the worker. Add adapters from open tabulated patterns and handle Sionna’s shared-scene array constraints explicitly. |
@@ -5786,7 +5786,7 @@ Sionna’s differentiability makes measured calibration compelling. The upstream
 | Sionna RT | Example scenes and upstream tests | REFERENCE-ONLY | Unit tests cover candidates, image method, radio maps, CIR/CFR, Doppler, rendering and utilities. | Run upstream tests in the worker build and use concepts for adapter fixtures, but maintain independent RF Atlas acceptance scenes. |
 | Sionna RT | RF Atlas canonical scene/material/AP/antenna schemas | REIMPLEMENT | Sionna objects are execution-engine types with one scene frequency/bandwidth and shared arrays. | Own stable schemas and generate one or more Sionna scenes/jobs as a projection. |
 | Sionna RT | Floor-plan/BIM-to-Mitsuba scene compiler | REIMPLEMENT | Sionna expects scene geometry and materials, not a TamoGraph-style editable 2D floor plan. | Build deterministic extrusion/meshing, opening handling, slab geometry, material assignment, coordinate transforms, diagnostics, and scene hashes. |
-| Sionna RT | RF Atlas worker/service wrapper | REIMPLEMENT | Process lifecycle, capability handshake, resource limits, job cancellation, caching, RPC, artifacts, and remote execution are outside Sionna. | Own this boundary. Prefer local socket/stdio control plus Arrow IPC/Parquet artifacts; support container/venv and remote Slurm backends. |
+| Sionna RT | RF Atlas worker/service wrapper | REIMPLEMENT | Process lifecycle, capability handshake, resource limits, job cancellation, caching, RPC, artifacts, and remote execution are outside Sionna. | Own this boundary. Prefer local socket/stdio control plus Arrow IPC/Parquet artifacts; support CPU/LLVM container/venv execution and remote Slurm queues. |
 | Sionna RT | Per-band/per-channel run orchestration | REIMPLEMENT | Scene frequency and bandwidth are global, and radio-map SINR assumes all transmitters in a run interfere. | Partition/rerun by frequency, channel, bandwidth, antenna group and scenario; combine path gains with RF Atlas spectral/airtime models. |
 | Sionna RT | Wi-Fi PHY/MAC/capacity semantics | REIMPLEMENT | Sionna models propagation/channel response, not CSMA/CA, MCS/PER, association, retries, OFDMA scheduling, MLO, roaming or goodput. | Keep deterministic radio physics and Wi-Fi network behavior as separate composable layers. |
 | Sionna RT | Inverse calibration orchestration | REIMPLEMENT | Upstream demonstrates trainable material conductivity with evaluated Dr.Jit loops. | Build constrained multi-point calibration, priors, adapter bias, train/validation splits, candidate-path refresh, identifiability checks, and uncertainty around the adopted solver. |
@@ -5889,7 +5889,7 @@ Every planned RF Atlas subsystem below has one primary disposition. The `Impleme
 | SPE-003 | Survey-correlated spectrum maps | REIMPLEMENT | RF Atlas | Tie sweeps to path/time/calibration and preserve frequency resolution. |
 | SPE-004 | Interferer classification | REIMPLEMENT | RF Atlas | Evidence-ranked classification with unknown state, confidence and raw spectral excerpts. |
 | SPE-005 | Spectrum calibration | REIMPLEMENT | RF Atlas | Device response, reference source, frequency-dependent offsets, noise floor and uncertainty. |
-| PRE-001 | Fast empirical/multi-wall preview solver | REIMPLEMENT | RF Atlas; Deconflict reference | CPU/GPU-friendly deterministic link budget with vector barriers, antenna gain, frequency and calibration. |
+| PRE-001 | Fast empirical/multi-wall preview solver | REIMPLEMENT | RF Atlas; Deconflict reference | CPU/`wgpu`-friendly deterministic link budget with vector barriers, antenna gain, frequency and calibration. |
 | PRE-002 | 2D/3D scene compiler and meshing | REIMPLEMENT | RF Atlas | Canonical geometry to engine-specific meshes with openings, layers, diagnostics and hashes. |
 | PRE-003 | Material execution adapter | REIMPLEMENT | RF Atlas → Sionna | Map canonical priors/curves/material IDs to Sionna ITU/custom BSDFs without making engine types canonical. |
 | PRE-004 | Client profiles | REIMPLEMENT | RF Atlas | Receiver sensitivity, bands, NSS, antennas, orientation/body loss, uplink power, standards and roaming behavior. |
@@ -5954,7 +5954,7 @@ Every planned RF Atlas subsystem below has one primary disposition. The `Impleme
 | EXT-003 | Controller integrations | REIMPLEMENT | RF Atlas | Timestamped read-only evidence adapters with trust level; no silent overwrite of field data. |
 | EXT-004 | Offline-first collaboration and merge | REIMPLEMENT | RF Atlas | Operation/event merge with immutable evidence, conflicts and provenance. |
 | SEC-001 | Privilege separation | REIMPLEMENT | RF Atlas; Kismet integration | Use Kismet’s packaged helper model for Kismet radios and a separately audited minimal helper for native capture. |
-| SEC-002 | Plugin/worker sandbox and resource limits | REIMPLEMENT | RF Atlas | Separate users/processes, file/network grants, CPU/GPU/memory/time limits and explicit trust. |
+| SEC-002 | Plugin/worker sandbox and resource limits | REIMPLEMENT | RF Atlas | Separate users/processes, file/network grants, CPU/`wgpu`/memory/time limits and explicit trust. |
 | SEC-003 | Remote sensor authentication | REIMPLEMENT | RF Atlas | Mutual authentication, enrollment, rotation, least privilege, replay resistance and audit logs. |
 | SEC-004 | Project encryption and secret handling | REIMPLEMENT | RF Atlas | At-rest keys, export redaction, credential separation and recoverability. |
 | SEC-005 | SBOM, license and dependency policy | REIMPLEMENT | RF Atlas | Enforce GPL process boundaries, Apache notices, catalog redistribution, advisories and signed releases. |
@@ -5962,7 +5962,7 @@ Every planned RF Atlas subsystem below has one primary disposition. The `Impleme
 | OPS-001 | Packaging, updater and optional component manager | REIMPLEMENT | RF Atlas | Core app, Kismet connector detection, Sionna worker/venv/container and model/data packs must be independently manageable. |
 | OPS-002 | Observability and diagnostics bundle | REIMPLEMENT | RF Atlas | Structured logs, job traces, collector health, source versions and privacy-safe support export. |
 | OPS-003 | Performance, caching and cancellation | REIMPLEMENT | RF Atlas | Content-addressed derived artifacts, tile caches, bounded queues, backpressure and cancellation. |
-| OPS-004 | Local GPU/CPU and remote HPC/Slurm jobs | REIMPLEMENT | RF Atlas + Sionna worker | Same job contract across local and remote execution with artifact hashes and resource provenance. |
+| OPS-004 | Local and remote CPU/LLVM HPC/Slurm jobs | REIMPLEMENT | RF Atlas + Sionna worker | Same CPU/LLVM job contract across local and remote execution with artifact hashes and resource provenance. |
 | TST-001 | Unit/property tests | REIMPLEMENT | RF Atlas | Domain invariants, units, geometry, statistics, channel rules and policies. |
 | TST-002 | Parser corpus, fuzzing and differential tests | REIMPLEMENT | RF Atlas + Kismet comparison | Raw frame corpus across malformed/classic/HE/EHT cases; compare but do not depend on Kismet interpretations. |
 | TST-003 | Propagation canonical scenes | REIMPLEMENT | RF Atlas + Sionna | Analytic free-space, single slab, reflection, diffraction and multi-floor cases with engine/version tolerances. |
@@ -6019,7 +6019,7 @@ Required job types:
 Every result manifest records:
 
 - RF Atlas scene/profile revisions and hashes;
-- Sionna/Mitsuba/Dr.Jit/Python/backend versions;
+- Sionna/Mitsuba/Dr.Jit/Python and fixed CPU/LLVM runtime versions;
 - device/driver when relevant;
 - frequency/bandwidth/noise/temperature;
 - interactions, depth, samples, seed, synthetic-array mode and loop mode;
@@ -6144,7 +6144,7 @@ The static audit is enough for architecture decisions, but adoption/integration 
 
 - build the pinned CPU/LLVM worker image/environment;
 - run upstream tests and RF Atlas canonical free-space/slab/reflection/diffraction scenes;
-- establish deterministic tolerance across seeds/backends;
+- establish deterministic tolerance across fixed CPU/LLVM runs and seeds;
 - benchmark path and radio-map jobs at representative home/office geometry sizes;
 - validate material frequency updates and thin-wall limitations;
 - prove cancellation, crash recovery, cache hashes and remote artifact round trips;

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source": {
     "path": "plan.md",
-    "sha256": "6116fe493d9b211e06d01cb132dc875fc5b1b42c1464c206a31c72e2f900f3f1",
+    "sha256": "1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6",
     "line_count": 6210
   },
   "inventory": {
@@ -79,7 +79,7 @@
           "source:table_row:2a7054559ec640ee45fa:1",
           "source:table_row:1c2a8180ad5d400de081:1",
           "source:table_row:70b24d8679972767ea50:1",
-          "source:table_row:479bd8303d93fef6e335:1",
+          "source:table_row:04921fdbdc81f240621c:1",
           "source:table_row:e853128a0629ea88a44b:1",
           "source:table_row:6fafe56f7b4b7855a7c0:1",
           "source:table_row:9da69462f5f1c69e1176:1",
@@ -90,7 +90,7 @@
           "source:table_row:c1d41b2a90a859954f21:1",
           "source:table_row:8141d40063ce430ba481:1",
           "source:table_row:6ef3ec7b68677becb32f:1",
-          "source:table_row:17a03c6efbbaa22b219f:1",
+          "source:table_row:812a86f31cd7bfa3a67a:1",
           "source:table_row:1d4239536ae2e98a4a0e:1",
           "source:table_row:f1fbd8db5d5da5a0b5f9:1",
           "source:table_row:41ff79afea86f7651e11:1",
@@ -21410,7 +21410,7 @@
         "source:list_item:727b551b0c4d281c1743:1",
         "source:list_item:8c28dde9e5b667512b20:1",
         "source:list_item:5d754f36dd11114ffc26:1",
-        "source:list_item:fa38bc813812529bd4f9:1",
+        "source:list_item:921bc50bee1c25ef0bdd:1",
         "source:spacing:01ba4719c80b6fe911b0:146"
       ]
     },
@@ -21888,7 +21888,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:fa38bc813812529bd4f9:1",
+      "id": "source:list_item:921bc50bee1c25ef0bdd:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -21896,8 +21896,8 @@
         "path": "plan.md",
         "start_line": 571,
         "end_line": 571,
-        "sha256": "fa38bc813812529bd4f9e338f913756a492c6769b8a2b890a3aaf8a9a3143768",
-        "text": "- CPU/GPU quality settings and background calculation.\n"
+        "sha256": "921bc50bee1c25ef0bdd9c1cbfbd201405a2e171c9d3e1dab985c6b6953ba824",
+        "text": "- `wgpu`/CPU-reference quality settings and background calculation.\n"
       },
       "ancestry": [
         {
@@ -91877,7 +91877,7 @@
         "source:spacing:01ba4719c80b6fe911b0:583",
         "source:paragraph:0ff41ac6b636ce1d08ba:1",
         "source:spacing:01ba4719c80b6fe911b0:584",
-        "source:code_or_diagram:ca637bb5616e3aa35ec2:1",
+        "source:code_or_diagram:7d4b7232d08cdd40af00:1",
         "source:spacing:01ba4719c80b6fe911b0:585",
         "source:paragraph:ebf44e9803da1fbcc726:1",
         "source:spacing:01ba4719c80b6fe911b0:586"
@@ -92028,7 +92028,7 @@
       "children": []
     },
     {
-      "id": "source:code_or_diagram:ca637bb5616e3aa35ec2:1",
+      "id": "source:code_or_diagram:7d4b7232d08cdd40af00:1",
       "original_id": null,
       "kind": "code_or_diagram",
       "role": "obligation",
@@ -92036,8 +92036,8 @@
         "path": "plan.md",
         "start_line": 2253,
         "end_line": 2262,
-        "sha256": "ca637bb5616e3aa35ec21c740d2d689e48fc265e99a2ae9b71bbeb8b624a9875",
-        "text": "```text\nrequest/input hashes\nSionna/Mitsuba/Dr.Jit/Python/backend versions\ncompletion/cancellation/failure state\nper-transmitter path gain or RSS tiles\noptional Paths/CIR/CFR/taps/Doppler artifacts\nMonte Carlo/convergence diagnostics\nworker logs/debug render references\nchecksums and timings\n```\n"
+        "sha256": "7d4b7232d08cdd40af00fe0de104c7bd137c0a6120a5b78d9b1334b5f4f8d995",
+        "text": "```text\nrequest/input hashes\nSionna/Mitsuba/Dr.Jit/Python and fixed CPU/LLVM runtime versions\ncompletion/cancellation/failure state\nper-transmitter path gain or RSS tiles\noptional Paths/CIR/CFR/taps/Doppler artifacts\nMonte Carlo/convergence diagnostics\nworker logs/debug render references\nchecksums and timings\n```\n"
       },
       "ancestry": [
         {
@@ -92703,7 +92703,7 @@
       "parent_id": "source:heading:38c0ae97ee5537e6cc70:1",
       "children": [
         "source:spacing:01ba4719c80b6fe911b0:590",
-        "source:paragraph:210d854e0ac292b2bc9e:1",
+        "source:paragraph:43fe66e7ec93a6bce9bc:1",
         "source:spacing:01ba4719c80b6fe911b0:591",
         "source:list_item:ae5564a8db4bdba5d293:1",
         "source:list_item:2a09582ff3a893b3d357:1",
@@ -92756,7 +92756,7 @@
       "children": []
     },
     {
-      "id": "source:paragraph:210d854e0ac292b2bc9e:1",
+      "id": "source:paragraph:43fe66e7ec93a6bce9bc:1",
       "original_id": null,
       "kind": "paragraph",
       "role": "obligation",
@@ -92764,8 +92764,8 @@
         "path": "plan.md",
         "start_line": 2277,
         "end_line": 2277,
-        "sha256": "210d854e0ac292b2bc9e52fac1b3fc59f4694c4b2e5b3e7df0f9fcbc067efbfe",
-        "text": "There are two distinct GPU domains and they must not be conflated:\n"
+        "sha256": "43fe66e7ec93a6bce9bc592451fe72bc18c2753a6d6116f949a7343858639df4",
+        "text": "There are two distinct compute domains and they must not be conflated:\n"
       },
       "ancestry": [
         {
@@ -96978,7 +96978,7 @@
         "source:spacing:01ba4719c80b6fe911b0:616",
         "source:paragraph:af51d270fcf73ca5541f:1",
         "source:spacing:01ba4719c80b6fe911b0:617",
-        "source:code_or_diagram:7a3fab0b800e9e7842cf:1",
+        "source:code_or_diagram:c97450702300a26ebcc5:1",
         "source:spacing:01ba4719c80b6fe911b0:618",
         "source:paragraph:e089ff7d316c336753d5:1",
         "source:spacing:01ba4719c80b6fe911b0:619",
@@ -97119,7 +97119,7 @@
       "children": []
     },
     {
-      "id": "source:code_or_diagram:7a3fab0b800e9e7842cf:1",
+      "id": "source:code_or_diagram:c97450702300a26ebcc5:1",
       "original_id": null,
       "kind": "code_or_diagram",
       "role": "obligation",
@@ -97127,8 +97127,8 @@
         "path": "plan.md",
         "start_line": 2383,
         "end_line": 2406,
-        "sha256": "7a3fab0b800e9e7842cfedd49058dbffa6416d0cdea9256d4a58e7f83f7979f3",
-        "text": "```text\ngeometry/candidate generator\n       |\n       v\nGPU/CPU propagation cache for candidate radios\n       |\n       v\nsurrogate coverage/capacity coefficients\n       |\n       v\nCP-SAT discrete placement/channel/power model\n       |\n       v\nclient association / min-cost-flow evaluation\n       |\n       v\nfull nonlinear simulation and robustness checks\n       |\n       v\nlocal repair/search\n       |\n       v\nPareto alternatives + explanations\n```\n"
+        "sha256": "c97450702300a26ebcc597aaca8e65f4b285fe132156b480344d7748edf5df55",
+        "text": "```text\ngeometry/candidate generator\n       |\n       v\nportable `wgpu`/CPU preview-propagation cache for candidate radios\n       |\n       v\nsurrogate coverage/capacity coefficients\n       |\n       v\nCP-SAT discrete placement/channel/power model\n       |\n       v\nclient association / min-cost-flow evaluation\n       |\n       v\nfull nonlinear simulation and robustness checks\n       |\n       v\nlocal repair/search\n       |\n       v\nPareto alternatives + explanations\n```\n"
       },
       "ancestry": [
         {
@@ -115210,7 +115210,7 @@
         "source:list_item:0bd776ce5f1fc84b5e76:1",
         "source:list_item:0867a5299c2d8e725294:1",
         "source:list_item:0164d2fd0dd984d52cb3:1",
-        "source:list_item:2d9a3a01e4d877ce46cd:1",
+        "source:list_item:5f9c1f41af474c435ef8:1",
         "source:list_item:e0a3fba5e5f604d5c629:1",
         "source:spacing:01ba4719c80b6fe911b0:734",
         "source:paragraph:4af79c1bedbe9a2a2454:1",
@@ -115650,7 +115650,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:2d9a3a01e4d877ce46cd:1",
+      "id": "source:list_item:5f9c1f41af474c435ef8:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -115658,8 +115658,8 @@
         "path": "plan.md",
         "start_line": 2906,
         "end_line": 2906,
-        "sha256": "2d9a3a01e4d877ce46cd6cf27b1605a1cbfcd61a88ffe8fea405cd17a0a5dd4c",
-        "text": "- return engine-neutral radio-map/path results with full backend provenance;\n"
+        "sha256": "5f9c1f41af474c435ef8f8a02805895ab85e66ee0d1e3cc7f5fe5ede350ed26c",
+        "text": "- return engine-neutral radio-map/path results with fixed CPU/LLVM runtime provenance;\n"
       },
       "ancestry": [
         {
@@ -127275,7 +127275,7 @@
         "source:spacing:01ba4719c80b6fe911b0:787",
         "source:list_item:f191de4d7d556a26fc71:1",
         "source:list_item:cd25e8419aabdf64a68c:1",
-        "source:list_item:d5292e967adcb2ad406d:1",
+        "source:list_item:2e494098ee636b0d0118:1",
         "source:list_item:c54e021de587d55c75ee:1",
         "source:list_item:55a0ca7e66bb86bcd65f:1",
         "source:list_item:1f79c042dbec1b04895e:1",
@@ -127498,7 +127498,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:d5292e967adcb2ad406d:1",
+      "id": "source:list_item:2e494098ee636b0d0118:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -127506,8 +127506,8 @@
         "path": "plan.md",
         "start_line": 3149,
         "end_line": 3149,
-        "sha256": "d5292e967adcb2ad406d2b89b39cc3f21b86cc65a437c3f8832d9accfb7cc9ea",
-        "text": "- CPU/GPU scheduling;\n"
+        "sha256": "2e494098ee636b0d0118e327d08936a15754e2dcf336c71599c08dd4dd5017f0",
+        "text": "- portable `wgpu`/CPU scheduling;\n"
       },
       "ancestry": [
         {
@@ -138100,10 +138100,10 @@
         "source:list_item:026d1116a65ad3e8e9a1:1",
         "source:list_item:84d4700158cd0cdc40e9:1",
         "source:list_item:612bc03ed5103564ad32:1",
-        "source:list_item:3e841c93b79e66cb49bf:1",
+        "source:list_item:17600d92247d4e510d3a:1",
         "source:list_item:b67b246932cc5b1418d0:1",
         "source:spacing:01ba4719c80b6fe911b0:860",
-        "source:paragraph:069030b974a78d3bdda8:1",
+        "source:paragraph:050a3ccf3b14999a8944:1",
         "source:spacing:01ba4719c80b6fe911b0:861"
       ]
     },
@@ -138452,7 +138452,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:3e841c93b79e66cb49bf:1",
+      "id": "source:list_item:17600d92247d4e510d3a:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -138460,8 +138460,8 @@
         "path": "plan.md",
         "start_line": 3537,
         "end_line": 3537,
-        "sha256": "3e841c93b79e66cb49bf64086aeb2da9ae35ddbe43ec76ade687838449315732",
-        "text": "- GPU execution;\n"
+        "sha256": "17600d92247d4e510d3a89a4ab6887aacd2bfb369f574eef58eb724efa2b7baf",
+        "text": "- portable `wgpu` execution;\n"
       },
       "ancestry": [
         {
@@ -138581,7 +138581,7 @@
       "children": []
     },
     {
-      "id": "source:paragraph:069030b974a78d3bdda8:1",
+      "id": "source:paragraph:050a3ccf3b14999a8944:1",
       "original_id": null,
       "kind": "paragraph",
       "role": "obligation",
@@ -138589,8 +138589,8 @@
         "path": "plan.md",
         "start_line": 3540,
         "end_line": 3540,
-        "sha256": "069030b974a78d3bdda8167c8ec0008743677df86b25413a592ed96a25aad239",
-        "text": "Inject seeds/clocks and compare CPU/GPU/reference implementations.\n"
+        "sha256": "050a3ccf3b14999a89442fb08056a40559ae77ac64a0265a4bc2f7ebf55b8016",
+        "text": "Inject seeds/clocks and compare portable `wgpu` implementations with CPU references.\n"
       },
       "ancestry": [
         {
@@ -147454,7 +147454,7 @@
         "source:list_item:285dd961ff9ed3dd349e:1",
         "source:list_item:f7b8acc2304c2ebbf31f:1",
         "source:list_item:303af2ab93195a647c58:1",
-        "source:list_item:f0f5b559206c1418e858:1",
+        "source:list_item:1542fd1e4cd1068b4559:1",
         "source:list_item:93256c1f87e36f5b926c:1",
         "source:list_item:fe969cb18c8bb079694f:1",
         "source:list_item:7dc58bd587e419210820:1",
@@ -147637,7 +147637,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:f0f5b559206c1418e858:1",
+      "id": "source:list_item:1542fd1e4cd1068b4559:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -147645,8 +147645,8 @@
         "path": "plan.md",
         "start_line": 3752,
         "end_line": 3752,
-        "sha256": "f0f5b559206c1418e8580dfbd8c24b239e071c5fee7e3a423fc65ab5d5772d9d",
-        "text": "4. CPU/GPU differential tests.\n"
+        "sha256": "1542fd1e4cd1068b4559a31e0f8d9dde34074b2f3d7c5d4cbded898df223b48a",
+        "text": "4. Portable `wgpu`/CPU-reference differential tests.\n"
       },
       "ancestry": [
         {
@@ -155973,7 +155973,7 @@
         "source:paragraph:856bf0138f1b8b587ecb:1",
         "source:spacing:01ba4719c80b6fe911b0:958",
         "source:list_item:437bdb9fc946b17d50e8:1",
-        "source:list_item:745e92a4c670ea293823:1",
+        "source:list_item:1c36f910c3f07d5d1d14:1",
         "source:list_item:75cc5b3d3621d0822684:1",
         "source:list_item:197be6ac529282fd239e:1",
         "source:list_item:bf0674ea4ca8248d9417:1",
@@ -156159,7 +156159,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:745e92a4c670ea293823:1",
+      "id": "source:list_item:1c36f910c3f07d5d1d14:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -156167,8 +156167,8 @@
         "path": "plan.md",
         "start_line": 3943,
         "end_line": 3943,
-        "sha256": "745e92a4c670ea293823532515f55714dc3b9830b00c1bb13c64f345a465b415",
-        "text": "- Deterministic analysis hashes and numerical results within defined CPU/GPU tolerances.\n"
+        "sha256": "1c36f910c3f07d5d1d148cd11febac831e5149f7b10cfebb69d53990eec33707",
+        "text": "- Deterministic analysis hashes and numerical results within defined `wgpu`/CPU-reference tolerances where portable acceleration is used; fixed CPU/LLVM Sionna results are compared across seeds.\n"
       },
       "ancestry": [
         {
@@ -156678,7 +156678,7 @@
         "source:list_item:31b0aa44493f0df74fed:1",
         "source:list_item:03ed5270c2f9338e7eba:1",
         "source:list_item:dfc6499d58f6376f232f:1",
-        "source:list_item:8927ee04c072810cc750:1",
+        "source:list_item:abc1d57117be7b35dc42:1",
         "source:list_item:7b6aafffef51b6e07ca8:1",
         "source:list_item:d8049ac52f2613c26d3a:1",
         "source:list_item:40628c19597d5ca6674c:1",
@@ -156901,7 +156901,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:8927ee04c072810cc750:1",
+      "id": "source:list_item:abc1d57117be7b35dc42:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -156909,8 +156909,8 @@
         "path": "plan.md",
         "start_line": 3960,
         "end_line": 3960,
-        "sha256": "8927ee04c072810cc750966e20a023018556e390611a35f5e7be9cffcb28b049",
-        "text": "- GPU/CPU fallback.\n"
+        "sha256": "abc1d57117be7b35dc42c67fdf6a1c14ac56596af52f723773da306f7bf52bee",
+        "text": "- `wgpu`/CPU-reference fallback for portable visualization compute.\n"
       },
       "ancestry": [
         {
@@ -157168,7 +157168,7 @@
         "source:list_item:aa073ddf078fb2e11c65:1",
         "source:list_item:e2f407841606168139f6:1",
         "source:list_item:b4a452c777034962a109:1",
-        "source:list_item:8f22bdd86975b83b002a:1",
+        "source:list_item:3f8a30a790fbb869f4c2:1",
         "source:spacing:01ba4719c80b6fe911b0:964",
         "source:paragraph:ad069764101e8fa1fff1:1",
         "source:spacing:01ba4719c80b6fe911b0:965",
@@ -157650,7 +157650,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:8f22bdd86975b83b002a:1",
+      "id": "source:list_item:3f8a30a790fbb869f4c2:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -157658,8 +157658,8 @@
         "path": "plan.md",
         "start_line": 3977,
         "end_line": 3977,
-        "sha256": "8f22bdd86975b83b002ac2b1df9e4a8b4205c016c95cd425dbc7068e9f75d069",
-        "text": "- GPU device loss.\n"
+        "sha256": "3f8a30a790fbb869f4c2ebb83258982bfdf11370d97762976ac5a64a2b6eb3a8",
+        "text": "- visualization-device loss with explicit CPU-reference fallback.\n"
       },
       "ancestry": [
         {
@@ -175161,8 +175161,8 @@
         "path": "plan.md",
         "start_line": 4335,
         "end_line": 4335,
-        "sha256": "2e666b6ffee82031b74221dcae14f5d45cdef1dd2300b5b32e9e34f04634613f",
-        "text": "| PREB-007 | P2 | GPU solver path | CPU differential tolerance |\n"
+        "sha256": "40e55ee158cea7bd9b5e468bf9dc15df4d6d081d82a4b829bef6407f24093e92",
+        "text": "| PREB-007 | P2 | Portable `wgpu` preview-solver acceleration | CPU-reference differential tolerance |\n"
       },
       "ancestry": [
         {
@@ -192464,7 +192464,7 @@
         "source:table_row:c04be09bdbfaab328afc:1",
         "source:table_row:0e7a9873ec34716cc767:1",
         "source:table_row:9fafb935b7bd13b9339a:1",
-        "source:table_row:a95ad0572a0e2bba0a7d:1",
+        "source:table_row:1e84ac12dc73947e6741:1",
         "source:table_row:8661fd098ce870c7d512:1",
         "source:table_row:7533dcc93155f600db0a:1",
         "source:table_row:f70c7f95c4eb422d42c2:1",
@@ -192731,7 +192731,7 @@
       "children": []
     },
     {
-      "id": "source:table_row:a95ad0572a0e2bba0a7d:1",
+      "id": "source:table_row:1e84ac12dc73947e6741:1",
       "original_id": null,
       "kind": "table_row",
       "role": "obligation",
@@ -192739,8 +192739,8 @@
         "path": "plan.md",
         "start_line": 4684,
         "end_line": 4684,
-        "sha256": "a95ad0572a0e2bba0a7d5b0e2d5d0e783fd3142f0317def8a6c538f404ae9ae7",
-        "text": "| Sionna Monte Carlo/high-fidelity output is treated as exact | False precision | Convergence sweeps, measured holdouts, prediction uncertainty, P1/P2 comparison, backend/version provenance |\n"
+        "sha256": "1e84ac12dc73947e6741ecf6b6a4d94507965be018cc46e34b1d7c389f685fd2",
+        "text": "| Sionna Monte Carlo/high-fidelity output is treated as exact | False precision | Convergence sweeps, measured holdouts, prediction uncertainty, P1/P2 comparison, fixed CPU/LLVM runtime/version provenance |\n"
       },
       "ancestry": [
         {
@@ -195584,7 +195584,7 @@
         "source:list_item:61274083d4aa67d420c0:1",
         "source:list_item:3e967e69bc0b2c83ea89:1",
         "source:list_item:2e1b599fa290a15d5844:1",
-        "source:list_item:04db42e3d8ce8522d9f1:1",
+        "source:list_item:70a5f412bd306343939d:1",
         "source:list_item:856ceb30e14663f328ba:1",
         "source:list_item:cc75998a9932f618e51f:1",
         "source:list_item:689a1d2f2772d77027ae:1",
@@ -195596,8 +195596,8 @@
         "source:list_item:48f8047cb0b83e224127:1",
         "source:list_item:631396c236717d4d54e0:1",
         "source:list_item:26cb7d85819e157930fb:1",
-        "source:list_item:be1061f0833c2cad8856:1",
-        "source:list_item:e7a147d99f8636f89477:1",
+        "source:list_item:ec3e39d923102b800e11:1",
+        "source:list_item:ac3f60511588177d35ab:1",
         "source:list_item:264c9a15dc6de9cc4ef6:1",
         "source:spacing:01ba4719c80b6fe911b0:1137",
         "source:paragraph:52c51fbe42ed004a1041:1",
@@ -195987,7 +195987,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:04db42e3d8ce8522d9f1:1",
+      "id": "source:list_item:70a5f412bd306343939d:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -195995,8 +195995,8 @@
         "path": "plan.md",
         "start_line": 4761,
         "end_line": 4761,
-        "sha256": "04db42e3d8ce8522d9f1c6775aefcd78d45f6e50a926b5d1f1669993b3b874d8",
-        "text": "- CPU/GPU or cross-platform parity tested where applicable.\n"
+        "sha256": "70a5f412bd306343939d75467cca4edb4559ec565edc93490a382b27af564c51",
+        "text": "- `wgpu`/CPU-reference or cross-platform parity tested where applicable.\n"
       },
       "ancestry": [
         {
@@ -196443,7 +196443,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:be1061f0833c2cad8856:1",
+      "id": "source:list_item:ec3e39d923102b800e11:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -196451,8 +196451,8 @@
         "path": "plan.md",
         "start_line": 4773,
         "end_line": 4773,
-        "sha256": "be1061f0833c2cad88566d34fa83e021fb9ad32adbceacb93264b41413a29d0f",
-        "text": "- Sionna worker can be absent, crashed, moved to another backend, or upgraded without corrupting project state.\n"
+        "sha256": "ec3e39d923102b800e113d26c5d774677b759210684f451f31fa88fcabd31add",
+        "text": "- Sionna worker can be absent, crashed, moved between CPU/LLVM hosts, or upgraded without corrupting project state.\n"
       },
       "ancestry": [
         {
@@ -196481,7 +196481,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:e7a147d99f8636f89477:1",
+      "id": "source:list_item:ac3f60511588177d35ab:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -196489,8 +196489,8 @@
         "path": "plan.md",
         "start_line": 4774,
         "end_line": 4774,
-        "sha256": "e7a147d99f8636f894774aaf0e010301e5193fe62951d36203d5f1fd6cf276de",
-        "text": "- Every P2/P3 propagation artifact identifies exact Sionna/Mitsuba/Dr.Jit/Python/backend versions and input hashes.\n"
+        "sha256": "ac3f60511588177d35aba7d98241f9a8164c7ce7a5b5a8141eb8fcc038ddacb7",
+        "text": "- Every P2/P3 propagation artifact identifies exact Sionna/Mitsuba/Dr.Jit/Python and fixed CPU/LLVM runtime versions and input hashes.\n"
       },
       "ancestry": [
         {
@@ -201977,7 +201977,7 @@
         "source:table_row:0e6bca580204d2d5ae9e:1",
         "source:table_row:879c3cc143b74a8c3e9b:1",
         "source:table_row:5107f6e37c16a5f3be7c:1",
-        "source:table_row:57d2e2fb0ac9c7746164:1",
+        "source:table_row:1889cdb17e160f390f95:1",
         "source:table_row:98e2e9c5d855f851bf40:1",
         "source:spacing:01ba4719c80b6fe911b0:1162",
         "source:paragraph:e25b20037a8e587ecb7f:1",
@@ -202802,7 +202802,7 @@
       "children": []
     },
     {
-      "id": "source:table_row:57d2e2fb0ac9c7746164:1",
+      "id": "source:table_row:1889cdb17e160f390f95:1",
       "original_id": null,
       "kind": "table_row",
       "role": "obligation",
@@ -202810,8 +202810,8 @@
         "path": "plan.md",
         "start_line": 4919,
         "end_line": 4919,
-        "sha256": "57d2e2fb0ac9c7746164ad73ee98ab4e40431abb15e6fc90415c7c0c40984b2d",
-        "text": "| CPU/GPU compute and background precomputation | [V] | `wgpu` plus CPU reference and content-addressed tiles |\n"
+        "sha256": "1889cdb17e160f390f955789fb226ced05c09dd95d03072e2c396eb76de0ba63",
+        "text": "| Portable accelerated compute and background precomputation | [V] | `wgpu` plus CPU reference and content-addressed tiles |\n"
       },
       "ancestry": [
         {
@@ -212607,7 +212607,7 @@
         "source:list_item:3713c2814e91983343c0:1",
         "source:list_item:17cd243426cbe1c2d67a:1",
         "source:list_item:50bb28cec416c1e118a4:1",
-        "source:list_item:94a43e1d887e809caa1d:1",
+        "source:list_item:5c72b06dfd26ac0a2897:1",
         "source:spacing:01ba4719c80b6fe911b0:1213"
       ]
     },
@@ -213472,7 +213472,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:94a43e1d887e809caa1d:1",
+      "id": "source:list_item:5c72b06dfd26ac0a2897:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -213480,8 +213480,8 @@
         "path": "plan.md",
         "start_line": 5167,
         "end_line": 5167,
-        "sha256": "94a43e1d887e809caa1db7d709c864725ebd5de8e49dd8370f23c6dda9944d7a",
-        "text": "20. CPU versus GPU output reproducibility.\n"
+        "sha256": "5c72b06dfd26ac0a2897b7c133f50aa336fe803b62e443cc5e76e38314517f09",
+        "text": "20. CPU-reference versus portable accelerated output reproducibility.\n"
       },
       "ancestry": [
         {
@@ -225512,7 +225512,7 @@
         "source:spacing:01ba4719c80b6fe911b0:1283",
         "source:paragraph:dde473c519cb60c776bf:1",
         "source:spacing:01ba4719c80b6fe911b0:1284",
-        "source:code_or_diagram:7ac0f30aa87991c2cc1a:1",
+        "source:code_or_diagram:8d0953eef5185cbebab7:1",
         "source:spacing:01ba4719c80b6fe911b0:1285",
         "source:paragraph:b941bf4140e5fae097ee:1",
         "source:spacing:6a3cf5192354f71615ac:2"
@@ -225663,7 +225663,7 @@
       "children": []
     },
     {
-      "id": "source:code_or_diagram:7ac0f30aa87991c2cc1a:1",
+      "id": "source:code_or_diagram:8d0953eef5185cbebab7:1",
       "original_id": null,
       "kind": "code_or_diagram",
       "role": "obligation",
@@ -225671,8 +225671,8 @@
         "path": "plan.md",
         "start_line": 5561,
         "end_line": 5577,
-        "sha256": "7ac0f30aa87991c2cc1a5035235c8ca857b9c902f31d05aca0d63c604968356a",
-        "text": "```text\nrequest:\n  canonical scene revision and transform\n  material/AP/antenna/client profile revisions\n  transmitters and receiver surface/points\n  frequency, bandwidth, temperature/noise assumptions\n  enabled interactions and accuracy budget\n  seed, sample budget, cache policy, requested outputs\n\nresult:\n  per-transmitter path gain/RSS tiles or point paths\n  optional CIR/CFR/AoA/AoD/delay/Doppler artifacts\n  convergence/sample metadata and warnings\n  engine/package/backend versions\n  input/output content hashes\n  uncertainty and unsupported-capability declarations\n```\n"
+        "sha256": "8d0953eef5185cbebab7f6861509a9e8a51834a939911b456b7147d694472957",
+        "text": "```text\nrequest:\n  canonical scene revision and transform\n  material/AP/antenna/client profile revisions\n  transmitters and receiver surface/points\n  frequency, bandwidth, temperature/noise assumptions\n  enabled interactions and accuracy budget\n  seed, sample budget, cache policy, requested outputs\n\nresult:\n  per-transmitter path gain/RSS tiles or point paths\n  optional CIR/CFR/AoA/AoD/delay/Doppler artifacts\n  convergence/sample metadata and warnings\n  engine/package and fixed CPU/LLVM runtime versions\n  input/output content hashes\n  uncertainty and unsupported-capability declarations\n```\n"
       },
       "ancestry": [
         {
@@ -232754,7 +232754,7 @@
         "source:table_row:2a7054559ec640ee45fa:1",
         "source:table_row:1c2a8180ad5d400de081:1",
         "source:table_row:70b24d8679972767ea50:1",
-        "source:table_row:479bd8303d93fef6e335:1",
+        "source:table_row:04921fdbdc81f240621c:1",
         "source:table_row:e853128a0629ea88a44b:1",
         "source:table_row:6fafe56f7b4b7855a7c0:1",
         "source:table_row:9da69462f5f1c69e1176:1",
@@ -232765,7 +232765,7 @@
         "source:table_row:c1d41b2a90a859954f21:1",
         "source:table_row:8141d40063ce430ba481:1",
         "source:table_row:6ef3ec7b68677becb32f:1",
-        "source:table_row:17a03c6efbbaa22b219f:1",
+        "source:table_row:812a86f31cd7bfa3a67a:1",
         "source:table_row:1d4239536ae2e98a4a0e:1",
         "source:table_row:f1fbd8db5d5da5a0b5f9:1",
         "source:table_row:41ff79afea86f7651e11:1",
@@ -235570,7 +235570,7 @@
       "children": []
     },
     {
-      "id": "source:table_row:479bd8303d93fef6e335:1",
+      "id": "source:table_row:04921fdbdc81f240621c:1",
       "original_id": null,
       "kind": "table_row",
       "role": "obligation",
@@ -235578,8 +235578,8 @@
         "path": "plan.md",
         "start_line": 5778,
         "end_line": 5778,
-        "sha256": "479bd8303d93fef6e335eb9cd662132772350f3b037611916a6b91b5bd65f9f8",
-        "text": "| Sionna RT | Mitsuba/Dr.Jit native runtime | ADOPT | Hardware-accelerated differentiable scene traversal and vectorized computation; exact versions are pinned upstream. | Adopt transitively only inside the worker environment. Isolate native dependency conflicts and record backend/build versions in every result. |\n"
+        "sha256": "04921fdbdc81f240621cfa210bee555e9dc8ac3131ac69595038b16485e33927",
+        "text": "| Sionna RT | Mitsuba/Dr.Jit native runtime | ADOPT | Differentiable scene traversal and vectorized computation; exact versions are pinned upstream. | Adopt transitively only inside the worker environment. Isolate native dependency conflicts and record the fixed CPU/LLVM runtime and build versions in every result. |\n"
       },
       "ancestry": [
         {
@@ -236043,7 +236043,7 @@
       "children": []
     },
     {
-      "id": "source:table_row:17a03c6efbbaa22b219f:1",
+      "id": "source:table_row:812a86f31cd7bfa3a67a:1",
       "original_id": null,
       "kind": "table_row",
       "role": "obligation",
@@ -236051,8 +236051,8 @@
         "path": "plan.md",
         "start_line": 5789,
         "end_line": 5789,
-        "sha256": "17a03c6efbbaa22b219f82cef4ae807eeb5812703177ad5bec0b3b3335d9160f",
-        "text": "| Sionna RT | RF Atlas worker/service wrapper | REIMPLEMENT | Process lifecycle, capability handshake, resource limits, job cancellation, caching, RPC, artifacts, and remote execution are outside Sionna. | Own this boundary. Prefer local socket/stdio control plus Arrow IPC/Parquet artifacts; support container/venv and remote Slurm backends. |\n"
+        "sha256": "812a86f31cd7bfa3a67af9bc4d9c1612e6c2f637cb4092a3d78612c961d6aca2",
+        "text": "| Sionna RT | RF Atlas worker/service wrapper | REIMPLEMENT | Process lifecycle, capability handshake, resource limits, job cancellation, caching, RPC, artifacts, and remote execution are outside Sionna. | Own this boundary. Prefer local socket/stdio control plus Arrow IPC/Parquet artifacts; support CPU/LLVM container/venv execution and remote Slurm queues. |\n"
       },
       "ancestry": [
         {
@@ -241680,8 +241680,8 @@
         "path": "plan.md",
         "start_line": 5892,
         "end_line": 5892,
-        "sha256": "a3247b62224f9a1afb63c420f8f4f773ff22b923bdfe6a1e868b47a3c767942b",
-        "text": "| PRE-001 | Fast empirical/multi-wall preview solver | REIMPLEMENT | RF Atlas; Deconflict reference | CPU/GPU-friendly deterministic link budget with vector barriers, antenna gain, frequency and calibration. |\n"
+        "sha256": "69eaea06ed3cadc309be6436967015fd71dd1c7f90298a51623d2e5c6f3997b0",
+        "text": "| PRE-001 | Fast empirical/multi-wall preview solver | REIMPLEMENT | RF Atlas; Deconflict reference | CPU/`wgpu`-friendly deterministic link budget with vector barriers, antenna gain, frequency and calibration. |\n"
       },
       "ancestry": [
         {
@@ -244956,8 +244956,8 @@
         "path": "plan.md",
         "start_line": 5957,
         "end_line": 5957,
-        "sha256": "bf5ed5b97df6cffbbd3a57da0a5281eba4496addfffbc0c99cbebdec2c8373ac",
-        "text": "| SEC-002 | Plugin/worker sandbox and resource limits | REIMPLEMENT | RF Atlas | Separate users/processes, file/network grants, CPU/GPU/memory/time limits and explicit trust. |\n"
+        "sha256": "d7473dc871b793b48eb30fe3b9631481e163d79bb0cc575e11c85660e00f15ab",
+        "text": "| SEC-002 | Plugin/worker sandbox and resource limits | REIMPLEMENT | RF Atlas | Separate users/processes, file/network grants, CPU/`wgpu`/memory/time limits and explicit trust. |\n"
       },
       "ancestry": [
         {
@@ -245300,8 +245300,8 @@
         "path": "plan.md",
         "start_line": 5965,
         "end_line": 5965,
-        "sha256": "d8c7e96594d2fc83eabd8750f84e7024a4476b231aa760795a4624dbd52eab37",
-        "text": "| OPS-004 | Local GPU/CPU and remote HPC/Slurm jobs | REIMPLEMENT | RF Atlas + Sionna worker | Same job contract across local and remote execution with artifact hashes and resource provenance. |\n"
+        "sha256": "a3cb252aef7b2851922ca50166dc32933c5107c0685a1d94edb1d29ddacbe510",
+        "text": "| OPS-004 | Local and remote CPU/LLVM HPC/Slurm jobs | REIMPLEMENT | RF Atlas + Sionna worker | Same CPU/LLVM job contract across local and remote execution with artifact hashes and resource provenance. |\n"
       },
       "ancestry": [
         {
@@ -246962,7 +246962,7 @@
         "source:paragraph:115620c1da7964883153:1",
         "source:spacing:01ba4719c80b6fe911b0:1351",
         "source:list_item:458dde525adcfad3f3db:1",
-        "source:list_item:cf111955793a34534235:1",
+        "source:list_item:166fbba7de838f0909ef:1",
         "source:list_item:c245a0bd45b91f13f436:1",
         "source:list_item:e8d8108928be6c3cedd4:1",
         "source:list_item:427bbc9288fb68edd60b:1",
@@ -247789,7 +247789,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:cf111955793a34534235:1",
+      "id": "source:list_item:166fbba7de838f0909ef:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -247797,8 +247797,8 @@
         "path": "plan.md",
         "start_line": 6022,
         "end_line": 6022,
-        "sha256": "cf111955793a345342353c7d1fdbe03e547d69d0510308ef6af1e06f32f4c943",
-        "text": "- Sionna/Mitsuba/Dr.Jit/Python/backend versions;\n"
+        "sha256": "166fbba7de838f0909ef6afd2c0dab68779250fd7c49305d5a2ef11362bd247d",
+        "text": "- Sionna/Mitsuba/Dr.Jit/Python and fixed CPU/LLVM runtime versions;\n"
       },
       "ancestry": [
         {
@@ -253456,7 +253456,7 @@
         "source:spacing:01ba4719c80b6fe911b0:1379",
         "source:list_item:734cb622d8b4b1e4ed83:1",
         "source:list_item:cd1baddd8670aaf89b0b:1",
-        "source:list_item:e607fe177d77011b9789:1",
+        "source:list_item:3cc3aa625a7b1b62b271:1",
         "source:list_item:69dfb954e06cc7144091:1",
         "source:list_item:7091bd688f37a313ad8e:1",
         "source:list_item:717db9fadddfa8742996:1",
@@ -253609,7 +253609,7 @@
       "children": []
     },
     {
-      "id": "source:list_item:e607fe177d77011b9789:1",
+      "id": "source:list_item:3cc3aa625a7b1b62b271:1",
       "original_id": null,
       "kind": "list_item",
       "role": "obligation",
@@ -253617,8 +253617,8 @@
         "path": "plan.md",
         "start_line": 6147,
         "end_line": 6147,
-        "sha256": "e607fe177d77011b9789708dd3bd61254d1628c676d264a314f5be1b204dba63",
-        "text": "- establish deterministic tolerance across seeds/backends;\n"
+        "sha256": "3cc3aa625a7b1b62b271482155b5b219f71ed4491561fb1b5ad188e92a227323",
+        "text": "- establish deterministic tolerance across fixed CPU/LLVM runs and seeds;\n"
       },
       "ancestry": [
         {
