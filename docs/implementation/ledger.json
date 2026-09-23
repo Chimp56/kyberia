@@ -35679,14 +35679,39 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "survey/positioning",
+      "status": "IN_PROGRESS",
+      "owner": "mobile spatial foundation",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "A bounded software foundation records caller-supplied pose evidence and corrects drift only from exact-pose/time-bound anchors; camera/IMU acquisition, relocalization, and field acceptance remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/mobile-pose/src/fusion.rs",
+          "description": "Deterministic yaw/translation fusion consumes only validated exact-pose anchors and preserves evidence support",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+        },
+        {
+          "path": "crates/mobile-pose/src/model.rs",
+          "description": "Typed borrowed pose, time, tracking-quality, covariance, anchor, and work-limit contracts",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "7cea7d0486a188711c2d24e92600b44051eef0d85cb0bb0f167e728662eb31c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/mobile-pose-contract.md",
+          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -35881,14 +35906,33 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "survey/positioning",
+      "status": "IN_PROGRESS",
+      "owner": "mobile spatial foundation",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Typed pose records preserve position-covariance evidence, tracking state, and tracking quality; missing quality/uncertainty remains explicit, and camera/IMU acquisition remains open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/mobile-pose/src/model.rs",
+          "description": "Typed pose, monotonic time, covariance, tracking-state, and quality evidence",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "7cea7d0486a188711c2d24e92600b44051eef0d85cb0bb0f167e728662eb31c5"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/mobile-pose-contract.md",
+          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -35929,14 +35973,33 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "survey/positioning",
+      "status": "IN_PROGRESS",
+      "owner": "mobile spatial foundation",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Manual/QR/AprilTag anchor kinds are typed caller-supplied controls; fusion requires exact pose-ID/time/source-timeline and target-frame validation, while marker recognition and anchor authenticity remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/mobile-pose/src/fusion.rs",
+          "description": "Deterministic drift correction through exact-pose validated anchors only",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/mobile-pose-contract.md",
+          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -165275,14 +165338,33 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration/release",
+      "status": "IN_PROGRESS",
+      "owner": "mobile spatial foundation",
       "phase": 6,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "A software contract increment is available; native mobile deliverables, route comparison, sensor pairing, and all Phase 6 exit criteria remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/mobile-pose/src/fusion.rs",
+          "description": "Bounded anchor-bound pose fusion foundation only",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/mobile-pose-contract.md",
+          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -165639,14 +165721,33 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration/release",
+      "status": "IN_PROGRESS",
+      "owner": "mobile spatial foundation",
       "phase": 6,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Anchor-bound yaw/translation correction is covered by deterministic tests; no AR path acquisition, recognition, relocalization, or field validation is claimed"
+      ],
+      "implementation": [
+        {
+          "path": "crates/mobile-pose/src/fusion.rs",
+          "description": "Deterministic drift correction through exact-pose validated anchors only",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/mobile-pose-contract.md",
+          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
+          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
+          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "scope": "contract",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
