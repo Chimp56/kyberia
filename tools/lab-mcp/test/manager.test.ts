@@ -212,8 +212,8 @@ test("configuration forbids forwarding the coordinator private key", () => {
       /retired accelerator capabilities/,
     );
   }
-  const portableCompute = JSON.parse(JSON.stringify(setup.config));
-  portableCompute.hosts[0].capabilities.push("wgpu");
+  const portableCompute = config(join(root, "portable-compute")).config;
+  portableCompute.hosts[0]!.capabilities.push("wgpu");
   assert.doesNotThrow(() => Config.parse(portableCompute));
 });
 

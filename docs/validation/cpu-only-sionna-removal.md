@@ -32,27 +32,44 @@ driver environment, cuDNN package, or CUDA-specific dependency. The Sionna
 worker has no container manifest. Its pinned `sionna-rt`, Dr.Jit, and Mitsuba
 packages remain because the active LLVM implementation uses them.
 
-## Regression evidence
+## Revision-scoped regression evidence
 
-The candidate passed:
+### Earlier candidate `d1c2bb9`
 
-- 54 Sionna contract/lifecycle tests (2 Windows-only skips), including CPU-only
-  capability shape, retired selector rejection, and absence of runtime variant
-  enumeration;
-- 32 Phase 0 research-harness tests and 31 implementation-ledger tests;
-- source-qualified ledger reconstruction and generated gate-catalog checks;
-- the complete Lab MCP `pnpm run check` gate, including TypeScript, format,
-  signed coordinator/runner integration, schema rejection, package inventory,
-  and supply-chain verification;
-- `cargo fmt --all -- --check` and the complete offline Rust workspace test
-  suite (the loopback HTTP fixtures were run outside the filesystem sandbox so
-  they could bind localhost);
-- architecture-direction, source-inventory, generated-fixture, and ledger
-  checks. Source inventory used Python 3.9 with the isolated
-  `/private/tmp/kyberia-security-preflight-python` compatibility module
-  (`tomli` 2.4.1);
-- repository diff whitespace validation.
+The independent review report on ref `review/remove-cuda-application` records
+that the earlier immutable candidate `d1c2bb9` passed the Lab MCP
+`pnpm run check` gate: 33 tests, 32 passed and one Windows-only skip. That
+report predates the broader accelerator-alias rejection added at `121dab5` and
+the `wgpu-cuda` regression case at `84a5bcb`; it is historical evidence, not
+validation of the current tree. The same report identifies the full offline
+Rust workspace result as author-reported and not independently repeated. The
+earlier `cargo fmt`/Rust results are not promoted here as independently
+verified evidence.
 
-The checked-in CPU proof remains historical worker-0.1.0 evidence. A new real
-engine proof is not promoted until this candidate is independently reviewed and
-the worker-0.2.0 artifact is executed in the pinned CPU/LLVM environment.
+### Integrated candidate `84a5bcb` and follow-up test correction
+
+The independent runtime review at `84a5bcb` found no code findings. A direct
+run of every command in the Lab MCP `check` script, using the already-installed
+package binaries (without invoking pnpm), passed after isolating the portable
+`wgpu` assertion from the test's intentionally mutated private-key fixture:
+
+- Prettier check, TypeScript no-emit check and build, and runner bundle build;
+- 33 Node tests: 32 passed, one Windows-only skip;
+- package inventory and supply-chain/SBOM verification.
+
+The `pnpm` wrapper itself was not run: Corepack attempted to resolve pnpm from
+the npm registry and the environment's DNS/network access failed. The direct
+commands above are the constituent commands specified by the package's
+`check` script and used the installed pinned dependencies.
+
+Focused Python regression (`tests.test_sionna_worker`,
+`tests.test_research_harness`, and `tests.test_ledger`) passes 117 tests with two
+platform skips. The ledger check passes (5,396 source blocks, 438 explicit ID
+occurrences, 447 headings), as do architecture-direction validation, source
+inventory (522 locked packages), TypeScript schema syntax validation, and
+`git diff --check`.
+
+The checked-in CPU proof remains historical worker-0.1.0 evidence. The pinned
+worker-0.2.0 Sionna engine has not been run here; CPU numerical/runtime proof,
+convergence, cancellation, memory isolation, remote artifact integrity, and
+measured holdouts remain open.
