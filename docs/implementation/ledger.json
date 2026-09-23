@@ -176543,13 +176543,13 @@
       ],
       "validation": [
         {
-          "path": "crates/spectrum-contract/tests/contract.rs",
-          "description": "Focused serialization, malformed-input, provenance and resource-bound contract tests",
-          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
-          "sha256": "d9e1932bba309f2a5f1db1c8a7bc7f37580a9bb89db3f1686b4ad97c6295ea7b",
-          "command": "cargo test -p kyberia-spectrum-contract --offline",
+          "path": "docs/validation/phase5-spectrum-contract.md",
+          "description": "Correction report: v1 sweep/calibration contracts plus unit-safe, bounded signature assessment",
+          "revision": "9be9e0fd60384d13743a08ee3d9b8672f3c7f716",
+          "sha256": "77d66d63cbeaa46d7f2e0406297859c9d516dd59244479553673b836a69ebada",
+          "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
-          "scope": "Synthetic schema contract tests only; no hardware or adapter execution"
+          "scope": "Synthetic sweep/calibration contract and signature tests only; no hardware or adapter execution"
         }
       ],
       "reviews": [],
@@ -176693,13 +176693,13 @@
       ],
       "validation": [
         {
-          "path": "crates/spectrum-contract/tests/contract.rs",
-          "description": "Known and unknown position/time provenance round-trip checks",
-          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
-          "sha256": "d9e1932bba309f2a5f1db1c8a7bc7f37580a9bb89db3f1686b4ad97c6295ea7b",
-          "command": "cargo test -p kyberia-spectrum-contract --offline",
+          "path": "docs/validation/phase5-spectrum-contract.md",
+          "description": "Correction report: per-bin coverage regression and exact-boundary fixture",
+          "revision": "9be9e0fd60384d13743a08ee3d9b8672f3c7f716",
+          "sha256": "77d66d63cbeaa46d7f2e0406297859c9d516dd59244479553673b836a69ebada",
+          "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
-          "scope": "Synthetic contract provenance only; no survey path or physical positioning validation"
+          "scope": "Synthetic sweep-window coverage checks only; no survey path or physical positioning validation"
         }
       ],
       "reviews": [],
@@ -176751,17 +176751,17 @@
         {
           "path": "crates/spectrum-contract/src/signature.rs",
           "description": "Version-bound deterministic signature identity, temporal eligibility and limited generic pattern rules",
-          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
-          "sha256": "54a7ed10320ec92c5ae0b2816a86a278d1c90133288a920d70b86e054a0b6b67"
+          "revision": "9be9e0fd60384d13743a08ee3d9b8672f3c7f716",
+          "sha256": "e5cd4935ce93c667e59d095832cac8a580c5431bd887ab370d8871cb729ef567"
         }
       ],
       "validation": [
         {
-          "path": "crates/spectrum-contract/tests/contract.rs",
-          "description": "Synthetic deterministic signature, event identity, unsupported-evidence and forgery tests",
-          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
-          "sha256": "d9e1932bba309f2a5f1db1c8a7bc7f37580a9bb89db3f1686b4ad97c6295ea7b",
-          "command": "cargo test -p kyberia-spectrum-contract --offline",
+          "path": "docs/validation/phase5-spectrum-contract.md",
+          "description": "Correction report: PSD fail-closed behavior and generic deterministic pattern regressions",
+          "revision": "9be9e0fd60384d13743a08ee3d9b8672f3c7f716",
+          "sha256": "77d66d63cbeaa46d7f2e0406297859c9d516dd59244479553673b836a69ebada",
+          "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic contract fixtures only; no labeled traces, emitter identification or field validation"
         }
