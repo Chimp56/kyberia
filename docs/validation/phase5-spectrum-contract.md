@@ -1,6 +1,7 @@
 # Phase 5 spectrum contract correction validation
 
-Implementation revision: `9be9e0fd60384d13743a08ee3d9b8672f3c7f716`.
+Corrected implementation: candidate `9be9e0fd60384d13743a08ee3d9b8672f3c7f716`,
+integrated on `main` at `9641431`; tracking update `ac11cd3`.
 
 Scope: correct the dBm versus dBm/Hz signature mismatch and prevent sparse
 frequency-local evidence from being promoted by otherwise high global grid
@@ -26,7 +27,14 @@ and global grid support. Regression fixtures demonstrate that a 50%-observed
 candidate remains unknown despite high global support/activity, while the
 exact 80% local-coverage boundary is accepted.
 
+Independent re-review in
+[`phase5-spectrum-correction-rereview-20260923.md`](../reviews/phase5-spectrum-correction-rereview-20260923.md)
+resolves both prior MAJOR findings. It records one non-blocking diagnostic
+MINOR: a legacy v1 event may be rejected as a serialization error before the
+decoder can report `UnsupportedSchema`; it is not accepted or misinterpreted.
+The original findings are in
+[`phase5-spectrum-current-review.md`](../reviews/phase5-spectrum-current-review.md).
+
 Fixtures are synthetic. No SoapySDR/vendor adapter, spectrum hardware,
 equivalent-noise-bandwidth normalization, remote-sensor replay, labeled traces,
-or Phase 5 runtime acceptance was exercised. Independent review of this
-correction remains required.
+or Phase 5 runtime acceptance was exercised.

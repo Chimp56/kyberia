@@ -176545,8 +176545,8 @@
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: v1 sweep/calibration contracts plus unit-safe, bounded signature assessment",
-          "revision": "9be9e0fd60384d13743a08ee3d9b8672f3c7f716",
-          "sha256": "77d66d63cbeaa46d7f2e0406297859c9d516dd59244479553673b836a69ebada",
+          "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
+          "sha256": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep/calibration contract and signature tests only; no hardware or adapter execution"
@@ -176695,8 +176695,8 @@
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: per-bin coverage regression and exact-boundary fixture",
-          "revision": "9be9e0fd60384d13743a08ee3d9b8672f3c7f716",
-          "sha256": "77d66d63cbeaa46d7f2e0406297859c9d516dd59244479553673b836a69ebada",
+          "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
+          "sha256": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep-window coverage checks only; no survey path or physical positioning validation"
@@ -176759,14 +176759,40 @@
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: PSD fail-closed behavior and generic deterministic pattern regressions",
-          "revision": "9be9e0fd60384d13743a08ee3d9b8672f3c7f716",
-          "sha256": "77d66d63cbeaa46d7f2e0406297859c9d516dd59244479553673b836a69ebada",
+          "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
+          "sha256": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic contract fixtures only; no labeled traces, emitter identification or field validation"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase5-spectrum-correction-rereview-20260923.md",
+          "description": "Independent correction re-review of PSD units and per-bin evidence coverage",
+          "revision": "9895dcef31b05eb0f4540ac8b3772e8f790dbb64",
+          "sha256": "48eaab98ad2724b93801a092441b73ed6f559872b44bb3de155099d1d10cda28",
+          "reviewer": "/root/phase5_spectrum_independent_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "dBm/Hz values were compared directly with a dBm threshold.",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MAJOR",
+              "description": "Global event support could mask sparse per-bin evidence.",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Legacy v1 events fail deserialization before receiving the UnsupportedSchema diagnostic.",
+              "resolution": "DOCUMENTED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:0051aa14703578273aaa:1",
