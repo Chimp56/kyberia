@@ -14,6 +14,13 @@ rejects trailing bytes. It does not inflate DEFLATE data. JPEG, TIFF, WebP,
 PDF, SVG, CAD and geospatial formats remain unsupported until equally bounded
 format-specific adapters exist.
 
+For the admitted ancillary subset, ordering follows [PNG 3 §5.6,
+Table 7](https://www.w3.org/TR/png-3/): `gAMA` and `sRGB` precede `PLTE` and
+`IDAT`; `tRNS` follows `PLTE` if an optional palette is present and precedes
+`IDAT`; `pHYs` precedes `IDAT`. CRC-correct regression fixtures exercise these
+relationships, including rejection of metadata placed on the wrong side of
+`PLTE` or `IDAT`.
+
 PNG source bytes are content-addressed as immutable `MapSource` artifacts.
 Application operations retain only the SHA-256 reference, canonical media
 type, byte length, dimensions and caller-supplied opaque provenance ID; local

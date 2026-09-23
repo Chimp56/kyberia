@@ -13,6 +13,12 @@ complete map import catalog, desktop workflow, or Phase 0 exit.
   lengths, CRC substitution, unknown/textual metadata and trailing polyglot
   bytes fail closed. A PNG remains a PNG when untrusted `.jpg`/`image/jpeg`
   hints are supplied.
+- The admitted ancillary subset follows the ordering constraints in
+  [PNG 3 §5.6, Table 7](https://www.w3.org/TR/png-3/): `gAMA` and `sRGB`
+  precede `PLTE`/`IDAT`, `tRNS` follows `PLTE` when that optional chunk occurs,
+  and `pHYs` precedes `IDAT`. Valid-length, CRC-correct fixtures cover both
+  accepted order and rejection of `sRGB`/`gAMA` after `PLTE`, truecolor `tRNS`
+  before a later `PLTE`, and `pHYs` after `IDAT`.
 - Admission never inflates IDAT. Hash, byte length, dimensions and
   `image/png` type are derived from content; source paths are not returned.
   Therefore a passing container admission does not establish a valid zlib/
@@ -35,12 +41,14 @@ complete map import catalog, desktop workflow, or Phase 0 exit.
 
 ## Executed checks
 
-- `cargo test --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1` — PASS (focused affected suites; one explicit throughput benchmark ignored).
+- `cargo test --locked --offline -p kyberia-application map_asset::tests -- --test-threads=1` — PASS (11/11 PNG admission tests, including five normative-order fixtures).
+- `cargo test --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1` — PASS (334 unit/integration tests and 8 doctests; two explicit benchmark tests ignored).
 - `cargo fmt --all -- --check` — PASS.
 - `cargo clippy --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application --all-targets -- -D warnings` — PASS.
 - `python3 tools/architecture.py` — PASS.
 - `python3 tools/source_inventory.py check` — PASS, 522 locked external packages.
-- `python3 tools/ledger.py check` — PASS, 5,396 source blocks, 438 explicit ID occurrences and 447 headings.
+- `python3 tools/ledger.py generate` and `python3 tools/ledger.py check` — PASS; generated traceability is current (5,396 plan source blocks, 438 explicit ID occurrences and 447 headings).
+- `git diff --check` — PASS.
 
 The full workspace Rust suite was not run for this bounded candidate. The
 commands above are candidate-author evidence only, not independent review.

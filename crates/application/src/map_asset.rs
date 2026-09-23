@@ -169,6 +169,7 @@ pub fn admit_map_asset<H: CancellationHook>(
                 let color_type = dimensions.map(|value| value.3);
                 if !matches!(color_type, Some(2 | 3 | 6))
                     || saw_palette
+                    || saw_transparency
                     || saw_idat
                     || length == 0
                     || length > 768
@@ -230,6 +231,7 @@ pub fn admit_map_asset<H: CancellationHook>(
             b"sRGB"
                 if dimensions.is_some()
                     && !saw_idat
+                    && !saw_palette
                     && !saw_srgb
                     && length == 1
                     && data[0] <= 3 =>
@@ -239,6 +241,7 @@ pub fn admit_map_asset<H: CancellationHook>(
             b"gAMA"
                 if dimensions.is_some()
                     && !saw_idat
+                    && !saw_palette
                     && !saw_gamma
                     && length == 4
                     && data != [0; 4] =>
@@ -328,18 +331,26 @@ mod tests {
         out
     }
 
-    fn png(width: u32, height: u32) -> Vec<u8> {
+    fn png_prefix(width: u32, height: u32, color_type: u8) -> Vec<u8> {
         let mut out = PNG_SIGNATURE.to_vec();
         let mut ihdr = Vec::new();
         ihdr.extend_from_slice(&width.to_be_bytes());
         ihdr.extend_from_slice(&height.to_be_bytes());
-        ihdr.extend_from_slice(&[8, 6, 0, 0, 0]);
+        ihdr.extend_from_slice(&[8, color_type, 0, 0, 0]);
         out.extend(chunk(b"IHDR", &ihdr));
+        out
+    }
+
+    fn finish_png(mut out: Vec<u8>) -> Vec<u8> {
         // Deliberately truncated zlib data: admission verifies the container
         // and hashes bytes, but does not validate or inflate the pixel stream.
         out.extend(chunk(b"IDAT", &[0x78, 0x01, 0x01]));
         out.extend(chunk(b"IEND", &[]));
         out
+    }
+
+    fn png(width: u32, height: u32) -> Vec<u8> {
+        finish_png(png_prefix(width, height, 6))
     }
 
     #[test]
@@ -437,6 +448,71 @@ mod tests {
         bytes.extend(chunk(b"IDAT", &[0x78, 0x01, 0x01]));
         bytes.extend(chunk(b"IEND", &[]));
 
+        assert_eq!(
+            admit_map_asset(&bytes, &mut budget()).unwrap_err().kind(),
+            ErrorKind::InvalidRequest
+        );
+    }
+
+    #[test]
+    fn admits_metadata_in_png_table_7_order() {
+        let mut bytes = png_prefix(1, 1, 2);
+        // PNG 3 Table 7: gAMA/sRGB before PLTE, tRNS after PLTE if present,
+        // and pHYs before IDAT. All fixture chunks have valid lengths and CRCs.
+        // The PNG gAMA value for sRGB is 45455 (0x0000_b18f).
+        bytes.extend(chunk(b"gAMA", &[0, 0, 0xb1, 0x8f]));
+        bytes.extend(chunk(b"sRGB", &[0]));
+        bytes.extend(chunk(b"PLTE", &[0, 0, 0]));
+        bytes.extend(chunk(b"tRNS", &[0, 0, 0, 0, 0, 0]));
+        bytes.extend(chunk(b"pHYs", &[0, 0, 0, 1, 0, 0, 0, 1, 1]));
+        assert!(admit_map_asset(&finish_png(bytes), &mut budget()).is_ok());
+    }
+
+    #[test]
+    fn rejects_srgb_after_plte() {
+        let mut bytes = png_prefix(1, 1, 2);
+        bytes.extend(chunk(b"PLTE", &[0, 0, 0]));
+        bytes.extend(chunk(b"sRGB", &[0]));
+        assert_eq!(
+            admit_map_asset(&finish_png(bytes), &mut budget())
+                .unwrap_err()
+                .kind(),
+            ErrorKind::InvalidRequest
+        );
+    }
+
+    #[test]
+    fn rejects_gamma_after_plte() {
+        let mut bytes = png_prefix(1, 1, 2);
+        bytes.extend(chunk(b"PLTE", &[0, 0, 0]));
+        bytes.extend(chunk(b"gAMA", &[0, 0, 0xb1, 0x8f]));
+        assert_eq!(
+            admit_map_asset(&finish_png(bytes), &mut budget())
+                .unwrap_err()
+                .kind(),
+            ErrorKind::InvalidRequest
+        );
+    }
+
+    #[test]
+    fn rejects_truecolor_trns_before_later_plte() {
+        let mut bytes = png_prefix(1, 1, 2);
+        bytes.extend(chunk(b"tRNS", &[0, 0, 0, 0, 0, 0]));
+        bytes.extend(chunk(b"PLTE", &[0, 0, 0]));
+        assert_eq!(
+            admit_map_asset(&finish_png(bytes), &mut budget())
+                .unwrap_err()
+                .kind(),
+            ErrorKind::InvalidRequest
+        );
+    }
+
+    #[test]
+    fn rejects_phys_after_idat() {
+        let mut bytes = png_prefix(1, 1, 6);
+        bytes.extend(chunk(b"IDAT", &[0x78, 0x01, 0x01]));
+        bytes.extend(chunk(b"pHYs", &[0, 0, 0, 1, 0, 0, 0, 1, 1]));
+        bytes.extend(chunk(b"IEND", &[]));
         assert_eq!(
             admit_map_asset(&bytes, &mut budget()).unwrap_err().kind(),
             ErrorKind::InvalidRequest
