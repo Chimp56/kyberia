@@ -1,7 +1,7 @@
 # CPU-only Sionna capability correction review
 
-Date: 2026-09-23  
-Implementation: `84a5bcb`  
+Date: 2026-09-23
+Implementation: `84a5bcb`
 Follow-up: `d0a88eb`
 
 ## Scope and verdict
