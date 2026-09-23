@@ -171178,7 +171178,7 @@
       "acceptance_cases": [
         "Bounded Beacon/Probe IE framing preserves raw bytes, provenance, ordering, unknown/vendor values, and malformed typed payloads; validates supported header/context and resource limits.",
         "Checked-in Beacon, Probe Request, and Probe Response fixtures pass the internal oracle; the corrected external test directly compares typed parser outputs with tcpdump's stable emitted fields, with output omissions explicitly scoped.",
-        "A prior bounded libFuzzer campaign is tied by exact source hashes to this parser/fuzz target; it was not rerun on the latest-main integration candidate. Independent review and broader WIFI-001 acceptance remain open."
+        "A prior bounded libFuzzer campaign is tied by exact source hashes to this parser/fuzz target; it was not rerun on the latest-main integration candidate. Independent review of the current bounded correction passes; broader WIFI-001 acceptance remains open."
       ],
       "implementation": [
         {
@@ -171192,8 +171192,8 @@
         {
           "path": "docs/validation/wifi-ie-parser.md",
           "description": "Bounded parser tests, direct typed-field tcpdump comparison, exact-source-hash prior fuzz campaign, and review correction with explicit limitations",
-          "revision": "65dc428115688381591444f3d14074427f12937cfd08449725b97ab2b0b967cf",
-          "sha256": "65dc428115688381591444f3d14074427f12937cfd08449725b97ab2b0b967cf",
+          "revision": "981bbbc77bdaeeda814569ba0b875a55baf683036c634fcd6a03d77745b2266a",
+          "sha256": "981bbbc77bdaeeda814569ba0b875a55baf683036c634fcd6a03d77745b2266a",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check; cargo test -p kyberia-ieee80211 --locked --offline --test tcpdump_differential -- --ignored --exact checked_in_management_frames_match_tcpdump_stable_fields --nocapture; cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked --offline",
           "result": "PASS",
           "scope": "Current isolated review-correction candidate, including direct comparisons of typed outputs against stable tcpdump fields; libFuzzer campaign is historical, exact-hash-matched evidence and was not rerun here."
@@ -171201,14 +171201,40 @@
         {
           "path": "docs/validation/wifi-ie-fuzz-differential-run.json",
           "description": "Exact source hashes, retained prior libFuzzer statistics, and explicit distinction between pre-review decode-only and corrected typed-field tcpdump runs",
-          "revision": "35648193eb60d7ef7fcd0ac3516cd46b54503d5fcd7669a2c4523a77c81d69ef",
-          "sha256": "35648193eb60d7ef7fcd0ac3516cd46b54503d5fcd7669a2c4523a77c81d69ef",
+          "revision": "74de9fddba2a9462d05d1af1746fb8212e28c67ec5df3808fdd086089b8178b3",
+          "sha256": "74de9fddba2a9462d05d1af1746fb8212e28c67ec5df3808fdd086089b8178b3",
           "command": "python3 -m json.tool docs/validation/wifi-ie-fuzz-differential-run.json; shasum -a 256 crates/ieee80211/src/lib.rs crates/ieee80211/fuzz/src/lib.rs crates/ieee80211/fuzz/fuzz_targets/management_frame.rs crates/ieee80211/fuzz/tests/seed_contract.rs",
           "result": "PASS",
           "scope": "Evidence manifest syntax, source binding, retained artifact hashes, corrected current-candidate test results, and explicit campaign/differential limitations."
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/wifi-ie-parser-correction-20260923.md",
+          "description": "Independent PASS re-review of the tcpdump typed-field differential and cancellation documentation correction; all findings resolved before evidence integration",
+          "revision": "21d61212591e9a8c3b8c6e79746636c47c0e6d52eedb0812c5384e0c9c9a2238",
+          "sha256": "21d61212591e9a8c3b8c6e79746636c47c0e6d52eedb0812c5384e0c9c9a2238",
+          "reviewer": "/root/wifi_parser_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Pre-correction external test decoded tcpdump fixtures without comparing typed parser outputs to tcpdump fields; direct typed-field assertions were added in 529f76b and independently rerun",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Cancellation documentation overstated polling inside bounded per-IE value loops; README and architecture/validation wording now matches the checkpoint behavior",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "STATUS.md summary table still named pre-correction candidate 7133e25; this evidence update names 529f76b/6c32224 and the approved review",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:492a8af1c0ede277793b:1",

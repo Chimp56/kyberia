@@ -175,6 +175,32 @@
     },
     "coverage_guided_campaign": "Not rerun; all four source SHA-256 values still match the retained prior campaign. The pinned nightly and cargo-fuzz are unavailable."
   },
+  "independent_review": {
+    "report": "docs/reviews/wifi-ie-parser-correction-20260923.md",
+    "reviewer": "/root/wifi_parser_review",
+    "review_commit": "622452b6b68074d15c43b9374068fe7dbb449115",
+    "reviewed_candidate_commit": "6c32224d3e457b87115a8e2a13b8cd7d932bc98e",
+    "disposition": "PASS for the bounded correction; all findings resolved before evidence integration",
+    "findings": [
+      {
+        "severity": "MAJOR",
+        "finding": "The pre-correction external test decoded tcpdump fixtures but did not compare typed parser fields to tcpdump output.",
+        "resolution": "RESOLVED in 529f76b; direct stable-field comparisons are covered by the corrected test and independently rerun."
+      },
+      {
+        "severity": "MINOR",
+        "finding": "Cancellation documentation overstated polling inside bounded per-IE value loops.",
+        "resolution": "RESOLVED in the README and architecture/validation docs; cancellation is observed at the next parser checkpoint."
+      },
+      {
+        "severity": "MINOR",
+        "finding": "The STATUS.md summary row still identified the pre-correction 7133e25 candidate.",
+        "resolution": "RESOLVED in this evidence candidate; it now identifies 529f76b/6c32224 and the PASS review."
+      }
+    ],
+    "independent_checks": "Direct rustc unit/internal differential/tcpdump builds and runs, 619 deterministic mutations, doctests, formatting, ledger, architecture, inventory and hashes passed; Cargo offline resolution was blocked by uncached mio, and no online retry was attempted.",
+    "coverage_guided_campaign": "Not rerun; prior campaign remains exact-source-hash matched."
+  },
   "limitations": [
     "The campaign is bounded evidence, not exhaustive input proof.",
     "The external comparison is tcpdump/libpcap evidence only, not Wireshark, TShark, Kismet, hardware, or collector parity.",

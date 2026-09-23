@@ -147,6 +147,15 @@ From code commit `529f76b` the following checks pass:
   campaign. That 2,438,625-execution campaign was not rerun because the pinned
   nightly and `cargo-fuzz` are unavailable.
 
-Independent re-review of the exact corrected candidate is pending. No Phase
-2 exit, `INS-005`, other WIFI backlog item, Kismet/physical capture, or broader
-TST-002 gate is closed.
+Independent re-review of the exact corrected code/evidence candidate passed;
+the report is `docs/reviews/wifi-ie-parser-correction-20260923.md` at review
+commit `622452b6b68074d15c43b9374068fe7dbb449115`. Its sole remaining MINOR
+finding was the stale `STATUS.md` summary row, now corrected in this integration
+candidate. The reviewer independently passed direct `rustc` unit/differential
+checks, explicit tcpdump comparisons, 619 mutations, doctests, formatting,
+ledger, architecture, inventory, and artifact hash checks. The review's Cargo
+test/Clippy invocation could not resolve uncached workspace dependency `mio`
+offline; the candidate's recorded Cargo test/Clippy run remains separate
+author-worktree evidence. The pinned nightly and `cargo-fuzz` remain unavailable,
+so the coverage-guided campaign was not rerun. No Phase 2 exit, `INS-005`, other
+WIFI backlog item, Kismet/physical capture, or broader TST-002 gate is closed.
