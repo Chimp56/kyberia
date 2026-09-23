@@ -53147,7 +53147,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture; earlier mainline evidence retained",
           "revision": "b29bca77d68705b70176e744570f5673cfa6f0dca54fdb79be731943932ed675",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_contract_with_shared_fixture"
@@ -53156,7 +53156,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Draft 2020-12 schema execution with the Rust-shared fixture, optional cross-plane case, structural negatives, and trailing-line-feed regressions; clean bootstrap remains unverified",
           "revision": "38eb4c266deaab5b18b55b236140fa9c49291cd7e8d7d6b50da46a58968041bd",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
           "result": "PASS",
           "scope": "draft_2020_12_schema_structure"
@@ -175475,7 +175475,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Pinned Draft 2020-12 schema execution with shared valid and negative synthetic instances; local clean-bootstrap evidence remains open",
           "revision": "38eb4c266deaab5b18b55b236140fa9c49291cd7e8d7d6b50da46a58968041bd",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
           "result": "PASS",
           "scope": "draft_2020_12_schema_structure"
@@ -175484,7 +175484,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture",
           "revision": "b29bca77d68705b70176e744570f5673cfa6f0dca54fdb79be731943932ed675",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_contract_with_shared_fixture"
@@ -175665,7 +175665,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Pinned Draft 2020-12 schema execution with shared valid and negative synthetic instances; local clean-bootstrap evidence remains open",
           "revision": "38eb4c266deaab5b18b55b236140fa9c49291cd7e8d7d6b50da46a58968041bd",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
           "result": "PASS",
           "scope": "draft_2020_12_schema_structure"
@@ -175674,7 +175674,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture",
           "revision": "b29bca77d68705b70176e744570f5673cfa6f0dca54fdb79be731943932ed675",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_axis_rotation_contract_with_shared_fixture"
@@ -239112,7 +239112,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Pinned Draft 2020-12 schema execution with shared valid and negative synthetic instances; local clean-bootstrap evidence remains open",
           "revision": "38eb4c266deaab5b18b55b236140fa9c49291cd7e8d7d6b50da46a58968041bd",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
           "result": "PASS",
           "scope": "draft_2020_12_schema_structure"
@@ -239121,7 +239121,7 @@
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture",
           "revision": "b29bca77d68705b70176e744570f5673cfa6f0dca54fdb79be731943932ed675",
-          "sha256": "b32c4a802758bcd54fd47b5bdf688517ed1ecbc6789cbb43db13a417f7ddeb7f",
+          "sha256": "43ea990e79804860c2eb5bd2a2c7b8e651217a5dac7dfc015c2397903da8dc29",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_open_tabulated_contract_with_shared_fixture"

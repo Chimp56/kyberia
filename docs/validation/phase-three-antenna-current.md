@@ -4,9 +4,10 @@ The importer/evaluator is integrated on `main` at `6709813`; the non-pole
 elevation-interpolation golden is at `c016288`. Independent review and
 follow-up are recorded at `0d065d4` and `0ac5efb`. The reviewed candidate was
 based on `05953134d24666e8483cbfdb7d9aacd0ce4e6e48`; exact source bytes are
-recorded by content hash in the implementation ledger. The schema-validation
-increment is a separate candidate based on `bc51e80b14e30f927628f4ba9f2e92a4773423fe`;
-it is not yet part of the integrated `main` revision.
+recorded by content hash in the implementation ledger. The executable schema
+validator is integrated at `22b8b33`, with trailing-LF corrections at
+`11bd549` and `7986171`; reviews are recorded at `e6fbde4`, `a094b83`, and
+`1881ba4`.
 
 This validation covers only the versioned JSON importer and evaluator in
 `crates/antenna-model`. The tests use synthetic patterns; there is no licensed
@@ -24,10 +25,10 @@ or Sionna execution in this evidence.
 | `python3 tools/ledger.py check` | PASS: 5,396 source blocks, 438 explicit ID occurrences, 447 headings. |
 | `python3 -m unittest discover -s tests -p 'test_ledger.py'` | PASS: 31 ledger tests. |
 | `git diff --check` | PASS: candidate working-tree whitespace check. |
-| `python3 tools/dev.py validate-antenna-schema` | PASS on the schema-validation candidate with the existing pinned `jsonschema==4.25.1` interpreter: `Draft202012Validator.check_schema` accepts the committed schema; the JSON fixture shared with the Rust test is accepted; an all-absent optional cross-polar plane is accepted; and eight invalid instances are rejected, including trailing line feeds in all four schema-patterned text fields. |
+| `python3 tools/dev.py validate-antenna-schema` | PASS on integrated `main` after corrections `11bd549` and `7986171`, using the existing pinned `jsonschema==4.25.1` interpreter: `Draft202012Validator.check_schema` accepts the committed schema; the Rust-shared JSON fixture and all-absent optional cross-polar plane are accepted; eight invalid instances are rejected, including trailing line feeds in all four schema-patterned text fields. |
 
-The exact candidate run used the already-installed interpreter from the
-integration checkout:
+The integrated-tree run used the already-installed interpreter from the
+checkout:
 
 ```sh
 KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python \
@@ -78,9 +79,8 @@ loss, cuts/harmonics, visualization, field calibration, or adapter behavior.
 The independent review approved the earlier bounded synthetic
 contract/evaluator increment with no BLOCKER or MAJOR finding. Its
 elevation-interpolation MINOR follow-up is resolved by the golden test. The
-separate schema-validation candidate now executes the structural Draft
-2020-12 conformance check, but has not yet received independent review or been
-integrated. Relevant ledger records remain `IN_PROGRESS`; this evidence does
+integrated schema validator executes the structural Draft 2020-12 conformance
+check. Relevant ledger records remain `IN_PROGRESS`; this evidence does
 not establish clean-bootstrap execution, semantic Rust validation through
 JSON Schema, vendor-format compatibility, or complete Phase 3 acceptance.
 
