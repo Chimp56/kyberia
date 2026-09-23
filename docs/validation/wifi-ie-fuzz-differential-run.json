@@ -88,19 +88,16 @@
     "retained_run": ".trash/test-runs/wifi-ie-tcpdump-82338-1790155341428075000",
     "fixture_count": 3,
     "compared_fields": [
-      "Beacon/Probe Request/Probe Response subtype",
-      "receiver/destination, transmitter/source, and BSSID address fields",
-      "hidden/wildcard/text SSID display",
-      "supported basic rates",
-      "Beacon channel 6",
-      "Beacon ESS and privacy capability flags"
+      "tcpdump decoded the three fixtures and emitted expected display strings",
+      "the parser subtype was checked against a local expected enum, not against tcpdump's parsed fields"
     ],
+    "typed_parser_to_tcpdump_field_comparison": "NOT PERFORMED in this historical run; added and rerun in latest_review_correction_rerun",
     "pcap_sha256": "533a525eaa804856198f24182525d029d320c36a8cf312cbf537eaf69309740b",
     "normalized_output_sha256": "99d170422ce4e618a47eff939ab310a6c30d3276d7052a99a7a0a1cbe00da13a",
     "version_output_sha256": "b700fd67878107ec1cd0a87902891548adc3e24bca353b9bb80ada30b51cf7ee",
     "exit_status": 0
   },
-  "latest_main_integration_rerun": {
+  "pre_review_latest_main_integration_rerun": {
     "recorded_at": "2026-09-23",
     "base_revision": "05953134d24666e8483cbfdb7d9aacd0ce4e6e48",
     "candidate_revision": "7133e25725cb797ccce55da766d16da57d25b68d",
@@ -119,7 +116,8 @@
       "unit_tests": 22,
       "internal_differential_tests": 3,
       "compile_fail_doctests": 3,
-      "tcpdump_external_differential_fixtures": 3,
+      "tcpdump_fixture_decodes": 3,
+      "tcpdump_typed_field_comparisons": 0,
       "deterministic_mutation_cases": 619,
       "strict_clippy": "PASS",
       "format": "PASS",
@@ -136,7 +134,46 @@
       "normalized_output_sha256": "99d170422ce4e618a47eff939ab310a6c30d3276d7052a99a7a0a1cbe00da13a",
       "version_output_sha256": "b700fd67878107ec1cd0a87902891548adc3e24bca353b9bb80ada30b51cf7ee"
     },
+    "typed_parser_to_tcpdump_comparison": "NOT PERFORMED by candidate 7133e25; first independent review found this MAJOR evidence gap.",
     "coverage_guided_campaign": "Not rerun on this integration worktree; the prior campaign remains exact-source-hash matched. Pinned nightly and cargo-fuzz are unavailable."
+  },
+  "latest_review_correction_rerun": {
+    "recorded_at": "2026-09-23",
+    "base_revision": "05953134d24666e8483cbfdb7d9aacd0ce4e6e48",
+    "code_revision": "529f76b157044025d11f3dad63c0edf9f0ec8d9d",
+    "commands": [
+      "cargo test -p kyberia-ieee80211 --locked --offline",
+      "cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings",
+      "cargo fmt --all -- --check",
+      "cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked --offline",
+      "cargo test -p kyberia-ieee80211 --locked --offline --test tcpdump_differential -- --ignored --exact checked_in_management_frames_match_tcpdump_stable_fields --nocapture"
+    ],
+    "results": {
+      "unit_tests": 22,
+      "internal_differential_tests": 3,
+      "compile_fail_doctests": 3,
+      "strict_clippy": "PASS",
+      "format": "PASS",
+      "deterministic_mutation_cases": 619,
+      "tcpdump_fixtures": 3,
+      "typed_tcpdump_comparisons": [
+        "management subtype display",
+        "receiver/destination, transmitter/source, and BSSID address fields",
+        "printable or empty SSID display (hidden-versus-wildcard meaning remains internal-only)",
+        "supported rates on frames where tcpdump emits a rate list (Beacon and Probe Request in this run; Probe Response omits rates)",
+        "DS channel where displayed (Beacon channel 6)",
+        "Beacon ESS and privacy capability flags"
+      ]
+    },
+    "tcpdump": {
+      "version": "tcpdump 4.99.1 -- Apple version 161",
+      "libpcap_version": "1.10.1",
+      "retained_path": ".trash/test-runs/wifi-ie-tcpdump-94905-1790172181428203000",
+      "pcap_sha256": "533a525eaa804856198f24182525d029d320c36a8cf312cbf537eaf69309740b",
+      "normalized_output_sha256": "99d170422ce4e618a47eff939ab310a6c30d3276d7052a99a7a0a1cbe00da13a",
+      "version_output_sha256": "b700fd67878107ec1cd0a87902891548adc3e24bca353b9bb80ada30b51cf7ee"
+    },
+    "coverage_guided_campaign": "Not rerun; all four source SHA-256 values still match the retained prior campaign. The pinned nightly and cargo-fuzz are unavailable."
   },
   "limitations": [
     "The campaign is bounded evidence, not exhaustive input proof.",

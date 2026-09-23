@@ -35,9 +35,10 @@ establish execution of the pinned worker-0.2.0 Sionna engine or close hosted,
 physical-radio, or spectrum gates.
 
 The bounded Phase 2 `WIFI-001` parser candidate is on isolated integration
-branch `integrate/wifi-ie-main-v1` at `7133e25`. Current-main parser and
-differential reruns pass; independent review is pending before integration to
-`main`. No Phase 2 completion is claimed.
+branch `integrate/wifi-ie-main-v1`; code correction `529f76b` directly compares
+typed parser fields with tcpdump output and narrows the cancellation guarantee
+to bounded per-IE behavior. Independent re-review is pending before integration
+to `main`. No Phase 2 completion is claimed.
 
 ## Historical execution checkpoint — 2026-09-22
 

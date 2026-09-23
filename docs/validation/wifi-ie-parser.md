@@ -34,14 +34,15 @@ lock, toolchain pin, tracked final-stat excerpt, and ten-package source
 inventory are checked in.
 
 The explicit `tcpdump_differential` test constructs a deterministic
-DLT_IEEE802_11 PCAP from three checked-in fixtures, invokes `/usr/sbin/tcpdump`
-without a skip branch, and compares only fields emitted stably by both parsers:
-management subtype, three address roles, SSID display, rates, channel and
-selected capability flags. The original accepted local authority was tcpdump
-4.99.1 (Apple 158) with libpcap 1.10.1. The assigned-worktree rerun used
-tcpdump 4.99.1 (Apple 161) with libpcap 1.10.1. Tcpdump is validation-only and cannot become a
-runtime dependency. Exact commands, hashes, counters and limitations are in
-`wifi-ie-fuzz-differential-run.json`.
+DLT_IEEE802_11 PCAP from three checked-in fixtures and invokes
+`/usr/sbin/tcpdump` without a skip branch. Its original pre-review version
+decoded the fixtures and asserted expected display strings independently; it
+did not compare Kyberia's typed parser outputs against tcpdump's parsed fields.
+The current review-corrected test performs those direct comparisons for the
+stable fields listed in the latest rerun below. The assigned-worktree authority
+was tcpdump 4.99.1 (Apple 161) with libpcap 1.10.1. Tcpdump is validation-only
+and cannot become a runtime dependency. Exact commands, hashes, counters and
+limitations are in `wifi-ie-fuzz-differential-run.json`.
 
 Runtime record (2026-09-14, local macOS arm64 worktree):
 
@@ -53,8 +54,9 @@ Runtime record (2026-09-14, local macOS arm64 worktree):
   features, 371 final in-memory corpus inputs, zero crashes/timeouts, exit 0.
 - Retained campaign corpus: 373 files, 360,002 bytes, including 24 accepted
   canonical documents, 219 parsed frames, and one CRC-valid FCS-present frame.
-- Explicit tcpdump/libpcap differential: three fixture decodes and all closed
-  shared-field comparisons pass, exit 0.
+- Explicit tcpdump/libpcap run: three fixture decodes and expected output
+  strings passed, but this pre-review test did not compare typed parser fields
+  directly; the independent review found that evidence gap.
 - This is the corrected bounded WIFI-001 acceptance candidate and remains
   promotion-gated on independent re-review. Physical capture, Kismet/Wireshark parity,
   cross-platform campaigns and broader TST-002 parser families remain open.
@@ -77,7 +79,7 @@ was not run here because this environment has neither the pinned nightly nor
 required. No Phase 2 exit, `INS-005`, other WIFI backlog item, Kismet/physical
 capture, or broader TST-002 completion is implied.
 
-## Latest-main integration-candidate rerun (2026-09-23)
+## Superseded pre-review integration-candidate rerun (2026-09-23)
 
 The author commit was cherry-picked without conflict onto integration base
 `05953134d24666e8483cbfdb7d9aacd0ce4e6e48`, producing candidate
@@ -90,8 +92,10 @@ The author commit was cherry-picked without conflict onto integration base
   warnings` and `cargo fmt --all -- --check` pass.
 - `cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked
   --offline` passes all 619 cases.
-- The explicitly ignored tcpdump differential passes for all three checked-in
-  fixtures using tcpdump 4.99.1 (Apple 161)/libpcap 1.10.1. Retained PCAP,
+- The explicitly ignored tcpdump test decodes all three checked-in fixtures
+  using tcpdump 4.99.1 (Apple 161)/libpcap 1.10.1. That test did not compare
+  typed parser outputs against tcpdump's parsed fields; the independent review
+  correctly rejected it as differential acceptance evidence. Retained PCAP,
   normalized output, and version output are under
   `.trash/test-runs/wifi-ie-tcpdump-88435-1790159155406696000/`; their hashes
   are in `wifi-ie-fuzz-differential-run.json`.
@@ -101,7 +105,48 @@ The author commit was cherry-picked without conflict onto integration base
 
 The prior 2,438,625-execution coverage-guided campaign remains bound to the
 exact parser, fuzz library, target, and seed-contract hashes but was not rerun;
-the pinned nightly and `cargo-fuzz` are unavailable in this environment.
-Independent review of candidate `7133e25725cb797ccce55da766d16da57d25b68d`
-is pending. This bounded candidate does not complete `INS-005`, other WIFI
-items, Phase 2, Kismet/physical capture, or broader TST-002 gates.
+the pinned nightly and `cargo-fuzz` are unavailable in this environment. The
+independent review of `7133e25725cb797ccce55da766d16da57d25b68d` found the
+external-comparison gap and a cancellation-documentation mismatch. Both are
+addressed in the correction below; re-review remains pending. This bounded
+candidate does not complete `INS-005`, other WIFI items, Phase 2,
+Kismet/physical capture, or broader TST-002 gates.
+
+## Independent-review correction rerun (2026-09-23)
+
+The exact code correction is commit `529f76b157044025d11f3dad63c0edf9f0ec8d9d`
+on isolated integration branch `integrate/wifi-ie-main-v1`. The tcpdump test
+now parses Kyberia's typed values and compares them directly with the
+corresponding fields in each tcpdump output line. It compares management
+subtype; receiver/destination, transmitter/source, and BSSID field; printable
+or empty SSID display; supported rates when tcpdump emits them (Beacon and
+Probe Request in this build, but not Probe Response); DS channel when shown;
+and Beacon ESS/privacy flags. Hidden-versus-wildcard SSID meaning remains an
+internal parser assertion because tcpdump renders both as an empty display.
+
+The same candidate narrows the cancellation statement: per-IE rate/Country
+value loops are each bounded by the one-byte IE length and do not poll inside
+each value-copy iteration; cancellation arriving mid-IE is observed at the
+next parser checkpoint. The parser source itself was not changed, preserving
+the exact source-hash binding to the prior bounded libFuzzer campaign.
+
+From code commit `529f76b` the following checks pass:
+
+- `cargo test -p kyberia-ieee80211 --locked --offline`: 22 unit tests, three
+  internal differential tests, and three compile-fail doctests pass.
+- The explicitly gated tcpdump differential passes for three fixtures with
+  direct typed-field comparisons using tcpdump 4.99.1 (Apple 161)/libpcap
+  1.10.1. Retained PCAP, normalized output, and version artifacts are under
+  `.trash/test-runs/wifi-ie-tcpdump-94905-1790172181428203000/`; SHA-256 values
+  are recorded in `wifi-ie-fuzz-differential-run.json`.
+- `cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D
+  warnings` and `cargo fmt --all -- --check` pass.
+- `cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked
+  --offline` passes all 619 cases.
+- The four parser/fuzz/target/seed-contract hashes still match the recorded
+  campaign. That 2,438,625-execution campaign was not rerun because the pinned
+  nightly and `cargo-fuzz` are unavailable.
+
+Independent re-review of the exact corrected candidate is pending. No Phase
+2 exit, `INS-005`, other WIFI backlog item, Kismet/physical capture, or broader
+TST-002 gate is closed.
