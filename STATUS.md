@@ -9,12 +9,38 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
 - Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; and safe bootstrap-stage diagnostics through `c4a1219`. Final renderer and product gates remain open.
+- Most recent integration change: Windows Corepack launcher correction `adb2b69`; its hosted result is summarized below. This does not add a product capability or close a roadmap phase.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
   [publication review](docs/reviews/materialized-publication-correction-review.md).
 - Product acceptance: **not complete**. There is no complete usable mapper UI;
   Phase 0 exit criteria and Phases 1–8 remain open.
+
+## Current execution checkpoint — 2026-09-22
+
+Main is at `adb2b69`. Hosted run
+[`34775283924`](https://github.com/Chimp56/kyberia/actions/runs/34775283924)
+confirms that the Windows Corepack startup failure is resolved: the pinned
+toolchain bootstrap, frontend dependency install, and Chromium install all
+passed on Windows. Ubuntu and macOS passed the complete workflow. Windows now
+fails at **Compile foundation and CLI** (exit 101); subsequent Windows gates
+were skipped. The public check annotation exposes only the failed stage and
+exit code, so the compiler diagnostic and cause are not yet established.
+
+A local `x86_64-pc-windows-gnu` workspace check was attempted, but stopped in
+`libsqlite3-sys` because this Mac host lacks `x86_64-w64-mingw32-gcc`. That
+cross-check does not explain the hosted Windows MSVC failure and is not treated
+as an external blocker. The Windows compile failure remains actionable. On
+this main revision, the 11 developer-command regressions, architecture check,
+ledger check (5,392 source blocks), and 522-package source-inventory check all
+pass locally. The current traceability matrix records 66 VALIDATED, 88
+IN_PROGRESS, and 3,181 NOT_STARTED leaf obligations; these counts are source
+coverage annotations, not a product-completion percentage.
+
+The product assessment remains unchanged: no Phase 0–8 exit or complete mapper
+workflow is established by this CI run. Hardware, field, live-radio and later
+product validation remain distinct from these foundation checks.
 
 ## Current execution checkpoint — 2026-09-13
 
