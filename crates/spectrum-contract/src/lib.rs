@@ -4,9 +4,11 @@
 //! It does not acquire or calibrate radio data, and its pattern rules never
 //! identify an emitter or protocol.
 
+mod band_power;
 mod model;
 mod signature;
 
+pub use band_power::*;
 pub use model::*;
 pub use signature::*;
 

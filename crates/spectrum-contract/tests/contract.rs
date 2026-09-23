@@ -9,7 +9,8 @@ use kyberia_domain::{
     units::{CoordinateMeters, Radians, Seconds},
 };
 use kyberia_spectrum_contract::{
-    AcquisitionSettings, CALIBRATION_SCHEMA_V1, DetectorKind, FrequencyGrid, GainSetting,
+    AcquisitionSettings, BandPowerOutcome, BandPowerRounding, BandPowerUnknownReason,
+    CALIBRATION_SCHEMA_V1, DetectorKind, FrequencyGrid, GainSetting,
     MIN_PERSISTENT_BIN_COVERAGE_PARTS_PER_MILLION, PowerUnit, ProcessingLimits, SWEEP_SCHEMA_V1,
     SignaturePattern, SignatureReason, SpectrumBin, SpectrumCalibrationProfile, SpectrumError,
     SpectrumEvent, SpectrumSourceKind, SpectrumSourceMetadata, SpectrumSweep,
@@ -297,6 +298,242 @@ fn zero_power_below_detection_and_not_observed_are_distinct_evidence() {
     assert!(matches!(
         &decoded.document().bins[2],
         SpectrumBin::NotObserved { .. }
+    ));
+}
+
+#[test]
+fn band_power_sums_dbm_bins_in_linear_milliwatts_and_does_not_change_sweep_identity() {
+    let sweep = sweep_with_unit(
+        0,
+        0,
+        vec![
+            SpectrumBin::Observed {
+                power_milli_dbm: -30_000,
+                clipped: false,
+            },
+            SpectrumBin::Observed {
+                power_milli_dbm: -30_000,
+                clipped: false,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+        ],
+        true,
+        PowerUnit::DbmPerBin,
+    );
+    let identity_before = sweep.sha256();
+    let result = sweep
+        .integrate_band(2_400_000_000, 2_402_000_000, limits())
+        .unwrap();
+    let BandPowerOutcome::Exact(power) = result else {
+        panic!("two observed whole bins must produce an exact total");
+    };
+    assert_eq!(power.total_power_milli_dbm, -26_990);
+    assert_eq!(power.source_power_unit, PowerUnit::DbmPerBin);
+    assert_eq!(power.bin_width_hz, 1_000_000);
+    assert_eq!(power.coverage.selected_bin_count, 2);
+    assert_eq!(power.coverage.observed_bin_count, 2);
+    assert_eq!(power.coverage.exact_bin_count, 2);
+    assert_eq!(
+        power.coverage.observed_coverage_parts_per_million,
+        1_000_000
+    );
+    assert_eq!(power.coverage.exact_coverage_parts_per_million, 1_000_000);
+    assert_eq!(
+        power.rounding,
+        BandPowerRounding::NearestMillidBmTiesAwayFromZero
+    );
+    assert_eq!(sweep.sha256(), identity_before);
+}
+
+#[test]
+fn band_power_integrates_psd_by_explicit_bin_width_without_applying_calibration() {
+    let sweep = sweep_with_unit(
+        0,
+        0,
+        vec![
+            SpectrumBin::Observed {
+                power_milli_dbm: 0,
+                clipped: false,
+            };
+            8
+        ],
+        true,
+        PowerUnit::DbmPerHertz,
+    );
+    let result = sweep
+        .integrate_band(2_400_000_000, 2_401_000_000, limits())
+        .unwrap();
+    let BandPowerOutcome::Exact(power) = result else {
+        panic!("one observed PSD bin must produce an exact total");
+    };
+    assert_eq!(power.total_power_milli_dbm, 60_000);
+    assert_eq!(power.source_power_unit, PowerUnit::DbmPerHertz);
+    assert_eq!(power.coverage.selected_bin_count, 1);
+    assert_eq!(power.coverage.exact_coverage_parts_per_million, 1_000_000);
+}
+
+#[test]
+fn band_power_accepts_grid_edges_but_rejects_empty_misaligned_and_out_of_range_bands() {
+    let sweep = sweep_with_unit(
+        0,
+        0,
+        vec![
+            SpectrumBin::Observed {
+                power_milli_dbm: -20_000,
+                clipped: false,
+            };
+            8
+        ],
+        true,
+        PowerUnit::DbmPerBin,
+    );
+    let full_band = sweep
+        .integrate_band(2_400_000_000, 2_408_000_000, limits())
+        .unwrap();
+    let BandPowerOutcome::Exact(full_band) = full_band else {
+        panic!("both outer grid edges must be valid");
+    };
+    assert_eq!(full_band.coverage.selected_bin_count, 8);
+    assert_eq!(full_band.total_power_milli_dbm, -10_969);
+
+    assert!(matches!(
+        sweep.integrate_band(2_400_000_000, 2_400_000_000, limits()),
+        Err(SpectrumError::Invalid("empty spectrum band"))
+    ));
+    assert!(matches!(
+        sweep.integrate_band(2_400_000_001, 2_401_000_000, limits()),
+        Err(SpectrumError::Invalid("spectrum band bin alignment"))
+    ));
+    assert!(matches!(
+        sweep.integrate_band(2_400_000_000, 2_401_000_001, limits()),
+        Err(SpectrumError::Invalid("spectrum band bin alignment"))
+    ));
+    assert!(matches!(
+        sweep.integrate_band(2_399_999_999, 2_401_000_000, limits()),
+        Err(SpectrumError::Invalid("spectrum band outside sweep grid"))
+    ));
+    assert!(matches!(
+        sweep.integrate_band(2_407_000_000, 2_408_000_001, limits()),
+        Err(SpectrumError::Invalid("spectrum band outside sweep grid"))
+    ));
+}
+
+#[test]
+fn band_power_unknown_is_fail_closed_with_ordered_causes_and_observed_coverage() {
+    let sweep = sweep_with_unit(
+        0,
+        0,
+        vec![
+            SpectrumBin::Observed {
+                power_milli_dbm: -30_000,
+                clipped: false,
+            },
+            SpectrumBin::Observed {
+                power_milli_dbm: -20_000,
+                clipped: true,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::NotObserved {
+                reason: UnknownReason::UnsupportedCapability,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+            SpectrumBin::BelowDetectionThreshold {
+                threshold_milli_dbm: -90_000,
+            },
+        ],
+        true,
+        PowerUnit::DbmPerBin,
+    );
+    let result = sweep
+        .integrate_band(2_400_000_000, 2_404_000_000, limits())
+        .unwrap();
+    let BandPowerOutcome::Unknown(unknown) = result else {
+        panic!("incomplete/clipped evidence must not return a total");
+    };
+    assert_eq!(unknown.coverage.selected_bin_count, 4);
+    assert_eq!(unknown.coverage.observed_bin_count, 2);
+    assert_eq!(unknown.coverage.exact_bin_count, 1);
+    assert_eq!(
+        unknown.coverage.observed_coverage_parts_per_million,
+        500_000
+    );
+    assert_eq!(unknown.coverage.exact_coverage_parts_per_million, 250_000);
+    assert_eq!(
+        unknown.blocking_bins,
+        vec![
+            kyberia_spectrum_contract::BandPowerUnknownBin {
+                bin_index: 1,
+                reason: BandPowerUnknownReason::Clipped,
+            },
+            kyberia_spectrum_contract::BandPowerUnknownBin {
+                bin_index: 2,
+                reason: BandPowerUnknownReason::BelowDetectionThreshold,
+            },
+            kyberia_spectrum_contract::BandPowerUnknownBin {
+                bin_index: 3,
+                reason: BandPowerUnknownReason::NotObserved {
+                    reason: UnknownReason::UnsupportedCapability,
+                },
+            },
+        ]
+    );
+    assert_eq!(
+        sweep
+            .integrate_band(2_400_000_000, 2_404_000_000, limits())
+            .unwrap(),
+        BandPowerOutcome::Unknown(unknown)
+    );
+}
+
+#[test]
+fn band_power_work_is_bounded_by_processing_limits() {
+    let sweep = sweep_with_unit(
+        0,
+        0,
+        vec![
+            SpectrumBin::Observed {
+                power_milli_dbm: -30_000,
+                clipped: false,
+            };
+            8
+        ],
+        true,
+        PowerUnit::DbmPerBin,
+    );
+    let limited = ProcessingLimits {
+        max_work_units: 1,
+        ..limits()
+    };
+    assert!(matches!(
+        sweep.integrate_band(2_400_000_000, 2_402_000_000, limited),
+        Err(SpectrumError::ResourceLimit("spectrum band work"))
     ));
 }
 

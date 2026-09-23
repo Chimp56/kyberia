@@ -1,4 +1,4 @@
-# Phase 5 spectrum contract correction validation
+# Phase 5 spectrum contract validation
 
 Corrected implementation: candidate `9be9e0fd60384d13743a08ee3d9b8672f3c7f716`,
 integrated on `main` at `9641431`; tracking update `ac11cd3`.
@@ -38,3 +38,31 @@ The original findings are in
 Fixtures are synthetic. No SoapySDR/vendor adapter, spectrum hardware,
 equivalent-noise-bandwidth normalization, remote-sensor replay, labeled traces,
 or Phase 5 runtime acceptance was exercised.
+
+## Bounded whole-bin band-power candidate
+
+This isolated candidate extends the validated sweep contract with a pure
+`SpectrumSweep::integrate_band` query. It integrates one in-grid half-open band
+only when both endpoints align exactly to whole-bin boundaries. It sums dBm
+values after converting them to mW, or integrates dBm/Hz density over the
+explicit grid-bin width before summing. It rounds only the final derived
+display result to the nearest milli-dBm, with half-way cases away from zero.
+The code does not alter sweep or event schemas/hashes, apply calibration
+corrections, infer a noise floor, interpolate partial bins, or alter the
+signature path's rejection of PSD event thresholds without equivalent
+noise-bandwidth normalization.
+
+If any selected bin is below detection, clipped, or not observed, the result
+contains no total; it returns the selected range, observed/exact coverage and
+per-bin blocking causes in source-grid order. The calculation is bounded by
+`ProcessingLimits` and fails on empty, misaligned, out-of-grid, or over-budget
+queries. Synthetic regressions cover two -30 dBm bins (-26.990 dBm), 0 dBm/Hz
+integrated over one 1 MHz bin (+60 dBm), full-grid edges, invalid ranges,
+clipped/missing evidence, unchanged source identity, and a lowered work limit.
+
+This is a narrow computation core only. It does not implement current/average/
+minimum/max-hold views, a waterfall, threshold occupancy, channel overlays,
+time-domain bursts, analyzer adapters, calibration application, a renderer, or
+product/Phase 5 acceptance. `SPE-002` and Phase 5 remain open pending independent
+review and the broader numerical, rendering, hardware, calibration, and field
+gates.

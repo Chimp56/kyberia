@@ -47770,7 +47770,7 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spectrum",
       "phase": 5,
       "depends_on": [],
@@ -48020,14 +48020,33 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spectrum",
       "phase": 5,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Exact whole-bin integrated power is available for a caller-selected band; other SPE-002 views, hardware adapters, calibration and product acceptance remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/spectrum-contract/src/band_power.rs",
+          "description": "Partial SPE-002 core: bounded whole-bin integration converts dBm/bin or dBm/Hz × explicit bin width to linear mW and fails closed on clipped or incomplete bins",
+          "revision": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf",
+          "sha256": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase5-spectrum-contract.md",
+          "description": "Synthetic integration regressions validate bounded whole-bin power calculation only; no rendered views or hardware/field acceptance",
+          "revision": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf",
+          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
+          "command": "cargo test -p kyberia-spectrum-contract --locked --offline; cargo clippy -p kyberia-spectrum-contract --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; git diff --check",
+          "result": "PASS",
+          "scope": "bounded software contract core only; synthetic evidence, no Phase 5 or product acceptance"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -177194,7 +177213,7 @@
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: v1 sweep/calibration contracts plus unit-safe, bounded signature assessment",
           "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
-          "sha256": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
+          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep/calibration contract and signature tests only; no hardware or adapter execution"
@@ -177344,7 +177363,7 @@
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: per-bin coverage regression and exact-boundary fixture",
           "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
-          "sha256": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
+          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep-window coverage checks only; no survey path or physical positioning validation"
@@ -177408,7 +177427,7 @@
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: PSD fail-closed behavior and generic deterministic pattern regressions",
           "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
-          "sha256": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
+          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic contract fixtures only; no labeled traces, emitter identification or field validation"
@@ -242542,14 +242561,31 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spectrum",
       "phase": 5,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "implementation": [
+        {
+          "path": "crates/spectrum-contract/src/band_power.rs",
+          "description": "Partial core only: per-band linear-power integration; waterfall, occupancy, max/average views, sweep correlation, adapters and product integration remain open",
+          "revision": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf",
+          "sha256": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase5-spectrum-contract.md",
+          "description": "Focused synthetic contract checks only; full SPE-002 visual and Phase 5 runtime acceptance is unverified",
+          "revision": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf",
+          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
+          "command": "cargo test -p kyberia-spectrum-contract --locked --offline; cargo clippy -p kyberia-spectrum-contract --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; git diff --check",
+          "result": "PASS",
+          "scope": "partial contract validation only; no rendered views or hardware/field acceptance"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,

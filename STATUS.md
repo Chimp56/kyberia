@@ -68,6 +68,14 @@ with correction re-review `16a9111`. The PSD path fails closed and local-bin
 coverage is explicit; fixtures remain synthetic and bandwidth normalization,
 adapters, hardware and labeled traces remain open.
 
+An isolated Phase 5 candidate adds bounded exact whole-bin band-power
+integration over one validated sweep. Synthetic tests cover linear-domain
+dBm-bin summation, PSD density × explicit bin width, range/alignment checks,
+fail-closed clipping/missing-bin outcomes, unchanged sweep identity, and the
+work ceiling. It is not yet independently reviewed or integrated; it does not
+provide the current/average/minimum/max-hold/waterfall/occupancy views or
+hardware/calibration/field acceptance. `SPE-002` and Phase 5 remain open.
+
 The Phase 8 plugin declaration/parser contract is integrated at `8cce7c1`
 with correction re-review `51f5caa`. Raw input and nesting are bounded before
 deserialization. WIT compilation, component execution, sandbox enforcement,
