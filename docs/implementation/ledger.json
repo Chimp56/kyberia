@@ -53067,14 +53067,51 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "antenna-pattern-v1-synthetic-contract; cuts, manufacturer formats, visual checks, and adapter remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/antenna-model/src/contract.rs",
+          "description": "Versioned JSON import, semantic validation, canonical identity, and bounded provenance contract",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "fa3d16c4109fb9f45cffeb2dc166922d14931982eacd20e6385f6469e499e4fa"
+        },
+        {
+          "path": "crates/antenna-model/src/evaluate.rs",
+          "description": "Local-frame rotation, sampled gain lookup, interpolation, and missing-plane behavior",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "4708f88ab93b4b48a4a7e4fb64ec4c983e5419e8a1aadf2a26bb9bc0b2f23dfe"
+        },
+        {
+          "path": "crates/antenna-model/schema/antenna-pattern-v1.schema.json",
+          "description": "Structural JSON Schema for the v1 wire contract",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "e6c969b1848a4b2534336de3745e23a0b7577f87195d870279b0486c4cb2eeaf"
+        },
+        {
+          "path": "crates/antenna-model/tests/antenna_pattern.rs",
+          "description": "Synthetic contract and evaluator acceptance regressions",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "b981f9a146d825f093cc3ece96528ad9eb060a83e864f6817332aa3f7904f6a8"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Focused candidate test, lint, formatting, architecture, and source-inventory results with explicit exclusions",
+          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
+          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "command": "cargo test -p kyberia-antenna-model --locked --offline",
+          "result": "PASS",
+          "scope": "synthetic_contract"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -53274,12 +53311,14 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "frequency-indexed full-sphere sampled representation; harmonics remain open"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -53370,12 +53409,14 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "declared H/V or circular R/L basis with explicit co/cross samples; mismatch loss remains open"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -53418,12 +53459,14 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "frequency-specific nominal gain and efficiency with uncertainty bounds"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -53466,12 +53509,14 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "explicit local XYZ handedness and azimuth/elevation axes with canonical-axis tests"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -53514,12 +53559,14 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "fixed bilinear spatial and linear-power frequency interpolation; out-of-range rejected"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -53562,12 +53609,14 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "source URI, SPDX-expression syntax, and SHA-256 shape retained; rights and payload match remain caller responsibilities"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -53610,12 +53659,14 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "validated local-to-world unit quaternion rotates world lookup into local axes"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -87212,12 +87263,14 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "world direction transformed into local coordinates by the declared mount quaternion"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -87255,12 +87308,14 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "gain evaluated from frequency-indexed azimuth/elevation samples with explicit interpolation"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -87341,12 +87396,14 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "mount quaternion orientation applied consistently to gain lookup"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -87384,12 +87441,14 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
+      "acceptance_cases": [
+        "interpolation modes and missing cross-polar behavior are explicit and tested"
+      ],
       "implementation": [],
       "validation": [],
       "reviews": [],
@@ -175272,14 +175331,39 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "versioned antenna JSON contract with source metadata and explicit uncertainty fields"
+      ],
+      "implementation": [
+        {
+          "path": "crates/antenna-model/src/contract.rs",
+          "description": "Versioned antenna contract with source metadata and nominal gain/efficiency uncertainties",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "fa3d16c4109fb9f45cffeb2dc166922d14931982eacd20e6385f6469e499e4fa"
+        },
+        {
+          "path": "crates/antenna-model/schema/antenna-pattern-v1.schema.json",
+          "description": "Structural v1 schema for versioned antenna inputs",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "e6c969b1848a4b2534336de3745e23a0b7577f87195d870279b0486c4cb2eeaf"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Focused candidate tests and scoped validation results",
+          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
+          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "command": "cargo test -p kyberia-antenna-model --locked --offline",
+          "result": "PASS",
+          "scope": "synthetic_schema_contract"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -175401,14 +175485,39 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "synthetic axis, mount rotation, interpolation, pole, and sample-order golden cases"
+      ],
+      "implementation": [
+        {
+          "path": "crates/antenna-model/src/evaluate.rs",
+          "description": "Coordinate rotation, sampled gain evaluation, and explicit spatial/frequency interpolation",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "4708f88ab93b4b48a4a7e4fb64ec4c983e5419e8a1aadf2a26bb9bc0b2f23dfe"
+        },
+        {
+          "path": "crates/antenna-model/tests/antenna_pattern.rs",
+          "description": "Synthetic axes, mount rotation, interpolation, pole, and sample-order acceptance tests",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "b981f9a146d825f093cc3ece96528ad9eb060a83e864f6817332aa3f7904f6a8"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Focused candidate tests and scoped validation results",
+          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
+          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "command": "cargo test -p kyberia-antenna-model --locked --offline",
+          "result": "PASS",
+          "scope": "synthetic_axis_rotation_contract"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -238762,14 +238871,39 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "spatial/survey",
+      "status": "IN_PROGRESS",
+      "owner": "feat/phase3-antenna-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "open tabulated v1 import/evaluation contract and provenance fields; catalog and Sionna compilation remain open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/antenna-model/src/contract.rs",
+          "description": "Canonical open tabulated v1 representation and provenance validation",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "fa3d16c4109fb9f45cffeb2dc166922d14931982eacd20e6385f6469e499e4fa"
+        },
+        {
+          "path": "crates/antenna-model/tests/antenna_pattern.rs",
+          "description": "Synthetic import/evaluation and provenance acceptance tests",
+          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
+          "sha256": "b981f9a146d825f093cc3ece96528ad9eb060a83e864f6817332aa3f7904f6a8"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Focused candidate tests and scoped validation results; catalog and Sionna adapter remain unvalidated",
+          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
+          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "command": "cargo test -p kyberia-antenna-model --locked --offline",
+          "result": "PASS",
+          "scope": "synthetic_open_tabulated_contract"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
