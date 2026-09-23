@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.rfatlas.invalid/antenna-pattern-v1.schema.json",
+  "title": "RF Atlas antenna pattern v1 structural schema",
+  "$comment": "A portable document must pass both this structural schema and ValidatedAntenna::parse_json. The runtime validator additionally checks strict axis/frequency ordering, required axis endpoints, grid dimensions and aggregate sample limits, unit quaternion norm, complete-or-absent cross-polar planes, pole invariance, nominal-peak normalization, and the coupled efficiency uncertainty interval.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "model_id", "representation", "coordinate_convention",
+    "mount_orientation_local_to_world", "polarization_basis",
+    "spatial_interpolation", "frequency_interpolation", "sample_order",
+    "normalization_tolerance_db", "source", "azimuth_degrees",
+    "elevation_degrees", "frequencies"
+  ],
+  "properties": {
+    "schema": {"const": "kyberia.antenna-pattern/1"},
+    "model_id": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^[!-~](?:[ -~]*[!-~])?$"},
+    "representation": {"const": "full_sphere_sample_grid"},
+    "coordinate_convention": {
+      "type": "object", "additionalProperties": false,
+      "required": ["frame", "angle_unit", "azimuth_zero_axis", "positive_azimuth", "positive_elevation"],
+      "properties": {
+        "frame": {"const": "right_handed_x_forward_y_left_z_up"},
+        "angle_unit": {"const": "degrees"},
+        "azimuth_zero_axis": {"const": "positive_x"},
+        "positive_azimuth": {"const": "toward_positive_y"},
+        "positive_elevation": {"const": "toward_positive_z"}
+      }
+    },
+    "mount_orientation_local_to_world": {"$ref": "#/$defs/quaternion"},
+    "polarization_basis": {"enum": ["linear_horizontal_vertical", "circular_right_left"]},
+    "spatial_interpolation": {"const": "bilinear_linear_power"},
+    "frequency_interpolation": {"const": "linear_power_reject_outside"},
+    "sample_order": {"const": "elevation_major_azimuth_minor"},
+    "normalization_tolerance_db": {"type": "number", "minimum": 0, "maximum": 3},
+    "source": {"$ref": "#/$defs/source"},
+    "azimuth_degrees": {
+      "type": "array", "minItems": 2, "maxItems": 720,
+      "uniqueItems": true, "prefixItems": [{"const": 0}],
+      "items": {"type": "number", "minimum": 0, "exclusiveMaximum": 360}
+    },
+    "elevation_degrees": {
+      "type": "array", "minItems": 2, "maxItems": 361,
+      "uniqueItems": true,
+      "allOf": [
+        {"contains": {"const": -90}, "minContains": 1, "maxContains": 1},
+        {"contains": {"const": 90}, "minContains": 1, "maxContains": 1}
+      ],
+      "items": {"type": "number", "minimum": -90, "maximum": 90}
+    },
+    "frequencies": {
+      "type": "array", "minItems": 1, "maxItems": 256,
+      "items": {"$ref": "#/$defs/frequency"}
+    }
+  },
+  "$defs": {
+    "quaternion": {
+      "type": "object", "additionalProperties": false,
+      "required": ["w", "x", "y", "z"],
+      "properties": {
+        "w": {"type": "number", "minimum": -1, "maximum": 1},
+        "x": {"type": "number", "minimum": -1, "maximum": 1},
+        "y": {"type": "number", "minimum": -1, "maximum": 1},
+        "z": {"type": "number", "minimum": -1, "maximum": 1}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_uri", "license_spdx", "source_checksum_sha256"],
+      "properties": {
+        "source_uri": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^(?:https?://|file://|urn:)[!-~]+$"},
+        "license_spdx": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^[!-~](?:[ -~]*[!-~])?$"},
+        "source_checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "quantity_dbi": {
+      "type": "object", "additionalProperties": false,
+      "required": ["value_dbi", "uncertainty_db"],
+      "properties": {
+        "value_dbi": {"type": "number", "minimum": -300, "maximum": 100},
+        "uncertainty_db": {"type": "number", "minimum": 0, "maximum": 30}
+      }
+    },
+    "efficiency": {
+      "type": "object", "additionalProperties": false,
+      "required": ["fraction", "uncertainty"],
+      "properties": {
+        "fraction": {"type": "number", "minimum": 0, "maximum": 1},
+        "uncertainty": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": ["co_polar_gain_dbi"],
+      "properties": {
+        "co_polar_gain_dbi": {"type": "number", "minimum": -300, "maximum": 100},
+        "cross_polar_gain_dbi": {
+          "oneOf": [
+            {"type": "number", "minimum": -300, "maximum": 100},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "frequency": {
+      "type": "object", "additionalProperties": false,
+      "required": ["frequency_hz", "nominal_gain", "efficiency", "samples"],
+      "properties": {
+        "frequency_hz": {"type": "integer", "minimum": 1, "maximum": 18446744073709551615},
+        "nominal_gain": {"$ref": "#/$defs/quantity_dbi"},
+        "efficiency": {"$ref": "#/$defs/efficiency"},
+        "samples": {"type": "array", "minItems": 1, "maxItems": 1000000, "items": {"$ref": "#/$defs/sample"}}
+      }
+    }
+  }
+}
