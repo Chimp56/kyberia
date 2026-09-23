@@ -4,7 +4,7 @@ This packet covers a non-desktop initial raster and mutation increment for
 plan §5.3, MAP-002, MAP-003, MAPB-001 and MAPB-002. It does not claim the
 complete map import catalog, desktop workflow, or Phase 0 exit.
 
-## Evidence in this candidate
+## Evidence in the bounded increment
 
 - Strict PNG container admission checks the signature, checked chunk lengths,
   CRCs, IHDR encoding, nonzero bounded dimensions, pixel count, palette and
@@ -50,13 +50,28 @@ complete map import catalog, desktop workflow, or Phase 0 exit.
 - `python3 tools/ledger.py generate` and `python3 tools/ledger.py check` — PASS; generated traceability is current (5,396 plan source blocks, 438 explicit ID occurrences and 447 headings).
 - `git diff --check` — PASS.
 
-The full workspace Rust suite was not run for this bounded candidate. The
-commands above are candidate-author evidence only, not independent review.
+The full workspace Rust suite was not run for this bounded increment. The
+listed focused checks were independently rerun for the PNG-ordering correction;
+the broader candidate review and correction re-review are recorded in the
+review packets below. No product acceptance or Phase 0 exit is implied.
+
+## Mainline promotion verification
+
+The reviewed code was integrated at `2670207`; validation was rerun on the
+mainline tree after the Wi-Fi increment was already present. The five-crate
+suite passed 334 unit/integration tests and 8 doctests (2 explicit benchmark
+tests ignored). Strict Clippy, workspace formatting, architecture, the locked
+source inventory (522 packages), ledger (5,396 source blocks) and
+`git diff --check` also passed. The full workspace suite was not run.
 
 The author handoff records exact command outputs and limitations. Focused
 validation uses the domain, operation-log, causal-materializer, project-store
 and application suites, followed by formatting, strict Clippy, architecture,
-locked source inventory and ledger checks. Independent review is pending.
+locked source inventory and ledger checks. The broader review initially
+requested changes for PNG ancillary ordering; the correction re-review found
+that issue resolved with no new finding in scope. See
+[`map-asset-admission-current-review.md`](../reviews/map-asset-admission-current-review.md)
+and [`map-asset-order-fix-rereview-20260923.md`](../reviews/map-asset-order-fix-rereview-20260923.md).
 
 ## Limitations
 

@@ -1,10 +1,10 @@
 # ADR 0034: bounded PNG map admission and operation-backed calibration
 
-- Status: Proposed bounded increment; independent review pending
+- Status: Accepted bounded increment; independent review passed after correction
 - Date: 2026-09-23
 - Requirements: plan §5.3, MAP-002, MAP-003, MAPB-001 and MAPB-002
 
-## Decision under review
+## Decision
 
 The first raster admission boundary accepts a strict PNG subset only. It
 derives format and dimensions from bytes, bounds the source before parsing,
@@ -71,5 +71,9 @@ state and floor-evidence locks are represented, while multi-point controls,
 residuals, CRS and versioned evidence migration remain open. Preview/UI and
 desktop acceptance are outside this increment. Phase 0 exit is not claimed.
 
-The adaptation on `feat/map-asset-admission-current-main` requires independent
-review; this ADR records the bounded design proposal, not reviewer approval.
+The bounded implementation is integrated on `main` at `2670207`. The broader
+independent review and PNG-ordering correction re-review are recorded in
+[`map-asset-admission-current-review.md`](../../reviews/map-asset-admission-current-review.md)
+and [`map-asset-order-fix-rereview-20260923.md`](../../reviews/map-asset-order-fix-rereview-20260923.md).
+Approval is limited to this increment and does not imply complete map-format
+support, pixel decoding/displayability, desktop acceptance or Phase 0 exit.

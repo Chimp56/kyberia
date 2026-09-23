@@ -8,8 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; and safe bootstrap-stage diagnostics through `c4a1219`. The CPU/LLVM-only Sionna capability correction is integrated at `84a5bcb`; runtime and documentation reviews of follow-up `d0a88eb` pass. See the [CPU-only Sionna review](docs/reviews/cpu-only-sionna-removal-review.md). Final renderer and product gates remain open.
-- Most recent integration change: CPU/LLVM-only Sionna capability correction `84a5bcb` and test/evidence follow-up `d0a88eb`. This does not close a roadmap phase; physical and hosted product gates remain open.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; and bounded map import/PNG admission at `2670207`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
+- Most recent integration change: bounded PNG map admission and operation-backed map import at `2670207`, with the PNG-ordering correction independently re-reviewed. This does not close a roadmap phase; map UI/decoder, physical and hosted product gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -34,17 +34,19 @@ skipped), as do ledger, architecture and source-inventory checks. This does not
 establish execution of the pinned worker-0.2.0 Sionna engine or close hosted,
 physical-radio, or spectrum gates.
 
-The bounded Phase 2 `WIFI-001` parser candidate is on isolated integration
-branch `integrate/wifi-ie-main-v1`; code correction `529f76b` directly compares
-typed parser fields with tcpdump output and narrows the cancellation guarantee
-to bounded per-IE behavior. Independent re-review is pending before integration
-to `main`. No Phase 2 completion is claimed.
+The bounded Phase 2 `WIFI-001` parser is integrated on `main` at `1d8e68f`;
+promotion validation is recorded at `7d126cc`. Typed-field tcpdump comparison,
+deterministic mutation and focused quality gates pass, but this does not close
+other Phase 2 items or the product gates.
 
-A separate isolated current-main candidate, `feat/map-asset-admission-current-main`,
-adds a bounded PNG admission and operation-backed map import/two-point
-calibration increment. Its independent review is pending. It does not close the
-remaining import-format catalog, pixel decoding, map UI/desktop workflow,
-multi-point/CRS calibration, or the Phase 0 exit criteria.
+The bounded PNG admission and operation-backed map import/two-point calibration
+increment is integrated on `main` at `2670207`. The broader independent review
+and PNG-ordering correction re-review are recorded in
+[`map-asset-admission-current-review.md`](docs/reviews/map-asset-admission-current-review.md)
+and [`map-asset-order-fix-rereview-20260923.md`](docs/reviews/map-asset-order-fix-rereview-20260923.md);
+the identified ordering finding is resolved. This does not close the remaining
+import-format catalog, pixel decoding, map UI/desktop workflow, multi-point/CRS
+calibration, or the Phase 0 exit criteria.
 
 ## Historical execution checkpoint — 2026-09-22
 

@@ -30467,15 +30467,31 @@
       "validation": [
         {
           "path": "docs/validation/map-asset-admission.md",
-          "description": "Focused affected test suites and candidate quality gates passed; broader product and review gates remain open.",
-          "revision": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
-          "sha256": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
+          "description": "Focused affected test suites passed and PNG-ordering correction passed independent re-review; broader product gates remain open.",
+          "revision": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
+          "sha256": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
           "command": "cargo test --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "PNG container admission including PNG 3 Table 7 ancillary ordering, plus operation-backed map import/two-point calibration across affected Rust crates; full workspace suite not run."
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/map-asset-order-fix-rereview-20260923.md",
+          "description": "Independent correction re-review companion to the broader current-main map admission review",
+          "revision": "5e853a3c9f74da605f0a95fbcf09157bdf295fad",
+          "sha256": "a1d0b7810966ab395a719535e777b080ed4d43ffd7e28a3ca6c7095e67ab8915",
+          "reviewer": "/root/map_asset_current_reviewer",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "CRC-valid PNG ancillary chunks could be admitted in a nonconforming order.",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:99d4b489d538d6c04def:1",
@@ -31417,9 +31433,9 @@
       "validation": [
         {
           "path": "docs/validation/map-asset-admission.md",
-          "description": "Focused affected test suites and candidate quality gates passed; broader product and review gates remain open.",
-          "revision": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
-          "sha256": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
+          "description": "Focused affected test suites passed; the bounded increment is independently reviewed while broader calibration/product gates remain open.",
+          "revision": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
+          "sha256": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
           "command": "cargo test --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Typed V3 map calibration, floor-lock conflicts, exact undo prior and causally resolved import/calibration behavior; full workspace suite not run."
@@ -171996,9 +172012,9 @@
       "validation": [
         {
           "path": "docs/validation/map-asset-admission.md",
-          "description": "Focused affected test suites and candidate quality gates passed; broader product and review gates remain open.",
-          "revision": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
-          "sha256": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
+          "description": "Focused affected test suites passed and the PNG-ordering correction passed independent re-review; pixel decoding and broader product gates remain open.",
+          "revision": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
+          "sha256": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
           "command": "cargo test --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Bounded PNG container admission, malformed metadata/container rejection and content-derived hash/dimensions; IDAT stream and pixel decoding remain unvalidated."
@@ -172058,12 +172074,12 @@
       "validation": [
         {
           "path": "docs/validation/map-asset-admission.md",
-          "description": "Focused affected test suites and candidate quality gates passed; broader product and review gates remain open.",
-          "revision": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
-          "sha256": "7314d067aa7e1766e49199b8372f264a98cee0c3870639a741f005515c2da1bd",
+          "description": "Focused affected test suites passed; independent review confirms the bounded calibration publication contract while multi-point/CRS and product gates remain open.",
+          "revision": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
+          "sha256": "1e6b9db310eb9c456ec7bc21b488c46b8ba020c3bab76577e18cc9fd9429a29b",
           "command": "cargo test --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
-          "scope": "Typed calibration publication, retry/reopen, floor evidence rejection and transform coordinate oracle; independent review and broad calibration gates remain open."
+          "scope": "Typed calibration publication, retry/reopen, floor evidence rejection and transform coordinate oracle; multi-point/CRS and broader calibration gates remain open."
         }
       ],
       "reviews": [],
