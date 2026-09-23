@@ -1,5 +1,6 @@
 use kyberia_application::{
-    Application, ApplicationError, CalibrateMapRequest, CreateProject, ImportMapRequest,
+    Application, ApplicationError, CalibrateMapIntent, CalibrateMapRequest, CreateProject,
+    CreateProjectWithInitialFloor, ImportMapIntent, ImportMapRequest, MapIntentAuthority,
     MapOperationContext, OpenProject, ProjectQuery, ProjectQueryResult, ProjectState, SessionMode,
 };
 use kyberia_domain::{
@@ -8,8 +9,8 @@ use kyberia_domain::{
         BuildingId, CalibrationId, FloorId, MapAssetId, OperationId, ProjectId, SiteId, Text,
     },
     project::{
-        Building, BuildingData, CommandRequest, Floor, FloorData, MapCalibration, Project,
-        ProjectCommand, Site,
+        Building, BuildingData, CommandRequest, Floor, FloorData, InitialProjectHierarchy,
+        MapCalibration, Project, ProjectCommand, Site,
     },
     spatial::{
         CalibrationControls, CoordinateFrame, FrameKind, ImageYAxis, PixelPoint, Point2, Point3,
@@ -149,6 +150,42 @@ fn project_with_floor() -> (Project, FloorId, CoordinateFrame, CoordinateFrame) 
         ),
     );
     (project, floor_id, floor_frame, image_frame)
+}
+
+fn initial_hierarchy() -> InitialProjectHierarchy {
+    let site_id: SiteId = identity(40);
+    let building_id: BuildingId = identity(41);
+    let floor_id: FloorId = identity(42);
+    let building_frame = frame(43, FrameKind::BuildingLocalMeters);
+    let floor_frame = frame(44, FrameKind::FloorLocalMeters);
+    InitialProjectHierarchy {
+        site: Site {
+            id: site_id,
+            name: Text::new("Site").unwrap(),
+        },
+        building: Building::new(BuildingData {
+            id: building_id,
+            site_id,
+            name: Text::new("Building").unwrap(),
+            frame: building_frame.clone(),
+        })
+        .unwrap(),
+        floor: Floor::new(FloorData {
+            id: floor_id,
+            building_id,
+            name: Text::new("Floor 1").unwrap(),
+            frame: floor_frame,
+            building_frame: building_frame.id,
+            origin: Point3 {
+                x: CoordinateMeters::new(0.0).unwrap(),
+                y: CoordinateMeters::new(0.0).unwrap(),
+                z: CoordinateMeters::new(0.0).unwrap(),
+            },
+            yaw: Radians::new(0.0).unwrap(),
+            clear_height: Meters::new(2.5).unwrap(),
+        })
+        .unwrap(),
+    }
 }
 
 fn png(width: u32, height: u32) -> Vec<u8> {
@@ -983,4 +1020,165 @@ fn invalid_create_timestamp_is_rejected_before_reserving_a_directory() {
     assert_eq!(error.kind(), kyberia_application::ErrorKind::InvalidRequest);
     assert_application_error_is_structured(error);
     assert!(!path.exists());
+}
+
+#[test]
+fn intent_workflow_creates_floor_derives_causality_and_retries_after_reopen() {
+    let root = retained_directory();
+    let path = root.join("intent-map.rfatlas");
+    let hierarchy = initial_hierarchy();
+    let floor_id = hierarchy.floor.data().id;
+    let floor_frame = hierarchy.floor.data().frame.clone();
+    let image_frame = frame(45, FrameKind::ImagePixels);
+    let app = Application;
+    let mut session = app
+        .create_with_initial_floor(CreateProjectWithInitialFloor {
+            path: path.clone(),
+            name: Text::new("Intent map").unwrap(),
+            created_utc_ms: 1,
+            hierarchy,
+        })
+        .unwrap();
+    let created = current(&session);
+    assert_eq!(created.project().unwrap().floors().count(), 1);
+    assert_eq!(created.revision().unwrap().project_revision(), 0);
+
+    let import_operation: OperationId = identity(50);
+    let map_id: MapAssetId = identity(51);
+    let import = ImportMapIntent {
+        authority: MapIntentAuthority {
+            operation_id: import_operation,
+            actor_id: identity(52),
+            device_id: identity(53),
+            committed_utc_ms: 2,
+        },
+        map_id,
+        floor_id,
+        name: Text::new("Ground plan").unwrap(),
+        image_frame: image_frame.clone(),
+        provenance: Text::new("native-picker:grant-123").unwrap(),
+    };
+    let bytes = png(200, 120);
+    let mut budget = ResourceBudget::new(limits());
+    let imported = session
+        .import_map_intent_with_budget(import.clone(), &bytes, &mut budget)
+        .unwrap();
+    assert!(imported.current.is_ok());
+    assert!(
+        imported
+            .current
+            .as_ref()
+            .unwrap()
+            .project()
+            .unwrap()
+            .map(map_id)
+            .is_some()
+    );
+    assert_eq!(imported.receipt.project_revision.value(), 1);
+    drop(session);
+
+    let bundle = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    let operations = bundle.operation_set().unwrap();
+    let imported_operation = operations.operation(import_operation).unwrap();
+    assert_eq!(imported_operation.logical_time().value(), 1);
+    assert_eq!(imported_operation.causal_depth().value(), 0);
+    assert!(imported_operation.parents().is_empty());
+    drop(bundle);
+
+    let mut session = app
+        .open(OpenProject {
+            path: path.clone(),
+            mode: SessionMode::ReadWrite,
+        })
+        .unwrap();
+    let invalid_operation: OperationId = identity(54);
+    let mut out_of_bounds = calibration(55, map_id, &image_frame, &floor_frame, 10.0);
+    let mut controls = out_of_bounds.transform.controls().clone();
+    controls.image_second.x = Pixels::new(200.0).unwrap();
+    out_of_bounds.transform = TwoPointCalibration::new(controls).unwrap();
+    let invalid = CalibrateMapIntent {
+        authority: MapIntentAuthority {
+            operation_id: invalid_operation,
+            actor_id: identity(52),
+            device_id: identity(53),
+            committed_utc_ms: 3,
+        },
+        calibration: out_of_bounds,
+    };
+    let mut invalid_budget = ResourceBudget::new(limits());
+    assert_eq!(
+        session
+            .calibrate_map_intent_with_budget(invalid, &mut invalid_budget)
+            .unwrap_err()
+            .kind(),
+        kyberia_application::ErrorKind::InvalidRequest
+    );
+    assert_eq!(current(&session).revision().unwrap().project_revision(), 1);
+
+    let calibration_operation: OperationId = identity(56);
+    let calibration_id: CalibrationId = identity(57);
+    let calibration_intent = CalibrateMapIntent {
+        authority: MapIntentAuthority {
+            operation_id: calibration_operation,
+            actor_id: identity(52),
+            device_id: identity(53),
+            committed_utc_ms: 4,
+        },
+        calibration: calibration(57, map_id, &image_frame, &floor_frame, 10.0),
+    };
+    let mut calibration_budget = ResourceBudget::new(limits());
+    let calibrated = session
+        .calibrate_map_intent_with_budget(calibration_intent.clone(), &mut calibration_budget)
+        .unwrap();
+    assert!(calibrated.current.is_ok());
+    assert_eq!(calibrated.receipt.project_revision.value(), 2);
+    assert_eq!(
+        calibrated
+            .current
+            .as_ref()
+            .unwrap()
+            .project()
+            .unwrap()
+            .active_calibration(map_id),
+        Some(Evidence::Known(calibration_id))
+    );
+    drop(session);
+
+    let bundle = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    let operations = bundle.operation_set().unwrap();
+    let calibration_record = operations.operation(calibration_operation).unwrap();
+    assert_eq!(calibration_record.logical_time().value(), 2);
+    assert_eq!(calibration_record.causal_depth().value(), 1);
+    assert_eq!(calibration_record.parents(), &[import_operation]);
+    drop(bundle);
+
+    let mut reopened = app
+        .open(OpenProject {
+            path,
+            mode: SessionMode::ReadWrite,
+        })
+        .unwrap();
+    let mut retry_import_budget = ResourceBudget::new(limits());
+    let retry_import = reopened
+        .import_map_intent_with_budget(import, &bytes, &mut retry_import_budget)
+        .unwrap();
+    assert_eq!(retry_import.receipt.operation_id, import_operation);
+    assert_eq!(
+        retry_import.receipt.content_hash,
+        imported.receipt.content_hash
+    );
+    assert!(retry_import.current.is_ok());
+    let mut retry_calibration_budget = ResourceBudget::new(limits());
+    let retry_calibration = reopened
+        .calibrate_map_intent_with_budget(calibration_intent, &mut retry_calibration_budget)
+        .unwrap();
+    assert_eq!(
+        retry_calibration.receipt.operation_id,
+        calibration_operation
+    );
+    assert_eq!(
+        retry_calibration.receipt.content_hash,
+        calibrated.receipt.content_hash
+    );
+    assert!(retry_calibration.current.is_ok());
 }

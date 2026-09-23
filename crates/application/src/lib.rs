@@ -14,7 +14,9 @@ mod query;
 mod session;
 mod survey_snapshot;
 
-pub use command::{Command, CommandResult, CreateProject, OpenProject, SessionMode};
+pub use command::{
+    Command, CommandResult, CreateProject, CreateProjectWithInitialFloor, OpenProject, SessionMode,
+};
 pub use error::{ApplicationError, ErrorKind};
 pub use kyberia_survey::{
     PointId, PointSnapshotDecodeReceipt, PointSnapshotInputVersion, PointSnapshotSchemaVersion,
@@ -25,7 +27,8 @@ pub use map_asset::{
     MAX_PNG_METADATA_BYTES, PNG_MEDIA_TYPE, admit_map_asset, admit_map_asset_with_hints,
 };
 pub use map_mutation::{
-    CalibrateMapRequest, ImportMapRequest, MapMutationReceipt, MapOperationContext,
+    CalibrateMapIntent, CalibrateMapRequest, ImportMapIntent, ImportMapRequest, MapIntentAuthority,
+    MapMutationOutcome, MapMutationReceipt, MapOperationContext,
 };
 pub use port::ProjectStorePort;
 pub use query::{
@@ -50,6 +53,17 @@ impl Application {
     /// Create a project and return its writable session.
     pub fn create(&self, request: CreateProject) -> Result<ProjectSession, ApplicationError> {
         match self.execute(Command::CreateProject(request))? {
+            CommandResult::ProjectSession(session) => Ok(session),
+        }
+    }
+
+    /// Create a project with the explicit canonical floor baseline needed for
+    /// map import and calibration.
+    pub fn create_with_initial_floor(
+        &self,
+        request: CreateProjectWithInitialFloor,
+    ) -> Result<ProjectSession, ApplicationError> {
+        match self.execute(Command::CreateProjectWithInitialFloor(Box::new(request)))? {
             CommandResult::ProjectSession(session) => Ok(session),
         }
     }

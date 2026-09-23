@@ -86,6 +86,17 @@ the identified ordering finding is resolved. This does not close the remaining
 import-format catalog, pixel decoding, map UI/desktop workflow, multi-point/CRS
 calibration, or the Phase 0 exit criteria.
 
+A separate manual current-main desktop workflow adaptation is under author
+validation on `feat/phase0-desktop-map-current`, based on `bc51e80`. It adds a
+fresh-project floor baseline, intent-derived application causality, native
+opaque PNG selection, bounded staging, canonical map/calibration projections,
+and a numeric-only no-preview UI path. It is not integrated or independently
+reviewed. The candidate validation packet records synthetic/mocked-only limits;
+frontend tests are not rerun after discovery that Vitest wrote through a shared
+root dependency symlink. This does not change the open Phase 0 exit criteria or
+the remaining map-format, pixel-decoding, two-platform, live-capability and raw
+export gates.
+
 The hardware-independent Phase 5 spectrum contract is integrated at `9641431`
 with correction re-review `16a9111`. The PSD path fails closed and local-bin
 coverage is explicit; fixtures remain synthetic and bandwidth normalization,

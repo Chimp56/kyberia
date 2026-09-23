@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { IpcErrorPayload } from "../lib/contracts";
+import type { MapSummary } from "../lib/contracts";
 import type { ActiveProjectJob } from "../lib/ui-state";
 import { Icon } from "./Icons";
 
@@ -12,32 +13,45 @@ interface CanvasStageProps {
   onRetry: () => void;
   onCancel: () => void;
   calibrated: boolean;
+  maps: MapSummary[];
 }
 
-export function CanvasStage({ phase, error, activeJob, onImport, onNewProject, onRetry, onCancel, calibrated }: CanvasStageProps) {
+export function CanvasStage({ phase, error, activeJob, onImport, onNewProject, onRetry, onCancel, calibrated, maps }: CanvasStageProps) {
   const [zoom, setZoom] = useState(100);
+  const map = maps[0] ?? null;
   return (
     <section className="canvas-stage" aria-label="Floor plan canvas">
-      <div className="axis axis-top" aria-hidden="true"><span>-30</span><span>-20</span><span>-10</span><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span></div>
-      <div className="axis axis-left" aria-hidden="true"><span>30</span><span>20</span><span>10</span><span>0</span><span>-10</span><span>-20</span><span>-30</span></div>
-      {phase === "loading" ? <LoadingState job={activeJob} onCancel={onCancel} /> : phase === "error" ? <ErrorState error={error} onRetry={onRetry} /> : phase === "unsupported" ? <UnsupportedState message={error?.message} /> : <EmptyCanvas onImport={onImport} onNewProject={onNewProject} />}
+      {phase === "loading" ? <LoadingState job={activeJob} onCancel={onCancel} /> : phase === "error" ? <ErrorState error={error} onRetry={onRetry} /> : phase === "unsupported" ? <UnsupportedState message={error?.message} /> : map ? <ImportedMapState map={map} onImport={onImport} /> : <EmptyCanvas onImport={onImport} onNewProject={onNewProject} />}
       <CanvasControls zoom={zoom} onZoomChange={setZoom} />
-      <div className={`scale-bar ${calibrated ? "" : "is-unavailable"}`} aria-label={calibrated ? "10 metre scale" : "Scale unavailable until a floor plan is calibrated"}><span />{calibrated ? <small>10 m</small> : <small>Scale unavailable</small>}</div>
+      <div className={`scale-bar ${calibrated ? "" : "is-unavailable"}`} aria-label={calibrated ? "Map scale calibration is persisted" : "Scale unavailable until a floor plan is calibrated"}><span />{calibrated ? <small>Scale calibrated</small> : <small>Scale unavailable</small>}</div>
     </section>
   );
 }
 
 function EmptyCanvas({ onImport, onNewProject }: { onImport: () => void; onNewProject: () => void }) {
   return (
-    <div className="empty-canvas-card" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); onImport(); }}>
+    <div className="empty-canvas-card">
       <div className="empty-file-icon"><Icon name="document" size={40} strokeWidth={1.4} /></div>
       <h1>Import floor plan</h1>
-      <p>Drag and drop an image or PDF here<br />or choose a file to get started.</p>
-      <button className="primary-button" type="button" onClick={onImport}><Icon name="folder" size={20} />Import floor plan</button>
+      <p>Choose a PNG from the desktop file selector.<br />This workflow stores validated metadata only; it does not display a raster preview.</p>
+      <button className="primary-button" type="button" onClick={() => void onImport()}><Icon name="folder" size={20} />Choose PNG floor plan</button>
       <div className="or-divider"><span>or</span></div>
       <button className="secondary-button" type="button" onClick={onNewProject}><Icon name="document" size={19} />New project</button>
     </div>
   );
+}
+
+function ImportedMapState({ map, onImport }: { map: MapSummary; onImport: () => void }) {
+  return <div className="canvas-state-card" role="status" aria-label="Imported map metadata">
+    <span className="state-symbol">▧</span>
+    <h1>PNG map imported</h1>
+    <p>{map.name}</p>
+    <p>{map.width} × {map.height} pixels · raster preview unavailable</p>
+    {map.calibrated && map.metersPerPixel !== null
+      ? <p>Persisted scale: {map.metersPerPixel.toPrecision(5)} m/pixel</p>
+      : <p>Scale not calibrated</p>}
+    <button className="secondary-button" type="button" onClick={() => void onImport()}><Icon name="folder" size={18} />Import another PNG</button>
+  </div>;
 }
 
 function LoadingState({ job, onCancel }: { job: ActiveProjectJob | null; onCancel: () => void }) {

@@ -1,12 +1,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use kyberia_desktop_lib::{
-    CreateBlankProjectRequest, DesktopIpcError, DesktopState, JobCancellation,
-    OpenProjectGrantRequest, OpenProjectSelectionResponse, SchemaRequest, SelectOpenProjectRequest,
+    CalibrateMapRequest as DesktopCalibrateMapRequest, CreateBlankProjectRequest, DesktopIpcError,
+    DesktopState, JobCancellation, MapGrantRequest, MapImportSource, MapMutationResponse,
+    MapSourceSelectionResponse, NativeMapRetry, OpenProjectGrantRequest,
+    OpenProjectSelectionResponse, SchemaRequest, SelectMapSourceRequest, SelectOpenProjectRequest,
     begin_job, begin_open_job, blank_project_path, cancel_created_project, cancel_job,
     cancelled_error, current_project_job, error, finish_created_project_job, finish_joined_job,
-    issue_open_grant, response_for_with_cancel, retain_cancelled_project, run_atomic_project_step,
+    issue_map_source_grant, issue_open_grant, map_mutation_response, map_target_for_session,
+    new_initial_project_hierarchy, read_map_source, response_for_with_cancel,
+    retain_cancelled_project, retain_map_import_retry, run_atomic_project_step,
+    take_map_import_source,
 };
+use kyberia_resource_budget::{ResourceBudget, ResourceLimits};
 use std::{
     io::Read,
     path::PathBuf,
@@ -41,6 +47,14 @@ fn lock_state_ref<'a>(
             true,
         )
     })
+}
+
+fn lock_project_session_for_query(
+    session: &Mutex<kyberia_application::ProjectSession>,
+) -> std::sync::MutexGuard<'_, kyberia_application::ProjectSession> {
+    session
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
 fn terminate_and_reap_picker(child: &mut Child) -> PickerTerminationEvidence {
@@ -241,6 +255,77 @@ fn native_project_selection(
     Ok(Some(PathBuf::from(selected)))
 }
 
+fn native_map_source_selection(
+    control: &kyberia_desktop_lib::JobControl,
+) -> Result<Option<PathBuf>, DesktopIpcError> {
+    #[cfg(target_os = "macos")]
+    let output = {
+        let mut command = Command::new("/usr/bin/osascript");
+        command.args([
+            "-e",
+            "POSIX path of (choose file of type {\"public.png\"} with prompt \"Import PNG floor plan\")",
+        ]);
+        run_owned_picker(command, control, NATIVE_PICKER_TIMEOUT)
+    };
+    #[cfg(target_os = "windows")]
+    let output = {
+        let mut command = Command::new(powershell_path());
+        command.args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "Add-Type -AssemblyName System.Windows.Forms; $dialog = New-Object System.Windows.Forms.OpenFileDialog; $dialog.Filter = 'PNG images (*.png)|*.png'; $dialog.CheckFileExists = $true; if ($dialog.ShowDialog() -eq 'OK') { $dialog.FileName }",
+        ]);
+        run_owned_picker(command, control, NATIVE_PICKER_TIMEOUT)
+    };
+    #[cfg(target_os = "linux")]
+    let output = {
+        let mut zenity = Command::new("/usr/bin/zenity");
+        zenity.args([
+            "--file-selection",
+            "--title=Import PNG floor plan",
+            "--file-filter=PNG image | *.png",
+        ]);
+        match run_owned_picker(zenity, control, NATIVE_PICKER_TIMEOUT) {
+            Err(value) if value.code == "capability_unavailable" => {
+                let mut kdialog = Command::new("/usr/bin/kdialog");
+                kdialog.args([
+                    "--getopenfilename",
+                    ".",
+                    "*.png|PNG image",
+                    "Import PNG floor plan",
+                ]);
+                run_owned_picker(kdialog, control, NATIVE_PICKER_TIMEOUT)
+            }
+            other => other,
+        }
+    };
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+    let output: Result<Output, DesktopIpcError> = Err(error(
+        "capability_unavailable",
+        "Native PNG selection is unavailable on this platform.",
+        Some("Choose a PNG from a supported desktop build."),
+        false,
+    ));
+    let output = output?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    let selected = String::from_utf8(output.stdout).map_err(|_| {
+        error(
+            "invalid_response",
+            "The native file selector returned an invalid selection.",
+            Some("Choose the PNG again."),
+            false,
+        )
+    })?;
+    let selected = selected.trim();
+    if selected.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(PathBuf::from(selected)))
+}
+
 #[tauri::command]
 async fn project_create_blank(
     app: tauri::AppHandle,
@@ -295,11 +380,15 @@ async fn project_create_blank(
         if cancellation.is_cancelled() {
             return Err(cancelled_error());
         }
-        let session = match application.create(kyberia_application::CreateProject {
-            path: path.clone(),
-            name,
-            created_utc_ms: now,
-        }) {
+        let hierarchy = new_initial_project_hierarchy()?;
+        let session = match application.create_with_initial_floor(
+            kyberia_application::CreateProjectWithInitialFloor {
+                path: path.clone(),
+                name,
+                created_utc_ms: now,
+                hierarchy,
+            },
+        ) {
             Ok(session) => session,
             Err(_value) if cancellation.is_cancelled() => {
                 retain_cancelled_project(&path)?;
@@ -383,6 +472,350 @@ where
             selection: None,
         }),
     }
+}
+
+async fn project_select_map_with_picker<F>(
+    state: &Mutex<DesktopState>,
+    request: SelectMapSourceRequest,
+    picker: F,
+) -> Result<MapSourceSelectionResponse, DesktopIpcError>
+where
+    F: FnOnce(Arc<kyberia_desktop_lib::JobControl>) -> Result<Option<PathBuf>, DesktopIpcError>
+        + Send
+        + 'static,
+{
+    kyberia_desktop_lib::require_schema(&request.schema)?;
+    let job_id = request.job_id;
+    let (control, session) = {
+        let mut guard = lock_state_ref(state)?;
+        let session = guard.session().ok_or_else(|| {
+            error(
+                "prerequisite",
+                "Open or create a project before importing a map.",
+                Some("Create a project with a floor, then select a PNG."),
+                false,
+            )
+        })?;
+        if lock_project_session_for_query(&session).mode()
+            != kyberia_application::SessionMode::ReadWrite
+        {
+            return Err(error(
+                "read_only",
+                "This project is open read-only.",
+                Some("Reopen it with write access before importing a map."),
+                false,
+            ));
+        }
+        let control = begin_job(&mut guard, &job_id)?;
+        (control, session)
+    };
+    let target = {
+        let session = lock_project_session_for_query(&session);
+        map_target_for_session(&session)
+    };
+    let (project_id, floor_id) = match target {
+        Ok(target) => target,
+        Err(value) => {
+            if let Ok(mut guard) = state.lock() {
+                kyberia_desktop_lib::finish_job(&mut guard, &job_id);
+            }
+            return Err(value);
+        }
+    };
+    control.set_progress(5);
+    let task_control = Arc::clone(&control);
+    let joined = tauri::async_runtime::spawn_blocking(move || picker(task_control)).await;
+    let mut guard = lock_state_ref(state)?;
+    let selected = finish_joined_job(&mut guard, &job_id, joined)?;
+    let selected = match selected {
+        Ok(selected) => selected,
+        Err(value) => return Err(value),
+    };
+    if control.is_cancelled() {
+        return Err(cancelled_error());
+    }
+    match selected {
+        Some(selected) => issue_map_source_grant(&mut guard, selected, project_id, floor_id),
+        None => Ok(MapSourceSelectionResponse {
+            schema: kyberia_desktop_lib::IPC_SCHEMA,
+            selection: None,
+        }),
+    }
+}
+
+#[tauri::command]
+async fn project_select_map(
+    state: State<'_, Mutex<DesktopState>>,
+    request: SelectMapSourceRequest,
+) -> Result<MapSourceSelectionResponse, DesktopIpcError> {
+    project_select_map_with_picker(state.inner(), request, |control| {
+        native_map_source_selection(&control)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn project_import_map(
+    state: State<'_, Mutex<DesktopState>>,
+    request: MapGrantRequest,
+) -> Result<MapMutationResponse, DesktopIpcError> {
+    kyberia_desktop_lib::require_schema(&request.schema)?;
+    let parsed_grant_id = uuid::Uuid::parse_str(&request.grant_id).ok();
+    if parsed_grant_id.as_ref().is_none_or(|id| {
+        id.hyphenated().to_string() != request.grant_id
+            || id.get_version() != Some(uuid::Version::Random)
+            || id.get_variant() != uuid::Variant::RFC4122
+    }) {
+        return Err(error(
+            "invalid_request",
+            "The PNG selection identifier is malformed.",
+            Some("Choose the PNG again."),
+            false,
+        ));
+    }
+    let grant_id = request.grant_id;
+    let job_id = request.job_id;
+    let (control, session) = {
+        let mut guard = lock_state_ref(state.inner())?;
+        let session = guard.session().ok_or_else(|| {
+            error(
+                "prerequisite",
+                "No project is open.",
+                Some("Open a project first."),
+                false,
+            )
+        })?;
+        if lock_project_session_for_query(&session).mode()
+            != kyberia_application::SessionMode::ReadWrite
+        {
+            return Err(error(
+                "read_only",
+                "This project is open read-only.",
+                Some("Reopen it with write access before importing a map."),
+                false,
+            ));
+        }
+        let control = begin_job(&mut guard, &job_id)?;
+        (control, session)
+    };
+    let (project_id, _) = match map_target_for_session(&lock_project_session_for_query(&session)) {
+        Ok(target) => target,
+        Err(value) => {
+            if let Ok(mut guard) = state.lock() {
+                kyberia_desktop_lib::finish_job(&mut guard, &job_id);
+            }
+            return Err(value);
+        }
+    };
+    let source = {
+        let mut guard = lock_state(&state)?;
+        take_map_import_source(&mut guard, &grant_id, project_id)
+    };
+    let source = match source {
+        Ok(source) => source,
+        Err(value) => {
+            if let Ok(mut guard) = state.lock() {
+                kyberia_desktop_lib::finish_job(&mut guard, &job_id);
+            }
+            return Err(value);
+        }
+    };
+    control.set_progress(10);
+    let task_control = Arc::clone(&control);
+    let grant_id_for_task = grant_id.clone();
+    let joined = tauri::async_runtime::spawn_blocking(move || {
+        let (intent, bytes, created_at) = match source {
+            MapImportSource::Grant(mut grant) => {
+                let bytes = match read_map_source(&mut grant, &task_control) {
+                    Ok(bytes) => bytes,
+                    Err(value) => return (Err(value), None),
+                };
+                let provenance = match kyberia_domain::identity::Text::new(format!(
+                    "native-picker:{grant_id_for_task}"
+                )) {
+                    Ok(value) => value,
+                    Err(value) => {
+                        return (
+                            Err(error("invalid_request", value.to_string(), None, false)),
+                            None,
+                        );
+                    }
+                };
+                let name = match kyberia_domain::identity::Text::new(grant.display_name.clone()) {
+                    Ok(value) => value,
+                    Err(value) => {
+                        return (
+                            Err(error("invalid_request", value.to_string(), None, false)),
+                            None,
+                        );
+                    }
+                };
+                let intent = kyberia_application::ImportMapIntent {
+                    authority: grant.authority.clone(),
+                    map_id: grant.map_id,
+                    floor_id: grant.floor_id,
+                    name,
+                    image_frame: grant.image_frame.clone(),
+                    provenance,
+                };
+                (intent, bytes, grant.issued_at)
+            }
+            MapImportSource::Retry(retry) => (retry.intent, retry.bytes, retry.created_at),
+        };
+        task_control.set_progress(35);
+        let cancellation = JobCancellation::new(Arc::clone(&task_control));
+        let mut budget = ResourceBudget::with_cancellation(
+            ResourceLimits::new(
+                16_000_000,
+                16_000_000,
+                8_000_000,
+                64 * 1024 * 1024,
+                64 * 1024 * 1024,
+                128 * 1024 * 1024,
+            ),
+            cancellation,
+        );
+        let mut session = match session.lock() {
+            Ok(session) => session,
+            Err(_) => {
+                return (
+                    Err(error(
+                        "storage",
+                        "The desktop project session is unavailable.",
+                        Some("Restart RF Atlas and reopen the project."),
+                        true,
+                    )),
+                    Some(NativeMapRetry {
+                        project_id,
+                        intent,
+                        bytes,
+                        created_at,
+                    }),
+                );
+            }
+        };
+        task_control.set_progress(55);
+        match session.import_map_intent_with_budget(intent.clone(), &bytes, &mut budget) {
+            Ok(outcome) => {
+                task_control.set_progress(100);
+                (Ok(outcome), None)
+            }
+            Err(value) => {
+                let retry = matches!(
+                    value.kind(),
+                    kyberia_application::ErrorKind::Storage
+                        | kyberia_application::ErrorKind::Conflict
+                        | kyberia_application::ErrorKind::ResourceLimit
+                ) && value.kind() != kyberia_application::ErrorKind::Cancelled;
+                (
+                    Err(DesktopIpcError::from(value)),
+                    retry.then_some(NativeMapRetry {
+                        project_id,
+                        intent,
+                        bytes,
+                        created_at,
+                    }),
+                )
+            }
+        }
+    })
+    .await;
+    let mut guard = lock_state(&state)?;
+    kyberia_desktop_lib::finish_job(&mut guard, &job_id);
+    let (result, retry) = joined.map_err(|_| {
+        error(
+            "storage",
+            "The map import worker stopped unexpectedly.",
+            Some("Choose the PNG again and retry."),
+            true,
+        )
+    })?;
+    if let Some(retry) = retry {
+        retain_map_import_retry(&mut guard, grant_id, retry)?;
+    }
+    result.map(map_mutation_response)
+}
+
+#[tauri::command]
+async fn project_calibrate_map(
+    state: State<'_, Mutex<DesktopState>>,
+    request: DesktopCalibrateMapRequest,
+) -> Result<MapMutationResponse, DesktopIpcError> {
+    kyberia_desktop_lib::require_schema(&request.schema)?;
+    let job_id = request.job_id.clone();
+    let (control, session) = {
+        let mut guard = lock_state_ref(state.inner())?;
+        let session = guard.session().ok_or_else(|| {
+            error(
+                "prerequisite",
+                "No project is open.",
+                Some("Open a project first."),
+                false,
+            )
+        })?;
+        if lock_project_session_for_query(&session).mode()
+            != kyberia_application::SessionMode::ReadWrite
+        {
+            return Err(error(
+                "read_only",
+                "This project is open read-only.",
+                Some("Reopen it with write access before calibrating the map."),
+                false,
+            ));
+        }
+        let control = begin_job(&mut guard, &job_id)?;
+        (control, session)
+    };
+    let intent = match kyberia_desktop_lib::calibration_intent(
+        request,
+        &lock_project_session_for_query(&session),
+    ) {
+        Ok(intent) => intent,
+        Err(value) => {
+            if let Ok(mut guard) = state.lock() {
+                kyberia_desktop_lib::finish_job(&mut guard, &job_id);
+            }
+            return Err(value);
+        }
+    };
+    control.set_progress(25);
+    let task_control = Arc::clone(&control);
+    let joined = tauri::async_runtime::spawn_blocking(move || {
+        let mut budget = ResourceBudget::with_cancellation(
+            ResourceLimits::new(
+                16_000_000,
+                16_000_000,
+                8_000_000,
+                64 * 1024 * 1024,
+                64 * 1024 * 1024,
+                128 * 1024 * 1024,
+            ),
+            JobCancellation::new(task_control),
+        );
+        let mut session = session.lock().map_err(|_| {
+            error(
+                "storage",
+                "The desktop project session is unavailable.",
+                Some("Restart RF Atlas and reopen the project."),
+                true,
+            )
+        })?;
+        session
+            .calibrate_map_intent_with_budget(intent, &mut budget)
+            .map_err(DesktopIpcError::from)
+    })
+    .await;
+    let mut guard = lock_state(&state)?;
+    kyberia_desktop_lib::finish_job(&mut guard, &job_id);
+    let outcome = joined.map_err(|_| {
+        error(
+            "storage",
+            "The calibration worker stopped unexpectedly.",
+            Some("Query the project to check whether calibration committed."),
+            true,
+        )
+    })??;
+    Ok(map_mutation_response(outcome))
 }
 
 #[tauri::command]
@@ -533,6 +966,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             project_create_blank,
             project_select_open,
+            project_select_map,
+            project_import_map,
+            project_calibrate_map,
             project_open_grant,
             project_current,
             project_cancel,
@@ -609,19 +1045,30 @@ mod tests {
     }
 
     #[test]
-    fn async_picker_command_state_path_accepts_live_status_and_cancel() {
+    fn map_picker_command_state_path_accepts_live_status_and_cancel() {
         use std::sync::mpsc;
 
-        let state = Arc::new(Mutex::new(DesktopState::default()));
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.trash/test-runs");
+        std::fs::create_dir_all(&root).expect("retained map test root");
+        let project_path = root.join(format!("map-picker-{}.rfatlas", uuid::Uuid::new_v4()));
+        let mut initial = DesktopState::default();
+        kyberia_desktop_lib::create_project_at(
+            &mut initial,
+            project_path,
+            "Map picker project".to_owned(),
+            1_800_000_000_000,
+        )
+        .expect("project with initial floor");
+        let state = Arc::new(Mutex::new(initial));
         let state_for_picker = Arc::clone(&state);
         let job_id = uuid::Uuid::new_v4().to_string();
-        let request = SelectOpenProjectRequest {
+        let request = SelectMapSourceRequest {
             schema: kyberia_desktop_lib::IPC_SCHEMA.to_owned(),
             job_id: job_id.clone(),
         };
         let (live_tx, live_rx) = mpsc::channel();
         let worker = std::thread::spawn(move || {
-            tauri::async_runtime::block_on(project_select_open_with_picker(
+            tauri::async_runtime::block_on(project_select_map_with_picker(
                 &state_for_picker,
                 request,
                 move |control| {

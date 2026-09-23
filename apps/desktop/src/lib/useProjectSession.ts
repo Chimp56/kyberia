@@ -3,17 +3,22 @@ import { getDesktopIpc } from "./ipc";
 import {
   assertJobCancelResponse,
   assertJobStatusResponse,
+  assertMapMutationResponse,
+  assertMapSourceSelectionResponse,
   assertOpenProjectSelectionResponse,
   assertResponse,
   normalizeIpcError,
   IPC_SCHEMA,
   type CurrentProjectResponse,
+  type CalibrateMapRequest,
   type DesktopIpc,
   type IpcErrorPayload,
+  type MapMutationResponse,
+  type MapSourceSelection,
 } from "./contracts";
 import { createRequestGate, initialWorkspaceState, mergeActiveProjectJobStatus, stateForError, type WorkspaceState } from "./ui-state";
 
-type ProjectOperation = "current" | "create" | "open";
+type ProjectOperation = "current" | "create" | "open" | "import" | "calibrate";
 type JobOutcome =
   | { kind: "success"; response: CurrentProjectResponse }
   | { kind: "failure"; error: unknown };
@@ -32,7 +37,8 @@ export interface ProjectSessionController {
   state: WorkspaceState;
   createBlankProject: () => Promise<void>;
   openProject: () => Promise<void>;
-  importFloorPlan: () => void;
+  importFloorPlan: () => Promise<void>;
+  calibrateMap: (input: Omit<CalibrateMapRequest, "schema" | "jobId" | "operationId" | "actorId" | "deviceId" | "calibrationId"> & { calibrationId?: string }) => Promise<void>;
   retry: () => Promise<void>;
   cancelActiveJob: () => Promise<void>;
   selectTool: (tool: string) => void;
@@ -49,6 +55,8 @@ export function responseToState(response: CurrentProjectResponse, previous: Work
     projectName: response.project?.name ?? previous.projectName,
     hasFloorPlan: response.project?.hasFloorPlan ?? false,
     calibrated: response.project?.calibrated ?? false,
+    floorId: response.project?.floorId ?? null,
+    maps: response.project?.maps ?? [],
     error: null,
     activeJob: null,
   };
@@ -61,9 +69,15 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
   const activeJobId = useRef<string | null>(null);
   const operationInFlight = useRef(false);
   const lastFailedOperation = useRef<ProjectOperation | null>(null);
+  const lastErrorRef = useRef<IpcErrorPayload | null>(null);
+  const pendingMapSelection = useRef<MapSourceSelection | null>(null);
+  const pendingCalibration = useRef<CalibrateMapRequest | null>(null);
+  const actorId = useRef(crypto.randomUUID());
+  const deviceId = useRef(crypto.randomUUID());
 
   const applyError = useCallback((error: IpcErrorPayload, operation: ProjectOperation | null) => {
     lastFailedOperation.current = operation;
+    lastErrorRef.current = error;
     setLastError(error);
     setState((current) => stateForError(error, current));
   }, []);
@@ -138,6 +152,133 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
       if (activeJobId.current === jobId) activeJobId.current = null;
       setState((current) => current.activeJob?.id === jobId ? { ...current, activeJob: null } : current);
       if (!reserved) operationInFlight.current = false;
+    }
+  }, [applyError, ipc]);
+
+  const runSelectionJob = useCallback(async (
+    request: number,
+    label: string,
+  ): Promise<MapSourceSelection | null> => {
+    if (activeJobId.current !== null) return null;
+    const jobId = nextJobId();
+    activeJobId.current = jobId;
+    setState((current) => ({
+      ...current,
+      phase: "loading",
+      error: null,
+      activeJob: { id: jobId, label, progress: 0, state: "running" },
+    }));
+    const outcome = Promise.resolve()
+      .then(() => ipc.selectMapSource({ schema: IPC_SCHEMA, jobId }))
+      .then(
+        (response) => ({ kind: "success" as const, response }),
+        (error: unknown) => ({ kind: "failure" as const, error }),
+      );
+    try {
+      while (true) {
+        const observed = await Promise.race([outcome, delay(JOB_POLL_INTERVAL_MS)]);
+        if (observed.kind === "success") {
+          if (!requestGate.current.isCurrent(request)) return null;
+          const selection = assertMapSourceSelectionResponse(observed.response).selection;
+          if (selection === null) {
+            lastErrorRef.current = null;
+            setLastError(null);
+            setState((current) => ({
+              ...current,
+              phase: current.projectState === "no_project" ? "idle" : "ready",
+              error: null,
+            }));
+          }
+          return selection;
+        }
+        if (observed.kind === "failure") throw observed.error;
+        try {
+          const status = assertJobStatusResponse(await ipc.jobStatus({ schema: IPC_SCHEMA, jobId }));
+          if (status.jobId !== jobId) throw { schema: IPC_SCHEMA, code: "invalid_response", message: "The desktop adapter returned status for a different job.", retryable: false } satisfies IpcErrorPayload;
+          if (requestGate.current.isCurrent(request)) {
+            setState((current) => {
+              const activeJob = mergeActiveProjectJobStatus(current.activeJob, status);
+              return activeJob === current.activeJob ? current : { ...current, activeJob };
+            });
+          }
+        } catch (value) {
+          const statusError = normalizeIpcError(value);
+          if (statusError.code !== "invalid_request") {
+            try { await ipc.cancelJob({ schema: IPC_SCHEMA, jobId }); } catch { /* operation result is authoritative */ }
+            throw statusError;
+          }
+        }
+      }
+    } catch (value) {
+      if (requestGate.current.isCurrent(request)) applyError(normalizeIpcError(value), "import");
+      return null;
+    } finally {
+      if (activeJobId.current === jobId) activeJobId.current = null;
+      setState((current) => current.activeJob?.id === jobId ? { ...current, activeJob: null } : current);
+    }
+  }, [applyError, ipc]);
+
+  const runMapMutationJob = useCallback(async (
+    request: number,
+    operation: "import" | "calibrate",
+    label: string,
+    invokeOperation: (jobId: string) => Promise<MapMutationResponse>,
+  ): Promise<MapMutationResponse | null> => {
+    if (activeJobId.current !== null) return null;
+    const jobId = nextJobId();
+    activeJobId.current = jobId;
+    setState((current) => ({
+      ...current,
+      phase: "loading",
+      error: null,
+      activeJob: { id: jobId, label, progress: 0, state: "running" },
+    }));
+    const outcome = Promise.resolve()
+      .then(() => invokeOperation(jobId))
+      .then(
+        (response) => ({ kind: "success" as const, response }),
+        (error: unknown) => ({ kind: "failure" as const, error }),
+      );
+    try {
+      while (true) {
+        const observed = await Promise.race([outcome, delay(JOB_POLL_INTERVAL_MS)]);
+        if (observed.kind === "success") {
+          if (!requestGate.current.isCurrent(request)) return null;
+          const response = assertMapMutationResponse(observed.response);
+          if (response.current) {
+            setState((current) => responseToState(response.current!, current));
+          } else {
+            setState((current) => ({ ...current, phase: "ready", error: response.readbackError, activeJob: null }));
+          }
+          lastErrorRef.current = null;
+          setLastError(null);
+          lastFailedOperation.current = null;
+          return response;
+        }
+        if (observed.kind === "failure") throw observed.error;
+        try {
+          const status = assertJobStatusResponse(await ipc.jobStatus({ schema: IPC_SCHEMA, jobId }));
+          if (status.jobId !== jobId) throw { schema: IPC_SCHEMA, code: "invalid_response", message: "The desktop adapter returned status for a different job.", retryable: false } satisfies IpcErrorPayload;
+          if (requestGate.current.isCurrent(request)) {
+            setState((current) => {
+              const activeJob = mergeActiveProjectJobStatus(current.activeJob, status);
+              return activeJob === current.activeJob ? current : { ...current, activeJob };
+            });
+          }
+        } catch (value) {
+          const statusError = normalizeIpcError(value);
+          if (statusError.code !== "invalid_request") {
+            try { await ipc.cancelJob({ schema: IPC_SCHEMA, jobId }); } catch { /* operation result is authoritative */ }
+            throw statusError;
+          }
+        }
+      }
+    } catch (value) {
+      if (requestGate.current.isCurrent(request)) applyError(normalizeIpcError(value), operation);
+      return null;
+    } finally {
+      if (activeJobId.current === jobId) activeJobId.current = null;
+      setState((current) => current.activeJob?.id === jobId ? { ...current, activeJob: null } : current);
     }
   }, [applyError, ipc]);
 
@@ -232,16 +373,82 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
     }
   }, [applyError, ipc, runJob]);
 
-  const importFloorPlan = useCallback(() => {
-    const error: IpcErrorPayload = {
+  const importFloorPlan = useCallback(async () => {
+    if (operationInFlight.current) return;
+    operationInFlight.current = true;
+    const request = requestGate.current.begin();
+    try {
+      let selection = pendingMapSelection.current;
+      if (selection === null) {
+        selection = await runSelectionJob(request, "Choosing PNG floor plan");
+        if (selection === null) return;
+        pendingMapSelection.current = selection;
+      }
+      const result = await runMapMutationJob(
+        request,
+        "import",
+        "Importing PNG map",
+        (jobId) => ipc.importMap({ schema: IPC_SCHEMA, jobId, grantId: selection!.grantId }),
+      );
+      if (result !== null) {
+        pendingMapSelection.current = null;
+      } else {
+        const error = lastErrorRef.current;
+        if (!error?.retryable || error.code === "cancelled" || error.code === "invalid_grant") {
+          pendingMapSelection.current = null;
+        }
+      }
+    } finally {
+      operationInFlight.current = false;
+    }
+  }, [ipc, runMapMutationJob, runSelectionJob]);
+
+  const performCalibration = useCallback(async (request: CalibrateMapRequest) => {
+    if (operationInFlight.current) return;
+    operationInFlight.current = true;
+    const requestNumber = requestGate.current.begin();
+    try {
+      const result = await runMapMutationJob(
+        requestNumber,
+        "calibrate",
+        "Calibrating map scale",
+        (jobId) => ipc.calibrateMap({ ...request, schema: IPC_SCHEMA, jobId }),
+      );
+      if (result !== null) {
+        pendingCalibration.current = null;
+      } else if (!lastErrorRef.current?.retryable) {
+        pendingCalibration.current = null;
+      }
+    } finally {
+      operationInFlight.current = false;
+    }
+  }, [ipc, runMapMutationJob]);
+
+  const calibrateMap = useCallback(async (
+    input: Omit<CalibrateMapRequest, "schema" | "jobId" | "operationId" | "actorId" | "deviceId" | "calibrationId"> & { calibrationId?: string },
+  ) => {
+    if (operationInFlight.current) return;
+    const pending = pendingCalibration.current;
+    const sameIntent = pending !== null
+      && pending.mapId === input.mapId
+      && pending.firstXPixels === input.firstXPixels
+      && pending.firstYPixels === input.firstYPixels
+      && pending.secondXPixels === input.secondXPixels
+      && pending.secondYPixels === input.secondYPixels
+      && pending.knownDistanceMeters === input.knownDistanceMeters
+      && (input.calibrationId === undefined || pending.calibrationId === input.calibrationId);
+    const request = sameIntent && pending ? pending : {
+      ...input,
       schema: IPC_SCHEMA,
-      code: "capability_unavailable",
-      message: "Floor-plan import is not yet exposed by the application command boundary.",
-      remediation: "Create a project now, or use a build with the ImportFloorPlan command enabled.",
-      retryable: false,
+      jobId: "",
+      operationId: crypto.randomUUID(),
+      actorId: actorId.current,
+      deviceId: deviceId.current,
+      calibrationId: input.calibrationId ?? crypto.randomUUID(),
     };
-    applyError(error, null);
-  }, [applyError]);
+    pendingCalibration.current = request;
+    await performCalibration(request);
+  }, [performCalibration]);
 
   const cancelActiveJob = useCallback(async () => {
     const jobId = activeJobId.current;
@@ -273,14 +480,19 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
     if (!lastError?.retryable) return;
     if (lastFailedOperation.current === "create") await createBlankProject();
     else if (lastFailedOperation.current === "open") await openProject();
+    else if (lastFailedOperation.current === "import") await importFloorPlan();
+    else if (lastFailedOperation.current === "calibrate" && pendingCalibration.current !== null) {
+      await performCalibration(pendingCalibration.current);
+    }
     else await runCurrent();
-  }, [createBlankProject, lastError?.retryable, openProject, runCurrent]);
+  }, [createBlankProject, importFloorPlan, lastError?.retryable, openProject, performCalibration, runCurrent]);
 
   return {
     state,
     createBlankProject,
     openProject,
     importFloorPlan,
+    calibrateMap,
     retry,
     cancelActiveJob,
     selectTool,

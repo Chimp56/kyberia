@@ -53,8 +53,8 @@ export function App() {
     <div className="workspace">
       <ToolRail selected={state.selectedTool as ToolId} onSelect={session.selectTool} />
       <LayerPanel visibility={state.layerVisibility} onToggle={session.toggleLayer} />
-      <main className="map-region"><CanvasStage phase={state.phase} error={state.error} activeJob={state.activeJob} onImport={session.importFloorPlan} onNewProject={createProject} onRetry={() => void session.retry()} onCancel={() => void session.cancelActiveJob()} calibrated={state.calibrated} /></main>
-      <InspectorPanel projectName={state.projectName} projectReady={projectReady} isMobileOpen={inspectorOpen} />
+      <main className="map-region"><CanvasStage phase={state.phase} error={state.error} activeJob={state.activeJob} onImport={() => void session.importFloorPlan()} onNewProject={createProject} onRetry={() => void session.retry()} onCancel={() => void session.cancelActiveJob()} calibrated={state.calibrated} maps={state.maps} /></main>
+      <InspectorPanel projectName={state.projectName} projectReady={projectReady} isMobileOpen={inspectorOpen} maps={state.maps} error={state.error} onImport={() => void session.importFloorPlan()} onCalibrate={(input) => void session.calibrateMap(input)} />
     </div>
     <StatusBar phase={state.phase} projectName={state.projectName} activeJob={state.activeJob} />
     {state.commandPaletteOpen && <CommandPalette onClose={closePalette} onSelectTool={session.selectTool} onNewProject={createProject} onOpenProject={() => void session.openProject()} onImport={session.importFloorPlan} />}

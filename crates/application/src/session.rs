@@ -2,7 +2,10 @@ use crate::{
     command::SessionMode,
     error::ApplicationError,
     map_asset::admit_map_asset,
-    map_mutation::{CalibrateMapRequest, ImportMapRequest, MapMutationReceipt},
+    map_mutation::{
+        CalibrateMapIntent, CalibrateMapRequest, ImportMapIntent, ImportMapRequest,
+        MapMutationOutcome, MapMutationReceipt,
+    },
     port::BundleProjectStore,
     query::{
         ProjectQuery, ProjectQueryResult, default_query_limits, query_with_budget,
@@ -120,6 +123,41 @@ impl ProjectSession {
         session_id: Option<SessionId>,
     ) -> Result<Vec<PointSurveySnapshotHistoryEntry>, ApplicationError> {
         self.store.list_point_survey_snapshot_history(session_id)
+    }
+
+    /// Admit and durably import one PNG using application-derived causal
+    /// metadata, then attempt canonical readback without losing the receipt.
+    pub fn import_map_intent_with_budget<H: CancellationHook>(
+        &mut self,
+        intent: ImportMapIntent,
+        bytes: &[u8],
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<MapMutationOutcome, ApplicationError> {
+        if self.mode != SessionMode::ReadWrite {
+            return Err(ApplicationError::new(
+                crate::ErrorKind::ReadOnly,
+                "project session is read-only",
+            ));
+        }
+        let admitted = admit_map_asset(bytes, budget)?;
+        self.store
+            .import_map_intent(intent, admitted, bytes, budget)
+    }
+
+    /// Persist a two-point calibration using application-derived causal
+    /// metadata, then return its receipt even if canonical readback fails.
+    pub fn calibrate_map_intent_with_budget<H: CancellationHook>(
+        &mut self,
+        intent: CalibrateMapIntent,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<MapMutationOutcome, ApplicationError> {
+        if self.mode != SessionMode::ReadWrite {
+            return Err(ApplicationError::new(
+                crate::ErrorKind::ReadOnly,
+                "project session is read-only",
+            ));
+        }
+        self.store.calibrate_map_intent(intent, budget)
     }
 }
 

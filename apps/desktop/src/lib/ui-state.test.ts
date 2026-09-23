@@ -12,7 +12,7 @@ describe("workspace state semantics", () => {
 
   it("makes unsupported capability explicit", () => {
     const state = stateForError({
-      schema: "kyberia.desktop-ipc/1",
+      schema: "kyberia.desktop-ipc/2",
       code: "capability_unavailable",
       message: "Live capture is unavailable.",
       retryable: false,
@@ -49,7 +49,7 @@ describe("workspace state semantics", () => {
   it("preserves the open project when an import capability is unsupported", () => {
     const current = { ...initialWorkspaceState, projectState: "baseline_only" as const, projectName: "Office", hasFloorPlan: false, calibrated: false };
     const next = stateForError({
-      schema: "kyberia.desktop-ipc/1",
+      schema: "kyberia.desktop-ipc/2",
       code: "capability_unavailable",
       message: "Import is unavailable.",
       retryable: false,

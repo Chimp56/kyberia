@@ -1,4 +1,4 @@
-export const IPC_SCHEMA = "kyberia.desktop-ipc/1" as const;
+export const IPC_SCHEMA = "kyberia.desktop-ipc/2" as const;
 
 export type ProjectState = "no_project" | "materialized_current" | "baseline_only" | "legacy_absent";
 export type CapabilityState = "available" | "conditional" | "unavailable" | "unknown";
@@ -12,6 +12,18 @@ export interface ProjectSummary {
   logicalTime: number;
   hasFloorPlan: boolean;
   calibrated: boolean;
+  floorId: string | null;
+  maps: MapSummary[];
+}
+
+export interface MapSummary {
+  mapId: string;
+  floorId: string;
+  name: string;
+  width: number;
+  height: number;
+  calibrated: boolean;
+  metersPerPixel: number | null;
 }
 
 export interface CurrentProjectResponse {
@@ -61,6 +73,50 @@ export interface JobRequest {
   jobId: string;
 }
 
+export interface SelectMapSourceRequest {
+  schema: typeof IPC_SCHEMA;
+  jobId: string;
+}
+
+export interface MapGrantRequest extends JobRequest {
+  grantId: string;
+}
+
+export interface MapSourceSelection {
+  grantId: string;
+  displayName: string;
+  byteLength: number;
+  kind: "png";
+}
+
+export interface MapSourceSelectionResponse {
+  schema: typeof IPC_SCHEMA;
+  selection: MapSourceSelection | null;
+}
+
+export interface CalibrateMapRequest extends JobRequest {
+  operationId: string;
+  actorId: string;
+  deviceId: string;
+  mapId: string;
+  calibrationId: string;
+  firstXPixels: number;
+  firstYPixels: number;
+  secondXPixels: number;
+  secondYPixels: number;
+  knownDistanceMeters: number;
+}
+
+export interface MapMutationResponse {
+  schema: typeof IPC_SCHEMA;
+  state: "committed";
+  operationId: string;
+  projectRevision: number;
+  contentHash: string;
+  current: CurrentProjectResponse | null;
+  readbackError: IpcErrorPayload | null;
+}
+
 export interface JobStatusResponse {
   schema: typeof IPC_SCHEMA;
   jobId: string;
@@ -89,6 +145,9 @@ export interface DesktopIpc {
   createBlankProject(request: CreateBlankProjectRequest): Promise<CurrentProjectResponse>;
   selectOpenProject(request: SelectOpenProjectRequest): Promise<OpenProjectSelectionResponse>;
   openProject(request: OpenProjectGrantRequest): Promise<CurrentProjectResponse>;
+  selectMapSource(request: SelectMapSourceRequest): Promise<MapSourceSelectionResponse>;
+  importMap(request: MapGrantRequest): Promise<MapMutationResponse>;
+  calibrateMap(request: CalibrateMapRequest): Promise<MapMutationResponse>;
   currentProject(request: JobRequest): Promise<CurrentProjectResponse>;
   jobStatus(request: JobRequest): Promise<JobStatusResponse>;
   cancelJob(request: JobRequest): Promise<JobCancelResponse>;
@@ -132,7 +191,7 @@ function isCapabilityState(value: unknown): value is CapabilityState {
 function isProjectSummary(value: unknown): value is ProjectSummary {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<ProjectSummary>;
-  return hasOnlyKeys(value, ["projectId", "name", "state", "schemaVersion", "revision", "logicalTime", "hasFloorPlan", "calibrated"])
+  return hasOnlyKeys(value, ["projectId", "name", "state", "schemaVersion", "revision", "logicalTime", "hasFloorPlan", "calibrated", "floorId", "maps"])
     && typeof candidate.projectId === "string"
     && candidate.projectId.length > 0
     && typeof candidate.name === "string"
@@ -147,7 +206,26 @@ function isProjectSummary(value: unknown): value is ProjectSummary {
     && Number.isSafeInteger(candidate.logicalTime)
     && candidate.logicalTime >= 0
     && typeof candidate.hasFloorPlan === "boolean"
-    && typeof candidate.calibrated === "boolean";
+    && typeof candidate.calibrated === "boolean"
+    && (candidate.floorId === null || (typeof candidate.floorId === "string" && candidate.floorId.length > 0))
+    && Array.isArray(candidate.maps)
+    && candidate.maps.every(isMapSummary)
+    && candidate.hasFloorPlan === (candidate.maps.length > 0)
+    && candidate.calibrated === candidate.maps.some((map) => map.calibrated);
+}
+
+function isMapSummary(value: unknown): value is MapSummary {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<MapSummary>;
+  return hasOnlyKeys(value, ["mapId", "floorId", "name", "width", "height", "calibrated", "metersPerPixel"])
+    && typeof candidate.mapId === "string" && candidate.mapId.length > 0
+    && typeof candidate.floorId === "string" && candidate.floorId.length > 0
+    && typeof candidate.name === "string" && candidate.name.length > 0
+    && typeof candidate.width === "number" && Number.isSafeInteger(candidate.width) && candidate.width > 0
+    && typeof candidate.height === "number" && Number.isSafeInteger(candidate.height) && candidate.height > 0
+    && typeof candidate.calibrated === "boolean"
+    && (candidate.metersPerPixel === null || (typeof candidate.metersPerPixel === "number" && Number.isFinite(candidate.metersPerPixel) && candidate.metersPerPixel > 0))
+    && candidate.calibrated === (candidate.metersPerPixel !== null);
 }
 
 function isCapabilitySummary(value: unknown): value is CapabilitySummary {
@@ -187,6 +265,48 @@ function isOpenProjectSelection(value: unknown): value is OpenProjectSelection {
     && typeof candidate.displayName === "string"
     && candidate.displayName.length > 0
     && candidate.kind === "open";
+}
+
+function isMapSourceSelection(value: unknown): value is MapSourceSelection {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<MapSourceSelection>;
+  return hasOnlyKeys(value, ["grantId", "displayName", "byteLength", "kind"])
+    && typeof candidate.grantId === "string" && candidate.grantId.length > 0
+    && typeof candidate.displayName === "string" && candidate.displayName.length > 0
+    && typeof candidate.byteLength === "number" && Number.isSafeInteger(candidate.byteLength)
+    && candidate.byteLength > 0 && candidate.byteLength <= 32 * 1024 * 1024
+    && candidate.kind === "png";
+}
+
+export function assertMapSourceSelectionResponse(value: unknown): MapSourceSelectionResponse {
+  if (!value || typeof value !== "object") throw invalidResponse("The desktop adapter returned an invalid PNG selection.");
+  const candidate = value as Partial<MapSourceSelectionResponse>;
+  if (!hasOnlyKeys(value, ["schema", "selection"])
+    || candidate.schema !== IPC_SCHEMA
+    || !(candidate.selection === null || isMapSourceSelection(candidate.selection))) {
+    throw invalidResponse("The desktop adapter returned an invalid PNG selection.");
+  }
+  return candidate as MapSourceSelectionResponse;
+}
+
+export function assertMapMutationResponse(value: unknown): MapMutationResponse {
+  if (!value || typeof value !== "object") throw invalidResponse("The desktop adapter returned an invalid map mutation receipt.");
+  const candidate = value as Partial<MapMutationResponse>;
+  const hasReadback = candidate.current === null
+    ? candidate.readbackError !== null
+    : candidate.readbackError === null && isCurrentProjectResponse(candidate.current);
+  if (!hasOnlyKeys(value, ["schema", "state", "operationId", "projectRevision", "contentHash", "current", "readbackError"])
+    || candidate.schema !== IPC_SCHEMA
+    || candidate.state !== "committed"
+    || typeof candidate.operationId !== "string" || candidate.operationId.length === 0
+    || typeof candidate.projectRevision !== "number" || !Number.isSafeInteger(candidate.projectRevision) || candidate.projectRevision < 1
+    || typeof candidate.contentHash !== "string" || !/^[0-9a-f]{64}$/.test(candidate.contentHash)
+    || !(candidate.readbackError === null || isIpcErrorPayload(candidate.readbackError))
+    || !(candidate.current === null || isCurrentProjectResponse(candidate.current))
+    || !hasReadback) {
+    throw invalidResponse("The desktop adapter returned an invalid map mutation receipt.");
+  }
+  return candidate as MapMutationResponse;
 }
 
 export function normalizeIpcError(value: unknown): IpcErrorPayload {

@@ -129,6 +129,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--blue-bright
 .step strong { display: block; margin: 3px 0 4px; color: #e2ebf4; font-size: 13px; font-weight: 560; }
 .step p { margin: 0; color: #9fb1c3; font-size: 12px; line-height: 1.35; }
 .ready-steps { margin-top: 28px; }
+.calibration-form { margin-top: 20px; padding-top: 15px; border-top: 1px solid #3e5062; }
+.calibration-form > p { margin: 0 0 12px; color: #9fb1c3; font-size: 12px; line-height: 1.4; }
+.calibration-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 12px 0; }
+.calibration-input-grid label { display: grid; gap: 4px; color: #b4c4d5; font-size: 11px; }
+.calibration-input-grid input { min-width: 0; width: 100%; height: 31px; padding: 4px 7px; border: 1px solid #53697e; border-radius: 4px; background: #17222d; color: #f1f6fb; font: inherit; }
+.calibration-form .secondary-button { width: 100%; margin-top: 3px; }
 .capability-notice { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 11px; margin-top: 17px; padding: 12px 0 14px; border-top: 1px solid #3e5062; border-bottom: 1px solid #3e5062; }
 .notice-icon { color: var(--amber); padding-top: 2px; }
 .capability-notice strong { display: block; margin: 1px 0 4px; color: #e6edf4; font-size: 13px; font-weight: 590; }

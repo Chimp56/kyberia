@@ -2,6 +2,15 @@ use crate::{ValidationError, evidence::ArtifactReference, identity::*, spatial::
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroU32;
 
+/// Explicit revision-zero site/building/floor state for a newly created
+/// project. This is canonical baseline data, not hidden operation history.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct InitialProjectHierarchy {
+    pub site: Site,
+    pub building: Building,
+    pub floor: Floor,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Site {
     pub id: SiteId,

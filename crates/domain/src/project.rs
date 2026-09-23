@@ -127,6 +127,26 @@ impl Project {
             applied_operations: BTreeMap::new(),
         })
     }
+    /// Construct a revision-zero baseline with one explicit spatial hierarchy.
+    /// `new` remains the empty legacy/replay baseline constructor.
+    pub fn with_initial_hierarchy(
+        id: ProjectId,
+        name: Text,
+        hierarchy: InitialProjectHierarchy,
+    ) -> Result<Self, ProjectError> {
+        let mut project = Self::new(id, name);
+        project.0.sites.insert(hierarchy.site.id, hierarchy.site);
+        project
+            .0
+            .buildings
+            .insert(hierarchy.building.data().id, hierarchy.building);
+        project
+            .0
+            .floors
+            .insert(hierarchy.floor.data().id, hierarchy.floor);
+        project.validate()?;
+        Ok(project)
+    }
     pub const fn id(&self) -> ProjectId {
         self.0.id
     }

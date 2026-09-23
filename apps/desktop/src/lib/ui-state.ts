@@ -1,4 +1,4 @@
-import type { IpcErrorPayload, ProjectState } from "./contracts";
+import type { IpcErrorPayload, MapSummary, ProjectState } from "./contracts";
 
 export type WorkspacePhase = "idle" | "loading" | "ready" | "error" | "unsupported";
 
@@ -34,6 +34,8 @@ export interface WorkspaceState {
   projectName: string;
   hasFloorPlan: boolean;
   calibrated: boolean;
+  floorId: string | null;
+  maps: MapSummary[];
   error: IpcErrorPayload | null;
   activeJob: ActiveProjectJob | null;
   selectedTool: string;
@@ -48,6 +50,8 @@ export const initialWorkspaceState: WorkspaceState = {
   projectName: "Untitled project",
   hasFloorPlan: false,
   calibrated: false,
+  floorId: null,
+  maps: [],
   error: null,
   activeJob: null,
   selectedTool: "select",

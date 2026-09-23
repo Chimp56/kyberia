@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertJobCancelResponse, assertJobStatusResponse, assertOpenProjectSelectionResponse, assertResponse, IPC_SCHEMA, isIpcErrorPayload, normalizeIpcError } from "./contracts";
+import { assertJobCancelResponse, assertJobStatusResponse, assertMapMutationResponse, assertMapSourceSelectionResponse, assertOpenProjectSelectionResponse, assertResponse, IPC_SCHEMA, isIpcErrorPayload, normalizeIpcError } from "./contracts";
 
 const jobId = "123e4567-e89b-42d3-a456-426614174000";
 
@@ -42,6 +42,42 @@ describe("desktop IPC contract", () => {
     expect(assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: null }).selection).toBeNull();
     expect(() => assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: { grantId: "g", displayName: "Plan.rfatlas", kind: "open", path: "/private/user/secret" } })).toThrow(/malformed/);
     expect(() => assertOpenProjectSelectionResponse({ schema: IPC_SCHEMA, selection: { grantId: "", displayName: "Plan.rfatlas", kind: "open" } })).toThrow(/malformed/);
+  });
+
+  it("admits only bounded opaque PNG grants and rejects path or pixel fields", () => {
+    expect(assertMapSourceSelectionResponse({
+      schema: IPC_SCHEMA,
+      selection: { grantId: jobId, displayName: "Floor.png", byteLength: 1024, kind: "png" },
+    }).selection?.displayName).toBe("Floor.png");
+    expect(assertMapSourceSelectionResponse({ schema: IPC_SCHEMA, selection: null }).selection).toBeNull();
+    expect(() => assertMapSourceSelectionResponse({
+      schema: IPC_SCHEMA,
+      selection: { grantId: jobId, displayName: "Floor.png", byteLength: 1024, kind: "png", path: "/private/Floor.png" },
+    })).toThrow(/malformed/);
+    expect(() => assertMapSourceSelectionResponse({
+      schema: IPC_SCHEMA,
+      selection: { grantId: jobId, displayName: "Floor.png", byteLength: 32 * 1024 * 1024 + 1, kind: "png" },
+    })).toThrow(/malformed/);
+  });
+
+  it("accepts receipt-first map responses without leaking source or pixel fields", () => {
+    const receipt = {
+      schema: IPC_SCHEMA,
+      state: "committed",
+      operationId: jobId,
+      projectRevision: 2,
+      contentHash: "a".repeat(64),
+      current: null,
+      readbackError: {
+        schema: IPC_SCHEMA,
+        code: "storage",
+        message: "The durable map commit needs readback.",
+        retryable: true,
+      },
+    };
+    expect(assertMapMutationResponse(receipt).state).toBe("committed");
+    expect(() => assertMapMutationResponse({ ...receipt, sourcePath: "/private/Floor.png" })).toThrow(/malformed/);
+    expect(() => assertMapMutationResponse({ ...receipt, pixels: [0, 1, 2] })).toThrow(/malformed/);
   });
 
   it("strictly validates bounded job progress and cancellation acknowledgements", () => {

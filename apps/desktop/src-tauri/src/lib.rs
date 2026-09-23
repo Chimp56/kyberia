@@ -1,22 +1,82 @@
 use kyberia_application::{
-    Application, ApplicationError, CreateProject, OpenProject, ProjectQuery, ProjectQueryResult,
-    ProjectSession, ProjectState, SessionMode,
+    Application, ApplicationError, CalibrateMapIntent, CreateProjectWithInitialFloor,
+    ImportMapIntent, MapIntentAuthority, MapMutationOutcome, OpenProject, ProjectQuery,
+    ProjectQueryResult, ProjectSession, ProjectState, SessionMode,
+};
+#[cfg(test)]
+use kyberia_application::{CreateProject, MapMutationReceipt};
+use kyberia_domain::{
+    evidence::{Evidence, UnknownReason},
+    identity::{
+        ActorDeviceId, ActorId, BuildingId, CalibrationId, FloorId, FrameId, MapAssetId,
+        OperationId, ProjectId, SiteId, Text,
+    },
+    project::{
+        Building, BuildingData, Floor, FloorData, InitialProjectHierarchy, MapCalibration, Site,
+    },
+    spatial::{
+        CalibrationControls, CoordinateFrame, FrameKind, ImageYAxis, PixelPoint, Point2, Point3,
+        TwoPointCalibration,
+    },
+    units::{CoordinateMeters, Meters, Pixels, Radians},
 };
 use kyberia_resource_budget::CancellationHook;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    path::PathBuf,
+    fs::{File, OpenOptions},
+    io::{Read, Seek, SeekFrom},
+    path::{Path, PathBuf},
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, AtomicU8, Ordering},
     },
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime},
 };
 
-pub const IPC_SCHEMA: &str = "kyberia.desktop-ipc/1";
+pub const IPC_SCHEMA: &str = "kyberia.desktop-ipc/2";
 const MAX_OPEN_GRANTS: usize = 8;
 const OPEN_GRANT_TTL: Duration = Duration::from_secs(5 * 60);
+pub const MAX_MAP_SOURCE_BYTES: u64 = 32 * 1024 * 1024;
+pub const MAX_MAP_SOURCE_GRANTS: usize = 4;
+pub const MAP_SOURCE_GRANT_TTL: Duration = Duration::from_secs(2 * 60);
+pub const MAX_MAP_RETRY_ENTRIES: usize = 2;
+pub const MAP_RETRY_TTL: Duration = Duration::from_secs(5 * 60);
+const MAP_READ_CHUNK_BYTES: usize = 64 * 1024;
+
+fn open_map_file_without_following_links(path: &Path) -> std::io::Result<File> {
+    let mut options = OpenOptions::new();
+    options.read(true);
+    #[cfg(target_os = "macos")]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        // macOS fcntl.h defines O_NOFOLLOW as 0x100. Keep this platform
+        // mapping local to the native picker boundary and fail closed below
+        // for Unix targets that have not been audited here.
+        options.custom_flags(0x0100);
+    }
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        // Linux fcntl.h defines O_NOFOLLOW as 0x20000.
+        options.custom_flags(0x2_0000);
+    }
+    #[cfg(all(unix, not(any(target_os = "macos", target_os = "linux"))))]
+    {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Unsupported,
+            "no audited no-follow open flag for this Unix target",
+        ));
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        // FILE_FLAG_OPEN_REPARSE_POINT: inspect/open the selected reparse point itself,
+        // not a target substituted between the picker metadata check and open.
+        options.custom_flags(0x0020_0000);
+    }
+    options.open(path)
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -31,6 +91,66 @@ pub struct CreateBlankProjectRequest {
 pub struct SelectOpenProjectRequest {
     pub schema: String,
     pub job_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SelectMapSourceRequest {
+    pub schema: String,
+    pub job_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapGrantRequest {
+    pub schema: String,
+    pub job_id: String,
+    pub grant_id: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CalibrateMapRequest {
+    pub schema: String,
+    pub job_id: String,
+    pub operation_id: String,
+    pub actor_id: String,
+    pub device_id: String,
+    pub map_id: String,
+    pub calibration_id: String,
+    pub first_x_pixels: f64,
+    pub first_y_pixels: f64,
+    pub second_x_pixels: f64,
+    pub second_y_pixels: f64,
+    pub known_distance_meters: f64,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapSourceSelection {
+    pub grant_id: String,
+    pub display_name: String,
+    pub byte_length: u64,
+    pub kind: &'static str,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapSourceSelectionResponse {
+    pub schema: &'static str,
+    pub selection: Option<MapSourceSelection>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapMutationResponse {
+    pub schema: &'static str,
+    pub state: &'static str,
+    pub operation_id: String,
+    pub project_revision: u64,
+    pub content_hash: String,
+    pub current: Option<CurrentProjectResponse>,
+    pub readback_error: Option<DesktopIpcError>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -90,6 +210,23 @@ pub struct ProjectSummary {
     pub logical_time: u64,
     pub has_floor_plan: bool,
     pub calibrated: bool,
+    pub floor_id: Option<String>,
+    pub maps: Vec<MapSummary>,
+}
+
+/// Metadata projection only: the IPC boundary deliberately excludes source
+/// paths and raster bytes/pixels, and does not imply that admitted PNG data is
+/// decodable or displayable.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MapSummary {
+    pub map_id: String,
+    pub floor_id: String,
+    pub name: String,
+    pub width: u32,
+    pub height: u32,
+    pub calibrated: bool,
+    pub meters_per_pixel: Option<f64>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -144,6 +281,33 @@ struct NativeProjectGrant {
     display_name: String,
     kind: GrantKind,
     issued_at: Instant,
+}
+
+#[derive(Debug)]
+pub struct NativeMapGrant {
+    pub file: File,
+    pub display_name: String,
+    pub byte_length: u64,
+    pub project_id: ProjectId,
+    pub floor_id: FloorId,
+    pub map_id: MapAssetId,
+    pub image_frame: CoordinateFrame,
+    pub authority: MapIntentAuthority,
+    pub issued_at: Instant,
+}
+
+#[derive(Debug)]
+pub struct NativeMapRetry {
+    pub project_id: ProjectId,
+    pub intent: ImportMapIntent,
+    pub bytes: Vec<u8>,
+    pub created_at: Instant,
+}
+
+#[derive(Debug)]
+pub enum MapImportSource {
+    Grant(NativeMapGrant),
+    Retry(NativeMapRetry),
 }
 
 #[derive(Debug)]
@@ -211,6 +375,8 @@ pub struct DesktopState {
     application: Application,
     session: Option<Arc<Mutex<ProjectSession>>>,
     grants: HashMap<String, NativeProjectGrant>,
+    map_grants: HashMap<String, NativeMapGrant>,
+    pub(crate) map_retries: HashMap<String, NativeMapRetry>,
     pub(crate) jobs: HashMap<String, Arc<JobControl>>,
 }
 
@@ -220,6 +386,8 @@ impl Default for DesktopState {
             application: Application,
             session: None,
             grants: HashMap::new(),
+            map_grants: HashMap::new(),
+            map_retries: HashMap::new(),
             jobs: HashMap::new(),
         }
     }
@@ -413,23 +581,45 @@ fn state_name(state: ProjectState) -> &'static str {
     }
 }
 
-fn response_for_view(view: kyberia_application::CurrentProjectView) -> CurrentProjectResponse {
+pub fn response_for_view(view: kyberia_application::CurrentProjectView) -> CurrentProjectResponse {
     let state = state_name(view.state());
-    let project = view.project().map(|project| ProjectSummary {
-        project_id: String::from(view.project_id()),
-        name: project.name().as_str().to_owned(),
-        state,
-        schema_version: match project.schema_version() {
-            kyberia_domain::project::ProjectSchemaVersion::V1 => "1",
-            kyberia_domain::project::ProjectSchemaVersion::V2 => "2",
-        },
-        revision: project.revision(),
-        logical_time: project.logical_time(),
-        has_floor_plan: project.floors().next().is_some(),
-        // The current application query exposes floor entities but no map
-        // calibration projection. Keep scale unavailable until that evidence
-        // crosses the versioned boundary explicitly.
-        calibrated: false,
+    let project = view.project().map(|project| {
+        let maps = project
+            .maps()
+            .map(|map| {
+                let calibration = project
+                    .active_calibration(map.data().id)
+                    .and_then(|active| active.as_known().copied())
+                    .and_then(|id| project.calibration(id));
+                MapSummary {
+                    map_id: String::from(map.data().id),
+                    floor_id: String::from(map.data().floor_id),
+                    name: map.data().name.as_str().to_owned(),
+                    width: map.data().width.get(),
+                    height: map.data().height.get(),
+                    calibrated: calibration.is_some(),
+                    meters_per_pixel: calibration.map(|value| value.transform.scale().get()),
+                }
+            })
+            .collect::<Vec<_>>();
+        ProjectSummary {
+            project_id: String::from(view.project_id()),
+            name: project.name().as_str().to_owned(),
+            state,
+            schema_version: match project.schema_version() {
+                kyberia_domain::project::ProjectSchemaVersion::V1 => "1",
+                kyberia_domain::project::ProjectSchemaVersion::V2 => "2",
+            },
+            revision: project.revision(),
+            logical_time: project.logical_time(),
+            has_floor_plan: !maps.is_empty(),
+            calibrated: maps.iter().any(|map| map.calibrated),
+            floor_id: project
+                .floors()
+                .next()
+                .map(|floor| String::from(floor.data().id)),
+            maps,
+        }
     });
     CurrentProjectResponse {
         schema: IPC_SCHEMA,
@@ -485,7 +675,7 @@ pub fn create_project_at(
     name: String,
     created_utc_ms: i64,
 ) -> Result<CurrentProjectResponse, DesktopIpcError> {
-    let name = kyberia_domain::identity::Text::new(name).map_err(|value| {
+    let name = Text::new(name).map_err(|value| {
         error(
             "invalid_request",
             value.to_string(),
@@ -493,13 +683,72 @@ pub fn create_project_at(
             false,
         )
     })?;
-    let session = state.application.create(CreateProject {
-        path,
-        name,
-        created_utc_ms,
-    })?;
+    let hierarchy = new_initial_project_hierarchy()?;
+    let session = state
+        .application
+        .create_with_initial_floor(CreateProjectWithInitialFloor {
+            path,
+            name,
+            created_utc_ms,
+            hierarchy,
+        })?;
     state.session = Some(Arc::new(Mutex::new(session)));
     current_project(state)
+}
+
+/// Build the explicit revision-zero site/building/floor for a fresh desktop
+/// project. The floor is a spatial baseline only; it is not a floor-plan map.
+pub fn new_initial_project_hierarchy() -> Result<InitialProjectHierarchy, DesktopIpcError> {
+    let site_id = SiteId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let building_id = BuildingId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let floor_id = FloorId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let building_frame_id = FrameId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let floor_frame_id = FrameId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let building_frame = CoordinateFrame {
+        id: building_frame_id,
+        name: Text::new("Building local metres").expect("static frame name is valid"),
+        kind: FrameKind::BuildingLocalMeters,
+    };
+    let floor_frame = CoordinateFrame {
+        id: floor_frame_id,
+        name: Text::new("Floor local metres").expect("static frame name is valid"),
+        kind: FrameKind::FloorLocalMeters,
+    };
+    let building = Building::new(BuildingData {
+        id: building_id,
+        site_id,
+        name: Text::new("Building").expect("static building name is valid"),
+        frame: building_frame.clone(),
+    })
+    .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let floor = Floor::new(FloorData {
+        id: floor_id,
+        building_id,
+        name: Text::new("Floor 1").expect("static floor name is valid"),
+        frame: floor_frame,
+        building_frame: building_frame.id,
+        origin: Point3 {
+            x: CoordinateMeters::new(0.0).expect("zero is finite"),
+            y: CoordinateMeters::new(0.0).expect("zero is finite"),
+            z: CoordinateMeters::new(0.0).expect("zero is finite"),
+        },
+        yaw: Radians::new(0.0).expect("zero is finite"),
+        clear_height: Meters::new(2.5).expect("positive height is valid"),
+    })
+    .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    Ok(InitialProjectHierarchy {
+        site: Site {
+            id: site_id,
+            name: Text::new("Site").expect("static site name is valid"),
+        },
+        building,
+        floor,
+    })
 }
 
 pub fn open_project_at(
@@ -682,6 +931,474 @@ pub fn consume_open_grant(
     let path = grant.path.clone();
     state.grants.remove(grant_id);
     Ok(path)
+}
+
+pub fn map_target_for_session(
+    session: &ProjectSession,
+) -> Result<(ProjectId, FloorId), DesktopIpcError> {
+    let ProjectQueryResult::CurrentSnapshot(view) = session
+        .query(ProjectQuery::CurrentSnapshot)
+        .map_err(DesktopIpcError::from)?;
+    let floor_id = view
+        .project()
+        .and_then(|project| project.floors().next())
+        .map(|floor| floor.data().id)
+        .ok_or_else(|| {
+            error(
+                "prerequisite",
+                "This project has no canonical floor to attach a map to.",
+                Some("Create a new floor before importing a PNG plan."),
+                false,
+            )
+        })?;
+    Ok((view.project_id(), floor_id))
+}
+
+pub fn issue_map_source_grant(
+    state: &mut DesktopState,
+    selected: PathBuf,
+    project_id: ProjectId,
+    floor_id: FloorId,
+) -> Result<MapSourceSelectionResponse, DesktopIpcError> {
+    prune_map_grants(state, Instant::now());
+    prune_map_retries(state, Instant::now());
+    if state.map_grants.len() >= MAX_MAP_SOURCE_GRANTS {
+        return Err(error(
+            "resource_limit",
+            "Too many PNG selections are waiting to be imported.",
+            Some("Import or cancel a selected file before choosing another."),
+            true,
+        ));
+    }
+    let metadata = std::fs::symlink_metadata(&selected).map_err(|_| {
+        error(
+            "invalid_request",
+            "The selected PNG file could not be opened safely.",
+            Some("Choose a regular PNG file again."),
+            false,
+        )
+    })?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(error(
+            "invalid_request",
+            "Symbolic links and non-regular files are not accepted as map sources.",
+            Some("Choose a regular PNG file."),
+            false,
+        ));
+    }
+    let file = open_map_file_without_following_links(&selected).map_err(|_| {
+        error(
+            "invalid_request",
+            "The selected PNG file could not be opened safely.",
+            Some("Choose a regular PNG file again."),
+            false,
+        )
+    })?;
+    let file_metadata = file.metadata().map_err(|_| {
+        error(
+            "invalid_request",
+            "The selected map source could not be verified.",
+            Some("Choose a regular PNG file again."),
+            false,
+        )
+    })?;
+    if !file_metadata.is_file()
+        || file_metadata.file_type().is_symlink()
+        || file_metadata.len() == 0
+        || file_metadata.len() > MAX_MAP_SOURCE_BYTES
+    {
+        return Err(error(
+            "resource_limit",
+            "The selected map source must be a non-empty regular file no larger than 32 MiB.",
+            Some("Choose a smaller PNG image."),
+            false,
+        ));
+    }
+    let display_name = selected
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| {
+            error(
+                "invalid_request",
+                "The selected map filename is not valid text.",
+                Some("Choose a PNG with a standard filename."),
+                false,
+            )
+        })?
+        .to_owned();
+    Text::new(display_name.clone()).map_err(|value| {
+        error(
+            "invalid_request",
+            value.to_string(),
+            Some("Rename the PNG file and try again."),
+            false,
+        )
+    })?;
+    let map_id = MapAssetId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let image_frame_id = FrameId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let authority = MapIntentAuthority {
+        operation_id: OperationId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+            .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+        actor_id: ActorId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+            .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+        device_id: ActorDeviceId::from_bytes(*uuid::Uuid::new_v4().as_bytes())
+            .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+        committed_utc_ms: SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|_| {
+                error(
+                    "storage",
+                    "System clock is before the Unix epoch.",
+                    None,
+                    true,
+                )
+            })?
+            .as_millis()
+            .try_into()
+            .map_err(|_| error("storage", "System clock value is out of range.", None, true))?,
+    };
+    let grant_id = uuid::Uuid::new_v4().to_string();
+    state.map_grants.insert(
+        grant_id.clone(),
+        NativeMapGrant {
+            file,
+            display_name: display_name.clone(),
+            byte_length: file_metadata.len(),
+            project_id,
+            floor_id,
+            map_id,
+            image_frame: CoordinateFrame {
+                id: image_frame_id,
+                name: Text::new("Image pixels").expect("static frame name is valid"),
+                kind: FrameKind::ImagePixels,
+            },
+            authority,
+            issued_at: Instant::now(),
+        },
+    );
+    Ok(MapSourceSelectionResponse {
+        schema: IPC_SCHEMA,
+        selection: Some(MapSourceSelection {
+            grant_id,
+            display_name,
+            byte_length: file_metadata.len(),
+            kind: "png",
+        }),
+    })
+}
+
+pub fn take_map_import_source(
+    state: &mut DesktopState,
+    grant_id: &str,
+    project_id: ProjectId,
+) -> Result<MapImportSource, DesktopIpcError> {
+    prune_map_grants(state, Instant::now());
+    prune_map_retries(state, Instant::now());
+    if let Some(retry) = state.map_retries.get(grant_id) {
+        if retry.project_id != project_id {
+            return Err(error(
+                "invalid_grant",
+                "The retained map retry belongs to a different project.",
+                Some("Select a new PNG in the current project."),
+                false,
+            ));
+        }
+        return Ok(MapImportSource::Retry(
+            state.map_retries.remove(grant_id).expect("retry exists"),
+        ));
+    }
+    if state.map_retries.len() >= MAX_MAP_RETRY_ENTRIES {
+        return Err(error(
+            "resource_limit",
+            "The bounded map retry store is full.",
+            Some(
+                "Wait for a retained retry to expire or complete it before selecting another map.",
+            ),
+            true,
+        ));
+    }
+    let Some(grant) = state.map_grants.get(grant_id) else {
+        return Err(error(
+            "invalid_grant",
+            "The PNG selection is invalid or has expired.",
+            Some("Choose the PNG again."),
+            false,
+        ));
+    };
+    if grant.project_id != project_id {
+        return Err(error(
+            "invalid_grant",
+            "The PNG selection belongs to a different project.",
+            Some("Choose a new PNG in the current project."),
+            false,
+        ));
+    }
+    Ok(MapImportSource::Grant(
+        state.map_grants.remove(grant_id).expect("grant exists"),
+    ))
+}
+
+pub fn retain_map_import_retry(
+    state: &mut DesktopState,
+    grant_id: String,
+    retry: NativeMapRetry,
+) -> Result<(), DesktopIpcError> {
+    prune_map_retries(state, Instant::now());
+    if !state.map_retries.contains_key(&grant_id)
+        && state.map_retries.len() >= MAX_MAP_RETRY_ENTRIES
+    {
+        return Err(error(
+            "resource_limit",
+            "The bounded map retry store is full.",
+            Some("Choose a PNG again after another retained retry expires."),
+            true,
+        ));
+    }
+    state.map_retries.insert(grant_id, retry);
+    Ok(())
+}
+
+pub fn read_map_source(
+    grant: &mut NativeMapGrant,
+    control: &JobControl,
+) -> Result<Vec<u8>, DesktopIpcError> {
+    if control.is_cancelled() {
+        return Err(cancelled_error());
+    }
+    grant.file.seek(SeekFrom::Start(0)).map_err(|_| {
+        error(
+            "invalid_request",
+            "The selected map source could not be staged.",
+            Some("Choose the PNG again."),
+            false,
+        )
+    })?;
+    let mut bytes = Vec::with_capacity(grant.byte_length.min(MAX_MAP_SOURCE_BYTES) as usize);
+    let mut chunk = [0_u8; MAP_READ_CHUNK_BYTES];
+    loop {
+        if control.is_cancelled() {
+            return Err(cancelled_error());
+        }
+        let remaining = (MAX_MAP_SOURCE_BYTES + 1).saturating_sub(bytes.len() as u64) as usize;
+        if remaining == 0 {
+            return Err(error(
+                "resource_limit",
+                "The selected map source exceeds the 32 MiB staging bound.",
+                Some("Choose a smaller PNG image."),
+                false,
+            ));
+        }
+        let read_limit = remaining.min(chunk.len());
+        let count = grant.file.read(&mut chunk[..read_limit]).map_err(|_| {
+            error(
+                "invalid_request",
+                "The selected map source could not be read.",
+                Some("Choose the PNG again."),
+                false,
+            )
+        })?;
+        if count == 0 {
+            break;
+        }
+        bytes.extend_from_slice(&chunk[..count]);
+        if bytes.len() as u64 > MAX_MAP_SOURCE_BYTES {
+            return Err(error(
+                "resource_limit",
+                "The selected map source exceeds the 32 MiB staging bound.",
+                Some("Choose a smaller PNG image."),
+                false,
+            ));
+        }
+    }
+    let current_length = grant
+        .file
+        .metadata()
+        .map_err(|_| {
+            error(
+                "invalid_request",
+                "The selected map source could not be verified after staging.",
+                Some("Choose the PNG again."),
+                false,
+            )
+        })?
+        .len();
+    if bytes.len() as u64 != grant.byte_length || current_length != grant.byte_length {
+        return Err(error(
+            "invalid_request",
+            "The selected map source changed after selection.",
+            Some("Choose the PNG again."),
+            false,
+        ));
+    }
+    Ok(bytes)
+}
+
+pub fn map_mutation_response(outcome: MapMutationOutcome) -> MapMutationResponse {
+    let (current, readback_error) = match outcome.current {
+        Ok(view) => (Some(response_for_view(view)), None),
+        Err(value) => (None, Some(DesktopIpcError::from(value))),
+    };
+    MapMutationResponse {
+        schema: IPC_SCHEMA,
+        state: "committed",
+        operation_id: String::from(outcome.receipt.operation_id),
+        project_revision: outcome.receipt.project_revision.value(),
+        content_hash: String::from(outcome.receipt.content_hash),
+        current,
+        readback_error,
+    }
+}
+
+pub fn calibration_intent(
+    request: CalibrateMapRequest,
+    session: &ProjectSession,
+) -> Result<CalibrateMapIntent, DesktopIpcError> {
+    let parse_uuid = |value: &str, label: &str| {
+        uuid::Uuid::parse_str(value).map_err(|_| {
+            error(
+                "invalid_request",
+                format!("{label} must be a canonical UUID."),
+                Some("Start calibration again."),
+                false,
+            )
+        })
+    };
+    let operation_id =
+        OperationId::from_bytes(*parse_uuid(&request.operation_id, "operationId")?.as_bytes())
+            .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let actor_id = ActorId::from_bytes(*parse_uuid(&request.actor_id, "actorId")?.as_bytes())
+        .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let device_id =
+        ActorDeviceId::from_bytes(*parse_uuid(&request.device_id, "deviceId")?.as_bytes())
+            .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let calibration_id = CalibrationId::from_bytes(
+        *parse_uuid(&request.calibration_id, "calibrationId")?.as_bytes(),
+    )
+    .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let map_id = MapAssetId::try_from(request.map_id.clone()).map_err(|value| {
+        error(
+            "invalid_request",
+            value.to_string(),
+            Some("Refresh the map list and try again."),
+            false,
+        )
+    })?;
+    let ProjectQueryResult::CurrentSnapshot(view) = session
+        .query(ProjectQuery::CurrentSnapshot)
+        .map_err(DesktopIpcError::from)?;
+    let project = view.project().ok_or_else(|| {
+        error(
+            "prerequisite",
+            "No canonical project is open.",
+            Some("Open a project first."),
+            false,
+        )
+    })?;
+    let map = project.map(map_id).ok_or_else(|| {
+        error(
+            "prerequisite",
+            "The selected map is not in the current project.",
+            Some("Refresh the project and choose its map again."),
+            false,
+        )
+    })?;
+    let floor = project.floor(map.data().floor_id).ok_or_else(|| {
+        error(
+            "corrupt_project",
+            "The imported map references a missing floor.",
+            None,
+            false,
+        )
+    })?;
+    let finite = [
+        request.first_x_pixels,
+        request.first_y_pixels,
+        request.second_x_pixels,
+        request.second_y_pixels,
+        request.known_distance_meters,
+    ]
+    .iter()
+    .all(|value| value.is_finite());
+    if !finite {
+        return Err(error(
+            "invalid_request",
+            "Calibration values must be finite numbers.",
+            None,
+            false,
+        ));
+    }
+    let transform = TwoPointCalibration::new(CalibrationControls {
+        source_frame: map.data().image_frame.id,
+        target_frame: floor.data().frame.id,
+        image_first: PixelPoint {
+            x: Pixels::new(request.first_x_pixels)
+                .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+            y: Pixels::new(request.first_y_pixels)
+                .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+        },
+        image_second: PixelPoint {
+            x: Pixels::new(request.second_x_pixels)
+                .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+            y: Pixels::new(request.second_y_pixels)
+                .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+        },
+        target_origin: Point2 {
+            x: CoordinateMeters::new(0.0).expect("zero is finite"),
+            y: CoordinateMeters::new(0.0).expect("zero is finite"),
+        },
+        known_distance: Meters::new(request.known_distance_meters)
+            .map_err(|value| error("invalid_request", value.to_string(), None, false))?,
+        target_direction: Radians::new(0.0).expect("zero is finite"),
+        image_y_axis: ImageYAxis::Down,
+        distance_uncertainty: Evidence::Unknown(UnknownReason::NotMeasured),
+        control_point_uncertainty: Evidence::Unknown(UnknownReason::NotMeasured),
+    })
+    .map_err(|value| error("invalid_request", value.to_string(), None, false))?;
+    let calibration = MapCalibration {
+        id: calibration_id,
+        map_id,
+        transform,
+        provenance: Text::new("manual-two-point-controls").expect("static provenance is valid"),
+        method_version: Text::new("manual-two-point-v1").expect("static version is valid"),
+    };
+    let committed_utc_ms = SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|_| {
+            error(
+                "storage",
+                "System clock is before the Unix epoch.",
+                None,
+                true,
+            )
+        })?
+        .as_millis()
+        .try_into()
+        .map_err(|_| error("storage", "System clock value is out of range.", None, true))?;
+    Ok(CalibrateMapIntent {
+        authority: MapIntentAuthority {
+            operation_id,
+            actor_id,
+            device_id,
+            committed_utc_ms,
+        },
+        calibration,
+    })
+}
+
+fn prune_map_grants(state: &mut DesktopState, now: Instant) {
+    state.map_grants.retain(|_, grant| {
+        now.checked_duration_since(grant.issued_at)
+            .is_some_and(|age| age <= MAP_SOURCE_GRANT_TTL)
+    });
+}
+
+fn prune_map_retries(state: &mut DesktopState, now: Instant) {
+    state.map_retries.retain(|_, retry| {
+        now.checked_duration_since(retry.created_at)
+            .is_some_and(|age| age <= MAP_RETRY_TTL)
+    });
 }
 
 pub fn begin_open_job(
@@ -870,6 +1587,45 @@ mod tests {
         root.join(format!("desktop-{label}-{}.rfatlas", uuid::Uuid::new_v4()))
     }
 
+    fn retained_map_file(label: &str, bytes: &[u8]) -> PathBuf {
+        let path = retained_path(label).with_extension("png");
+        std::fs::write(&path, bytes).expect("retain map source fixture");
+        path
+    }
+
+    fn test_project_id(byte: u8) -> ProjectId {
+        ProjectId::from_bytes([byte; 16]).expect("nonzero project id")
+    }
+
+    fn test_floor_id(byte: u8) -> FloorId {
+        FloorId::from_bytes([byte; 16]).expect("nonzero floor id")
+    }
+
+    fn test_map_retry(project_id: ProjectId, created_at: Instant) -> NativeMapRetry {
+        NativeMapRetry {
+            project_id,
+            intent: ImportMapIntent {
+                authority: MapIntentAuthority {
+                    operation_id: OperationId::from_bytes([8; 16]).expect("operation id"),
+                    actor_id: ActorId::from_bytes([9; 16]).expect("actor id"),
+                    device_id: ActorDeviceId::from_bytes([10; 16]).expect("device id"),
+                    committed_utc_ms: 1_800_000_000_000,
+                },
+                map_id: MapAssetId::from_bytes([11; 16]).expect("map id"),
+                floor_id: test_floor_id(12),
+                name: Text::new("Retry map.png").expect("map name"),
+                image_frame: CoordinateFrame {
+                    id: FrameId::from_bytes([13; 16]).expect("frame id"),
+                    name: Text::new("Image pixels").expect("frame name"),
+                    kind: FrameKind::ImagePixels,
+                },
+                provenance: Text::new("native-picker:retry-fixture").expect("provenance"),
+            },
+            bytes: b"retained bytes".to_vec(),
+            created_at,
+        }
+    }
+
     #[test]
     fn command_schema_is_checked_before_application_work() {
         assert_eq!(
@@ -881,7 +1637,209 @@ mod tests {
     }
 
     #[test]
-    fn create_mapping_returns_canonical_baseline_without_floor_data() {
+    fn map_grants_are_opaque_project_bound_and_one_shot() {
+        let mut state = DesktopState::default();
+        let source = retained_map_file("map-grant", b"not decoded by the picker");
+        let selection = issue_map_source_grant(
+            &mut state,
+            source.clone(),
+            test_project_id(1),
+            test_floor_id(2),
+        )
+        .expect("opaque selection");
+        let grant_id = selection
+            .selection
+            .as_ref()
+            .expect("selected file")
+            .grant_id
+            .clone();
+        let response = serde_json::to_value(&selection).expect("serialize picker response");
+        let json = response.to_string();
+        assert!(!json.contains(source.to_string_lossy().as_ref()));
+        assert!(!json.contains("pixels"));
+        assert_eq!(response["selection"]["kind"], "png");
+        assert_eq!(
+            response["selection"]["byteLength"],
+            b"not decoded by the picker".len()
+        );
+
+        assert_eq!(
+            take_map_import_source(&mut state, &grant_id, test_project_id(3))
+                .expect_err("wrong project must not consume grant")
+                .code,
+            "invalid_grant"
+        );
+        let source = take_map_import_source(&mut state, &grant_id, test_project_id(1))
+            .expect("grant remains available to its project");
+        assert!(matches!(source, MapImportSource::Grant(_)));
+        assert_eq!(
+            take_map_import_source(&mut state, &grant_id, test_project_id(1))
+                .expect_err("grant is one shot")
+                .code,
+            "invalid_grant"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn map_grant_rejects_symlinks_without_following_them() {
+        let target = retained_map_file("map-link-target", b"target");
+        let link = retained_path("map-link").with_extension("png");
+        std::os::unix::fs::symlink(&target, &link).expect("map symlink");
+        let mut state = DesktopState::default();
+        assert_eq!(
+            issue_map_source_grant(&mut state, link, test_project_id(1), test_floor_id(2),)
+                .expect_err("symlink rejected")
+                .code,
+            "invalid_request"
+        );
+        assert!(state.map_grants.is_empty());
+    }
+
+    #[test]
+    fn map_grants_are_bounded_expiring_and_release_capacity() {
+        let mut state = DesktopState::default();
+        let project_id = test_project_id(1);
+        let floor_id = test_floor_id(2);
+        let mut grants = Vec::new();
+        for index in 0..MAX_MAP_SOURCE_GRANTS {
+            let selected = issue_map_source_grant(
+                &mut state,
+                retained_map_file(&format!("map-bound-{index}"), b"source"),
+                project_id,
+                floor_id,
+            )
+            .expect("bounded map selection");
+            grants.push(selected.selection.expect("selected map").grant_id);
+        }
+        assert_eq!(
+            issue_map_source_grant(
+                &mut state,
+                retained_map_file("map-bound-overflow", b"source"),
+                project_id,
+                floor_id,
+            )
+            .expect_err("grant bound")
+            .code,
+            "resource_limit"
+        );
+        state
+            .map_grants
+            .get_mut(&grants[0])
+            .expect("first grant")
+            .issued_at = Instant::now() - MAP_SOURCE_GRANT_TTL - Duration::from_secs(1);
+        assert_eq!(
+            take_map_import_source(&mut state, &grants[0], project_id)
+                .expect_err("expired grant")
+                .code,
+            "invalid_grant"
+        );
+        issue_map_source_grant(
+            &mut state,
+            retained_map_file("map-bound-after-expiry", b"source"),
+            project_id,
+            floor_id,
+        )
+        .expect("expired grant releases bounded slot");
+    }
+
+    #[test]
+    fn map_retries_are_bounded_expiring_and_project_scoped() {
+        let mut state = DesktopState::default();
+        let project_id = test_project_id(1);
+        let now = Instant::now();
+        retain_map_import_retry(
+            &mut state,
+            "first-retry".to_owned(),
+            test_map_retry(project_id, now),
+        )
+        .expect("first retry");
+        retain_map_import_retry(
+            &mut state,
+            "second-retry".to_owned(),
+            test_map_retry(project_id, now),
+        )
+        .expect("second retry");
+        assert_eq!(
+            retain_map_import_retry(
+                &mut state,
+                "third-retry".to_owned(),
+                test_map_retry(project_id, now),
+            )
+            .expect_err("retry bound")
+            .code,
+            "resource_limit"
+        );
+        assert_eq!(
+            take_map_import_source(&mut state, "first-retry", test_project_id(2))
+                .expect_err("wrong project")
+                .code,
+            "invalid_grant"
+        );
+        state
+            .map_retries
+            .get_mut("first-retry")
+            .expect("first retry")
+            .created_at = now - MAP_RETRY_TTL - Duration::from_secs(1);
+        assert_eq!(
+            take_map_import_source(&mut state, "first-retry", project_id)
+                .expect_err("expired retry")
+                .code,
+            "invalid_grant"
+        );
+        retain_map_import_retry(
+            &mut state,
+            "third-retry".to_owned(),
+            test_map_retry(project_id, Instant::now()),
+        )
+        .expect("expired retry releases capacity");
+        assert!(matches!(
+            take_map_import_source(&mut state, "second-retry", project_id)
+                .expect("retry stays bound to its project"),
+            MapImportSource::Retry(_)
+        ));
+    }
+
+    #[test]
+    fn map_staging_is_bounded_and_observes_cancellation() {
+        let source = retained_map_file("map-stage", b"small retained source");
+        let file = open_map_file_without_following_links(&source).expect("open retained source");
+        let mut grant = NativeMapGrant {
+            file,
+            display_name: "source.png".to_owned(),
+            byte_length: b"small retained source".len() as u64,
+            project_id: test_project_id(1),
+            floor_id: test_floor_id(2),
+            map_id: MapAssetId::from_bytes([3; 16]).expect("map id"),
+            image_frame: CoordinateFrame {
+                id: FrameId::from_bytes([4; 16]).expect("frame id"),
+                name: Text::new("Image pixels").expect("frame name"),
+                kind: FrameKind::ImagePixels,
+            },
+            authority: MapIntentAuthority {
+                operation_id: OperationId::from_bytes([5; 16]).expect("operation id"),
+                actor_id: ActorId::from_bytes([6; 16]).expect("actor id"),
+                device_id: ActorDeviceId::from_bytes([7; 16]).expect("device id"),
+                committed_utc_ms: 1_800_000_000_000,
+            },
+            issued_at: Instant::now(),
+        };
+        assert_eq!(
+            read_map_source(&mut grant, &JobControl::new()).expect("read source"),
+            b"small retained source"
+        );
+        let cancelled = JobControl::new();
+        cancelled.cancel();
+        assert_eq!(
+            read_map_source(&mut grant, &cancelled)
+                .expect_err("cancelled source read")
+                .code,
+            "cancelled"
+        );
+    }
+
+    #[test]
+    fn create_mapping_returns_canonical_baseline_with_empty_floor_plan() {
         let mut state = DesktopState::default();
         let response = create_project_at(
             &mut state,
@@ -902,6 +1860,45 @@ mod tests {
         assert_eq!(
             response.project.as_ref().map(|project| project.calibrated),
             Some(false)
+        );
+        assert!(
+            response
+                .project
+                .as_ref()
+                .is_some_and(|project| project.floor_id.is_some() && project.maps.is_empty())
+        );
+    }
+
+    #[test]
+    fn map_mutation_response_keeps_durable_receipt_when_readback_fails() {
+        let missing_path = retained_path("map-readback-missing");
+        let readback_error = match Application.open(OpenProject {
+            path: missing_path,
+            mode: SessionMode::ReadOnly,
+        }) {
+            Ok(_) => panic!("missing project unexpectedly opened"),
+            Err(error) => error,
+        };
+        let operation_id = OperationId::from_bytes([21; 16]).expect("operation id");
+        let response = map_mutation_response(MapMutationOutcome {
+            receipt: MapMutationReceipt {
+                operation_id,
+                project_revision: 7_u64.into(),
+                content_hash: "ab".repeat(32).try_into().expect("content hash"),
+            },
+            current: Err(readback_error),
+        });
+
+        let value = serde_json::to_value(response).expect("serialize mutation outcome");
+        assert_eq!(value["state"], "committed");
+        assert_eq!(value["operationId"], String::from(operation_id));
+        assert_eq!(value["projectRevision"], 7);
+        assert_eq!(value["current"], serde_json::Value::Null);
+        assert_eq!(value["readbackError"]["code"], "missing_project");
+        assert!(
+            value["readbackError"]["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("[local path]"))
         );
     }
 

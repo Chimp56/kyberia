@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 const baselineResponse = {
-  schema: "kyberia.desktop-ipc/1" as const,
+  schema: "kyberia.desktop-ipc/2" as const,
   state: "baseline_only" as const,
   project: {
     projectId: "fixture-project",
@@ -12,6 +12,8 @@ const baselineResponse = {
     logicalTime: 0,
     hasFloorPlan: false,
     calibrated: false,
+    floorId: "fixture-floor",
+    maps: [],
   },
   capabilities: [],
 };
@@ -30,7 +32,7 @@ test("empty shell exposes honest import and keyboard palette states", async ({ p
   await expect(page.getByText("Live capture unavailable").first()).toBeVisible();
   await expect(page.getByText("Scale unavailable")).toBeVisible();
   await page.screenshot({ path: "evidence/desktop-shell-1586x960-v3.png", fullPage: true });
-  await page.getByRole("button", { name: "Import floor plan" }).click();
+  await page.getByRole("button", { name: "Choose PNG floor plan" }).click();
   await expect(page.getByRole("heading", { name: "Desktop command required" })).toBeVisible();
   const paletteButton = page.locator(".palette-trigger");
   await paletteButton.click();
@@ -52,12 +54,12 @@ test("empty shell exposes honest import and keyboard palette states", async ({ p
 test("loading and error states come from the command result", async ({ page }) => {
   await page.addInitScript(() => {
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
-      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/1", selection: null }),
-      openProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
-      createBlankProject: () => new Promise((_, reject) => setTimeout(() => reject({ schema: "kyberia.desktop-ipc/1", code: "corrupt_project", message: "The fixture project is unavailable.", remediation: "Keep the original bundle and use the project verification tools.", retryable: false }), 200)),
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 35 }),
-      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
+      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/2", selection: null }),
+      openProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
+      createBlankProject: () => new Promise((_, reject) => setTimeout(() => reject({ schema: "kyberia.desktop-ipc/2", code: "corrupt_project", message: "The fixture project is unavailable.", remediation: "Keep the original bundle and use the project verification tools.", retryable: false }), 200)),
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 35 }),
+      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
     };
   });
   await page.goto("/");
@@ -72,15 +74,15 @@ test("loading and error states come from the command result", async ({ page }) =
 test("native grant open flow is represented without exposing a path", async ({ page }) => {
   await page.addInitScript((response) => {
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: async () => response,
-      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/1", selection: { grantId: "opaque-grant", displayName: "Fixture project.rfatlas", kind: "open" } }),
+      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/2", selection: { grantId: "opaque-grant", displayName: "Fixture project.rfatlas", kind: "open" } }),
       openProject: async (request) => {
         if (request.grantId !== "opaque-grant") throw new Error("wrong grant");
         return response;
       },
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 65 }),
-      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" }),
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 65 }),
+      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
     };
   }, baselineResponse);
   await page.goto("/");
@@ -99,15 +101,15 @@ test("native selector exposes progress and cancellation while it is open", async
     let staleStatusPending = false;
     let staleStatusReleased = false;
     let releaseStaleStatus: (() => void) | null = null;
-    const runningStatus = (jobId: string) => ({ schema: "kyberia.desktop-ipc/1" as const, jobId, state: "running" as const, progress: 18 });
+    const runningStatus = (jobId: string) => ({ schema: "kyberia.desktop-ipc/2" as const, jobId, state: "running" as const, progress: 18 });
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: async () => response,
       selectOpenProject: ({ jobId }) => {
         pickerJobId = jobId;
         return new Promise((_, reject) => {
           rejectSelection = reject;
-          finishSelection = () => rejectSelection?.({ schema: "kyberia.desktop-ipc/1", code: "cancelled", message: "The desktop project operation was cancelled.", remediation: "Run the operation again when ready.", retryable: true });
+          finishSelection = () => rejectSelection?.({ schema: "kyberia.desktop-ipc/2", code: "cancelled", message: "The desktop project operation was cancelled.", remediation: "Run the operation again when ready.", retryable: true });
         });
       },
       openProject: async () => response,
@@ -129,7 +131,7 @@ test("native selector exposes progress and cancellation while it is open", async
         if (jobId !== pickerJobId) throw new Error("wrong picker job");
         cancelCalls += 1;
         await new Promise<void>((resolve) => { releaseCancel = resolve; });
-        return { schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" };
+        return { schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" };
       },
     };
     (window as unknown as { __CANCEL_CALLS__?: () => number }).__CANCEL_CALLS__ = () => cancelCalls;
@@ -163,17 +165,17 @@ test("a second open command cannot race an admitted native selection", async ({ 
     let resolveSelection: ((value: unknown) => void) | null = null;
     (window as unknown as { __SELECTION_COUNT__?: () => number }).__SELECTION_COUNT__ = () => selections;
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: async () => response,
       selectOpenProject: () => {
         selections += 1;
         return new Promise((resolve) => { resolveSelection = resolve; });
       },
       openProject: async () => response,
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 5 }),
-      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" }),
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 5 }),
+      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
     };
-    (window as unknown as { __RESOLVE_SELECTION__?: () => void }).__RESOLVE_SELECTION__ = () => resolveSelection?.({ schema: "kyberia.desktop-ipc/1", selection: null });
+    (window as unknown as { __RESOLVE_SELECTION__?: () => void }).__RESOLVE_SELECTION__ = () => resolveSelection?.({ schema: "kyberia.desktop-ipc/2", selection: null });
   }, baselineResponse);
   await page.goto("/");
   await page.getByRole("button", { name: "Open project" }).click();
@@ -190,17 +192,17 @@ test("cancelled native selection preserves the active project session", async ({
   await page.addInitScript((response) => {
     let selections = 0;
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: async () => response,
       selectOpenProject: async () => {
         selections += 1;
         return selections === 1
-          ? { schema: "kyberia.desktop-ipc/1", selection: { grantId: "opaque-grant", displayName: "Fixture project.rfatlas", kind: "open" } }
-          : { schema: "kyberia.desktop-ipc/1", selection: null };
+          ? { schema: "kyberia.desktop-ipc/2", selection: { grantId: "opaque-grant", displayName: "Fixture project.rfatlas", kind: "open" } }
+          : { schema: "kyberia.desktop-ipc/2", selection: null };
       },
       openProject: async () => response,
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 65 }),
-      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" }),
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 65 }),
+      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
     };
   }, baselineResponse);
   await page.goto("/");
@@ -217,21 +219,21 @@ test("retry repeats a failed open operation", async ({ page }) => {
     let opens = 0;
     let selections = 0;
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: async () => response,
       selectOpenProject: async () => {
         selections += 1;
         (window as unknown as { __OPEN_SELECTION_COUNT__: number }).__OPEN_SELECTION_COUNT__ = selections;
-        return { schema: "kyberia.desktop-ipc/1", selection: { grantId: `opaque-grant-${selections}`, displayName: "Recovered project.rfatlas", kind: "open" } };
+        return { schema: "kyberia.desktop-ipc/2", selection: { grantId: `opaque-grant-${selections}`, displayName: "Recovered project.rfatlas", kind: "open" } };
       },
       openProject: async () => {
         opens += 1;
         (window as unknown as { __OPEN_COUNT__: number }).__OPEN_COUNT__ = opens;
-        if (opens === 1) throw { schema: "kyberia.desktop-ipc/1", code: "storage", message: "Temporary open failure.", retryable: true };
+        if (opens === 1) throw { schema: "kyberia.desktop-ipc/2", code: "storage", message: "Temporary open failure.", retryable: true };
         return response;
       },
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 50 }),
-      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" }),
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 50 }),
+      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
     };
   }, { ...baselineResponse, project: { ...baselineResponse.project, projectId: "recovered-project", name: "Recovered project" } });
   await page.goto("/");
@@ -262,18 +264,18 @@ test("project job exposes progress and user cancellation without swapping sessio
     let rejectCreate: ((reason: unknown) => void) | null = null;
     let activeJobId = "";
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
-      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/1", selection: null }),
-      openProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
+      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/2", selection: null }),
+      openProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
       createBlankProject: ({ jobId }) => {
         activeJobId = jobId;
         return new Promise((_, reject) => { rejectCreate = reject; });
       },
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 42 }),
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 42 }),
       cancelJob: async ({ jobId }) => {
         if (jobId !== activeJobId) throw new Error("wrong job");
-        rejectCreate?.({ schema: "kyberia.desktop-ipc/1", code: "cancelled", message: "The desktop project operation was cancelled.", retryable: true });
-        return { schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" };
+        rejectCreate?.({ schema: "kyberia.desktop-ipc/2", code: "cancelled", message: "The desktop project operation was cancelled.", retryable: true });
+        return { schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" };
       },
     };
   });
@@ -290,17 +292,17 @@ test("retry repeats failed create and accepted replacement publishes a distinct 
   await page.addInitScript(({ active, replacement }) => {
     let creates = 0;
     window.__RF_ATLAS_IPC__ = {
-      currentProject: async () => ({ schema: "kyberia.desktop-ipc/1", state: "no_project", project: null, capabilities: [] }),
-      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/1", selection: { grantId: "opaque-grant", displayName: "Fixture project.rfatlas", kind: "open" } }),
+      currentProject: async () => ({ schema: "kyberia.desktop-ipc/2", state: "no_project", project: null, capabilities: [] }),
+      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/2", selection: { grantId: "opaque-grant", displayName: "Fixture project.rfatlas", kind: "open" } }),
       openProject: async () => active,
       createBlankProject: async () => {
         creates += 1;
         (window as unknown as { __CREATE_COUNT__: number }).__CREATE_COUNT__ = creates;
-        if (creates === 1) throw { schema: "kyberia.desktop-ipc/1", code: "storage", message: "Temporary create failure.", retryable: true };
+        if (creates === 1) throw { schema: "kyberia.desktop-ipc/2", code: "storage", message: "Temporary create failure.", retryable: true };
         return replacement;
       },
-      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "running", progress: 50 }),
-      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/1", jobId, state: "cancelling" }),
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 50 }),
+      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
     };
   }, {
     active: baselineResponse,

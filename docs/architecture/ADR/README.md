@@ -38,6 +38,7 @@ Each accepted ADR records context, decision, alternatives, evidence, consequence
 | [0032](0032-kyberia-lab-mcp.md) | Proposed; independent review and physical-host gates open | Stdio MCP coordinator with immutable revisions, mutually signed runner envelopes, static command allowlists and sanitized evidence |
 | [0033 (plan ADR-006)](0033-tauri-react-versioned-ipc.md) | Proposed bounded shell boundary; product lifecycle gates open | Tauri 2 + React/TypeScript + Rust application boundary with versioned IPC, owned jobs, opaque grants, and honest cancellation |
 | [0034](0034-map-asset-admission.md) | Proposed bounded increment; independent review pending | Strict bounded PNG admission with immutable source artifacts and typed V3 map/calibration operations behind evidence-lock and publication boundaries |
+| [0035](0035-desktop-map-workflow.md) | Proposed bounded adaptation; independent review pending | Manual current-main port from fresh floor baseline through opaque native PNG grant, durable map/calibration intent and numeric-only metadata UI; Phase 0 exits remain open |
 
 The plan repeats ADR-012 through ADR-016 for distinct subjects. Repository ADR numbers are unique; source proposal aliases will be mapped with their section and occurrence. No repeated proposal is silently discarded.
 

@@ -25,6 +25,9 @@ fn application_create_and_query_mapping_stays_inside_versioned_boundary() {
     .expect("application create mapping");
     assert_eq!(response.schema, IPC_SCHEMA);
     assert_eq!(response.state, "baseline_only");
+    let project = response.project.as_ref().expect("project summary");
+    assert!(project.floor_id.is_some());
+    assert!(project.maps.is_empty());
     assert_eq!(
         response
             .project
