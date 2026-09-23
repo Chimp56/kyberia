@@ -86028,13 +86028,22 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "propagation/convergence",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "acceptance_cases": [
+        "bounded-radio-map-convergence-diagnostic"
+      ],
+      "implementation": [
+        {
+          "path": "workers/sionna/rfatlas_sionna/convergence.py",
+          "description": "Adds a support-only bounded sample/seed convergence diagnostic over ordinary radio_map jobs; it is not engine or product acceptance.",
+          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
+          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -166509,7 +166518,7 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration/release",
       "phase": 7,
       "depends_on": [],
@@ -167393,14 +167402,39 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "integration/release",
+      "status": "IN_PROGRESS",
+      "owner": "propagation/convergence",
       "phase": 7,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "bounded-radio-map-convergence-diagnostic"
+      ],
+      "implementation": [
+        {
+          "path": "workers/sionna/rfatlas_sionna/convergence.py",
+          "description": "Adds a bounded support diagnostic for repeated-seed path-gain summaries and per-budget runtime spread; real CPU/LLVM execution and cross-environment variance remain open.",
+          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
+          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+        },
+        {
+          "path": "tests/test_sionna_convergence.py",
+          "description": "Synthetic-only tests for aggregation, bounds, contract rejection and default-client dispatch; they do not execute Sionna.",
+          "revision": "2f2921684fbdf78e68f1c58452ff6b4e3ed28d21cbc27e08bd7213f460c61317",
+          "sha256": "2f2921684fbdf78e68f1c58452ff6b4e3ed28d21cbc27e08bd7213f460c61317"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/sionna-convergence-diagnostic.md",
+          "description": "Records the passing 9-test synthetic-only author check and explicitly leaves actual worker, cross-runtime and product gates open.",
+          "revision": "2f2921684fbdf78e68f1c58452ff6b4e3ed28d21cbc27e08bd7213f460c61317",
+          "sha256": "db4d2b14725821efb12d39a89e07f71905d173ae7d026aa1c3ee535ba4faa015",
+          "command": "python3 -m unittest discover -s tests -p 'test_sionna_convergence.py' -v",
+          "result": "PASS",
+          "scope": "contract"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -176073,13 +176107,24 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "propagation/convergence",
       "phase": 3,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "source:list_item:5269a81e5d04ce55d10d:1"
+      ],
+      "acceptance_cases": [
+        "bounded-radio-map-convergence-diagnostic"
+      ],
+      "implementation": [
+        {
+          "path": "workers/sionna/rfatlas_sionna/convergence.py",
+          "description": "Support diagnostic only: no RadioMapSolver product integration, measured holdouts or P2/P1 claim is established.",
+          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
+          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -243243,13 +243288,24 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "propagation",
+      "status": "IN_PROGRESS",
+      "owner": "propagation/convergence",
       "phase": 3,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "source:list_item:5269a81e5d04ce55d10d:1"
+      ],
+      "acceptance_cases": [
+        "monte-carlo-component-of-prediction-uncertainty"
+      ],
+      "implementation": [
+        {
+          "path": "workers/sionna/rfatlas_sionna/convergence.py",
+          "description": "Adds only cross-seed Monte Carlo standard-error diagnostics; geometry/material priors, sensor residuals, scenario sensitivity and calibration remain unimplemented.",
+          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
+          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -248621,13 +248677,22 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "specification/review",
+      "status": "IN_PROGRESS",
+      "owner": "propagation/convergence",
       "phase": null,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "acceptance_cases": [
+        "bounded-radio-map-convergence-diagnostic"
+      ],
+      "implementation": [
+        {
+          "path": "workers/sionna/rfatlas_sionna/convergence.py",
+          "description": "Implements bounded seed/sample sensitivity summaries for ordinary radio maps; depth sensitivity and engine acceptance remain out of scope.",
+          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
+          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
