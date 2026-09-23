@@ -177626,14 +177626,35 @@
         {
           "path": "docs/validation/phase-eight-plugin-sdk-contracts.md",
           "description": "Focused bounded-parser and contract evidence, golden vector, governance checks, and explicit runtime limitations",
-          "revision": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
-          "sha256": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
+          "revision": "16b2c4676fac1c0e6d2a64785169c217d1450d90f11d0db7d1839d46b604cd94",
+          "sha256": "16b2c4676fac1c0e6d2a64785169c217d1450d90f11d0db7d1839d46b604cd94",
           "command": "cargo test -p kyberia-plugin-sdk --locked --offline",
           "scope": "bounded_manifest_admission_and_contract_negotiation",
           "result": "PASS"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase8-plugin-sdk-parser-boundary-rereview.md",
+          "description": "Independent re-review of bounded raw-manifest parsing and canonical identity vector",
+          "revision": "be4d125dd6240c9aaf9dd782248b59c83aa1355a",
+          "sha256": "b6664c542b7212dcb885f0250c17c48c0cb7a3a73b07b9f47032cd0f76977ba2",
+          "reviewer": "/root/phase8_plugin_independent_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Manifest limits were applied after deserialization rather than to raw input first.",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Canonical identity lacked a fixed byte and digest golden vector.",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:7767b4664cf86104fcde:1",
@@ -244941,14 +244962,35 @@
         {
           "path": "docs/validation/phase-eight-plugin-sdk-contracts.md",
           "description": "Focused bounded-parser and contract evidence, golden vector, governance checks, and explicit runtime limitations",
-          "revision": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
-          "sha256": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
+          "revision": "16b2c4676fac1c0e6d2a64785169c217d1450d90f11d0db7d1839d46b604cd94",
+          "sha256": "16b2c4676fac1c0e6d2a64785169c217d1450d90f11d0db7d1839d46b604cd94",
           "command": "cargo test -p kyberia-plugin-sdk --locked --offline",
           "scope": "bounded_manifest_admission_and_capability_scoped_contracts",
           "result": "PASS"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase8-plugin-sdk-parser-boundary-rereview.md",
+          "description": "Independent re-review of bounded raw-manifest parsing and canonical identity vector",
+          "revision": "be4d125dd6240c9aaf9dd782248b59c83aa1355a",
+          "sha256": "b6664c542b7212dcb885f0250c17c48c0cb7a3a73b07b9f47032cd0f76977ba2",
+          "reviewer": "/root/phase8_plugin_independent_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MAJOR",
+              "description": "Manifest limits were applied after deserialization rather than to raw input first.",
+              "resolution": "RESOLVED"
+            },
+            {
+              "severity": "MINOR",
+              "description": "Canonical identity lacked a fixed byte and digest golden vector.",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",

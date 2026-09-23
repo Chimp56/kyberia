@@ -8,8 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; and bounded map import/PNG admission at `2670207`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Most recent integration change: bounded PNG map admission and operation-backed map import at `2670207`, with the PNG-ordering correction independently re-reviewed. This does not close a roadmap phase; map UI/decoder, physical and hosted product gates remain open.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; and Phase 8 plugin parser contract at `8cce7c1`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
+- Most recent integration change: the bounded Phase 8 plugin declaration/parser contract at `8cce7c1`, with independent correction re-review `51f5caa`. This does not close a roadmap phase; WIT validation, component execution, sandbox/runtime enforcement, physical and hosted product gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -47,6 +47,16 @@ and [`map-asset-order-fix-rereview-20260923.md`](docs/reviews/map-asset-order-fi
 the identified ordering finding is resolved. This does not close the remaining
 import-format catalog, pixel decoding, map UI/desktop workflow, multi-point/CRS
 calibration, or the Phase 0 exit criteria.
+
+The hardware-independent Phase 5 spectrum contract is integrated at `9641431`
+with correction re-review `16a9111`. The PSD path fails closed and local-bin
+coverage is explicit; fixtures remain synthetic and bandwidth normalization,
+adapters, hardware and labeled traces remain open.
+
+The Phase 8 plugin declaration/parser contract is integrated at `8cce7c1`
+with correction re-review `51f5caa`. Raw input and nesting are bounded before
+deserialization. WIT compilation, component execution, sandbox enforcement,
+sample integrations and Phase 8 exit remain open.
 
 ## Historical execution checkpoint — 2026-09-22
 
@@ -169,7 +179,7 @@ product capability is validated.
 
 | Work | Owner / isolated worktree | Acceptance still required |
 | --- | --- | --- |
-| Phase 8 plugin contract foundation | Candidate `feat/phase8-plugin-sdk-current`; `phase8-plugin-sdk` | Focused declaration/negotiation and bounded raw-manifest parsing tests pass, including raw-byte/depth preflight and fixed v1 canonical golden vector. Follow-up independent review, WIT compiler validation, third-party sample collector/metric/export, runtime invocation, resource enforcement, sandboxing, and project integration remain open; no Phase 8 exit or SEC-002 completion is claimed |
+| Phase 8 plugin contract foundation | Integrated on `main` at `8cce7c1`; correction re-review `51f5caa` | Focused declaration/negotiation and bounded raw-manifest parsing tests pass, including raw-byte/depth preflight and fixed v1 canonical golden vector; both prior review findings are resolved. WIT compiler validation, third-party sample collector/metric/export, runtime invocation, resource enforcement, sandboxing, and project integration remain open; no Phase 8 exit or SEC-002 completion is claimed |
 | Neutral planning interchange | Reviewed source `3604e40` | Original schema proof passes 13 focused tests and independent review; external planner bridge, maintainer RFC and runtime round trips remain open |
 | Canonical scene renderer input | Root integration / reviewed source `125133e` | Independent canonical browser probes and 8-workload benchmark pass on a fresh server. Integration rebuild exposed absolute-path-dependent WASM bytes; a shared-workspace build now reproduces identical bytes at three checkout roots. Complete integrated regression and independent build-environment review pass. Final renderer/product gate remains open; [follow-up](docs/reviews/renderer-wasm-correction-followup.md) |
 | Native capture session boundary | Integrated `1fb8d12` + `ecf9b59` | Reviewed shared normalization; timing corrections `73111b0` and `1711f13`; exact identity mapping retention sources `ff70362` + `4c47283` independently approved and integrated, including custom and empty-capture identity regressions |

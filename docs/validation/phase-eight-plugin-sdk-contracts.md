@@ -1,8 +1,8 @@
-# Phase 8 plugin contract foundation — candidate validation
+# Phase 8 plugin contract foundation — bounded validation
 
-Status: implementation candidate on `feat/phase8-plugin-sdk-current`; not
-integrated; the follow-up independent review is pending. This is a portable
-declaration and validation contract only, not a running plugin system.
+Status: bounded implementation integrated on `main` at `8cce7c1`; parser-boundary
+correction re-review passed at `51f5caa`. This is a portable declaration and
+validation contract only, not a running plugin system.
 
 ## Plan scope
 
@@ -19,9 +19,10 @@ declaration and validation contract only, not a running plugin system.
   fixed 32-delimiter nesting ceiling, and then applies strict semantic
   validation. Callers still must bound reads before buffering; this is not
   general heap accounting or sandbox enforcement.
-- This correction addresses the parser-boundary finding in
-  `docs/reviews/phase8-plugin-sdk-current-review.md`; the independent
-  follow-up review is pending, not passed.
+- The parser-boundary correction resolves both findings in
+  [`phase8-plugin-sdk-current-review.md`](../reviews/phase8-plugin-sdk-current-review.md);
+  the independent re-review is recorded in
+  [`phase8-plugin-sdk-parser-boundary-rereview.md`](../reviews/phase8-plugin-sdk-parser-boundary-rereview.md).
 - A fixed v1 canonical-manifest byte and project-reference digest vector pins
   this Rust serialization implementation; cross-language interoperability is
   not claimed.
@@ -36,6 +37,14 @@ declaration and validation contract only, not a running plugin system.
 | `python3 tools/architecture.py` | PASS: reviewed dependency direction and external-package boundary |
 | `python3 tools/source_inventory.py check` | PASS: 522 locked external packages |
 
+## Mainline promotion verification
+
+After integration at `8cce7c1`, the mainline SDK suite passed all 23 contract
+tests and strict Clippy. Workspace formatting, architecture, the 522-package
+source inventory, ledger generation/check, and `git diff --check` also passed.
+This focused verification does not validate or compile the WIT source or execute
+a component.
+
 The sorted `(name, version, source)` identity digest for the locked external
 package set is unchanged across the inventory refresh:
 `c4f386a190a6a4e8ad459c16fa57cf87bbaa8a863aaf8518693096688e99eb9c`.
@@ -44,10 +53,10 @@ invalid host limits cannot be hidden by having no plugin declarations.
 
 ## Limits and open evidence
 
-The independent follow-up review is pending. The WIT source has not been parsed
-or compiled because neither `wasm-tools` nor `wit-bindgen` is available in this
-environment. No WASM component is loaded or invoked. No signature/trust policy,
-host grant enforcement, process isolation, filesystem/network mediation,
+The WIT source has not been parsed or compiled because neither `wasm-tools` nor
+`wit-bindgen` is available in this environment. No WASM component is loaded or
+invoked. No signature/trust policy, host grant enforcement, process isolation,
+filesystem/network mediation,
 cancellation, atomic output publication, or runtime CPU/memory/time limit is
 implemented or tested. Resource declarations are validated against
 host-advertised ceilings but are not enforced. No third-party collector,
