@@ -53085,12 +53085,12 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "feat/phase3-antenna-current",
+      "owner": "feat/phase3-antenna-schema-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "antenna-pattern-v1-synthetic-contract; cuts, manufacturer formats, visual checks, and adapter remain open"
+        "antenna-pattern-v1 synthetic import/evaluator and Draft 2020-12 structural schema cases; cuts, harmonics, manufacturer formats, visual checks, and adapters remain open"
       ],
       "implementation": [
         {
@@ -53113,26 +53113,59 @@
         },
         {
           "path": "crates/antenna-model/tests/antenna_pattern.rs",
-          "description": "Synthetic contract and evaluator acceptance regressions",
-          "revision": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e",
-          "sha256": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e"
+          "description": "Synthetic Rust contract/evaluator regressions using the shared schema-validation fixture",
+          "revision": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225",
+          "sha256": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225"
+        },
+        {
+          "path": "crates/antenna-model/tests/fixtures/antenna-pattern-v1-valid.json",
+          "description": "Representative valid wire-contract fixture shared by Rust importer tests and the JSON Schema validator",
+          "revision": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b",
+          "sha256": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b"
+        },
+        {
+          "path": "tools/validate_antenna_schema.py",
+          "description": "Pinned Draft 2020-12 schema check with positive and structural negative instances",
+          "revision": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519",
+          "sha256": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519"
+        },
+        {
+          "path": "tools/dev.py",
+          "description": "Explicit validate-antenna-schema developer command using the configured Python environment",
+          "revision": "57fbc70d6c151fd6daaa35322a7e1a01320fbe6edd187b43895a194ac81bec28",
+          "sha256": "57fbc70d6c151fd6daaa35322a7e1a01320fbe6edd187b43895a194ac81bec28"
+        },
+        {
+          "path": "tests/test_dev_commands.py",
+          "description": "Developer command routing regression for the explicit schema check",
+          "revision": "7aa71127f2dd3c15e2f2d0ce47454a1eadcf746df5662add045337747fb704df",
+          "sha256": "7aa71127f2dd3c15e2f2d0ce47454a1eadcf746df5662add045337747fb704df"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-three-antenna-current.md",
-          "description": "Mainline synthetic contract/evaluator tests and independent review evidence; elevation golden is resolved, executable Draft 2020-12 schema conformance remains open",
-          "revision": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
-          "sha256": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
+          "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture; earlier mainline evidence retained",
+          "revision": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
-          "scope": "synthetic_contract"
+          "scope": "synthetic_contract_with_shared_fixture"
+        },
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Draft 2020-12 schema execution with the Rust-shared fixture, optional cross-plane case, and four rejected structural variants; clean bootstrap remains unverified",
+          "revision": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
+          "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
+          "result": "PASS",
+          "scope": "draft_2020_12_schema_structure"
         }
       ],
       "reviews": [
         {
           "path": "docs/reviews/phase3-antenna-current-review.md",
-          "description": "Independent review and elevation-golden follow-up approve the bounded synthetic antenna contract; schema validator remains open",
+          "description": "Independent review and elevation-golden follow-up approve the earlier synthetic antenna contract; schema-validator availability was open at that review revision",
           "revision": "0ac5efbc04984b9723c0f1bf9d9c3865d54a165d",
           "sha256": "b2f80561d74423fc11d8847615554061e45b4ea674a7310e05bf9d2ed4da37a2",
           "reviewer": "/root/phase3_antenna_independent_review",
@@ -147631,9 +147664,9 @@
         },
         {
           "path": "tools/dev.py",
-          "description": "Discoverable validation commands with guarded diagnostics, Lab MCP checks, and CI-enforced desktop Playwright and native Tauri build checks",
-          "revision": "cc5d65e2ebd5dfd95fd4fc930641d38bd211119178c862cc7fec822eef7b5807",
-          "sha256": "cc5d65e2ebd5dfd95fd4fc930641d38bd211119178c862cc7fec822eef7b5807"
+          "description": "Discoverable validation commands with guarded diagnostics, Lab MCP checks, desktop gates, and explicit antenna schema validation",
+          "revision": "57fbc70d6c151fd6daaa35322a7e1a01320fbe6edd187b43895a194ac81bec28",
+          "sha256": "57fbc70d6c151fd6daaa35322a7e1a01320fbe6edd187b43895a194ac81bec28"
         }
       ],
       "validation": [
@@ -175404,12 +175437,12 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "feat/phase3-antenna-current",
+      "owner": "feat/phase3-antenna-schema-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "versioned antenna JSON contract with source metadata and explicit uncertainty fields"
+        "versioned antenna JSON contract with source metadata and explicit uncertainty fields; shared synthetic fixture passes pinned Draft 2020-12 structural validation"
       ],
       "implementation": [
         {
@@ -175423,23 +175456,44 @@
           "description": "Structural v1 schema for versioned antenna inputs",
           "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
           "sha256": "e6c969b1848a4b2534336de3745e23a0b7577f87195d870279b0486c4cb2eeaf"
+        },
+        {
+          "path": "crates/antenna-model/tests/fixtures/antenna-pattern-v1-valid.json",
+          "description": "Representative valid wire-contract fixture shared by Rust importer tests and the JSON Schema validator",
+          "revision": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b",
+          "sha256": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b"
+        },
+        {
+          "path": "tools/validate_antenna_schema.py",
+          "description": "Pinned Draft 2020-12 schema check with positive and structural negative instances",
+          "revision": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519",
+          "sha256": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-three-antenna-current.md",
-          "description": "Mainline synthetic contract/evaluator tests and independent review evidence; elevation golden is resolved, executable Draft 2020-12 schema conformance remains open",
-          "revision": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
-          "sha256": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
+          "description": "Pinned Draft 2020-12 schema execution with shared valid and negative synthetic instances; local clean-bootstrap evidence remains open",
+          "revision": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
+          "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
+          "result": "PASS",
+          "scope": "draft_2020_12_schema_structure"
+        },
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture",
+          "revision": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
-          "scope": "synthetic_schema_contract"
+          "scope": "synthetic_contract_with_shared_fixture"
         }
       ],
       "reviews": [
         {
           "path": "docs/reviews/phase3-antenna-current-review.md",
-          "description": "Independent review and elevation-golden follow-up approve the bounded synthetic antenna contract; schema validator remains open",
+          "description": "Independent review and elevation-golden follow-up approve the earlier synthetic antenna contract; schema-validator availability was open at that review revision",
           "revision": "0ac5efbc04984b9723c0f1bf9d9c3865d54a165d",
           "sha256": "b2f80561d74423fc11d8847615554061e45b4ea674a7310e05bf9d2ed4da37a2",
           "reviewer": "/root/phase3_antenna_independent_review",
@@ -175579,7 +175633,7 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "feat/phase3-antenna-current",
+      "owner": "feat/phase3-antenna-schema-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
@@ -175595,26 +175649,41 @@
         },
         {
           "path": "crates/antenna-model/tests/antenna_pattern.rs",
-          "description": "Synthetic axes, mount rotation, interpolation, pole, and sample-order acceptance tests",
-          "revision": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e",
-          "sha256": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e"
+          "description": "Synthetic axes, mount rotation, interpolation, pole, and sample-order acceptance tests using shared fixture",
+          "revision": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225",
+          "sha256": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225"
+        },
+        {
+          "path": "crates/antenna-model/tests/fixtures/antenna-pattern-v1-valid.json",
+          "description": "Representative valid wire-contract fixture shared by Rust importer tests and the JSON Schema validator",
+          "revision": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b",
+          "sha256": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-three-antenna-current.md",
-          "description": "Mainline synthetic contract/evaluator tests and independent review evidence; elevation golden is resolved, executable Draft 2020-12 schema conformance remains open",
-          "revision": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
-          "sha256": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
+          "description": "Pinned Draft 2020-12 schema execution with shared valid and negative synthetic instances; local clean-bootstrap evidence remains open",
+          "revision": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
+          "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
+          "result": "PASS",
+          "scope": "draft_2020_12_schema_structure"
+        },
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture",
+          "revision": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
-          "scope": "synthetic_axis_rotation_contract"
+          "scope": "synthetic_axis_rotation_contract_with_shared_fixture"
         }
       ],
       "reviews": [
         {
           "path": "docs/reviews/phase3-antenna-current-review.md",
-          "description": "Independent review and elevation-golden follow-up approve the bounded synthetic antenna contract; schema validator remains open",
+          "description": "Independent review and elevation-golden follow-up approve the earlier synthetic antenna contract; schema-validator availability was open at that review revision",
           "revision": "0ac5efbc04984b9723c0f1bf9d9c3865d54a165d",
           "sha256": "b2f80561d74423fc11d8847615554061e45b4ea674a7310e05bf9d2ed4da37a2",
           "reviewer": "/root/phase3_antenna_independent_review",
@@ -239005,7 +239074,7 @@
         }
       ],
       "status": "IN_PROGRESS",
-      "owner": "feat/phase3-antenna-current",
+      "owner": "feat/phase3-antenna-schema-current",
       "phase": 3,
       "depends_on": [],
       "related_requirements": [],
@@ -239021,26 +239090,47 @@
         },
         {
           "path": "crates/antenna-model/tests/antenna_pattern.rs",
-          "description": "Synthetic import/evaluation and provenance acceptance tests",
-          "revision": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e",
-          "sha256": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e"
+          "description": "Synthetic import/evaluation and provenance acceptance tests using the shared schema fixture",
+          "revision": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225",
+          "sha256": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225"
+        },
+        {
+          "path": "crates/antenna-model/tests/fixtures/antenna-pattern-v1-valid.json",
+          "description": "Representative valid wire-contract fixture shared by Rust importer tests and the JSON Schema validator",
+          "revision": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b",
+          "sha256": "cd81c75e11106b23cd0f844c8b829c0866e597044085ddc83cddac109b4b975b"
+        },
+        {
+          "path": "tools/validate_antenna_schema.py",
+          "description": "Pinned Draft 2020-12 schema check with positive and structural negative instances",
+          "revision": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519",
+          "sha256": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-three-antenna-current.md",
-          "description": "Mainline synthetic contract/evaluator tests and independent review evidence; elevation golden is resolved, executable Draft 2020-12 schema conformance remains open",
-          "revision": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
-          "sha256": "417cde81bf79c0095f834563e04f6c7e451f270ab08618524e899873a5f9926e",
+          "description": "Pinned Draft 2020-12 schema execution with shared valid and negative synthetic instances; local clean-bootstrap evidence remains open",
+          "revision": "b496982b367ef171d321894d5edd606c12d81543adc80cccdc2ce0a040bd3519",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
+          "command": "KYBERIA_TOOL_PYTHON=/Users/vincent/code/kyberia/.tools/supply-chain-schema-venv/bin/python python3 tools/dev.py validate-antenna-schema",
+          "result": "PASS",
+          "scope": "draft_2020_12_schema_structure"
+        },
+        {
+          "path": "docs/validation/phase-three-antenna-current.md",
+          "description": "Focused synthetic Rust contract/evaluator run using the shared wire fixture",
+          "revision": "93ef23a2ef5b52e32af19b1d737078411dfddb74fe3122e2402f30f06983b225",
+          "sha256": "3e51413a4e612e6749b216d46f4961d7121dbb0287ddf773947d9d97bed8592b",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
-          "scope": "synthetic_open_tabulated_contract"
+          "scope": "synthetic_open_tabulated_contract_with_shared_fixture"
         }
       ],
       "reviews": [
         {
           "path": "docs/reviews/phase3-antenna-current-review.md",
-          "description": "Independent review and elevation-golden follow-up approve the bounded synthetic antenna contract; schema validator remains open",
+          "description": "Independent review and elevation-golden follow-up approve the earlier synthetic antenna contract; schema-validator availability was open at that review revision",
           "revision": "0ac5efbc04984b9723c0f1bf9d9c3865d54a165d",
           "sha256": "b2f80561d74423fc11d8847615554061e45b4ea674a7310e05bf9d2ed4da37a2",
           "reviewer": "/root/phase3_antenna_independent_review",

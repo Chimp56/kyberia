@@ -5,62 +5,7 @@ use kyberia_antenna_model::{
 use serde_json::{Value, json};
 
 fn document() -> Value {
-    let grid = |peak_dbi: f64| {
-        let mut samples = Vec::new();
-        for elevation in [-90.0_f64, 0.0, 90.0] {
-            for offset in [0.0_f64, -6.0, -16.0, -6.0] {
-                if elevation.abs() == 90.0 {
-                    samples.push(json!({
-                        "co_polar_gain_dbi": -10.0,
-                        "cross_polar_gain_dbi": -20.0
-                    }));
-                } else {
-                    samples.push(json!({
-                        "co_polar_gain_dbi": peak_dbi + offset,
-                        "cross_polar_gain_dbi": peak_dbi + offset - 3.0
-                    }));
-                }
-            }
-        }
-        samples
-    };
-    let frequency = |frequency_hz: u64, peak_dbi: f64, efficiency, uncertainty| {
-        json!({
-            "frequency_hz": frequency_hz,
-            "nominal_gain": {"value_dbi": peak_dbi, "uncertainty_db": 0.0},
-            "efficiency": {"fraction": efficiency, "uncertainty": uncertainty},
-            "samples": grid(peak_dbi)
-        })
-    };
-    json!({
-        "schema": "kyberia.antenna-pattern/1",
-        "model_id": "example/asymmetric-v1",
-        "representation": "full_sphere_sample_grid",
-        "coordinate_convention": {
-            "frame": "right_handed_x_forward_y_left_z_up",
-            "angle_unit": "degrees",
-            "azimuth_zero_axis": "positive_x",
-            "positive_azimuth": "toward_positive_y",
-            "positive_elevation": "toward_positive_z"
-        },
-        "mount_orientation_local_to_world": {"w": 1.0, "x": 0.0, "y": 0.0, "z": 0.0},
-        "polarization_basis": "linear_horizontal_vertical",
-        "spatial_interpolation": "bilinear_linear_power",
-        "frequency_interpolation": "linear_power_reject_outside",
-        "sample_order": "elevation_major_azimuth_minor",
-        "normalization_tolerance_db": 0.0,
-        "source": {
-            "source_uri": "urn:rf-atlas:test-pattern/asymmetric-v1",
-            "license_spdx": "CC0-1.0",
-            "source_checksum_sha256": "abababababababababababababababababababababababababababababababab"
-        },
-        "azimuth_degrees": [0.0, 90.0, 180.0, 270.0],
-        "elevation_degrees": [-90.0, 0.0, 90.0],
-        "frequencies": [
-            frequency(2_400_000_000, 6.0, 0.8, 0.1),
-            frequency(5_000_000_000, 0.0, 1.0, 0.0)
-        ]
-    })
+    serde_json::from_str(include_str!("fixtures/antenna-pattern-v1-valid.json")).unwrap()
 }
 
 fn parse(value: &Value) -> ValidatedAntenna {

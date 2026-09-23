@@ -9,7 +9,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
 - Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17` with the independently approved, test-only threshold/resource-boundary follow-up at `141fc0e` (`bde0b98`, `5426ec0`); Phase 2 IE-explorer core at `41e88b7` with singleton-warning correction `26efb81`, independently reviewed at `9401e4a` and re-reviewed at `f1788ef`; Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, independently reviewed at `0d065d4` and followed up at `0ac5efb`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Most recent integration change: the bounded Phase 2 IE-explorer core at `41e88b7` and reviewed singleton-warning fix at `26efb81`, with independent reports at `9401e4a` and `f1788ef`. It adds a zero-copy view and bounded duplicate-aware diff only; INS-005 and Phase 2 remain open. The separate Phase 3 schema-validation candidate `0f1bfe2` remains unintegrated; fixes `b91e193` and `b9f62ab` address the four reported trailing-LF mismatches and await final focused re-review. Draft 2020-12 execution therefore remains unverified on `main`; no Phase 3 exit or manufacturer-data acceptance is claimed.
+- Most recent integration change: the bounded Phase 2 IE-explorer core at `41e88b7` and reviewed singleton-warning fix at `26efb81`, with independent reports at `9401e4a` and `f1788ef`. It adds a zero-copy view and bounded duplicate-aware diff only; INS-005 and Phase 2 remain open. The separate Phase 3 schema-validation candidate `0f1bfe2` remains unintegrated; corrective commits `b91e193` and `b9f62ab` address the four reported trailing-LF mismatches and have independent approval at `3a11219`. Draft 2020-12 execution therefore remains unverified on `main`; no Phase 3 exit or manufacturer-data acceptance is claimed.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -86,12 +86,15 @@ route comparison, and Phase 6 exit remain open.
 
 The bounded Phase 3 antenna-pattern v1 importer/evaluator is integrated at
 `6709813`, with the elevation-interpolation golden at `c016288` and independent
-reviews at `0d065d4` and `0ac5efb`. Ten synthetic tests pass. Executable Draft
-2020-12 schema conformance remains unverified on `main`; candidate `0f1bfe2`
-adds a pinned-validator command and shared positive/negative fixtures but is
-awaiting independent review and integration. Licensed vendor data, source
-rights/checksum validation, uncertainty-aware planning, visual review, adapters,
-and Phase 3 exit remain open.
+reviews at `0d065d4` and `0ac5efb`. Ten synthetic Rust tests pass. The separate
+schema-validation candidate `0f1bfe2`, with trailing-LF fixes `b91e193` and
+`b9f62ab`, adds an executable Draft 2020-12 check using the existing pinned
+`jsonschema==4.25.1` environment and is independently approved; see [the
+validation record](docs/validation/phase-three-antenna-current.md). Those
+local runs do not establish clean-bootstrap execution, and the candidate is
+not yet integrated on main. Licensed vendor data, source rights/checksum
+correspondence, uncertainty-aware planning, visual review, adapters, and Phase 3
+exit remain open.
 
 ## Historical execution checkpoint — 2026-09-22
 
@@ -222,7 +225,7 @@ product capability is validated.
 | Project application boundary | Integrated and independently approved at `c61afc0` | Typed create/open/current-snapshot use cases are validated; operation-backed mutations and the reviewed desktop product path remain open |
 | Barrier-aware measured interpolation | Integrated and independently approved at `425edfe` | Direct finite-segment path cost, stable weights, unknown support, budgets and cancellation are validated; polygon shortest paths, floors, calibrated uncertainty and publication remain open |
 | Active TCP measurement foundation | Integrated through `e4eec6d`; reviewed Windows fixture correction `f019928` | Reviewed scheduling, attribution, budgets, cancellation and statistics are integrated. Native Windows hosted validation of refusal completion remains |
-| Versioned antenna-pattern contract | Integrated at `6709813`; elevation golden `c016288`; review `0d065d4` and follow-up `0ac5efb` | Ten synthetic contract tests pass, including the non-pole elevation interpolation golden. Executable Draft 2020-12 schema conformance remains unverified; licensed manufacturer data, source rights/checksum validation, uncertainty-aware planning, cuts/harmonics, visual review, polarization mismatch loss, Sionna adapter, and Phase 3 exit remain open |
+| Versioned antenna-pattern contract | Integrated at `6709813`; schema-validation candidate based on current main checkpoint | Ten synthetic contract tests pass, including the non-pole elevation interpolation golden. The candidate runs Draft 2020-12 validation with the existing pinned validator; clean-bootstrap execution and independent review remain open. Licensed manufacturer data, source rights/checksum validation, uncertainty-aware planning, cuts/harmonics, visual review, polarization mismatch loss, Sionna adapter, and Phase 3 exit remain open |
 | Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
 | Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction at `84a5bcb`, independently reviewed follow-up `d0a88eb` | Runtime and docs/ledger reviews pass for the bounded correction. The change removes the accelerator suite/selector; pinned worker-0.2.0 execution and provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
 | Phase 5 spectrum evidence contract | Integrated on `main` at `9641431`; correction re-review `16a9111` | Signature rules v2 fail closed for dBm/Hz and require 80% per-bin coverage across event sweeps; 14 synthetic contract tests pass. Both prior MAJOR findings are resolved; one non-blocking v1 decoder-diagnostic MINOR is documented. No SoapySDR/vendor adapter, bandwidth normalization, hardware, remote-sensor or labeled-trace execution; Phase 5 remains open. See [validation](docs/validation/phase5-spectrum-contract.md) |

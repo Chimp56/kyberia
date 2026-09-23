@@ -287,6 +287,8 @@ def command(name):
     elif name == "supply-chain-bootstrap":
         python("-m", "pip", "install", "--require-hashes", "--only-binary=:all:", "--no-cache-dir", "-r", "tools/supply-chain/requirements.txt")
         supply_chain("bootstrap")
+    elif name == "validate-antenna-schema":
+        python("tools/validate_antenna_schema.py")
     elif name == "supply-chain-refresh":
         supply_chain("refresh-advisories")
     elif name == "lab-mcp-bootstrap":
@@ -303,7 +305,7 @@ def command(name):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "evidence-check", "desktop", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "lab-mcp-bootstrap", "lab-mcp-build", "lab-mcp-check", "check"])
+    parser.add_argument("command", choices=["bootstrap", "clean", "build", "format", "lint", "typecheck", "unit", "integration", "e2e", "test", "source-check", "evidence-check", "desktop", "benchmark", "sbom", "audit", "supply-chain-bootstrap", "supply-chain-refresh", "validate-antenna-schema", "lab-mcp-bootstrap", "lab-mcp-build", "lab-mcp-check", "check"])
     args = parser.parse_args()
     try:
         command(args.command)

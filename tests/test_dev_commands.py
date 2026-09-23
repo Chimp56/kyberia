@@ -84,6 +84,11 @@ class LabPackageManagerTests(unittest.TestCase):
             "install", "--frozen-lockfile", "--store-dir", ".tools/pnpm-store"
         )
 
+    def test_antenna_schema_command_uses_configured_tool_python(self):
+        with patch.object(DEV, "python") as python:
+            DEV.command("validate-antenna-schema")
+        python.assert_called_once_with("tools/validate_antenna_schema.py")
+
 
 class BootstrapStageDiagnosticTests(unittest.TestCase):
     def test_bootstrap_wraps_each_subcommand_with_a_closed_logical_stage_id(self):
