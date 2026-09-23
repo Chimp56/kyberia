@@ -1,6 +1,11 @@
 # Phase 2 information-element explorer core increment
 
-This isolated source increment adds a zero-copy `ManagementFrame::ie_explorer`
+Integrated on `main` at `41e88b7`; repeated-singleton warning correction at
+`26efb81`. Independent review and rereview are recorded in
+[`phase2-ie-explorer-core-review.md`](../reviews/phase2-ie-explorer-core-review.md)
+and [`phase2-ie-explorer-core-rereview.md`](../reviews/phase2-ie-explorer-core-rereview.md).
+
+This source increment adds a zero-copy `ManagementFrame::ie_explorer`
 view and a bounded `diff_information_elements` API to
 `crates/ieee80211/src/lib.rs`. The view exposes ordered IE entries, each exact
 raw TLV and payload, the current typed `ElementDecode`, and malformed or
@@ -29,16 +34,16 @@ INS-005 requirement and Phase 2 remain in progress.
 
 ## Validation
 
-On base `bc51e80b14e30f927628f4ba9f2e92a4773423fe` in isolated branch
-`feat/phase2-ie-explorer-current`:
+The focused checks passed on the author candidate and were repeated against the
+integrated tree:
 
 - `cargo test -p kyberia-ieee80211 --locked --offline`: 31 unit tests, 3
   fixture differential tests, and 3 compile-fail doctests passed; one explicit
   tcpdump differential test remains intentionally ignored by the default run.
-- `cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D
+- `cargo clippy -p kyberia-ieee80211 --all-targets --locked --offline -- -D
   warnings`: passed.
 - `cargo fmt --all -- --check`: passed.
-- `python3 tools/ledger.py check`, `python3 tools/architecture.py check`,
+- `python3 tools/ledger.py check`, `python3 tools/architecture.py`,
   `python3 tools/source_inventory.py check`, and `git diff --check`: passed
   (5,396 source blocks and 522 locked external packages).
 

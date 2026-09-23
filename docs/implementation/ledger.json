@@ -28405,7 +28405,7 @@
           "path": "docs/validation/phase2-ie-explorer-core.md",
           "description": "Focused Rust core tests and resource-boundary validation; association frames, desktop integration, and standards clause links remain unverified",
           "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
-          "sha256": "e68ecd9cd24c6807e7a014a9d1190902720959ef70881b80d7b6e2b947d3190e",
+          "sha256": "dd027402ee771446b440f2af3802895edac490ff18322ff809fb4d00c772d651",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "bounded Rust information-element explorer/diff core only"
@@ -161152,7 +161152,7 @@
           "path": "docs/validation/phase2-ie-explorer-core.md",
           "description": "Focused validation for the IE-explorer Rust core; no Phase 2 completion claim",
           "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
-          "sha256": "e68ecd9cd24c6807e7a014a9d1190902720959ef70881b80d7b6e2b947d3190e",
+          "sha256": "dd027402ee771446b440f2af3802895edac490ff18322ff809fb4d00c772d651",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "single Phase 2 parser/explorer deliverable, Rust core only"
@@ -161585,7 +161585,7 @@
           "path": "docs/validation/phase2-ie-explorer-core.md",
           "description": "Core parser/explorer test, strict Clippy, and formatting results with open integration requirements recorded",
           "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
-          "sha256": "e68ecd9cd24c6807e7a014a9d1190902720959ef70881b80d7b6e2b947d3190e",
+          "sha256": "dd027402ee771446b440f2af3802895edac490ff18322ff809fb4d00c772d651",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "Rust core for beacon/probe frames; association parsing and user-facing explorer remain open"
