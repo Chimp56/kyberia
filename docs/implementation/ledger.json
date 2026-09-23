@@ -35685,29 +35685,29 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "A bounded software foundation records caller-supplied pose evidence and corrects drift only from exact-pose/time-bound anchors; camera/IMU acquisition, relocalization, and field acceptance remain open"
+        "A bounded software foundation records caller-supplied pose evidence, rejects exact-sample speed outliers, and propagates anchor-source covariance; camera/IMU acquisition, relocalization, and field acceptance remain open"
       ],
       "implementation": [
         {
           "path": "crates/mobile-pose/src/fusion.rs",
-          "description": "Deterministic yaw/translation fusion consumes only validated exact-pose anchors and preserves evidence support",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+          "description": "Deterministic yaw/translation fusion enforces exact-sample speed gates and propagates source-anchor covariance through validated anchors",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "0ba70624e1885ab4f4fd68b25de2cb00023ca462152f16e9b4a21bdda5d61e1a"
         },
         {
           "path": "crates/mobile-pose/src/model.rs",
-          "description": "Typed borrowed pose, time, tracking-quality, covariance, anchor, and work-limit contracts",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "7cea7d0486a188711c2d24e92600b44051eef0d85cb0bb0f167e728662eb31c5"
+          "description": "Typed borrowed pose/time/tracking/covariance contracts reject duplicate pose IDs within the bounded timeline",
+          "revision": "4b1d843722f6ebecee0d449946cb43391df267c5",
+          "sha256": "501c46502fafe1d6c105b47ab65af7ce2b64c25f283462f9c706c0ad0f143d0b"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
-          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
         }
@@ -35912,23 +35912,23 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Typed pose records preserve position-covariance evidence, tracking state, and tracking quality; missing quality/uncertainty remains explicit, and camera/IMU acquisition remains open"
+        "Typed pose records preserve position-covariance evidence and tracking state/quality, reject duplicate pose identities, and keep missing evidence explicit; camera/IMU acquisition remains open"
       ],
       "implementation": [
         {
           "path": "crates/mobile-pose/src/model.rs",
-          "description": "Typed pose, monotonic time, covariance, tracking-state, and quality evidence",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "7cea7d0486a188711c2d24e92600b44051eef0d85cb0bb0f167e728662eb31c5"
+          "description": "Typed borrowed pose/time/tracking/covariance contracts reject duplicate pose IDs within the bounded timeline",
+          "revision": "4b1d843722f6ebecee0d449946cb43391df267c5",
+          "sha256": "501c46502fafe1d6c105b47ab65af7ce2b64c25f283462f9c706c0ad0f143d0b"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
-          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
         }
@@ -35979,23 +35979,23 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Manual/QR/AprilTag anchor kinds are typed caller-supplied controls; fusion requires exact pose-ID/time/source-timeline and target-frame validation, while marker recognition and anchor authenticity remain open"
+        "Manual/QR/AprilTag anchor kinds are typed caller-supplied controls; exact pose/time/source binding and source-anchor covariance are enforced while marker recognition and authenticity remain open"
       ],
       "implementation": [
         {
           "path": "crates/mobile-pose/src/fusion.rs",
-          "description": "Deterministic drift correction through exact-pose validated anchors only",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+          "description": "Deterministic yaw/translation fusion enforces exact-sample speed gates and propagates source-anchor covariance through validated anchors",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "0ba70624e1885ab4f4fd68b25de2cb00023ca462152f16e9b4a21bdda5d61e1a"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
-          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
         }
@@ -165349,18 +165349,18 @@
       "implementation": [
         {
           "path": "crates/mobile-pose/src/fusion.rs",
-          "description": "Bounded anchor-bound pose fusion foundation only",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+          "description": "Deterministic yaw/translation fusion enforces exact-sample speed gates and propagates source-anchor covariance through validated anchors",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "0ba70624e1885ab4f4fd68b25de2cb00023ca462152f16e9b4a21bdda5d61e1a"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
-          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
         }
@@ -165727,23 +165727,23 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Anchor-bound yaw/translation correction is covered by deterministic tests; no AR path acquisition, recognition, relocalization, or field validation is claimed"
+        "Anchor-bound yaw/translation correction checks adjacent speeds at exact samples and includes anchor-source covariance; no AR path acquisition, recognition, relocalization, or field validation is claimed"
       ],
       "implementation": [
         {
           "path": "crates/mobile-pose/src/fusion.rs",
-          "description": "Deterministic drift correction through exact-pose validated anchors only",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "0e82892375c1dd271faff46ff0d1ec9b2d0c695a5ceed98ec3f265fb97bfaeef"
+          "description": "Deterministic yaw/translation fusion enforces exact-sample speed gates and propagates source-anchor covariance through validated anchors",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "0ba70624e1885ab4f4fd68b25de2cb00023ca462152f16e9b4a21bdda5d61e1a"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Focused pose/anchor contract tests and bounded repository checks; platform and field gates remain open",
-          "revision": "d3f7e4878f03ff95d74f6cb1e6933e6e8d9013a2",
-          "sha256": "9e84a05885c755316c834a9464c7c5a8c7ebb7adb99e774d3e3134d7d84f77f2",
-          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check",
+          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
+          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
+          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
         }
