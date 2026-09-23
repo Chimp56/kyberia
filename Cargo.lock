@@ -2227,6 +2227,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-planner-evaluator"
+version = "0.1.0"
+
+[[package]]
 name = "kyberia-plugin-sdk"
 version = "0.1.0"
 dependencies = [

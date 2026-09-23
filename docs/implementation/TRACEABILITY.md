@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 95 | NOT_STARTED: 3175 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 104 | NOT_STARTED: 3166 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -2057,9 +2057,9 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 95 | NO
 | `source:list_item:dfffdd614d7e9a8bdb62:1` | [L2353](../../plan.md#L2353) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Wired drop, cable-length, switch port, and PoE budgets. | obligation | NOT_STARTED |  |
 | `source:list_item:843047a61c4c378db6f6:1` | [L2354](../../plan.md#L2354) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Radio capability compatibility. | obligation | NOT_STARTED |  |
 | `source:list_item:9b910772f53230bdb709:1` | [L2355](../../plan.md#L2355) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Client eligibility by band/standard/security. | obligation | NOT_STARTED |  |
-| `source:list_item:bac1a61c8a806d8bd2fa:1` | [L2356](../../plan.md#L2356) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Minimum bidirectional coverage per required area. | obligation | NOT_STARTED |  |
-| `source:list_item:1bb5bd3202ac2a16132e:1` | [L2357](../../plan.md#L2357) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Required secondary/tertiary coverage or failure resilience. | obligation | NOT_STARTED |  |
-| `source:list_item:a67803e4dab259b59ec4:1` | [L2358](../../plan.md#L2358) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Radio airtime/client-count limits. | obligation | NOT_STARTED |  |
+| `source:list_item:bac1a61c8a806d8bd2fa:1` | [L2356](../../plan.md#L2356) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Minimum bidirectional coverage per required area. | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
+| `source:list_item:1bb5bd3202ac2a16132e:1` | [L2357](../../plan.md#L2357) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Required secondary/tertiary coverage or failure resilience. | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
+| `source:list_item:a67803e4dab259b59ec4:1` | [L2358](../../plan.md#L2358) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - Radio airtime/client-count limits. | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
 | `source:list_item:b36fc74a6d8a82619b67:1` | [L2359](../../plan.md#L2359) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - AP/wired uplink aggregate limits. | obligation | NOT_STARTED |  |
 | `source:list_item:690a4f3219e1e4716e70:1` | [L2360](../../plan.md#L2360) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — - User-pinned APs/configurations. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:611` | [L2361](../../plan.md#L2361) RF Atlas / 9. Automatic AP planner / 9.3 Hard constraints — Whitespace | structure | COVERAGE_ONLY |  |
@@ -2067,14 +2067,14 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 95 | NO
 | `source:spacing:01ba4719c80b6fe911b0:612` | [L2363](../../plan.md#L2363) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:paragraph:892591a58a9852621b31:1` | [L2364](../../plan.md#L2364) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — Use lexicographic or weighted multi-objective optimization with explicit policy. Candidate objectives: | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:613` | [L2365](../../plan.md#L2365) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — Whitespace | structure | COVERAGE_ONLY |  |
-| `source:list_item:e858b3e27d1de5a3229a:1` | [L2366](../../plan.md#L2366) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 1. minimize infeasible/failed requirement area; | obligation | NOT_STARTED |  |
+| `source:list_item:e858b3e27d1de5a3229a:1` | [L2366](../../plan.md#L2366) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 1. minimize infeasible/failed requirement area; | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
 | `source:list_item:d97e8dc4a3caab9b0b50:1` | [L2367](../../plan.md#L2367) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 2. minimize worst-case failure under uncertainty; | obligation | NOT_STARTED |  |
 | `source:list_item:110f8c662d9fe1c2d0b9:1` | [L2368](../../plan.md#L2368) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 3. minimize equipment + cable + install cost; | obligation | NOT_STARTED |  |
 | `source:list_item:9c7e907ce9433f25621f:1` | [L2369](../../plan.md#L2369) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 4. minimize AP count; | obligation | NOT_STARTED |  |
 | `source:list_item:15b8de6db1c9e5e3833e:1` | [L2370](../../plan.md#L2370) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 5. minimize co-/adjacent-channel interference; | obligation | NOT_STARTED |  |
 | `source:list_item:f7eccc9af87415a8b2bd:1` | [L2371](../../plan.md#L2371) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 6. minimize excessive RF leakage; | obligation | NOT_STARTED |  |
 | `source:list_item:2d54f1659d78d1a83c20:1` | [L2372](../../plan.md#L2372) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 7. minimize cable distance and installation complexity; | obligation | NOT_STARTED |  |
-| `source:list_item:27058c5ece2185931928:1` | [L2373](../../plan.md#L2373) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 8. maximize capacity headroom; | obligation | NOT_STARTED |  |
+| `source:list_item:27058c5ece2185931928:1` | [L2373](../../plan.md#L2373) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 8. maximize capacity headroom; | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
 | `source:list_item:2d4175329fbbf0c34210:1` | [L2374](../../plan.md#L2374) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 9. maximize roam margin/redundancy; | obligation | NOT_STARTED |  |
 | `source:list_item:f6245032c864f2dc67f0:1` | [L2375](../../plan.md#L2375) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — 10. minimize power and unnecessary 2.4 GHz radios. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:614` | [L2376](../../plan.md#L2376) RF Atlas / 9. Automatic AP planner / 9.4 Objectives — Whitespace | structure | COVERAGE_ONLY |  |
@@ -2159,7 +2159,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 95 | NO
 | `source:list_item:d2e0d40f83e4dab4f18b:1` | [L2478](../../plan.md#L2478) RF Atlas / 9. Automatic AP planner / 9.12 Explainability — - sensitivity to position/power/channel; | obligation | NOT_STARTED |  |
 | `source:list_item:6142459bbf4a43b51e20:1` | [L2479](../../plan.md#L2479) RF Atlas / 9. Automatic AP planner / 9.12 Explainability — - cabling/cost impact. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:642` | [L2480](../../plan.md#L2480) RF Atlas / 9. Automatic AP planner / 9.12 Explainability — Whitespace | structure | COVERAGE_ONLY |  |
-| `source:paragraph:19e37d8aa7567531a654:1` | [L2481](../../plan.md#L2481) RF Atlas / 9. Automatic AP planner / 9.12 Explainability — For rejected user proposals, show the exact violations and smallest repair. | obligation | NOT_STARTED |  |
+| `source:paragraph:19e37d8aa7567531a654:1` | [L2481](../../plan.md#L2481) RF Atlas / 9. Automatic AP planner / 9.12 Explainability — For rejected user proposals, show the exact violations and smallest repair. | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
 | `source:spacing:01ba4719c80b6fe911b0:643` | [L2482](../../plan.md#L2482) RF Atlas / 9. Automatic AP planner / 9.12 Explainability — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:heading:39afa39ce326587fa2ce:1` | [L2483](../../plan.md#L2483) RF Atlas / 9. Automatic AP planner / 9.13 Incremental replanning — ### 9.13 Incremental replanning | obligation_group | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:644` | [L2484](../../plan.md#L2484) RF Atlas / 9. Automatic AP planner / 9.13 Incremental replanning — Whitespace | structure | COVERAGE_ONLY |  |
@@ -3228,7 +3228,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 95 | NO
 | `source:list_item:1b5ae01a0ddb1f3f33c9:1` | [L3869](../../plan.md#L3869) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Small exact instances. | obligation | NOT_STARTED |  |
 | `source:list_item:c82de765117a8f2a2ff0:1` | [L3870](../../plan.md#L3870) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Synthetic buildings with known symmetries. | obligation | NOT_STARTED |  |
 | `source:list_item:9da2f4bf03007ee5dd87:1` | [L3871](../../plan.md#L3871) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Constraint mutation/metamorphic tests. | obligation | NOT_STARTED |  |
-| `source:list_item:fe853e546e5accdb715d:1` | [L3872](../../plan.md#L3872) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Infeasibility explanation tests. | obligation | NOT_STARTED |  |
+| `source:list_item:fe853e546e5accdb715d:1` | [L3872](../../plan.md#L3872) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Infeasibility explanation tests. | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/tests/evaluator.rs) |
 | `source:list_item:6db7cdf495f94ebfd7ab:1` | [L3873](../../plan.md#L3873) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Robustness scenario validation. | obligation | NOT_STARTED |  |
 | `source:list_item:dd15fa008735ac8a2c6b:1` | [L3874](../../plan.md#L3874) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Full nonlinear rescore. | obligation | NOT_STARTED |  |
 | `source:list_item:a5b7922bf870899488d0:1` | [L3875](../../plan.md#L3875) RF Atlas / 16. Validation and test strategy / 16.11 Optimizer validation — - Compare greedy, CP-SAT, local search, and hybrid results. | obligation | NOT_STARTED |  |
@@ -3706,8 +3706,8 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 95 | NO
 | `backlog:OPTB-002:1` | [L4348](../../plan.md#L4348) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-002 &#124; P2 &#124; Coverage coefficient cache &#124; Correct invalidation and reuse &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-003:1` | [L4349](../../plan.md#L4349) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-003 &#124; P2 &#124; CP-SAT placement model &#124; Known optimal small instances &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-004:1` | [L4350](../../plan.md#L4350) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-004 &#124; P2 &#124; Channel/width/power model &#124; Regulatory and interference constraints &#124; | obligation | NOT_STARTED |  |
-| `backlog:OPTB-005:1` | [L4351](../../plan.md#L4351) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-005 &#124; P2 &#124; Client assignment/capacity &#124; Airtime and max-client constraints &#124; | obligation | NOT_STARTED |  |
-| `backlog:OPTB-006:1` | [L4352](../../plan.md#L4352) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-006 &#124; P2 &#124; Full evaluator/repair loop &#124; Every returned plan verified &#124; | obligation | NOT_STARTED |  |
+| `backlog:OPTB-005:1` | [L4351](../../plan.md#L4351) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-005 &#124; P2 &#124; Client assignment/capacity &#124; Airtime and max-client constraints &#124; | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
+| `backlog:OPTB-006:1` | [L4352](../../plan.md#L4352) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-006 &#124; P2 &#124; Full evaluator/repair loop &#124; Every returned plan verified &#124; | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs) |
 | `backlog:OPTB-007:1` | [L4353](../../plan.md#L4353) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-007 &#124; P2 &#124; Robust/failure scenarios &#124; N-1 and uncertainty tests &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-008:1` | [L4354](../../plan.md#L4354) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-008 &#124; P2 &#124; Pareto alternatives &#124; Non-dominated and explainable &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-009:1` | [L4355](../../plan.md#L4355) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-009 &#124; P2 &#124; Existing deployment replanning &#124; Lock/minimal-change behavior &#124; | obligation | NOT_STARTED |  |

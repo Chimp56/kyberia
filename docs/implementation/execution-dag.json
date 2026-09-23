@@ -3,6 +3,26 @@
   "semantics": "Dependencies order implementation/delivery. External validation may stay open while independent proofs and subsequent implementation proceed; it never implies a phase passed.",
   "nodes": [
     {
+      "id": "phase4-evaluator-contract",
+      "kind": "incremental_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "planner-evaluator",
+      "acceptance": "Deterministically recompute a bounded proposed plan's represented hard constraints, objective components, and binding/violation/unknown evidence; no solver, repair loop, or phase-completion claim",
+      "requirements": [
+        "source:list_item:bac1a61c8a806d8bd2fa:1",
+        "source:list_item:1bb5bd3202ac2a16132e:1",
+        "source:list_item:a67803e4dab259b59ec4:1",
+        "source:list_item:e858b3e27d1de5a3229a:1",
+        "source:list_item:27058c5ece2185931928:1",
+        "source:paragraph:19e37d8aa7567531a654:1",
+        "source:list_item:fe853e546e5accdb715d:1",
+        "backlog:OPTB-005:1",
+        "backlog:OPTB-006:1"
+      ]
+    },
+    {
       "id": "contracts",
       "kind": "prerequisite_proof",
       "depends_on": [],

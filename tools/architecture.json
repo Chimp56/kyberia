@@ -12,6 +12,7 @@
     "kyberia-causal-materializer": {"layer": "application", "external_dependencies": []},
     "kyberia-application": {"layer": "composition", "external_dependencies": ["rusqlite", "uuid"]},
     "kyberia-spatial-analysis": {"layer": "numerical", "external_dependencies": ["serde", "serde_json", "sha2"]},
+    "kyberia-planner-evaluator": {"layer": "numerical", "external_dependencies": []},
     "kyberia-spectrum-contract": {"layer": "numerical", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-wifi-semantics": {"layer": "numerical", "external_dependencies": ["serde"]},
     "kyberia-observation-analysis": {"layer": "application", "external_dependencies": ["serde", "serde_json", "sha2"]},

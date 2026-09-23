@@ -331,3 +331,14 @@ Earlier detailed checkpoints and validation histories are retained in
 [the historical snapshot](docs/implementation/history/status-4a55d35.md) and Git.
 Tests and trash artifacts remain retained for manual cleanup. Agents use isolated
 worktrees, and no author is the sole reviewer of a meaningful feature.
+
+## Isolated Phase 4 candidate — pending review
+
+Branch `feat/phase4-planner-evaluator-current` contains a bounded deterministic
+contract for independently checking small proposed AP plans from caller-supplied
+link coefficients and explicit assignments. It reports represented coverage,
+capacity, client-count, AP-count, and budget constraints with structured
+binding/violation/unknown evidence. The candidate is isolated and not integrated;
+it does not include a solver, airtime/interference model, repair loop, or proof
+of optimality. Phase 4 remains open pending independent review and the broader
+plan acceptance gates.

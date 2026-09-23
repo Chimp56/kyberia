@@ -96016,13 +96016,26 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "backlog:OPTB-006:1"
+      ],
+      "acceptance_cases": [
+        "feasible_small_plan_recomputes_metrics_and_reports_equalities_as_binding",
+        "bidirectional_coverage_failure_explains_uplink_deficit_and_available_alternative",
+        "missing_selected_link_is_unknown_and_fails_closed"
+      ],
+      "implementation": [
+        {
+          "description": "Independent bidirectional threshold counting and fail-closed unknown coefficients; small-plan scope",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -96059,13 +96072,24 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "backlog:OPTB-006:1"
+      ],
+      "acceptance_cases": [
+        "bidirectional_coverage_failure_explains_uplink_deficit_and_available_alternative"
+      ],
+      "implementation": [
+        {
+          "description": "Distinct AP threshold counting; scenario-specific failure resilience and recourse remain open",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -96102,13 +96126,24 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "backlog:OPTB-005:1"
+      ],
+      "acceptance_cases": [
+        "capacity_clients_ap_count_and_budget_violations_are_independent"
+      ],
+      "implementation": [
+        {
+          "description": "Integer-kbps radio aggregate capacity and max-client checks; airtime model remains open",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -96463,13 +96498,25 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "backlog:OPTB-006:1"
+      ],
+      "acceptance_cases": [
+        "bidirectional_coverage_failure_explains_uplink_deficit_and_available_alternative",
+        "missing_selected_link_is_unknown_and_fails_closed"
+      ],
+      "implementation": [
+        {
+          "description": "Caller-weighted passing, nonpassing and unverified area components; no scalar objective",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -96764,13 +96811,25 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "backlog:OPTB-005:1"
+      ],
+      "acceptance_cases": [
+        "feasible_small_plan_recomputes_metrics_and_reports_equalities_as_binding",
+        "capacity_clients_ap_count_and_budget_violations_are_independent"
+      ],
+      "implementation": [
+        {
+          "description": "Deterministic per-radio capacity headroom and overload recomputation",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -100500,13 +100559,25 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "backlog:OPTB-006:1"
+      ],
+      "acceptance_cases": [
+        "bidirectional_coverage_failure_explains_uplink_deficit_and_available_alternative",
+        "capacity_clients_ap_count_and_budget_violations_are_independent"
+      ],
+      "implementation": [
+        {
+          "description": "Structured constraint findings for proposed plans; no smallest-repair generation",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -103279,8 +103350,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "4480a306607e0e25e192b737d176ab0c8bb6b8816616cbe04fa58eaa5ce9451f",
-          "sha256": "4480a306607e0e25e192b737d176ab0c8bb6b8816616cbe04fa58eaa5ce9451f"
+          "revision": "a02fd3ff210cfdc5575f8a8ecd17eebef0c0dda95ef6e3f7853d1c8396d67e3b",
+          "sha256": "a02fd3ff210cfdc5575f8a8ecd17eebef0c0dda95ef6e3f7853d1c8396d67e3b"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -153003,13 +153074,26 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "QA/validation",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 0,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "backlog:OPTB-006:1"
+      ],
+      "acceptance_cases": [
+        "bidirectional_coverage_failure_explains_uplink_deficit_and_available_alternative",
+        "capacity_clients_ap_count_and_budget_violations_are_independent",
+        "missing_selected_link_is_unknown_and_fails_closed"
+      ],
+      "implementation": [
+        {
+          "description": "Deterministic infeasibility, unknown, mutation and permutation tests; no solver tests",
+          "path": "crates/planner-evaluator/tests/evaluator.rs",
+          "revision": "dfbc1fc91c1c96ef44d930b079210987109ec252d9e950c710725464f829ea7e",
+          "sha256": "dfbc1fc91c1c96ef44d930b079210987109ec252d9e950c710725464f829ea7e"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -176038,13 +176122,32 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "source:list_item:bac1a61c8a806d8bd2fa:1",
+        "source:list_item:1bb5bd3202ac2a16132e:1",
+        "source:list_item:a67803e4dab259b59ec4:1",
+        "source:list_item:e858b3e27d1de5a3229a:1",
+        "source:list_item:27058c5ece2185931928:1",
+        "source:paragraph:19e37d8aa7567531a654:1",
+        "source:list_item:fe853e546e5accdb715d:1",
+        "backlog:OPTB-006:1"
+      ],
+      "acceptance_cases": [
+        "capacity_clients_ap_count_and_budget_violations_are_independent",
+        "feasible_small_plan_recomputes_metrics_and_reports_equalities_as_binding"
+      ],
+      "implementation": [
+        {
+          "description": "Explicit assignment verification, aggregate kbps capacity and max-client limits; airtime remains open",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -176081,13 +176184,34 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "optimizer",
+      "status": "IN_PROGRESS",
+      "owner": "planner-evaluator",
       "phase": 4,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
+      "related_requirements": [
+        "source:list_item:bac1a61c8a806d8bd2fa:1",
+        "source:list_item:1bb5bd3202ac2a16132e:1",
+        "source:list_item:a67803e4dab259b59ec4:1",
+        "source:list_item:e858b3e27d1de5a3229a:1",
+        "source:list_item:27058c5ece2185931928:1",
+        "source:paragraph:19e37d8aa7567531a654:1",
+        "source:list_item:fe853e546e5accdb715d:1"
+      ],
+      "acceptance_cases": [
+        "feasible_small_plan_recomputes_metrics_and_reports_equalities_as_binding",
+        "bidirectional_coverage_failure_explains_uplink_deficit_and_available_alternative",
+        "missing_selected_link_is_unknown_and_fails_closed",
+        "input_permutations_do_not_change_findings_or_objectives",
+        "malformed_and_overflowing_inputs_are_rejected"
+      ],
+      "implementation": [
+        {
+          "description": "Bounded deterministic proposed-plan verifier; solver, candidate generator and repair loop remain open",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
+          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
