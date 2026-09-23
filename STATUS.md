@@ -34,9 +34,10 @@ skipped), as do ledger, architecture and source-inventory checks. This does not
 establish execution of the pinned worker-0.2.0 Sionna engine or close hosted,
 physical-radio, or spectrum gates.
 
-The bounded Phase 2 `WIFI-001` parser adaptation is being implemented on
-isolated branch `feat/phase2-wifi-ie-main-v1`; no Phase 2 completion is claimed
-until its acceptance evidence and independent review pass.
+The bounded Phase 2 `WIFI-001` parser candidate is on isolated integration
+branch `integrate/wifi-ie-main-v1` at `7133e25`. Current-main parser and
+differential reruns pass; independent review is pending before integration to
+`main`. No Phase 2 completion is claimed.
 
 ## Historical execution checkpoint — 2026-09-22
 
@@ -170,7 +171,7 @@ product capability is validated.
 | Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction at `84a5bcb`, independently reviewed follow-up `d0a88eb` | Runtime and docs/ledger reviews pass for the bounded correction. The change removes the accelerator suite/selector; pinned worker-0.2.0 execution and provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
 | Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
-| WIFI-001 bounded Beacon/Probe IE parser | Author candidate on isolated `feat/phase2-wifi-ie-main-v1` | Current-main adaptation passes bounded Rust/parser and tcpdump checks; fresh independent review is required before integration. Coverage-guided campaign is prior hash-matched evidence, not rerun here; other WIFI items, `INS-005`, Phase 2 exit, Kismet/physical capture and broader TST-002 gates remain open |
+| WIFI-001 bounded Beacon/Probe IE parser | Integration candidate `7133e25` on isolated `integrate/wifi-ie-main-v1` | Adapted onto `main` at `0595313`; parser, tcpdump, deterministic mutation, formatting, strict Clippy, ledger, architecture and source-inventory checks pass. Fresh independent review is required before integration to `main`. Coverage-guided campaign is prior hash-matched evidence, not rerun here; other WIFI items, `INS-005`, Phase 2 exit, Kismet/physical capture and broader TST-002 gates remain open |
 
 
 The publication review is approved for the bounded increment in

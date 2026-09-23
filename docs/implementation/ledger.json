@@ -171178,7 +171178,7 @@
       "acceptance_cases": [
         "Bounded Beacon/Probe IE framing preserves raw bytes, provenance, ordering, unknown/vendor values, and malformed typed payloads; validates supported header/context and resource limits.",
         "Checked-in Beacon, Probe Request, and Probe Response fixtures pass the internal differential oracle and a real tcpdump/libpcap stable-field differential.",
-        "A prior bounded libFuzzer campaign is tied by exact source hashes to this parser/fuzz target; it was not rerun on the assigned-worktree adaptation. Independent review and broader WIFI-001 acceptance remain open."
+        "A prior bounded libFuzzer campaign is tied by exact source hashes to this parser/fuzz target; it was not rerun on the latest-main integration candidate. Independent review and broader WIFI-001 acceptance remain open."
       ],
       "implementation": [
         {
@@ -171191,21 +171191,21 @@
       "validation": [
         {
           "path": "docs/validation/wifi-ie-parser.md",
-          "description": "Bounded parser tests, deterministic mutation, exact-source-hash prior fuzz campaign, and assigned-worktree tcpdump rerun with explicit limitations",
-          "revision": "3e1a06a37588a3358c37d3576416d449806715af9e1b63e3b25b9f2cb505e8ee",
-          "sha256": "3e1a06a37588a3358c37d3576416d449806715af9e1b63e3b25b9f2cb505e8ee",
+          "description": "Bounded parser tests, deterministic mutation, exact-source-hash prior fuzz campaign, and latest-main integration tcpdump rerun with explicit limitations",
+          "revision": "563b48ed384e7949caba24ae6727a9fad63146cf17233c099299b8eaf6348fbb",
+          "sha256": "563b48ed384e7949caba24ae6727a9fad63146cf17233c099299b8eaf6348fbb",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo test -p kyberia-ieee80211 --test tcpdump_differential checked_in_management_frames_match_tcpdump_stable_fields --locked --offline -- --ignored --exact --nocapture; cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked --offline",
           "result": "PASS",
-          "scope": "Isolated assigned-worktree parser tests and external tcpdump fixture differential; libFuzzer campaign is historical, exact-hash-matched evidence and was not rerun here."
+          "scope": "Latest-main isolated integration parser tests and external tcpdump fixture differential; libFuzzer campaign is historical, exact-hash-matched evidence and was not rerun here."
         },
         {
           "path": "docs/validation/wifi-ie-fuzz-differential-run.json",
-          "description": "Exact source hashes, retained prior libFuzzer statistics, and assigned-worktree tcpdump/libpcap run hashes",
-          "revision": "a001731aca89bc1e9869f4e2b7cc244c8bc1fea59a06a47db47bb9fabab9ae75",
-          "sha256": "a001731aca89bc1e9869f4e2b7cc244c8bc1fea59a06a47db47bb9fabab9ae75",
+          "description": "Exact source hashes, retained prior libFuzzer statistics, and author-worktree plus latest-main tcpdump/libpcap run hashes",
+          "revision": "aabaee1e7a71a5494e313d162ba5c716bb5a64f7f0557e34804bf222463769bd",
+          "sha256": "aabaee1e7a71a5494e313d162ba5c716bb5a64f7f0557e34804bf222463769bd",
           "command": "python3 -m json.tool docs/validation/wifi-ie-fuzz-differential-run.json",
           "result": "PASS",
-          "scope": "Evidence manifest syntax, source binding, retained artifact hashes, and explicit campaign/differential limitations."
+          "scope": "Evidence manifest syntax, source binding, retained artifact hashes, latest-main test results, and explicit campaign/differential limitations."
         }
       ],
       "reviews": [],

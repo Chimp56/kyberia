@@ -100,6 +100,44 @@
     "version_output_sha256": "b700fd67878107ec1cd0a87902891548adc3e24bca353b9bb80ada30b51cf7ee",
     "exit_status": 0
   },
+  "latest_main_integration_rerun": {
+    "recorded_at": "2026-09-23",
+    "base_revision": "05953134d24666e8483cbfdb7d9aacd0ce4e6e48",
+    "candidate_revision": "7133e25725cb797ccce55da766d16da57d25b68d",
+    "commands": [
+      "cargo test -p kyberia-ieee80211 --locked --offline",
+      "cargo clippy -p kyberia-ieee80211 --all-targets --locked --offline -- -D warnings",
+      "cargo fmt --all -- --check",
+      "cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked --offline",
+      "cargo test -p kyberia-ieee80211 --locked --offline --test tcpdump_differential -- --ignored --exact checked_in_management_frames_match_tcpdump_stable_fields --nocapture",
+      "python3 tools/ledger.py check",
+      "python3 tools/architecture.py check",
+      "python3 tools/source_inventory.py check",
+      "git diff --check main..HEAD"
+    ],
+    "results": {
+      "unit_tests": 22,
+      "internal_differential_tests": 3,
+      "compile_fail_doctests": 3,
+      "tcpdump_external_differential_fixtures": 3,
+      "deterministic_mutation_cases": 619,
+      "strict_clippy": "PASS",
+      "format": "PASS",
+      "ledger": "PASS: 5396 source blocks; 438 explicit ID occurrences; 447 headings",
+      "architecture": "PASS",
+      "source_inventory": "PASS: 522 locked external packages",
+      "diff_check": "PASS"
+    },
+    "tcpdump": {
+      "version": "tcpdump 4.99.1 -- Apple version 161",
+      "libpcap_version": "1.10.1",
+      "retained_path": ".trash/test-runs/wifi-ie-tcpdump-88435-1790159155406696000",
+      "pcap_sha256": "533a525eaa804856198f24182525d029d320c36a8cf312cbf537eaf69309740b",
+      "normalized_output_sha256": "99d170422ce4e618a47eff939ab310a6c30d3276d7052a99a7a0a1cbe00da13a",
+      "version_output_sha256": "b700fd67878107ec1cd0a87902891548adc3e24bca353b9bb80ada30b51cf7ee"
+    },
+    "coverage_guided_campaign": "Not rerun on this integration worktree; the prior campaign remains exact-source-hash matched. Pinned nightly and cargo-fuzz are unavailable."
+  },
   "limitations": [
     "The campaign is bounded evidence, not exhaustive input proof.",
     "The external comparison is tcpdump/libpcap evidence only, not Wireshark, TShark, Kismet, hardware, or collector parity.",

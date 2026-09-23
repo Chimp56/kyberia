@@ -3,10 +3,11 @@
 > **Historical scope only:** this packet reviews candidate author tree
 > `d97934372943abb2f60760086db0d2e062a396b6` on its old base `84d85ac`.
 > It is retained as the original rejection and correction record, not as
-> approval of the current-main adaptation based on
-> `84a5bcb96e61d2703b648cd817e97fd68b92086a`. The correction response below
-> describes that old candidate only. The current adaptation still requires a
-> fresh independent review before integration.
+> approval of the later adaptation based on `84a5bcb96e61d2703b648cd817e97fd68b92086a`
+> or integration candidate `7133e25725cb797ccce55da766d16da57d25b68d` based on
+> `05953134d24666e8483cbfdb7d9aacd0ce4e6e48`. The correction response below
+> describes that old candidate only. The current integration candidate still
+> requires a fresh independent review before integration to `main`.
 
 ## Immutable scope and verdict
 
