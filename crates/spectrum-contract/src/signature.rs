@@ -12,13 +12,16 @@ use kyberia_domain::{
 use serde::{Deserialize, Serialize};
 
 pub const SIGNATURE_INPUT_SCHEMA_V1: &str = "kyberia.spectrum-signature-input/1";
-pub const EVENT_SCHEMA_V1: &str = "kyberia.spectrum-event/1";
-pub const SIGNATURE_RULE_SET_V1: &str = "kyberia.spectrum-pattern-rules/1";
+pub const EVENT_SCHEMA_V2: &str = "kyberia.spectrum-event/2";
+pub const SIGNATURE_RULE_SET_V2: &str = "kyberia.spectrum-pattern-rules/2";
 pub const TEMPORAL_POLICY_V1: &str = "kyberia.spectrum-temporal-eligibility/1";
 pub const MIN_PERSISTENCE_SWEEPS: u32 = 5;
 pub const MIN_PERSISTENCE_SPAN_NANOSECONDS: u64 = 1_000_000_000;
 pub const MAX_INTER_SWEEP_GAP_NANOSECONDS: u64 = 300_000_000;
 const PERSISTENCE_THRESHOLD_PARTS_PER_MILLION: u32 = 800_000;
+/// A classified frequency bin must be determinate in at least 80% of all
+/// sweeps in the event. Conditional persistence alone is insufficient.
+pub const MIN_PERSISTENT_BIN_COVERAGE_PARTS_PER_MILLION: u32 = 800_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -77,6 +80,8 @@ pub enum SignatureReason {
     CalibrationUnavailable,
     ClippedEvidence,
     InsufficientFrequencyTimeSupport,
+    InsufficientFrequencyLocalCoverage,
+    PowerUnitUnsupported,
     NoSupportedPersistentPattern,
 }
 
@@ -105,6 +110,7 @@ pub struct SignatureAssessment {
     pub active_sweep_support_parts_per_million: u32,
     pub persistent_occupied_bin_count: u32,
     pub widest_contiguous_persistent_bins: u32,
+    pub minimum_persistent_bin_coverage_parts_per_million: u32,
     pub minimum_persistent_bin_support_parts_per_million: u32,
     pub temporal_support: TemporalSupport,
 }
@@ -126,6 +132,9 @@ pub struct SpectrumEvent {
 }
 
 impl SpectrumEvent {
+    /// `threshold_milli_dbm` is applied only to `DbmPerBin`. `DbmPerHertz`
+    /// sweeps are retained in the input and receive an explicit unknown
+    /// assessment until equivalent-noise-bandwidth normalization is modeled.
     pub fn from_sweeps(
         sweeps: &[SpectrumSweep],
         threshold_milli_dbm: i32,
@@ -183,7 +192,7 @@ impl SpectrumEvent {
         }
         let input = SignatureInputDocument {
             schema: SIGNATURE_INPUT_SCHEMA_V1.to_owned(),
-            rule_set: SIGNATURE_RULE_SET_V1.to_owned(),
+            rule_set: SIGNATURE_RULE_SET_V2.to_owned(),
             temporal_policy: TEMPORAL_POLICY_V1.to_owned(),
             source_id: first.source.source_id,
             session_id: first.session_id,
@@ -197,9 +206,9 @@ impl SpectrumEvent {
             return Err(SpectrumError::ResourceLimit("signature input bytes"));
         }
         let identity = SpectrumEventId(ContentHash::from_sha256(sha256(&input_bytes)));
-        let assessment = assess(&ordered, threshold_milli_dbm, input.grid)?;
+        let assessment = assess(&ordered, threshold_milli_dbm, input.grid, input.power_unit)?;
         let document = SpectrumEventDocument {
-            schema: EVENT_SCHEMA_V1.to_owned(),
+            schema: EVENT_SCHEMA_V2.to_owned(),
             identity,
             input,
             assessment,
@@ -237,9 +246,9 @@ impl SpectrumEvent {
         if parsed_bytes != bytes {
             return Err(SpectrumError::NonCanonical);
         }
-        if parsed.schema != EVENT_SCHEMA_V1
+        if parsed.schema != EVENT_SCHEMA_V2
             || parsed.input.schema != SIGNATURE_INPUT_SCHEMA_V1
-            || parsed.input.rule_set != SIGNATURE_RULE_SET_V1
+            || parsed.input.rule_set != SIGNATURE_RULE_SET_V2
             || parsed.input.temporal_policy != TEMPORAL_POLICY_V1
         {
             return Err(SpectrumError::UnsupportedSchema);
@@ -272,6 +281,7 @@ fn assess(
     sweeps: &[&SpectrumSweep],
     threshold_milli_dbm: i32,
     grid: FrequencyGrid,
+    power_unit: PowerUnit,
 ) -> Result<SignatureAssessment, SpectrumError> {
     let sequence_is_contiguous = sweeps.windows(2).all(|pair| {
         pair[0]
@@ -282,6 +292,38 @@ fn assess(
     });
 
     let temporal_support = temporal_support(sweeps);
+    if power_unit == PowerUnit::DbmPerHertz {
+        let observed_cells = sweeps
+            .iter()
+            .flat_map(|sweep| sweep.document().bins.iter())
+            .filter(|bin| {
+                matches!(
+                    bin,
+                    SpectrumBin::Observed { clipped: false, .. }
+                        | SpectrumBin::BelowDetectionThreshold { .. }
+                )
+            })
+            .count() as u64;
+        let total_cells = u64::from(grid.bin_count) * sweeps.len() as u64;
+        return Ok(SignatureAssessment {
+            rule_set: SIGNATURE_RULE_SET_V2.to_owned(),
+            temporal_policy: TEMPORAL_POLICY_V1.to_owned(),
+            pattern: SignaturePattern::Unknown,
+            reason: SignatureReason::PowerUnitUnsupported,
+            confidence_parts_per_million: 0,
+            observed_cells,
+            occupied_cells: 0,
+            frequency_time_support_parts_per_million: (observed_cells * 1_000_000 / total_cells)
+                as u32,
+            active_sweep_support_parts_per_million: 0,
+            persistent_occupied_bin_count: 0,
+            widest_contiguous_persistent_bins: 0,
+            minimum_persistent_bin_coverage_parts_per_million: 0,
+            minimum_persistent_bin_support_parts_per_million: 0,
+            temporal_support,
+        });
+    }
+
     let mut calibrated = true;
     let mut calibration_hash: Option<ContentHash> = None;
     let mut clipped = false;
@@ -312,6 +354,8 @@ fn assess(
     let mut persistent_occupied_bin_count = 0_u32;
     let mut widest_contiguous_persistent_bins = 0_u32;
     let mut persistent_run = 0_u32;
+    let mut insufficient_local_coverage = false;
+    let mut minimum_persistent_bin_coverage_parts_per_million = u32::MAX;
     let mut minimum_persistent_bin_support_parts_per_million = u32::MAX;
 
     for bin_index in 0..grid.bin_count as usize {
@@ -345,14 +389,21 @@ fn assess(
             persistent_run = 0;
             continue;
         }
+        let coverage = (u64::from(determinate) * 1_000_000 / sweeps.len() as u64) as u32;
         let persistence = (u64::from(above_threshold) * 1_000_000 / u64::from(determinate)) as u32;
+        if above_threshold > 0 && coverage < MIN_PERSISTENT_BIN_COVERAGE_PARTS_PER_MILLION {
+            insufficient_local_coverage = true;
+        }
         if determinate >= MIN_PERSISTENCE_SWEEPS
+            && coverage >= MIN_PERSISTENT_BIN_COVERAGE_PARTS_PER_MILLION
             && persistence >= PERSISTENCE_THRESHOLD_PARTS_PER_MILLION
         {
             persistent_occupied_bin_count += 1;
             persistent_run += 1;
             widest_contiguous_persistent_bins =
                 widest_contiguous_persistent_bins.max(persistent_run);
+            minimum_persistent_bin_coverage_parts_per_million =
+                minimum_persistent_bin_coverage_parts_per_million.min(coverage);
             minimum_persistent_bin_support_parts_per_million =
                 minimum_persistent_bin_support_parts_per_million.min(persistence);
         } else {
@@ -373,6 +424,7 @@ fn assess(
     let active_sweep_support_parts_per_million =
         (u64::from(active_sweeps) * 1_000_000 / sweeps.len() as u64) as u32;
     if persistent_occupied_bin_count == 0 {
+        minimum_persistent_bin_coverage_parts_per_million = 0;
         minimum_persistent_bin_support_parts_per_million = 0;
     }
 
@@ -410,11 +462,14 @@ fn assess(
         || active_sweep_support_parts_per_million < PERSISTENCE_THRESHOLD_PARTS_PER_MILLION
     {
         reason = SignatureReason::InsufficientFrequencyTimeSupport;
+    } else if persistent_occupied_bin_count == 0 && insufficient_local_coverage {
+        reason = SignatureReason::InsufficientFrequencyLocalCoverage;
     } else if persistent_occupied_bin_count > 0 && widest_contiguous_persistent_bins <= 2 {
         reason = SignatureReason::PersistentNarrowbandEnergy;
         pattern = SignaturePattern::NarrowbandPersistentPattern;
         confidence_parts_per_million = frequency_time_support_parts_per_million
             .min(active_sweep_support_parts_per_million)
+            .min(minimum_persistent_bin_coverage_parts_per_million)
             .min(minimum_persistent_bin_support_parts_per_million);
     } else if u64::from(widest_contiguous_persistent_bins) * 4 >= u64::from(grid.bin_count)
         && persistent_occupied_bin_count > 2
@@ -423,11 +478,12 @@ fn assess(
         pattern = SignaturePattern::WidebandPersistentPattern;
         confidence_parts_per_million = frequency_time_support_parts_per_million
             .min(active_sweep_support_parts_per_million)
+            .min(minimum_persistent_bin_coverage_parts_per_million)
             .min(minimum_persistent_bin_support_parts_per_million);
     }
 
     Ok(SignatureAssessment {
-        rule_set: SIGNATURE_RULE_SET_V1.to_owned(),
+        rule_set: SIGNATURE_RULE_SET_V2.to_owned(),
         temporal_policy: TEMPORAL_POLICY_V1.to_owned(),
         pattern,
         reason,
@@ -438,6 +494,7 @@ fn assess(
         active_sweep_support_parts_per_million,
         persistent_occupied_bin_count,
         widest_contiguous_persistent_bins,
+        minimum_persistent_bin_coverage_parts_per_million,
         minimum_persistent_bin_support_parts_per_million,
         temporal_support,
     })

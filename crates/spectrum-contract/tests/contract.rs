@@ -10,9 +10,10 @@ use kyberia_domain::{
 };
 use kyberia_spectrum_contract::{
     AcquisitionSettings, CALIBRATION_SCHEMA_V1, DetectorKind, FrequencyGrid, GainSetting,
-    PowerUnit, ProcessingLimits, SWEEP_SCHEMA_V1, SignaturePattern, SignatureReason, SpectrumBin,
-    SpectrumCalibrationProfile, SpectrumError, SpectrumEvent, SpectrumSourceKind,
-    SpectrumSourceMetadata, SpectrumSweep, SpectrumSweepDocument, WindowFunction,
+    MIN_PERSISTENT_BIN_COVERAGE_PARTS_PER_MILLION, PowerUnit, ProcessingLimits, SWEEP_SCHEMA_V1,
+    SignaturePattern, SignatureReason, SpectrumBin, SpectrumCalibrationProfile, SpectrumError,
+    SpectrumEvent, SpectrumSourceKind, SpectrumSourceMetadata, SpectrumSweep,
+    SpectrumSweepDocument, WindowFunction,
 };
 
 fn limits() -> ProcessingLimits {
@@ -106,6 +107,22 @@ fn sweep_with(
     bin_values: Vec<SpectrumBin>,
     calibrated: bool,
 ) -> SpectrumSweep {
+    sweep_with_unit(
+        sequence,
+        start_ns,
+        bin_values,
+        calibrated,
+        PowerUnit::DbmPerBin,
+    )
+}
+
+fn sweep_with_unit(
+    sequence: u64,
+    start_ns: u64,
+    bin_values: Vec<SpectrumBin>,
+    calibrated: bool,
+    power_unit: PowerUnit,
+) -> SpectrumSweep {
     let epoch = ClockEpochId::from_bytes([7; 16]).unwrap();
     let end_ns = start_ns + 50_000_000;
     let window = MonotonicWindow::new(
@@ -156,7 +173,7 @@ fn sweep_with(
             dwell_nanoseconds: 20_000_000,
             sweep_nanoseconds: 50_000_000,
         },
-        power_unit: PowerUnit::DbmPerBin,
+        power_unit,
         time,
         capture_window: Evidence::Known(window),
         pose: Evidence::Known(pose(sequence)),
@@ -287,6 +304,12 @@ fn zero_power_below_detection_and_not_observed_are_distinct_evidence() {
 fn signatures_are_deterministic_pattern_evidence_not_emitter_labels() {
     let narrow = persistent_series(&[3]);
     let event = SpectrumEvent::from_sweeps(&narrow, -60_000, limits()).unwrap();
+    assert_eq!(narrow[0].document().power_unit, PowerUnit::DbmPerBin);
+    assert_eq!(event.document().schema, "kyberia.spectrum-event/2");
+    assert_eq!(
+        event.document().input.rule_set,
+        "kyberia.spectrum-pattern-rules/2"
+    );
     assert_eq!(
         event.assessment().pattern,
         SignaturePattern::NarrowbandPersistentPattern
@@ -294,6 +317,12 @@ fn signatures_are_deterministic_pattern_evidence_not_emitter_labels() {
     assert_eq!(
         event.assessment().reason,
         SignatureReason::PersistentNarrowbandEnergy
+    );
+    assert_eq!(
+        event
+            .assessment()
+            .minimum_persistent_bin_coverage_parts_per_million,
+        1_000_000
     );
     assert_eq!(event.assessment().confidence_parts_per_million, 1_000_000);
 
@@ -309,6 +338,117 @@ fn signatures_are_deterministic_pattern_evidence_not_emitter_labels() {
         SignaturePattern::WidebandPersistentPattern
     );
     assert!(!wide_event.canonical_bytes().is_empty());
+}
+
+#[test]
+fn per_hertz_sweeps_are_preserved_but_signatures_fail_closed() {
+    let per_hertz = (0..5)
+        .map(|sequence| {
+            sweep_with_unit(
+                sequence,
+                sequence * 250_000_000,
+                bins(&[3], None),
+                true,
+                PowerUnit::DbmPerHertz,
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let decoded =
+        SpectrumSweep::from_canonical_bytes(per_hertz[0].canonical_bytes(), limits()).unwrap();
+    assert_eq!(decoded.document().power_unit, PowerUnit::DbmPerHertz);
+    assert_eq!(decoded.document().bins, per_hertz[0].document().bins);
+
+    let event = SpectrumEvent::from_sweeps(&per_hertz, -60_000, limits()).unwrap();
+    assert_eq!(event.assessment().pattern, SignaturePattern::Unknown);
+    assert_eq!(
+        event.assessment().reason,
+        SignatureReason::PowerUnitUnsupported
+    );
+    assert_eq!(event.assessment().occupied_cells, 0);
+    assert_eq!(event.assessment().active_sweep_support_parts_per_million, 0);
+    assert_eq!(event.assessment().persistent_occupied_bin_count, 0);
+
+    let decoded =
+        SpectrumEvent::from_canonical_bytes(event.canonical_bytes(), &per_hertz, -60_000, limits())
+            .unwrap();
+    assert_eq!(event, decoded);
+}
+
+#[test]
+fn sparse_frequency_local_support_cannot_be_masked_by_global_activity() {
+    let sweeps = (0..10)
+        .map(|sequence| {
+            let mut values = bins(&[], None);
+            if sequence < 5 {
+                values[3] = SpectrumBin::Observed {
+                    power_milli_dbm: -50_000,
+                    clipped: false,
+                };
+            } else {
+                values[3] = SpectrumBin::NotObserved {
+                    reason: UnknownReason::NotMeasured,
+                };
+            }
+            let unrelated_bin = sequence as usize % 7;
+            if unrelated_bin != 3 {
+                values[unrelated_bin] = SpectrumBin::Observed {
+                    power_milli_dbm: -50_000,
+                    clipped: false,
+                };
+            }
+            sweep_with(sequence, sequence * 125_000_000, values, true)
+        })
+        .collect::<Vec<_>>();
+    let event = SpectrumEvent::from_sweeps(&sweeps, -60_000, limits()).unwrap();
+
+    assert!(event.assessment().frequency_time_support_parts_per_million >= 800_000);
+    assert!(event.assessment().active_sweep_support_parts_per_million >= 800_000);
+    assert_eq!(event.assessment().pattern, SignaturePattern::Unknown);
+    assert_eq!(
+        event.assessment().reason,
+        SignatureReason::InsufficientFrequencyLocalCoverage
+    );
+    assert_eq!(event.assessment().persistent_occupied_bin_count, 0);
+    assert_eq!(
+        event
+            .assessment()
+            .minimum_persistent_bin_coverage_parts_per_million,
+        0
+    );
+}
+
+#[test]
+fn frequency_local_coverage_accepts_the_documented_exact_boundary() {
+    let sweeps = (0..10)
+        .map(|sequence| {
+            let mut values = bins(&[], None);
+            if sequence < 8 {
+                values[3] = SpectrumBin::Observed {
+                    power_milli_dbm: -50_000,
+                    clipped: false,
+                };
+            } else {
+                values[3] = SpectrumBin::NotObserved {
+                    reason: UnknownReason::NotMeasured,
+                };
+            }
+            sweep_with(sequence, sequence * 125_000_000, values, true)
+        })
+        .collect::<Vec<_>>();
+    let event = SpectrumEvent::from_sweeps(&sweeps, -60_000, limits()).unwrap();
+
+    assert_eq!(MIN_PERSISTENT_BIN_COVERAGE_PARTS_PER_MILLION, 800_000);
+    assert_eq!(
+        event
+            .assessment()
+            .minimum_persistent_bin_coverage_parts_per_million,
+        MIN_PERSISTENT_BIN_COVERAGE_PARTS_PER_MILLION
+    );
+    assert_eq!(
+        event.assessment().pattern,
+        SignaturePattern::NarrowbandPersistentPattern
+    );
 }
 
 #[test]
