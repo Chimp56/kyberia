@@ -17,6 +17,10 @@ fn decode_hex(value: &str) -> Vec<u8> {
 
 fn subtype_name(subtype: ManagementSubtype) -> &'static str {
     match subtype {
+        ManagementSubtype::AssociationRequest => "Association Request",
+        ManagementSubtype::AssociationResponse => "Association Response",
+        ManagementSubtype::ReassociationRequest => "Reassociation Request",
+        ManagementSubtype::ReassociationResponse => "Reassociation Response",
         ManagementSubtype::Beacon => "Beacon",
         ManagementSubtype::ProbeRequest => "Probe Request",
         ManagementSubtype::ProbeResponse => "Probe Response",

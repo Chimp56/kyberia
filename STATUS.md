@@ -44,9 +44,21 @@ reviewed identical-singleton warning correction at `26efb81`. Independent
 review and rereview reports are at `9401e4a` and `f1788ef`. It adds a zero-copy
 ordered view with exact raw TLVs, numeric IEEE IE/extension identities,
 malformed/contradictory evidence, and a bounded duplicate-preserving content
-diff. The parser still lacks association-frame support, and there is no desktop
-Lab UI/IPC or standards clause/help catalog; `INS-005` and Phase 2 remain in
-progress. See [core validation](docs/validation/phase2-ie-explorer-core.md).
+diff. The integrated parser at `41e88b7` lacked association-frame support.
+There is no desktop Lab UI/IPC or standards clause/help catalog; `INS-005` and
+Phase 2 remain in progress. See
+[core validation](docs/validation/phase2-ie-explorer-core.md).
+
+An isolated follow-up candidate on `feat/phase2-association-ie-current-20260923`
+(base `eef8d897050835146621749c14609c870009bbd6`) adds Association Request,
+Association Response, Reassociation Request, and Reassociation Response IE
+framing with 4/6/10/6-byte fixed-body skips. Their fixed fields remain raw and
+are not decoded as Beacon/Probe Response fields. Focused parser, canonical
+round-trip, truncation, Clippy, formatting, architecture, and source-inventory
+checks pass; independent review and integration are pending. This candidate
+does not close the Lab UI/IPC, standards clause/help catalog, other Phase 2
+deliverables, `INS-005`, or the Phase 2 exit criteria. See
+[association parser validation](docs/validation/phase2-association-ie-current.md).
 
 The bounded PNG admission and operation-backed map import/two-point calibration
 increment is integrated on `main` at `2670207`. The broader independent review

@@ -1,15 +1,19 @@
 # Kyberia IEEE 802.11 foundation
 
 This adapter-layer crate parses complete raw IEEE 802.11 MAC management MPDUs
-for Beacon, Probe Response, and Probe Request frames. The caller must state
-whether a four-byte FCS is absent or present; present FCS bytes are validated
-with the IEEE CRC-32. The parser never guesses framing and does not accept
-radiotap, PCAP/PCAPNG containers, data frames, control frames, or association
-frames.
+for Association Request/Response, Reassociation Request/Response, Beacon,
+Probe Response, and Probe Request frames. The caller must state whether a
+four-byte FCS is absent or present; present FCS bytes are validated with the
+IEEE CRC-32. The parser never guesses framing and does not accept radiotap,
+PCAP/PCAPNG containers, data frames, control frames, or other management
+subtypes.
 
 The normalized record retains the raw MPDU, MAC address roles, sequence and
-fragment numbers, fixed fields, and every IE in exact wire order with absolute
-offsets and payload bytes. Foundational typed views are deliberately narrow:
+fragment numbers, Beacon/Probe Response fixed fields, and every IE in exact
+wire order with absolute offsets and payload bytes. Association/reassociation
+fixed bodies are skipped when locating IEs and remain available only in the raw
+MPDU; their fields are not interpreted as `ResponseFixedFields`. Foundational
+typed views are deliberately narrow:
 SSID, supported rates, DS parameter channel byte, TIM structure, Country
 triplet structure, and the extension wrapper. Unknown and vendor IEs remain
 lossless. No RSN, regulatory, HT, VHT, HE, EHT, MLO, channel-width, identity,

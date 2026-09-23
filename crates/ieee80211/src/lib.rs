@@ -22,6 +22,10 @@
 
 const HEADER_LEN: usize = 24;
 const RESPONSE_FIXED_LEN: usize = 12;
+const ASSOCIATION_REQUEST_FIXED_LEN: usize = 4;
+const ASSOCIATION_RESPONSE_FIXED_LEN: usize = 6;
+const REASSOCIATION_REQUEST_FIXED_LEN: usize = 10;
+const REASSOCIATION_RESPONSE_FIXED_LEN: usize = 6;
 const CANONICAL_MAGIC: &[u8; 7] = b"KY11IE\0";
 const CANONICAL_VERSION: u16 = 1;
 
@@ -75,6 +79,10 @@ pub enum InputFraming {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ManagementSubtype {
+    AssociationRequest,
+    AssociationResponse,
+    ReassociationRequest,
+    ReassociationResponse,
     ProbeRequest,
     ProbeResponse,
     Beacon,
@@ -94,6 +102,9 @@ pub struct AddressRoles {
     bssid_field: MacAddress,
 }
 
+/// The common timestamp, beacon interval, and capability fields in Beacon and
+/// Probe Response frames. Association/reassociation fixed bodies are retained
+/// in the raw MPDU but are not represented by this type.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ResponseFixedFields {
     timestamp: u64,
@@ -937,6 +948,10 @@ fn parse_controlled<C: Cancellation>(
     }
     let subtype_raw = ((frame_control >> 4) & 0x0f) as u8;
     let subtype = match subtype_raw {
+        0 => ManagementSubtype::AssociationRequest,
+        1 => ManagementSubtype::AssociationResponse,
+        2 => ManagementSubtype::ReassociationRequest,
+        3 => ManagementSubtype::ReassociationResponse,
         4 => ManagementSubtype::ProbeRequest,
         5 => ManagementSubtype::ProbeResponse,
         8 => ManagementSubtype::Beacon,
@@ -946,10 +961,13 @@ fn parse_controlled<C: Cancellation>(
     if ds_flags != 0 {
         return Err(Error::InvalidManagementDsFlags(ds_flags));
     }
-    let fixed_len = if subtype == ManagementSubtype::ProbeRequest {
-        0
-    } else {
-        RESPONSE_FIXED_LEN
+    let fixed_len = match subtype {
+        ManagementSubtype::AssociationRequest => ASSOCIATION_REQUEST_FIXED_LEN,
+        ManagementSubtype::AssociationResponse => ASSOCIATION_RESPONSE_FIXED_LEN,
+        ManagementSubtype::ReassociationRequest => REASSOCIATION_REQUEST_FIXED_LEN,
+        ManagementSubtype::ReassociationResponse => REASSOCIATION_RESPONSE_FIXED_LEN,
+        ManagementSubtype::ProbeRequest => 0,
+        ManagementSubtype::ProbeResponse | ManagementSubtype::Beacon => RESPONSE_FIXED_LEN,
     };
     let elements_offset = HEADER_LEN
         .checked_add(fixed_len)
@@ -963,9 +981,10 @@ fn parse_controlled<C: Cancellation>(
         MacAddress(out)
     };
     let sequence_control = read_u16(input, 22).ok_or(Error::Truncated("sequence control"))?;
-    let fixed = if fixed_len == 0 {
-        None
-    } else {
+    let fixed = if matches!(
+        subtype,
+        ManagementSubtype::ProbeResponse | ManagementSubtype::Beacon
+    ) {
         Some(ResponseFixedFields {
             timestamp: read_u64(input, HEADER_LEN).ok_or(Error::Truncated("timestamp"))?,
             beacon_interval_tu: read_u16(input, HEADER_LEN + 8)
@@ -973,6 +992,8 @@ fn parse_controlled<C: Cancellation>(
             capability_information: read_u16(input, HEADER_LEN + 10)
                 .ok_or(Error::Truncated("capability"))?,
         })
+    } else {
+        None
     };
 
     let element_count = preflight_elements(input, elements_offset, mac_len, control)?;
@@ -1138,6 +1159,9 @@ impl ManagementFrame {
     pub fn fragment_number(&self) -> u8 {
         self.fragment_number
     }
+    /// Beacon/Probe Response fixed fields, if applicable. Association and
+    /// reassociation fixed bodies remain available in `raw_mpdu` and are not
+    /// interpreted as `ResponseFixedFields`.
     pub fn fixed(&self) -> Option<ResponseFixedFields> {
         self.fixed
     }
@@ -1568,6 +1592,110 @@ mod tests {
             frame.elements[0].decoded,
             ElementDecode::Ssid(SsidValue::Binary(vec![0xff, 0, b'x']))
         );
+    }
+
+    #[test]
+    fn association_and_reassociation_subtypes_skip_their_fixed_bodies() {
+        let cases: [(u8, ManagementSubtype, &[u8], usize); 4] = [
+            (
+                0,
+                ManagementSubtype::AssociationRequest,
+                &[0x34, 0x12, 0x02, 0x00],
+                ASSOCIATION_REQUEST_FIXED_LEN,
+            ),
+            (
+                1,
+                ManagementSubtype::AssociationResponse,
+                &[0x34, 0x12, 0x02, 0x00, 0x01, 0xc0],
+                ASSOCIATION_RESPONSE_FIXED_LEN,
+            ),
+            (
+                2,
+                ManagementSubtype::ReassociationRequest,
+                &[0x34, 0x12, 0x02, 0x00, 1, 2, 3, 4, 5, 6],
+                REASSOCIATION_REQUEST_FIXED_LEN,
+            ),
+            (
+                3,
+                ManagementSubtype::ReassociationResponse,
+                &[0x34, 0x12, 0x02, 0x00, 0x01, 0xc0],
+                REASSOCIATION_RESPONSE_FIXED_LEN,
+            ),
+        ];
+        let ies = [221, 3, 0x41, 0x42, 0x43, 221, 2, 0x55, 0x56];
+
+        for (raw_subtype, subtype, fixed_body, fixed_len) in cases {
+            assert_eq!(fixed_body.len(), fixed_len);
+            let mut raw = header(raw_subtype);
+            raw.extend_from_slice(fixed_body);
+            raw.extend_from_slice(&ies);
+
+            let frame = parse(&raw, InputFraming::FcsAbsent).unwrap();
+            assert_eq!(frame.subtype(), subtype);
+            assert_eq!(frame.fixed(), None);
+            assert_eq!(frame.raw_mpdu(), raw);
+            assert_eq!(frame.addresses().receiver().octets(), [1, 2, 3, 4, 5, 6]);
+            assert_eq!(
+                frame.addresses().transmitter().octets(),
+                [7, 8, 9, 10, 11, 12]
+            );
+            assert_eq!(
+                frame.addresses().bssid_field().octets(),
+                [13, 14, 15, 16, 17, 18]
+            );
+            assert_eq!(frame.sequence_number(), 0xabc);
+            assert_eq!(frame.fragment_number(), 0xd);
+            assert_eq!(frame.elements().len(), 2);
+            assert_eq!(
+                frame.elements()[0].offset(),
+                (HEADER_LEN + fixed_len) as u32
+            );
+            assert_eq!(
+                frame.elements()[0].payload_offset(),
+                (HEADER_LEN + fixed_len + 2) as u32
+            );
+            assert_eq!(
+                frame.elements()[1].offset(),
+                (HEADER_LEN + fixed_len + 5) as u32
+            );
+            let viewed = frame.ie_explorer().elements().collect::<Vec<_>>();
+            assert_eq!(viewed[0].raw_bytes(), &ies[..5]);
+            assert_eq!(viewed[0].raw_payload(), &ies[2..5]);
+            assert_eq!(viewed[1].raw_bytes(), &ies[5..]);
+            assert_eq!(viewed[1].raw_payload(), &ies[7..]);
+            assert_eq!(frame.repeated_elements().len(), 1);
+            assert_eq!(frame.repeated_elements()[0].indices(), &[0, 1]);
+            assert!(!frame.repeated_elements()[0].violates_singleton_cardinality());
+            assert!(!frame.repeated_elements()[0].payloads_identical());
+
+            let canonical = frame.canonical_bytes().unwrap();
+            assert_eq!(
+                ManagementFrame::from_canonical_bytes(&canonical).unwrap(),
+                frame
+            );
+        }
+    }
+
+    #[test]
+    fn association_and_reassociation_fixed_body_truncations_are_rejected() {
+        let cases = [
+            (0, ASSOCIATION_REQUEST_FIXED_LEN),
+            (1, ASSOCIATION_RESPONSE_FIXED_LEN),
+            (2, REASSOCIATION_REQUEST_FIXED_LEN),
+            (3, REASSOCIATION_RESPONSE_FIXED_LEN),
+        ];
+
+        for (raw_subtype, fixed_len) in cases {
+            for available in 0..fixed_len {
+                let mut raw = header(raw_subtype);
+                raw.resize(HEADER_LEN + available, 0);
+                assert_eq!(
+                    parse(&raw, InputFraming::FcsAbsent),
+                    Err(Error::Truncated("management fixed fields")),
+                    "subtype {raw_subtype} with {available} of {fixed_len} fixed bytes"
+                );
+            }
+        }
     }
 
     #[test]
@@ -2156,11 +2284,13 @@ mod tests {
             parse(&raw, InputFraming::FcsAbsent),
             Err(Error::UnsupportedFrameType(2))
         );
-        raw[0] = 11 << 4;
-        assert_eq!(
-            parse(&raw, InputFraming::FcsAbsent),
-            Err(Error::UnsupportedManagementSubtype(11))
-        );
+        for subtype in [6, 7, 9, 10, 11, 12, 13, 14, 15] {
+            raw[0] = subtype << 4;
+            assert_eq!(
+                parse(&raw, InputFraming::FcsAbsent),
+                Err(Error::UnsupportedManagementSubtype(subtype))
+            );
+        }
     }
 
     #[test]
@@ -2214,12 +2344,18 @@ mod tests {
 
     #[test]
     fn ds_flags_are_rejected_for_every_supported_subtype_before_roles_publish() {
-        for subtype in [4_u8, 5, 8] {
+        let subtypes = [
+            (0_u8, ASSOCIATION_REQUEST_FIXED_LEN),
+            (1, ASSOCIATION_RESPONSE_FIXED_LEN),
+            (2, REASSOCIATION_REQUEST_FIXED_LEN),
+            (3, REASSOCIATION_RESPONSE_FIXED_LEN),
+            (4, 0),
+            (5, RESPONSE_FIXED_LEN),
+            (8, RESPONSE_FIXED_LEN),
+        ];
+        for (subtype, fixed_len) in subtypes {
             for flags in [0x01_u8, 0x02, 0x03] {
                 let mut raw = header(subtype);
-                if subtype != 4 {
-                    raw.extend_from_slice(&[0; RESPONSE_FIXED_LEN]);
-                }
                 raw[1] = flags;
                 assert_eq!(
                     parse(&raw, InputFraming::FcsAbsent),
@@ -2227,9 +2363,7 @@ mod tests {
                 );
             }
             let mut raw = header(subtype);
-            if subtype != 4 {
-                raw.extend_from_slice(&[0; RESPONSE_FIXED_LEN]);
-            }
+            raw.resize(HEADER_LEN + fixed_len, 0);
             raw[1] = 0xfc; // all other management flag bits remain accepted
             let frame = parse(&raw, InputFraming::FcsAbsent).unwrap();
             assert_eq!(frame.addresses().receiver().octets(), [1, 2, 3, 4, 5, 6]);

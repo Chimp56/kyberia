@@ -28395,9 +28395,9 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Partial Rust core: zero-copy ordered IE view, numeric IE identity, warning access, and bounded duplicate-preserving content diff; association parsing and Lab UI remain open",
-          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
-          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
+          "description": "Author candidate adds IE framing for Association and Reassociation Request/Response subtypes with fixed bodies retained raw; typed association fields and Lab UI remain open",
+          "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
+          "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
       ],
       "validation": [
@@ -28409,6 +28409,15 @@
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "bounded Rust information-element explorer/diff core only"
+        },
+        {
+          "path": "docs/validation/phase2-association-ie-current.md",
+          "description": "Author-candidate association/reassociation fixed-body skipping, IE offsets/order, duplicate preservation, canonical replay and truncation tests; independent review pending",
+          "revision": "ba97f33d2a5fa48c3d9715a5a416fbb4c875cb87",
+          "sha256": "9893b7bd84ea3c33e2dd4022ee3062653e5a044ed4974f718a31e0be1637c0ba",
+          "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check",
+          "result": "PASS",
+          "scope": "isolated association/reassociation IE-framing candidate only; full INS-005 and Phase 2 remain open"
         }
       ],
       "reviews": [],
@@ -161175,9 +161184,9 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Bounded Phase 2 IE-explorer source progress only; other Phase 2 deliverables and exit criteria remain open",
-          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
-          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
+          "description": "Bounded Phase 2 IE-explorer source progress, including an author candidate for association/reassociation IE framing only; other Phase 2 deliverables and exit criteria remain open",
+          "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
+          "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
       ],
       "validation": [
@@ -161608,9 +161617,9 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Partial information-element explorer/diff API over currently supported Beacon and Probe management frames",
-          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
-          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
+          "description": "Partial information-element explorer/diff API over Beacon, Probe, Association, and Reassociation management subtypes; candidate framing changes are fixed-body skips only",
+          "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
+          "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
       ],
       "validation": [
@@ -161622,6 +161631,15 @@
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "Rust core for beacon/probe frames; association parsing and user-facing explorer remain open"
+        },
+        {
+          "path": "docs/validation/phase2-association-ie-current.md",
+          "description": "Author-candidate association/reassociation fixed-body skipping, IE offsets/order, duplicate preservation, canonical replay and truncation tests; independent review pending",
+          "revision": "ba97f33d2a5fa48c3d9715a5a416fbb4c875cb87",
+          "sha256": "9893b7bd84ea3c33e2dd4022ee3062653e5a044ed4974f718a31e0be1637c0ba",
+          "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check",
+          "result": "PASS",
+          "scope": "isolated association/reassociation IE-framing candidate only; full Phase 2 remains open"
         }
       ],
       "reviews": [],
@@ -171602,9 +171620,9 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Bounded Beacon/Probe IE parser source; current file also contains a separately tracked partial explorer core. This source-identity update does not extend historical parser review or fuzz claims",
-          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
-          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
+          "description": "Bounded Beacon/Probe parser plus separately tracked association/reassociation IE framing candidate; this source-identity update does not extend WIFI-001 historical parser review or fuzz claims",
+          "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
+          "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
       ],
       "validation": [
