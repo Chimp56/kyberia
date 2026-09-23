@@ -70,7 +70,7 @@
       "properties": {
         "source_uri": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^(?:https?://|file://|urn:)[!-~]+$(?![\\s\\S])"},
         "license_spdx": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^[!-~](?:[ -~]*[!-~])?$(?![\\s\\S])"},
-        "source_checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        "source_checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$(?![\\s\\S])"}
       }
     },
     "quantity_dbi": {

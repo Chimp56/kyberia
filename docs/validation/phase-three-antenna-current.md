@@ -15,7 +15,7 @@ or Sionna execution in this evidence.
 
 | Command | Result and scope |
 | --- | --- |
-| `cargo test -p kyberia-antenna-model --locked --offline` | PASS: 11 integration tests; includes a local +X/45° elevation golden and trailing-line-feed rejection in all three Rust-validated text fields. No unit or doctests are defined. |
+| `cargo test -p kyberia-antenna-model --locked --offline` | PASS: 11 integration tests; includes a local +X/45° elevation golden and trailing-line-feed rejection in all four schema-patterned text fields. No unit or doctests are defined. |
 | `cargo test -p kyberia-antenna-model --locked --offline direction_elevation_and_frequency_interpolation_are_in_linear_power -- --exact` | PASS: targeted non-pole elevation golden. |
 | `cargo clippy -p kyberia-antenna-model --all-targets --locked --offline -- -D warnings` | PASS: all crate targets, warnings denied. |
 | `cargo fmt --all -- --check` | PASS: candidate workspace formatting. |
@@ -24,7 +24,7 @@ or Sionna execution in this evidence.
 | `python3 tools/ledger.py check` | PASS: 5,396 source blocks, 438 explicit ID occurrences, 447 headings. |
 | `python3 -m unittest discover -s tests -p 'test_ledger.py'` | PASS: 31 ledger tests. |
 | `git diff --check` | PASS: candidate working-tree whitespace check. |
-| `python3 tools/dev.py validate-antenna-schema` | PASS on the schema-validation candidate with the existing pinned `jsonschema==4.25.1` interpreter: `Draft202012Validator.check_schema` accepts the committed schema; the JSON fixture shared with the Rust test is accepted; an all-absent optional cross-polar plane is accepted; and seven invalid instances are rejected, including trailing line feeds in `model_id`, `source.license_spdx`, and `source.source_uri`. |
+| `python3 tools/dev.py validate-antenna-schema` | PASS on the schema-validation candidate with the existing pinned `jsonschema==4.25.1` interpreter: `Draft202012Validator.check_schema` accepts the committed schema; the JSON fixture shared with the Rust test is accepted; an all-absent optional cross-polar plane is accepted; and eight invalid instances are rejected, including trailing line feeds in all four schema-patterned text fields. |
 
 The exact candidate run used the already-installed interpreter from the
 integration checkout:
@@ -52,6 +52,20 @@ another version.
 The fail-closed path was also exercised with a configured Python that has no
 `jsonschema` package: the command returned exit code 2 with the bootstrap
 instruction above and did not attempt a package install.
+
+The schema's complete set of four regular-expression patterns was audited
+against the corresponding Rust validation path:
+
+| Schema field | Rust validation path | Schema/runtime relationship |
+| --- | --- | --- |
+| `model_id` | `validate_identifier` → `validate_text` | Printable ASCII, bounded length, and no leading/trailing whitespace; interior ASCII spaces are allowed. |
+| `source.source_uri` | `validate_source_uri` → `validate_text` | Supported scheme and nonempty printable-ASCII suffix agree. |
+| `source.license_spdx` | `validate_text`, then `valid_spdx_expression` | Schema checks bounded printable ASCII; SPDX grammar remains a stricter runtime check. |
+| `source.source_checksum_sha256` | `validate_sha256` | Exactly 64 lowercase hexadecimal ASCII bytes. |
+
+Each regex now requires true end-of-input after its ASCII content; `$` alone
+can match before a final line feed in the pinned validator. JSON Schema also
+does not encode cross-field/runtime invariants, which remain checked by Rust.
 
 The evidence exercises explicit axes/rotation, pole and flattening behavior,
 the non-pole elevation golden and spatial/frequency interpolation,

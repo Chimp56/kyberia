@@ -87,6 +87,12 @@ def main():
     trailing_lf_uri["source"]["source_uri"] += "\n"
     invalid_instances["trailing line feed in source.source_uri"] = trailing_lf_uri
 
+    trailing_lf_checksum = copy.deepcopy(valid_instance)
+    trailing_lf_checksum["source"]["source_checksum_sha256"] += "\n"
+    invalid_instances[
+        "trailing line feed in source.source_checksum_sha256"
+    ] = trailing_lf_checksum
+
     for label, instance in invalid_instances.items():
         if validator.is_valid(instance):
             print("ERROR: invalid instance passed schema: {}".format(label), file=sys.stderr)
