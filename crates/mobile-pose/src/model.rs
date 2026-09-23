@@ -270,6 +270,10 @@ impl<'a> PoseTimeline<'a> {
 /// Callers must provide source and target coordinates in compatible,
 /// right-handed, +z-up metric frames; this type does not resolve frame graphs,
 /// tilt, scale, or frame-calibration uncertainty.
+/// `alignment_covariance` describes only target-position uncertainty in the
+/// target frame, conditional on `target_yaw`. Fusion obtains source-position
+/// uncertainty from the exact bound pose sample and combines both; if either
+/// required covariance is unknown, fused position covariance remains unknown.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DriftAnchor {
     anchor_id: AnchorId,
