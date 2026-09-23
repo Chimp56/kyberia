@@ -103279,8 +103279,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "49969d6f7e2017d31aa34822d7210903bfdd52fc0b17a3da3926a45d57221a4a",
-          "sha256": "49969d6f7e2017d31aa34822d7210903bfdd52fc0b17a3da3926a45d57221a4a"
+          "revision": "4480a306607e0e25e192b737d176ab0c8bb6b8816616cbe04fa58eaa5ce9451f",
+          "sha256": "4480a306607e0e25e192b737d176ab0c8bb6b8816616cbe04fa58eaa5ce9451f"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -177591,14 +177591,42 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "UI/visualization",
-      "phase": 1,
+      "status": "IN_PROGRESS",
+      "owner": "phase8-plugin-sdk",
+      "phase": 8,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "related_requirements": [
+        "audit:EXT-001:1"
+      ],
+      "acceptance_cases": [
+        "Portable versioned collector, metric, and export declarations negotiate exact role capabilities and input/output contracts; third-party sample plugins remain open",
+        "Exact manifest/component references and declared resource ceilings validate deterministically; host enforcement remains open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/plugin-sdk/src/model.rs",
+          "description": "Versioned manifest, capability, data-contract, resource-request, host-offer, and project-reference types",
+          "revision": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e",
+          "sha256": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e"
+        },
+        {
+          "path": "crates/plugin-sdk/src/validation.rs",
+          "description": "Strict manifest validation, host contract negotiation, component digest, and canonical reference checks",
+          "revision": "5fd15dce7891add9669c3e8f10cc1c40bcb90575d9f2fd1a5c8733f923442011",
+          "sha256": "5fd15dce7891add9669c3e8f10cc1c40bcb90575d9f2fd1a5c8733f923442011"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase-eight-plugin-sdk-contracts.md",
+          "description": "Focused contract tests, Clippy, architecture policy, and source inventory results with runtime limitations",
+          "revision": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
+          "sha256": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
+          "command": "cargo test -p kyberia-plugin-sdk --locked --offline",
+          "scope": "plugin_contract_declaration_and_negotiation",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -244862,14 +244890,52 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
-      "owner": "ecosystem",
+      "status": "IN_PROGRESS",
+      "owner": "phase8-plugin-sdk",
       "phase": 8,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Role-specific stable capability and data-contract versions are explicit, negotiated against host offers, and isolated from unrelated plugin roles; an enforcing host remains open",
+        "Registry identity is project-local, deterministic, and exact-reference-based rather than a global plugin ABI; third-party/runtime validation remains open"
+      ],
+      "implementation": [
+        {
+          "path": "crates/plugin-sdk/src/model.rs",
+          "description": "Closed capability vocabulary and independently versioned role data contracts",
+          "revision": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e",
+          "sha256": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e"
+        },
+        {
+          "path": "crates/plugin-sdk/src/registry.rs",
+          "description": "Deterministic declaration registry with duplicate rejection and exact project-reference resolution; does not load components",
+          "revision": "56e2449c253430965ba4e2129d1ebb35a700a6c3ee8c1565c5c8f4887fe0ae4c",
+          "sha256": "56e2449c253430965ba4e2129d1ebb35a700a6c3ee8c1565c5c8f4887fe0ae4c"
+        },
+        {
+          "path": "crates/plugin-sdk/tests/contracts.rs",
+          "description": "Contract regressions for role boundaries, negotiation, canonical identity, registry determinism, and invalid empty-registry host policy",
+          "revision": "86cc17c8a6219a8f24a80cea87a3db3162eef6406dc10513a27e597b74938905",
+          "sha256": "86cc17c8a6219a8f24a80cea87a3db3162eef6406dc10513a27e597b74938905"
+        },
+        {
+          "path": "schemas/plugin-wit/worlds.wit",
+          "description": "Language-neutral collector, metric, and export component-world source; parser validation remains open",
+          "revision": "05f05e92a50d3b018fb3659bc5c64ba914afeb37cb87b08a1594e42143a897ab",
+          "sha256": "05f05e92a50d3b018fb3659bc5c64ba914afeb37cb87b08a1594e42143a897ab"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase-eight-plugin-sdk-contracts.md",
+          "description": "Focused contract tests, Clippy, architecture policy, and source inventory results with runtime limitations",
+          "revision": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
+          "sha256": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
+          "command": "cargo test -p kyberia-plugin-sdk --locked --offline",
+          "scope": "capability_scoped_plugin_contracts",
+          "result": "PASS"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,

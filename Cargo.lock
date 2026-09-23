@@ -2227,6 +2227,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-plugin-sdk"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "kyberia-project-store"
 version = "0.1.0"
 dependencies = [

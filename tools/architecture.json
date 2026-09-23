@@ -6,6 +6,7 @@
     "kyberia-rendering-scene": {"layer": "adapter", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-resource-budget": {"layer": "domain", "external_dependencies": []},
     "kyberia-domain": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
+    "kyberia-plugin-sdk": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-operation-log": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-materialization-identity": {"layer": "application", "external_dependencies": ["serde_json", "sha2"]},
     "kyberia-causal-materializer": {"layer": "application", "external_dependencies": []},

@@ -16,6 +16,19 @@
       ]
     },
     {
+      "id": "phase-8-plugin-contract-proof",
+      "kind": "prerequisite_proof",
+      "depends_on": [
+        "contracts"
+      ],
+      "owner": "phase8-plugin-sdk",
+      "acceptance": "Independent review and focused proof of portable versioned collector/metric/export manifests, exact role capabilities, host version negotiation and project references; runtime, third-party integration and sandbox gates remain separate",
+      "requirements": [
+        "backlog:UX-012:1",
+        "audit:EXT-001:1"
+      ]
+    },
+    {
       "id": "storage-proof",
       "kind": "prerequisite_proof",
       "depends_on": [

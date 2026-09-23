@@ -1,0 +1,85 @@
+package rfatlas:plugin-sdk@1.0.0;
+
+interface common {
+    enum contract-id {
+        capture-batch,
+        observation-batch,
+        metric-input,
+        derived-layer,
+        export-view,
+        export-artifact,
+    }
+
+    record semantic-version {
+        major: u16,
+        minor: u16,
+        patch: u16,
+    }
+
+    record contract-payload {
+        contract: contract-id,
+        version: semantic-version,
+        json-utf8: list<u8>,
+    }
+
+    enum plugin-error {
+        invalid-input,
+        unsupported-version,
+        capability-denied,
+        resource-limit,
+        cancelled,
+        failed,
+    }
+}
+
+interface collector-host {
+    use common.{contract-payload, plugin-error};
+
+    next-capture-batch: func(max-records: u32) -> result<option<contract-payload>, plugin-error>;
+}
+
+interface collector-plugin {
+    use common.{contract-payload, plugin-error};
+
+    collect: func(max-records: u32) -> result<option<contract-payload>, plugin-error>;
+}
+
+world collector {
+    import collector-host;
+    export collector-plugin;
+}
+
+interface metric-host {
+    use common.{contract-payload, plugin-error};
+
+    read-observation-page: func(cursor: option<string>, max-records: u32) -> result<option<contract-payload>, plugin-error>;
+    read-geometry: func() -> result<contract-payload, plugin-error>;
+}
+
+interface metric-plugin {
+    use common.{contract-payload, plugin-error};
+
+    evaluate: func(input: contract-payload) -> result<contract-payload, plugin-error>;
+}
+
+world metric {
+    import metric-host;
+    export metric-plugin;
+}
+
+interface export-host {
+    use common.{contract-payload, plugin-error};
+
+    read-project-view: func() -> result<contract-payload, plugin-error>;
+}
+
+interface export-plugin {
+    use common.{contract-payload, plugin-error};
+
+    build: func(input: contract-payload) -> result<contract-payload, plugin-error>;
+}
+
+world export {
+    import export-host;
+    export export-plugin;
+}
