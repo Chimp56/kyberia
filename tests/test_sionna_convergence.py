@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import threading
 import unittest
 from unittest import mock
 
@@ -15,7 +16,8 @@ sys.path.insert(0, str(ROOT / "workers/sionna"))
 from rfatlas_sionna import (AUDITED_REVISION, CAPABILITY_SCHEMA_VERSION,
                             ENGINE_PINS, WORKER_VERSION)
 from rfatlas_sionna.contract import digest
-from rfatlas_sionna.convergence import ConvergenceError, run_sweep
+from rfatlas_sionna.convergence import (ConvergenceCancelled, ConvergenceError,
+                                        run_sweep)
 from rfatlas_sionna.examples import request as example_request
 
 
@@ -115,7 +117,7 @@ class ConvergenceSweepTests(unittest.TestCase):
         self.base = example_request("radio_map")
         self.calls = []
 
-    def runner(self, request, _python_executable):
+    def runner(self, request, _python_executable, _cancel=None):
         self.calls.append(deepcopy(request))
         budget, seed = request["solver"]["samples"], request["solver"]["seed"]
         ntx = len(request["transmitters"])
@@ -178,13 +180,13 @@ class ConvergenceSweepTests(unittest.TestCase):
         self.assertEqual(self.calls, [])
 
     def test_rejects_malformed_map_and_unavailable_cells(self):
-        def malformed_runner(request, _python):
+        def malformed_runner(request, _python, _cancel=None):
             gains = [[[1.0] * 4 for _ in range(4)]]
             return _synthetic_envelope(request, gains, .1, malformed=True)
         with self.assertRaises(ConvergenceError):
             run_sweep(self.base, [10, 20], [1, 2], "unused", runner=malformed_runner)
 
-        def unavailable_runner(request, _python):
+        def unavailable_runner(request, _python, _cancel=None):
             gains = [[[1.0] * 4 for _ in range(4)]]
             gains[0][0][0] = 0
             envelope = _synthetic_envelope(request, gains, .1)
@@ -196,7 +198,7 @@ class ConvergenceSweepTests(unittest.TestCase):
 
     def test_rejects_runtime_provenance_changes(self):
         calls = 0
-        def changing_runner(request, python):
+        def changing_runner(request, python, _cancel=None):
             nonlocal calls
             calls += 1
             gains = [[[1.0] * 4 for _ in range(4)]]
@@ -231,6 +233,44 @@ class ConvergenceSweepTests(unittest.TestCase):
                         side_effect=self.runner) as client_run:
             run_sweep(self.base, [10, 20], [1, 2], "unused")
         self.assertEqual(client_run.call_count, 4)
+
+    def test_cancellation_before_first_run_dispatches_nothing(self):
+        cancel = threading.Event()
+        cancel.set()
+        with mock.patch("rfatlas_sionna.convergence.run_worker") as client_run:
+            with self.assertRaises(ConvergenceCancelled):
+                run_sweep(self.base, [10, 20], [1, 2], "unused", cancel=cancel)
+        client_run.assert_not_called()
+
+    def test_cancellation_during_run_reaches_existing_client_token(self):
+        cancel = threading.Event()
+
+        def cancel_in_client(request, _python, client_cancel):
+            self.assertIs(client_cancel, cancel)
+            client_cancel.set()
+            return {"schema_version": 1, "request_id": request["request_id"],
+                    "request_sha256": digest(request), "status": "failed",
+                    "error": "cancelled"}
+
+        with mock.patch("rfatlas_sionna.convergence.run_worker",
+                        side_effect=cancel_in_client) as client_run:
+            with self.assertRaises(ConvergenceCancelled):
+                run_sweep(self.base, [10, 20], [1, 2], "unused", cancel=cancel)
+        self.assertEqual(client_run.call_count, 1)
+
+    def test_cancellation_between_runs_prevents_next_request(self):
+        cancel = threading.Event()
+
+        def finish_then_cancel(request, _python, client_cancel):
+            envelope = self.runner(request, _python, client_cancel)
+            client_cancel.set()
+            return envelope
+
+        with mock.patch("rfatlas_sionna.convergence.run_worker",
+                        side_effect=finish_then_cancel) as client_run:
+            with self.assertRaises(ConvergenceCancelled):
+                run_sweep(self.base, [10, 20], [1, 2], "unused", cancel=cancel)
+        self.assertEqual(client_run.call_count, 1)
 
     def test_enforces_serialized_output_limit(self):
         with mock.patch("rfatlas_sionna.convergence.MAX_OUTPUT_BYTES", 1):

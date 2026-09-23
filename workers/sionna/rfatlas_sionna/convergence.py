@@ -32,8 +32,25 @@ class ConvergenceError(ValueError):
     """A request, worker result, or bound is invalid for this diagnostic."""
 
 
+class ConvergenceCancelled(ConvergenceError):
+    """The caller cancelled the sweep; no subsequent worker job is started."""
+
+
 def _finite_nonnegative(value):
     return type(value) in (int, float) and math.isfinite(value) and value >= 0
+
+
+def _check_cancel(cancel, stage):
+    if cancel is None:
+        return
+    try:
+        cancelled = cancel.is_set()
+    except Exception as exc:
+        raise ConvergenceError("cancel token could not be checked") from exc
+    if type(cancelled) is not bool:
+        raise ConvergenceError("cancel token is_set() must return bool")
+    if cancelled:
+        raise ConvergenceCancelled("sweep cancelled " + stage)
 
 
 def _check_options(request, sample_budgets, seeds):
@@ -206,14 +223,20 @@ def _runtime_summary(values):
             "max": max(values), "sample_standard_deviation": spread}
 
 
-def run_sweep(request, sample_budgets, seeds, python_executable, *, runner=None):
+def run_sweep(request, sample_budgets, seeds, python_executable, *, cancel=None,
+              runner=None):
     """Run a bounded repeated-seed sweep through the normal worker client.
 
-    ``runner`` is an injectable callable for algorithm tests; production use
-    should omit it to invoke :func:`rfatlas_sionna.client.run`. Each emitted
-    run request differs from ``request`` only in request ID, seed, and samples.
+    ``cancel`` is an event-like token with ``is_set()``; it is propagated into
+    every client call and checked between calls. ``runner`` is injectable for
+    algorithm tests; production use should omit it to invoke
+    :func:`rfatlas_sionna.client.run`. Each emitted run request differs from
+    ``request`` only in request ID, seed, and samples.
     """
+    if cancel is not None and not callable(getattr(cancel, "is_set", None)):
+        raise ConvergenceError("cancel token must provide is_set()")
     nx, ny, cells, ntx = _check_options(request, sample_budgets, seeds)
+    _check_cancel(cancel, "before the first worker call")
     execute = run_worker if runner is None else runner
     if not callable(execute):
         raise ConvergenceError("runner must be callable")
@@ -230,6 +253,7 @@ def run_sweep(request, sample_budgets, seeds, python_executable, *, runner=None)
 
     for budget in sample_budgets:
         for seed in seeds:
+            _check_cancel(cancel, "before a worker call")
             run_request = _request_for_run(request, budget, seed)
             check_semantics = deepcopy(run_request)
             check_semantics.pop("request_id")
@@ -238,9 +262,14 @@ def run_sweep(request, sample_budgets, seeds, python_executable, *, runner=None)
             if check_semantics != base_semantics:
                 raise ConvergenceError("sweep modified an unrelated request field")
             try:
-                envelope = execute(deepcopy(run_request), python_executable)
+                envelope = execute(deepcopy(run_request), python_executable, cancel)
             except Exception as exc:
+                try:
+                    _check_cancel(cancel, "during a worker call")
+                except ConvergenceCancelled as cancelled:
+                    raise cancelled from exc
                 raise ConvergenceError("radio_map worker call raised an exception") from exc
+            _check_cancel(cancel, "during a worker call")
             result = _validate_envelope(envelope, run_request)
             data = result["data"]
             gains = _flatten_map(data.get("path_gain"), shape)

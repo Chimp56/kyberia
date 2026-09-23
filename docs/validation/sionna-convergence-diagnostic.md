@@ -33,6 +33,12 @@ pins, timestamps, log checksum, and resource limits.
 Full raw gain maps are not copied into the report; their `data_sha256` values
 are retained.
 
+An optional event-like `cancel` token with `is_set()` may be passed to
+`run_sweep`. The same token is forwarded to each existing `client.run` call;
+the helper checks it before the first call, before and after each worker call,
+and raises `ConvergenceCancelled` without dispatching another run. Each
+individual worker request retains its original timeout and CPU limit.
+
 For each sample budget the report contains the per-cell mean path gain and the
 standard error across its distinct seed runs (sample standard deviation divided
 by the square root of the replicate count). Adjacent-budget output contains the
@@ -64,10 +70,9 @@ variance, and RF Atlas Wi-Fi composition evidence.
 ## Local author check
 
 On 2026-09-23, `python3 -m unittest discover -s tests -p 'test_sionna_convergence.py' -v`
-passed all 9 synthetic algorithm tests. They
+passed all 12 synthetic algorithm tests, including cancellation before a run,
+token propagation during a run, and stopping before the next run. They
 exercise the ordinary-client dispatch seam through a synthetic runner; no
 worker process, Sionna package, radio-map field result, or Phase 7 acceptance
 gate was run. This is contract/algorithm evidence only. The test source SHA-256
-is `2f2921684fbdf78e68f1c58452ff6b4e3ed28d21cbc27e08bd7213f460c61317`, and
-the helper source SHA-256 is
-`873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6`.
+is recorded as implementation evidence in the source-qualified ledger.

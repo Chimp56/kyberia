@@ -86040,8 +86040,8 @@
         {
           "path": "workers/sionna/rfatlas_sionna/convergence.py",
           "description": "Adds a support-only bounded sample/seed convergence diagnostic over ordinary radio_map jobs; it is not engine or product acceptance.",
-          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
-          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+          "revision": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6",
+          "sha256": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6"
         }
       ],
       "validation": [],
@@ -167414,22 +167414,22 @@
         {
           "path": "workers/sionna/rfatlas_sionna/convergence.py",
           "description": "Adds a bounded support diagnostic for repeated-seed path-gain summaries and per-budget runtime spread; real CPU/LLVM execution and cross-environment variance remain open.",
-          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
-          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+          "revision": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6",
+          "sha256": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6"
         },
         {
           "path": "tests/test_sionna_convergence.py",
           "description": "Synthetic-only tests for aggregation, bounds, contract rejection and default-client dispatch; they do not execute Sionna.",
-          "revision": "2f2921684fbdf78e68f1c58452ff6b4e3ed28d21cbc27e08bd7213f460c61317",
-          "sha256": "2f2921684fbdf78e68f1c58452ff6b4e3ed28d21cbc27e08bd7213f460c61317"
+          "revision": "5d71ae658aaf6f712cd781760c3600d20675b2805440f672eb5bc90a2095fdd8",
+          "sha256": "5d71ae658aaf6f712cd781760c3600d20675b2805440f672eb5bc90a2095fdd8"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/sionna-convergence-diagnostic.md",
-          "description": "Records the passing 9-test synthetic-only author check and explicitly leaves actual worker, cross-runtime and product gates open.",
-          "revision": "2f2921684fbdf78e68f1c58452ff6b4e3ed28d21cbc27e08bd7213f460c61317",
-          "sha256": "db4d2b14725821efb12d39a89e07f71905d173ae7d026aa1c3ee535ba4faa015",
+          "description": "Records the passing 12-test synthetic-only author check, including cancellation, and explicitly leaves actual worker, cross-runtime and product gates open.",
+          "revision": "5d71ae658aaf6f712cd781760c3600d20675b2805440f672eb5bc90a2095fdd8",
+          "sha256": "7046381d8700bf6cc4b47d5577d6d1d91c6d9f3c1b10b8f22afb6be3b0c81744",
           "command": "python3 -m unittest discover -s tests -p 'test_sionna_convergence.py' -v",
           "result": "PASS",
           "scope": "contract"
@@ -176121,8 +176121,8 @@
         {
           "path": "workers/sionna/rfatlas_sionna/convergence.py",
           "description": "Support diagnostic only: no RadioMapSolver product integration, measured holdouts or P2/P1 claim is established.",
-          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
-          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+          "revision": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6",
+          "sha256": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6"
         }
       ],
       "validation": [],
@@ -243302,8 +243302,8 @@
         {
           "path": "workers/sionna/rfatlas_sionna/convergence.py",
           "description": "Adds only cross-seed Monte Carlo standard-error diagnostics; geometry/material priors, sensor residuals, scenario sensitivity and calibration remain unimplemented.",
-          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
-          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+          "revision": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6",
+          "sha256": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6"
         }
       ],
       "validation": [],
@@ -248689,8 +248689,8 @@
         {
           "path": "workers/sionna/rfatlas_sionna/convergence.py",
           "description": "Implements bounded seed/sample sensitivity summaries for ordinary radio maps; depth sensitivity and engine acceptance remain out of scope.",
-          "revision": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6",
-          "sha256": "873ae3ed349044234547c76dacdb985c6ed02cc13490709dcfd5ef4bf6edb6d6"
+          "revision": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6",
+          "sha256": "e7fd92e1f2bf3dfc0d66b83907dc5147cf92095f21fbe18bb700a19debf88fe6"
         }
       ],
       "validation": [],
