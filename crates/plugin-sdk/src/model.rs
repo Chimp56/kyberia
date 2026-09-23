@@ -219,3 +219,11 @@ pub struct NegotiatedPlugin {
     pub output_version: SemanticVersion,
     pub requested_resources: ResourceLimits,
 }
+
+/// A parsed and semantically validated declaration. This is not an
+/// authorization token and does not imply that a host enforces its requests.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ValidatedPluginDeclaration {
+    pub manifest: PluginManifest,
+    pub negotiated: NegotiatedPlugin,
+}

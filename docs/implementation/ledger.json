@@ -177605,25 +177605,31 @@
       "implementation": [
         {
           "path": "crates/plugin-sdk/src/model.rs",
-          "description": "Versioned manifest, capability, data-contract, resource-request, host-offer, and project-reference types",
-          "revision": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e",
-          "sha256": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e"
+          "description": "Versioned manifest, capability, data-contract, resource-request, host-offer, project-reference, and non-authorizing validated-declaration types",
+          "revision": "8b8b8224b6c8d7422d1c5dde3978d7136e95317f28487b377ba354d2f48f21cc",
+          "sha256": "8b8b8224b6c8d7422d1c5dde3978d7136e95317f28487b377ba354d2f48f21cc"
         },
         {
           "path": "crates/plugin-sdk/src/validation.rs",
-          "description": "Strict manifest validation, host contract negotiation, component digest, and canonical reference checks",
-          "revision": "5fd15dce7891add9669c3e8f10cc1c40bcb90575d9f2fd1a5c8733f923442011",
-          "sha256": "5fd15dce7891add9669c3e8f10cc1c40bcb90575d9f2fd1a5c8733f923442011"
+          "description": "Raw manifest byte/depth preflight before Serde, then strict semantic validation, host negotiation, component digest, and canonical reference checks",
+          "revision": "e0262c8b19e41a5878c5e5466a87e6aff09af11c9f312b071d7d9b2ef62f4b6f",
+          "sha256": "e0262c8b19e41a5878c5e5466a87e6aff09af11c9f312b071d7d9b2ef62f4b6f"
+        },
+        {
+          "path": "crates/plugin-sdk/tests/contracts.rs",
+          "description": "Raw parser preflight edge cases and fixed version-1 canonical manifest/reference golden vector alongside negotiation contract tests",
+          "revision": "c83c61aebd9266034d456fccd9a4b44fbc62ed5bf6f8f55b996b134342e8b69a",
+          "sha256": "c83c61aebd9266034d456fccd9a4b44fbc62ed5bf6f8f55b996b134342e8b69a"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-eight-plugin-sdk-contracts.md",
-          "description": "Focused contract tests, Clippy, architecture policy, and source inventory results with runtime limitations",
-          "revision": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
-          "sha256": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
+          "description": "Focused bounded-parser and contract evidence, golden vector, governance checks, and explicit runtime limitations",
+          "revision": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
+          "sha256": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
           "command": "cargo test -p kyberia-plugin-sdk --locked --offline",
-          "scope": "plugin_contract_declaration_and_negotiation",
+          "scope": "bounded_manifest_admission_and_contract_negotiation",
           "result": "PASS"
         }
       ],
@@ -244902,9 +244908,15 @@
       "implementation": [
         {
           "path": "crates/plugin-sdk/src/model.rs",
-          "description": "Closed capability vocabulary and independently versioned role data contracts",
-          "revision": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e",
-          "sha256": "5c9d9a7efe3ba2baf30ca0bc6d678254bf30e80a7f484cbbc0169930d066618e"
+          "description": "Closed capability vocabulary, independently versioned role data contracts, and non-authorizing validated declaration result",
+          "revision": "8b8b8224b6c8d7422d1c5dde3978d7136e95317f28487b377ba354d2f48f21cc",
+          "sha256": "8b8b8224b6c8d7422d1c5dde3978d7136e95317f28487b377ba354d2f48f21cc"
+        },
+        {
+          "path": "crates/plugin-sdk/src/validation.rs",
+          "description": "Bounded raw manifest admission, strict validation, role negotiation, component identity, and exact project references",
+          "revision": "e0262c8b19e41a5878c5e5466a87e6aff09af11c9f312b071d7d9b2ef62f4b6f",
+          "sha256": "e0262c8b19e41a5878c5e5466a87e6aff09af11c9f312b071d7d9b2ef62f4b6f"
         },
         {
           "path": "crates/plugin-sdk/src/registry.rs",
@@ -244914,9 +244926,9 @@
         },
         {
           "path": "crates/plugin-sdk/tests/contracts.rs",
-          "description": "Contract regressions for role boundaries, negotiation, canonical identity, registry determinism, and invalid empty-registry host policy",
-          "revision": "86cc17c8a6219a8f24a80cea87a3db3162eef6406dc10513a27e597b74938905",
-          "sha256": "86cc17c8a6219a8f24a80cea87a3db3162eef6406dc10513a27e597b74938905"
+          "description": "Contract regressions for raw-byte/depth admission, fixed canonical v1 bytes and digest, role boundaries, negotiation, and registry determinism",
+          "revision": "c83c61aebd9266034d456fccd9a4b44fbc62ed5bf6f8f55b996b134342e8b69a",
+          "sha256": "c83c61aebd9266034d456fccd9a4b44fbc62ed5bf6f8f55b996b134342e8b69a"
         },
         {
           "path": "schemas/plugin-wit/worlds.wit",
@@ -244928,11 +244940,11 @@
       "validation": [
         {
           "path": "docs/validation/phase-eight-plugin-sdk-contracts.md",
-          "description": "Focused contract tests, Clippy, architecture policy, and source inventory results with runtime limitations",
-          "revision": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
-          "sha256": "6d013cbd95a7d9179278591a930a018feb857ce920a24270ab2b6138d63e36ba",
+          "description": "Focused bounded-parser and contract evidence, golden vector, governance checks, and explicit runtime limitations",
+          "revision": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
+          "sha256": "7a3faefc80ca2da03de775d2373ee8a5a7f3b4c51337cac3ce2fa4ec50c19c01",
           "command": "cargo test -p kyberia-plugin-sdk --locked --offline",
-          "scope": "capability_scoped_plugin_contracts",
+          "scope": "bounded_manifest_admission_and_capability_scoped_contracts",
           "result": "PASS"
         }
       ],

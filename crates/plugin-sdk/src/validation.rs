@@ -7,6 +7,9 @@ use crate::{
 };
 
 const MAX_PLUGIN_ID_BYTES: usize = 253;
+/// Maximum number of nested JSON object/array delimiters in a raw manifest.
+/// The root object counts as one.
+pub const MAX_MANIFEST_NESTING_DEPTH: usize = 32;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ContractError {
@@ -74,13 +77,75 @@ impl std::fmt::Display for ContractError {
             Self::InvalidReference => {
                 formatter.write_str("plugin reference does not match the manifest")
             }
-            Self::Encoding => formatter.write_str("manifest cannot be encoded canonically"),
+            Self::Encoding => {
+                formatter.write_str("manifest encoding is invalid or cannot be canonicalized")
+            }
         }
     }
 }
 
 impl std::error::Error for ContractError {}
 
+/// Parse and validate untrusted manifest bytes against a host's advertised
+/// contract. The raw-byte length is checked before Serde constructs the typed
+/// manifest. Callers must also bound transport/file reads before buffering
+/// bytes; this check is not a runtime sandbox or a general heap quota.
+pub fn parse_and_validate_manifest(
+    bytes: &[u8],
+    host: &HostDescriptor,
+) -> Result<crate::ValidatedPluginDeclaration, ContractError> {
+    validate_host(host)?;
+    if bytes.len() as u64 > host.max_manifest_bytes {
+        return Err(ContractError::ResourceLimit("manifest_bytes"));
+    }
+    check_manifest_nesting_depth(bytes)?;
+    let manifest =
+        serde_json::from_slice::<PluginManifest>(bytes).map_err(|_| ContractError::Encoding)?;
+    let negotiated = validate_manifest(&manifest, host)?;
+    Ok(crate::ValidatedPluginDeclaration {
+        manifest,
+        negotiated,
+    })
+}
+
+/// Enforce the SDK's depth ceiling without allocating parser or typed-model
+/// state. Invalid JSON syntax is still reported by Serde after this preflight.
+fn check_manifest_nesting_depth(bytes: &[u8]) -> Result<(), ContractError> {
+    let mut depth = 0usize;
+    let mut in_string = false;
+    let mut escaped = false;
+
+    for &byte in bytes {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+            continue;
+        }
+
+        match byte {
+            b'"' => in_string = true,
+            b'{' | b'[' => {
+                depth += 1;
+                if depth > MAX_MANIFEST_NESTING_DEPTH {
+                    return Err(ContractError::ResourceLimit("manifest_depth"));
+                }
+            }
+            b'}' | b']' => depth = depth.saturating_sub(1),
+            _ => {}
+        }
+    }
+
+    Ok(())
+}
+
+/// Validate an already-deserialized manifest. For untrusted serialized input,
+/// use [`parse_and_validate_manifest`] so the raw byte limit is checked before
+/// Serde allocates the typed representation.
 pub fn validate_manifest(
     manifest: &PluginManifest,
     host: &HostDescriptor,

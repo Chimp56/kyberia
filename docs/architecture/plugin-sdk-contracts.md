@@ -22,6 +22,10 @@ encoding, and that canonical list order. A project reference binds the exact
 canonical manifest hash and the exact WASM component byte hash and length. The component digest covers the
 component blob itself, not a ZIP or other archive format.
 
+The v1 canonical byte representation and its project-reference digest are
+pinned by a fixed golden vector in the SDK tests. This is a Rust implementation
+regression vector, not evidence of cross-language interoperability.
+
 Plugin IDs use lower-case reverse-DNS labels. The contract carries no host
 filesystem path, OS-specific path separator, ambient environment variable,
 arbitrary network origin, shell command, or native-process request.
@@ -43,12 +47,23 @@ Payload bodies are UTF-8 JSON and remain subject to host schema validation.
 
 ## Admission behavior
 
-The declaration validator checks schema/version, canonical plugin ID and
-digest syntax, API and data-contract compatibility, role/capability matching,
-host capability versions, host-declared resource ceilings, and manifest size.
-`verify_component` checks the supplied component bytes against the declared
-length and SHA-256. The registry rejects duplicate plugin IDs and resolves only
-an exact project reference; its fingerprint is independent of discovery order.
+For untrusted serialized input, callers should use
+`parse_and_validate_manifest(&[u8], host)`. It checks the original byte-slice
+length against the host limit before calling Serde, then rejects nesting deeper
+than 32 JSON object/array delimiters (including the root object) before parse,
+and finally applies the semantic validator. Serde still enforces syntax,
+duplicate-field rejection, unknown-field rejection, and typed field limits.
+The typed `validate_manifest(&PluginManifest, host)` entrypoint is for values
+already parsed by the caller; its size validation cannot bound parsing that
+already happened.
+
+The caller has already buffered the slice passed to
+`parse_and_validate_manifest`; transport and file readers must enforce their
+own byte bound before buffering. The SDK preflight prevents an oversized slice
+from reaching Serde but is not a general heap quota or runtime sandbox.
+`verify_component` checks supplied component bytes against the declared length
+and SHA-256. The registry rejects duplicate plugin IDs and resolves only an
+exact project reference; its fingerprint is independent of discovery order.
 
 Resource values are requested ceilings. Passing declaration validation does
 not mean a host has applied them. Likewise, a negotiated capability set is a

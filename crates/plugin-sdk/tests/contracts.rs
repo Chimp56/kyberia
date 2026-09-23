@@ -1,9 +1,10 @@
 use kyberia_plugin_sdk::{
     Capability, CapabilityOffer, CapabilityRequirement, CompatibilityRange, ContractError,
     ContractOffer, ContractRequirement, DataContract, HostDescriptor, MANIFEST_SCHEMA,
-    MANIFEST_SCHEMA_VERSION, PluginKind, PluginManifest, PluginRegistry, PluginRuntime,
-    ResourceLimits, SemanticVersion, canonical_manifest_bytes, plugin_reference, validate_manifest,
-    verify_component, verify_reference,
+    MANIFEST_SCHEMA_VERSION, MAX_MANIFEST_NESTING_DEPTH, PluginKind, PluginManifest,
+    PluginRegistry, PluginRuntime, ResourceLimits, SemanticVersion, canonical_manifest_bytes,
+    parse_and_validate_manifest, plugin_reference, validate_manifest, verify_component,
+    verify_reference,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -276,14 +277,19 @@ fn manifest_reference_binds_every_declared_field() {
 #[test]
 fn canonical_manifest_encoding_is_repeatable() {
     let plugin = manifest(PluginKind::Export, "exporter");
+    let canonical = canonical_manifest_bytes(&plugin).unwrap();
+    let canonical_text = String::from_utf8(canonical.clone()).unwrap();
+    let reference = plugin_reference(&plugin).unwrap();
     assert_eq!(
-        canonical_manifest_bytes(&plugin).unwrap(),
-        canonical_manifest_bytes(&plugin).unwrap()
+        canonical_text,
+        r#"{"schema":"rfatlas.plugin-manifest","schema_version":1,"plugin_id":"org.example.exporter","plugin_version":{"major":1,"minor":0,"patch":0},"kind":"export","runtime":"wasm_component","component_sha256":"411867fa57df854b9483a15a3a665df821dc3ce5fdb8b348a62f841b154829f9","component_size_bytes":17,"host_api":{"minimum_inclusive":{"major":1,"minor":0,"patch":0},"maximum_exclusive":{"major":2,"minor":0,"patch":0}},"input":{"contract":"rfatlas.export-view","versions":{"minimum_inclusive":{"major":1,"minor":0,"patch":0},"maximum_exclusive":{"major":2,"minor":0,"patch":0}}},"output":{"contract":"rfatlas.export-artifact","versions":{"minimum_inclusive":{"major":1,"minor":0,"patch":0},"maximum_exclusive":{"major":2,"minor":0,"patch":0}}},"capabilities":[{"capability":"rfatlas.exports.create","versions":{"minimum_inclusive":{"major":1,"minor":0,"patch":0},"maximum_exclusive":{"major":2,"minor":0,"patch":0}}},{"capability":"rfatlas.project.read","versions":{"minimum_inclusive":{"major":1,"minor":0,"patch":0},"maximum_exclusive":{"major":2,"minor":0,"patch":0}}}],"requested_resources":{"max_input_bytes":1024,"max_output_bytes":2048,"max_records":64,"max_memory_bytes":8388608,"max_fuel":100000,"max_wall_time_ms":500}}"#
     );
     assert_eq!(
-        plugin_reference(&plugin).unwrap(),
-        plugin_reference(&plugin).unwrap()
+        reference.canonical_manifest_sha256,
+        "0da27e5d463db5e327e77a4f49ca1714f60c31a69a55a8cd8db1fdc8a1a6d134"
     );
+    assert_eq!(canonical, canonical_manifest_bytes(&plugin).unwrap());
+    assert_eq!(reference, plugin_reference(&plugin).unwrap());
 }
 
 #[test]
@@ -422,4 +428,164 @@ fn manifest_wire_ids_use_the_canonical_namespaced_contract_ids() {
         serde_json::from_value::<PluginManifest>(encoded).unwrap(),
         expected
     );
+}
+
+#[test]
+fn raw_manifest_limit_rejects_oversized_malformed_bytes_before_json_parse() {
+    let mut host = host();
+    host.max_manifest_bytes = 2;
+
+    assert_eq!(
+        parse_and_validate_manifest(b"{ this is not valid JSON", &host),
+        Err(ContractError::ResourceLimit("manifest_bytes"))
+    );
+}
+
+#[test]
+fn raw_manifest_limit_accepts_exact_valid_boundary_and_rejects_one_byte_less() {
+    let plugin = manifest(PluginKind::Collector, "collector");
+    let bytes = canonical_manifest_bytes(&plugin).unwrap();
+    let exact_size = bytes.len() as u64;
+    let mut host = host();
+    host.max_manifest_bytes = exact_size;
+
+    let parsed = parse_and_validate_manifest(&bytes, &host).unwrap();
+    assert_eq!(parsed.manifest, plugin);
+    assert_eq!(parsed.negotiated.input, DataContract::CaptureBatch);
+    assert_eq!(parsed.negotiated.output, DataContract::ObservationBatch);
+
+    host.max_manifest_bytes = exact_size - 1;
+    assert_eq!(
+        parse_and_validate_manifest(&bytes, &host),
+        Err(ContractError::ResourceLimit("manifest_bytes"))
+    );
+}
+
+#[test]
+fn raw_manifest_within_limit_still_rejects_malformed_json() {
+    let mut host = host();
+    host.max_manifest_bytes = 64;
+
+    assert_eq!(
+        parse_and_validate_manifest(b"{not-json}", &host),
+        Err(ContractError::Encoding)
+    );
+}
+
+#[test]
+fn raw_manifest_limit_counts_whitespace_not_only_canonicalized_bytes() {
+    let plugin = manifest(PluginKind::Collector, "collector");
+    let canonical = canonical_manifest_bytes(&plugin).unwrap();
+    let mut raw = vec![b' '; 8];
+    raw.extend_from_slice(&canonical);
+    let mut host = host();
+    host.max_manifest_bytes = canonical.len() as u64;
+
+    assert_eq!(
+        parse_and_validate_manifest(&raw, &host),
+        Err(ContractError::ResourceLimit("manifest_bytes"))
+    );
+}
+
+#[test]
+fn raw_manifest_limit_preflights_large_field_and_array_inputs() {
+    let large_field = format!("{{\"untrusted\":\"{}\"}}", "x".repeat(4096));
+    let large_array = format!("{{\"untrusted\":[{}]}}", "0,".repeat(2048));
+    let mut host = host();
+    host.max_manifest_bytes = 512;
+
+    for bytes in [large_field.as_bytes(), large_array.as_bytes()] {
+        assert_eq!(
+            parse_and_validate_manifest(bytes, &host),
+            Err(ContractError::ResourceLimit("manifest_bytes"))
+        );
+    }
+}
+
+#[test]
+fn raw_manifest_parser_remains_strict_about_duplicate_and_unknown_fields() {
+    let canonical = String::from_utf8(
+        canonical_manifest_bytes(&manifest(PluginKind::Collector, "collector")).unwrap(),
+    )
+    .unwrap();
+    let duplicate = canonical.replacen(
+        "{\"schema\":\"rfatlas.plugin-manifest\",",
+        "{\"schema\":\"rfatlas.plugin-manifest\",\"schema\":\"rfatlas.plugin-manifest\",",
+        1,
+    );
+    let unknown = canonical.replacen(
+        "{\"schema\":\"rfatlas.plugin-manifest\",",
+        "{\"schema\":\"rfatlas.plugin-manifest\",\"unreviewed_authority\":true,",
+        1,
+    );
+    let host = host();
+
+    assert_eq!(
+        parse_and_validate_manifest(duplicate.as_bytes(), &host),
+        Err(ContractError::Encoding)
+    );
+    assert_eq!(
+        parse_and_validate_manifest(unknown.as_bytes(), &host),
+        Err(ContractError::Encoding)
+    );
+}
+
+#[test]
+fn raw_manifest_parser_enforces_documented_depth_bound_before_serde() {
+    let mut host = host();
+    host.max_manifest_bytes = 4096;
+    let nested = format!(
+        "{{\"unreviewed\":{}0{}}}",
+        "[".repeat(MAX_MANIFEST_NESTING_DEPTH),
+        "]".repeat(MAX_MANIFEST_NESTING_DEPTH)
+    );
+    let quoted_delimiters = format!(
+        "{{\"unreviewed\":\"{}\"}}",
+        "[{".repeat(MAX_MANIFEST_NESTING_DEPTH)
+    );
+
+    assert_eq!(
+        parse_and_validate_manifest(nested.as_bytes(), &host),
+        Err(ContractError::ResourceLimit("manifest_depth"))
+    );
+    assert_eq!(
+        parse_and_validate_manifest(quoted_delimiters.as_bytes(), &host),
+        Err(ContractError::Encoding)
+    );
+}
+
+#[test]
+fn canonical_capability_and_data_contract_ids_match_fixed_golden_vector() {
+    let capabilities = [
+        (Capability::CaptureEventsRead, "rfatlas.capture_events.read"),
+        (Capability::DerivedLayersEmit, "rfatlas.derived_layers.emit"),
+        (Capability::ExportsCreate, "rfatlas.exports.create"),
+        (Capability::GeometryRead, "rfatlas.geometry.read"),
+        (Capability::ObservationsEmit, "rfatlas.observations.emit"),
+        (Capability::ObservationsRead, "rfatlas.observations.read"),
+        (Capability::ProjectRead, "rfatlas.project.read"),
+    ];
+    for (capability, expected_id) in capabilities {
+        assert_eq!(capability.id(), expected_id);
+        assert_eq!(
+            serde_json::to_string(&capability).unwrap(),
+            format!("\"{expected_id}\"")
+        );
+    }
+
+    let contracts = [
+        (DataContract::CaptureBatch, "rfatlas.capture-batch"),
+        (DataContract::DerivedLayer, "rfatlas.derived-layer"),
+        (DataContract::ExportArtifact, "rfatlas.export-artifact"),
+        (DataContract::ExportView, "rfatlas.export-view"),
+        (DataContract::MetricInput, "rfatlas.metric-input"),
+        (DataContract::ObservationBatch, "rfatlas.observation-batch"),
+    ];
+    for (contract, expected_id) in contracts {
+        assert_eq!(contract.id(), expected_id);
+        assert_eq!(
+            serde_json::to_string(&contract).unwrap(),
+            format!("\"{expected_id}\"")
+        );
+    }
 }
