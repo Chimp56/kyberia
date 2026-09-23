@@ -1,0 +1,11 @@
+[package]
+name = "kyberia-ieee80211"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Bounded independent IEEE 802.11 management-frame and IE normalization"
+
+[dependencies]
+
+[lints]
+workspace = true

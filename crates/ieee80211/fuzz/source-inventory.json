@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "scope": "Coverage-guided parser QA only; no fuzzing dependency is linked into Kyberia runtime crates",
+  "rust_toolchain": {
+    "channel": "nightly-2026-09-01",
+    "rustc": "1.100.0-nightly (0dfb098f3 2026-08-31)",
+    "llvm": "23.1.0",
+    "license": "MIT OR Apache-2.0 with component notices",
+    "provenance": "Official rustup distribution installed into the isolated worktree"
+  },
+  "cargo_fuzz": {
+    "version": "0.13.2",
+    "crate_archive_sha256": "5acfd01930e49823e58c30dd8012d3338a620377d7c7d4cc140ca4b2169400e2",
+    "license": "MIT OR Apache-2.0",
+    "source": "https://crates.io/crates/cargo-fuzz/0.13.2",
+    "provenance": "Installed with cargo install --version 0.13.2 --locked into the isolated worktree"
+  },
+  "cargo_lock_sha256": "ca63ac57b457c7f4f8c96e5f708c3950986e392c48450b2c145eb84d96385d85",
+  "packages": [
+    {
+      "name": "arbitrary",
+      "version": "1.4.2",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1",
+      "repository": "https://github.com/rust-fuzz/arbitrary/"
+    },
+    {
+      "name": "cc",
+      "version": "1.4.6",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "a3eb0f42d6c360dc3f8a821f6bf2fdea7f72bfd36b3076eb0e6d1e9e0752fff4",
+      "repository": "https://github.com/rust-lang/cc-rs"
+    },
+    {
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+      "repository": "https://github.com/rust-lang/cfg-if"
+    },
+    {
+      "name": "find-msvc-tools",
+      "version": "0.1.12",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "3e0f1c7c3a72c66fd80abe965175f7523475c0489a87d3ff9d6e8c87d87a9d2d",
+      "repository": "https://github.com/rust-lang/cc-rs"
+    },
+    {
+      "name": "getrandom",
+      "version": "0.4.3",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099",
+      "repository": "https://github.com/rust-random/getrandom"
+    },
+    {
+      "name": "jobserver",
+      "version": "0.1.35",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "1c00acbd29eabad4a2392fa0e921c874934dbbf4194312ad20f04a0ed67a3cb3",
+      "repository": "https://github.com/rust-lang/jobserver-rs"
+    },
+    {
+      "name": "libc",
+      "version": "0.2.189",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2",
+      "repository": "https://github.com/rust-lang/libc"
+    },
+    {
+      "name": "libfuzzer-sys",
+      "version": "0.4.13",
+      "license": "(MIT OR Apache-2.0) AND NCSA",
+      "archive_sha256": "a9fd2f41a1cba099f79a0b6b6c35656cf7c03351a7bae8ff0f28f25270f929d2",
+      "repository": "https://github.com/rust-fuzz/libfuzzer"
+    },
+    {
+      "name": "r-efi",
+      "version": "6.0.0",
+      "license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+      "archive_sha256": "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf",
+      "repository": "https://github.com/r-efi/r-efi"
+    },
+    {
+      "name": "shlex",
+      "version": "2.0.1",
+      "license": "MIT OR Apache-2.0",
+      "archive_sha256": "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba",
+      "repository": "https://github.com/comex/rust-shlex"
+    }
+  ],
+  "redistribution": "Developer-only instrumentation graph; retain upstream notices before redistributing tool binaries or crate sources.",
+  "update_procedure": "Update the pinned nightly, cargo-fuzz version and fuzz Cargo.lock together; recompute every archive hash, review licenses, rebuild, rerun the campaign and repeat independent review."
+}

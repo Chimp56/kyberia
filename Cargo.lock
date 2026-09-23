@@ -2146,6 +2146,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-ieee80211"
+version = "0.1.0"
+
+[[package]]
 name = "kyberia-kismet-adapter"
 version = "0.1.0"
 dependencies = [

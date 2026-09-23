@@ -6,6 +6,9 @@ All third-party runtime dependencies, toolchains, datasets and transformed asset
 |---|---|---|---|---|---|
 | User-supplied plan.md | 0.2; baseline commit 4e3bc52 | User-provided specification; no new license asserted | Preserved in requested repository | Unmodified authoritative source; includes static upstream audit, not runtime evidence | Explicit specification revision followed by ledger coverage review |
 | Rust toolchain | 1.98.1 | MIT/Apache-2.0, component notices apply | Development tool; not bundled as an engine | Locally installed rustup toolchain; record `rustc -Vv` for releases | Pin new release and run compile/property/numerical regression checks |
+| Rust parser-QA toolchain | nightly-2026-09-01; rustc 1.100.0-nightly `0dfb098f3`; LLVM 23.1.0 | MIT/Apache-2.0, component notices apply | Developer-only instrumentation; not linked into product artifacts | Official rustup distribution installed into the isolated worktree; exact pin is in `crates/ieee80211/fuzz/rust-toolchain.toml` | Review compiler/sanitizer changes, update the pin and rerun the bounded campaign on every change |
+| cargo-fuzz / libFuzzer parser QA | cargo-fuzz 0.13.2 archive SHA-256 `5acfd01930e49823e58c30dd8012d3338a620377d7c7d4cc140ca4b2169400e2`; libfuzzer-sys 0.4.13 | cargo-fuzz MIT OR Apache-2.0; libfuzzer-sys `(MIT OR Apache-2.0) AND NCSA`; exact transitive declarations recorded separately | Developer-only coverage-guided testing; no runtime or release binary dependency | Unmodified crates.io packages pinned by the isolated fuzz lock; ten-package versions, licenses and archive hashes are in `crates/ieee80211/fuzz/source-inventory.json` | Update cargo-fuzz, nightly, lock and inventory together; rebuild, rerun campaign, archive counters and independently review |
+| Apple tcpdump / libpcap differential authority | tcpdump 4.99.1 Apple 158; libpcap 1.10.1 | Upstream BSD-style licenses plus installed Apple/system component notices; verify notices before redistribution | External developer validation only; no executable or source is bundled | System `/usr/sbin/tcpdump` decodes original synthetic DLT_IEEE802_11 PCAP fixtures; exact output and hashes are retained in WIFI-001 validation evidence | Re-record version/output, review stable-field grammar and rerun explicit non-skipping differential before accepting another version |
 | Node.js | 24.20.0 | MIT plus bundled third-party notices | Development tool; retain upstream notices if bundled | Official nodejs.org archive checked against official SHA-256 manifest | Update pin/checksum and run build/typecheck/E2E checks |
 | Python | 3.9.6 system interpreter | PSF and bundled component notices | System dependency; not bundled | Standard-library ledger/fixture tools | Test minimum supported interpreter and release worker pins separately |
 | Model Context Protocol TypeScript SDK | 1.30.0, npm integrity `sha512-xKd8OIzlqNzcqcNumGAa6g+PW2kjD5vrpcKOnfldAUPP3j7lnqMPwlTXQm8gF+UwH72z0lqaRbjr9hqGz0eITA==` | MIT | Development-only Lab MCP; retain package license if distributed | Official SDK used unmodified for stdio server/client framing; pinned by `tools/lab-mcp/pnpm-lock.yaml` | Review protocol/API changes, npm provenance and transitive licenses; rerun real client/server, malformed-input and authorization tests |
@@ -97,6 +100,16 @@ antenna pattern, or competitor implementation. Its frequency mapping and
 fixed trapezoid mask are original Kyberia semantics documented in [ADR 0015](../architecture/ADR/0015-wifi-channel-coupling.md),
 with the independent synthetic fixtures and validation assumptions recorded in
 [the channel-coupling validation note](../validation/wifi-channel-coupling.md).
+
+The independent `kyberia-ieee80211` management-frame parser adds no external
+package or copied capture. Its three byte-level fixtures are original synthetic
+Kyberia frames, and its minimal differential oracle was authored independently
+from the production parser. The FCS implementation uses the standard reflected
+CRC-32 polynomial and a standard public check vector; no lookup table or
+upstream parser source is copied. Kismet and wifiheatmap remain integration or
+reference-only boundaries described above. External Wireshark/TShark,
+coverage-guided fuzz, hardware capture, and standards-conformance runs remain
+validation gates, not claims attached to these fixtures.
 
 The puncturing admission subset references the Linux kernel `net/wireless/chan.c`
 `valid_puncturing_bitmap` table at immutable commit

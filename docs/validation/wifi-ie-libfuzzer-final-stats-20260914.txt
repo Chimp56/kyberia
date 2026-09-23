@@ -1,0 +1,26 @@
+Kyberia WIFI-001 correction campaign final-stat excerpt
+Host date: 2026-09-14
+Command arguments: -max_total_time=60 -max_len=11500 -timeout=5 -rss_limit_mb=2048 -print_final_stats=1 -seed=20260914
+Complete retained log: .trash/test-runs/wifi-ie-libfuzzer-correction-logged-20260914/libfuzzer-final.log
+Complete retained log bytes: 274994
+Complete retained log SHA-256: 6fa9d366a7e731645bd4e03679d33d377aed268d0e48c3182ff66ae322a7d1ff
+
+INFO: Seed: 20260914
+INFO:        6 files found in /private/tmp/kyberia-wifi-ie-validation/crates/ieee80211/fuzz/corpus/management_frame
+INFO: seed corpus: files: 6 min: 122b max: 224b total: 1065b rss: 35Mb
+#2438625 DONE   cov: 515 ft: 2106 corp: 371/351Kb lim: 11500 exec/s: 39977 rss: 1210Mb
+Done 2438625 runs in 61 second(s)
+stat::number_of_executed_units: 2438625
+stat::average_exec_per_sec:     39977
+stat::new_units_added:          2159
+stat::slowest_unit_time_sec:    0
+stat::peak_rss_mb:              1210
+
+Process exit status: 0
+Crash artifacts: 0
+Timeout artifacts: 0
+
+The full log is retained locally rather than versioned because it contains
+thousands of mutation-progress lines. This checked excerpt preserves the
+initial-corpus and final-stat lines verbatim; the byte count and SHA-256 bind it
+to the complete retained stream.

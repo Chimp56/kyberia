@@ -103219,8 +103219,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "d946c1ef9495547bb86d83af4b4d29608855a1f2ef8fed3bcce2c80873e2a35e",
-          "sha256": "d946c1ef9495547bb86d83af4b4d29608855a1f2ef8fed3bcce2c80873e2a35e"
+          "revision": "a566a9629575fc53750215fe9bca0231bfad5ec6eaabb94bec9e53b6bd92b7d7",
+          "sha256": "a566a9629575fc53750215fe9bca0231bfad5ec6eaabb94bec9e53b6bd92b7d7"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -169974,8 +169974,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "d50fe5913c44fa63e455a60c7b8c4d06ed95a1629e6d0e6b9117d5fe36fb98d2",
-          "sha256": "d50fe5913c44fa63e455a60c7b8c4d06ed95a1629e6d0e6b9117d5fe36fb98d2"
+          "revision": "b57ff824a9d5a956f8770cf315f2fea1d7e8e10723f40280997e0a7ab839e694",
+          "sha256": "b57ff824a9d5a956f8770cf315f2fea1d7e8e10723f40280997e0a7ab839e694"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",
@@ -171170,14 +171170,44 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "Wi-Fi semantics",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "Bounded Beacon/Probe IE framing preserves raw bytes, provenance, ordering, unknown/vendor values, and malformed typed payloads; validates supported header/context and resource limits.",
+        "Checked-in Beacon, Probe Request, and Probe Response fixtures pass the internal differential oracle and a real tcpdump/libpcap stable-field differential.",
+        "A prior bounded libFuzzer campaign is tied by exact source hashes to this parser/fuzz target; it was not rerun on the assigned-worktree adaptation. Independent review and broader WIFI-001 acceptance remain open."
+      ],
+      "implementation": [
+        {
+          "path": "crates/ieee80211/src/lib.rs",
+          "description": "Bounded Beacon/Probe IE parser and normalized evidence model; scope excludes other WIFI backlog items and collector/runtime integration",
+          "revision": "b05accc08b4fd202b258e46dcc59aba10c3f856fcbab26a3db0b46bf998af5ff",
+          "sha256": "b05accc08b4fd202b258e46dcc59aba10c3f856fcbab26a3db0b46bf998af5ff"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/wifi-ie-parser.md",
+          "description": "Bounded parser tests, deterministic mutation, exact-source-hash prior fuzz campaign, and assigned-worktree tcpdump rerun with explicit limitations",
+          "revision": "3e1a06a37588a3358c37d3576416d449806715af9e1b63e3b25b9f2cb505e8ee",
+          "sha256": "3e1a06a37588a3358c37d3576416d449806715af9e1b63e3b25b9f2cb505e8ee",
+          "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo test -p kyberia-ieee80211 --test tcpdump_differential checked_in_management_frames_match_tcpdump_stable_fields --locked --offline -- --ignored --exact --nocapture; cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked --offline",
+          "result": "PASS",
+          "scope": "Isolated assigned-worktree parser tests and external tcpdump fixture differential; libFuzzer campaign is historical, exact-hash-matched evidence and was not rerun here."
+        },
+        {
+          "path": "docs/validation/wifi-ie-fuzz-differential-run.json",
+          "description": "Exact source hashes, retained prior libFuzzer statistics, and assigned-worktree tcpdump/libpcap run hashes",
+          "revision": "a001731aca89bc1e9869f4e2b7cc244c8bc1fea59a06a47db47bb9fabab9ae75",
+          "sha256": "a001731aca89bc1e9869f4e2b7cc244c8bc1fea59a06a47db47bb9fabab9ae75",
+          "command": "python3 -m json.tool docs/validation/wifi-ie-fuzz-differential-run.json",
+          "result": "PASS",
+          "scope": "Evidence manifest syntax, source binding, retained artifact hashes, and explicit campaign/differential limitations."
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -178306,8 +178336,8 @@
         {
           "path": "docs/licenses/SOURCE_LEDGER.md",
           "description": "External source and redistribution ledger",
-          "revision": "d50fe5913c44fa63e455a60c7b8c4d06ed95a1629e6d0e6b9117d5fe36fb98d2",
-          "sha256": "d50fe5913c44fa63e455a60c7b8c4d06ed95a1629e6d0e6b9117d5fe36fb98d2"
+          "revision": "b57ff824a9d5a956f8770cf315f2fea1d7e8e10723f40280997e0a7ab839e694",
+          "sha256": "b57ff824a9d5a956f8770cf315f2fea1d7e8e10723f40280997e0a7ab839e694"
         },
         {
           "path": "docs/licenses/supply-chain-tools.json",

@@ -1,0 +1,23 @@
+[package]
+name = "kyberia-ieee80211-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+kyberia-ieee80211 = { path = ".." }
+
+[[bin]]
+name = "management_frame"
+path = "fuzz_targets/management_frame.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]

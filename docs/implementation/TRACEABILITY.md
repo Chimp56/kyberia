@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 88 | NOT_STARTED: 3182 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 89 | NOT_STARTED: 3181 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3607,7 +3607,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 88 | NO
 | `source:spacing:01ba4719c80b6fe911b0:1031` | [L4249](../../plan.md#L4249) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:table_row:0bd212b038e8e0d96e4e:3` | [L4250](../../plan.md#L4250) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — &#124; ID &#124; Pri &#124; Work item &#124; Acceptance evidence &#124; | obligation | NOT_STARTED |  |
 | `source:table_separator:13da3925573fa31a966f:3` | [L4251](../../plan.md#L4251) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — &#124;---&#124;---:&#124;---&#124;---&#124; | structure | COVERAGE_ONLY |  |
-| `backlog:WIFI-001:1` | [L4252](../../plan.md#L4252) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — &#124; WIFI-001 &#124; P0 &#124; Beacon/probe IE parser &#124; Fuzzed and differential fixtures &#124; | obligation | NOT_STARTED |  |
+| `backlog:WIFI-001:1` | [L4252](../../plan.md#L4252) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — &#124; WIFI-001 &#124; P0 &#124; Beacon/probe IE parser &#124; Fuzzed and differential fixtures &#124; | obligation | IN_PROGRESS | [implementation](../../crates/ieee80211/src/lib.rs), [validation](../../docs/validation/wifi-ie-parser.md), [validation](../../docs/validation/wifi-ie-fuzz-differential-run.json) |
 | `backlog:WIFI-002:1` | [L4253](../../plan.md#L4253) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — &#124; WIFI-002 &#124; P0 &#124; Channel/frequency/width model &#124; 2.4/5/6 and regional fixtures &#124; | obligation | NOT_STARTED |  |
 | `backlog:WIFI-003:1` | [L4254](../../plan.md#L4254) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — &#124; WIFI-003 &#124; P1 &#124; RSN/security/PMF parser &#124; Transition and malformed configurations &#124; | obligation | NOT_STARTED |  |
 | `backlog:WIFI-004:1` | [L4255](../../plan.md#L4255) RF Atlas / 18. Prioritized engineering backlog / 18.3 802.11 semantics and identity — &#124; WIFI-004 &#124; P1 &#124; HT/VHT/HE capability parser &#124; Golden capability summaries &#124; | obligation | NOT_STARTED |  |

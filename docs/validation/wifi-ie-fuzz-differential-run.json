@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-14",
+  "scope": "WIFI-001 Beacon/probe parser acceptance evidence",
+  "host": {
+    "os": "macOS",
+    "architecture": "aarch64"
+  },
+  "coverage_guided_campaign": {
+    "engine": "cargo-fuzz/libFuzzer",
+    "cargo_fuzz_version": "0.13.2",
+    "libfuzzer_sys_version": "0.4.13",
+    "rust_toolchain": "nightly-2026-09-01",
+    "rustc": "1.100.0-nightly (0dfb098f3 2026-08-31)",
+    "llvm": "23.1.0",
+    "target": "management_frame",
+    "source_hashes": {
+      "parser_sha256": "b05accc08b4fd202b258e46dcc59aba10c3f856fcbab26a3db0b46bf998af5ff",
+      "fuzz_library_sha256": "7829f182b83838e98bd265bbc0024acb1c1e9c8f405a8a537f90797ea3d58141",
+      "fuzz_target_sha256": "b313f272adfdd3b9d0ca428939aac08dd363c1e853a43173eacb9fab4a296a5b",
+      "seed_contract_sha256": "0c0d0035bed4ae9bb50fa450221d1e9ff92561f1e74ee66748ec96bcbc4474af"
+    },
+    "command_arguments": [
+      "-max_total_time=60",
+      "-max_len=11500",
+      "-timeout=5",
+      "-rss_limit_mb=2048",
+      "-print_final_stats=1",
+      "-seed=20260914"
+    ],
+    "initial_corpus_files": 6,
+    "initial_corpus_bytes": 1065,
+    "completed_seconds": 61,
+    "executed_units": 2438625,
+    "average_executions_per_second": 39977,
+    "coverage_edges": 515,
+    "features": 2106,
+    "final_in_memory_corpus_files": 371,
+    "final_in_memory_corpus_reported_kib": 351,
+    "new_units_added": 2159,
+    "slowest_unit_seconds": 0,
+    "peak_rss_mib": 1210,
+    "crashes": 0,
+    "timeouts": 0,
+    "exit_status": 0,
+    "retained_final_log": {
+      "ignored_path": ".trash/test-runs/wifi-ie-libfuzzer-correction-logged-20260914/libfuzzer-final.log",
+      "bytes": 274994,
+      "sha256": "6fa9d366a7e731645bd4e03679d33d377aed268d0e48c3182ff66ae322a7d1ff",
+      "tracked_excerpt": "docs/validation/wifi-ie-libfuzzer-final-stats-20260914.txt",
+      "tracked_excerpt_sha256": "486b5558ba969a728d58c6becd77df9e20fe7d8fbc6bcc708f23b5420d0e1fab"
+    },
+    "retained_campaign_corpus": {
+      "ignored_path": ".trash/test-runs/wifi-ie-libfuzzer-correction-logged-20260914/campaign-corpus",
+      "files": 373,
+      "bytes": 360002,
+      "filesystem_kib": 1644,
+      "aggregate_algorithm": "sha256(sorted UTF-8 basename + NUL + decimal size + NUL + content)",
+      "aggregate_sha256": "4fb652aceb4ff28c42242c22835bdb3c4296d37f46e83d440888c3884ca12080",
+      "canonical_documents": 24,
+      "parsed_frames": 219,
+      "parsed_fcs_frames": 1,
+      "counter_note": "The post-exit filesystem has 373 files; libFuzzer's final in-memory line reports 371 and is recorded separately."
+    },
+    "non_destructive_coverage_merge": {
+      "files": 313,
+      "bytes": 327453,
+      "coverage_edges": 526,
+      "features": 2117,
+      "ignored_path": ".trash/test-runs/wifi-ie-libfuzzer-correction-logged-20260914/coverage-merged-corpus",
+      "filesystem_kib": 1400,
+      "aggregate_algorithm": "sha256(sorted UTF-8 basename + NUL + decimal size + NUL + content)",
+      "aggregate_sha256": "49079a9e2266a3963fb5e21fd899f89b3799050c49f32dd28b21594e93cb9052",
+      "canonical_documents": 17,
+      "parsed_frames": 178,
+      "parsed_fcs_frames": 1,
+      "retained_merge_log_sha256": "bc976e128cf27750fa66e14e1dc32c04181937fc205f3762202e2e8d132eff16"
+    }
+  },
+  "external_differential": {
+    "authority": "/usr/sbin/tcpdump",
+    "tcpdump_version": "4.99.1 -- Apple version 161",
+    "libpcap_version": "1.10.1",
+    "link_type": "DLT_IEEE802_11 (105)",
+    "command": "CARGO_HOME=/private/tmp/kyberia-phase2-wifi-ie-main-v1/.tools/cargo-home CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-wifi-ie-main-v1/target cargo test -p kyberia-ieee80211 --test tcpdump_differential checked_in_management_frames_match_tcpdump_stable_fields --locked --offline -- --ignored --exact --nocapture",
+    "rerun_date": "2026-09-23",
+    "rerun_base": "84a5bcb96e61d2703b648cd817e97fd68b92086a",
+    "retained_run": ".trash/test-runs/wifi-ie-tcpdump-82338-1790155341428075000",
+    "fixture_count": 3,
+    "compared_fields": [
+      "Beacon/Probe Request/Probe Response subtype",
+      "receiver/destination, transmitter/source, and BSSID address fields",
+      "hidden/wildcard/text SSID display",
+      "supported basic rates",
+      "Beacon channel 6",
+      "Beacon ESS and privacy capability flags"
+    ],
+    "pcap_sha256": "533a525eaa804856198f24182525d029d320c36a8cf312cbf537eaf69309740b",
+    "normalized_output_sha256": "99d170422ce4e618a47eff939ab310a6c30d3276d7052a99a7a0a1cbe00da13a",
+    "version_output_sha256": "b700fd67878107ec1cd0a87902891548adc3e24bca353b9bb80ada30b51cf7ee",
+    "exit_status": 0
+  },
+  "limitations": [
+    "The campaign is bounded evidence, not exhaustive input proof.",
+    "The external comparison is tcpdump/libpcap evidence only, not Wireshark, TShark, Kismet, hardware, or collector parity.",
+    "The runtime evidence is one macOS arm64 execution; cross-platform campaigns remain broader TST-002 work.",
+    "RSN, HT, VHT, HE, EHT, MLO, radiotap, PCAPNG, collector integration, and WIFI-002 through WIFI-007 are outside WIFI-001."
+  ]
+}
