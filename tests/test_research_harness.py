@@ -214,19 +214,13 @@ class CleanRoomTin(unittest.TestCase):
 
 class EvidenceGateTests(unittest.TestCase):
     def setUp(self):
-        self.base = Path(tempfile.mkdtemp(prefix="kyberia-gate-test-"))
-        self.addCleanup(self.cleanup_files)
+        retained = ROOT / ".trash" / "test-runs"
+        retained.mkdir(parents=True, exist_ok=True)
+        self.base = Path(tempfile.mkdtemp(prefix="kyberia-gate-test-", dir=retained))
         self.gate = gates.catalog()["sionna-scenes-cpu"]
         self.log = self.base / "acceptance.log"
         self.log.write_text("unit-test-only fabricated report; never runtime evidence\n")
         self.ref = {"path": self.log.name, "sha256": hashlib.sha256(self.log.read_bytes()).hexdigest()}
-
-    def cleanup_files(self):
-        # Only flat files this test created; no recursive directory deletion.
-        for child in self.base.iterdir():
-            if child.is_file() or child.is_symlink():
-                child.unlink()
-        self.base.rmdir()
 
     def pass_document(self):
         # A structure-validation fixture. It is never persisted as a real gate result.

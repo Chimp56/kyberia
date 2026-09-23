@@ -16,7 +16,9 @@ spec.loader.exec_module(ledger)
 @contextmanager
 def retained_temp_directory():
     # User policy forbids recursive deletion; retain these tiny test fixtures.
-    yield tempfile.mkdtemp(prefix="kyberia-ledger-test-")
+    retained = ROOT / ".trash" / "test-runs"
+    retained.mkdir(parents=True, exist_ok=True)
+    yield tempfile.mkdtemp(prefix="kyberia-ledger-test-", dir=retained)
 
 
 class LedgerTests(unittest.TestCase):

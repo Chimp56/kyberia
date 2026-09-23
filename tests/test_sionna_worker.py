@@ -1050,9 +1050,9 @@ class LifecycleTests(unittest.TestCase):
     def test_engine_absence_explicit_no_fallback(self):
         # A fresh stdlib-only environment guarantees absence on any supported host.
         # Preserve its tiny ignored directory; do not recursively clean test artifacts.
-        tools_dir = ROOT / ".tools"
-        tools_dir.mkdir(exist_ok=True)
-        directory = Path(tempfile.mkdtemp(prefix="sionna-absent-", dir=tools_dir))
+        retained = ROOT / ".trash" / "test-runs"
+        retained.mkdir(parents=True, exist_ok=True)
+        directory = Path(tempfile.mkdtemp(prefix="sionna-absent-", dir=retained))
         venv.EnvBuilder(with_pip=False).create(directory)
         python_path = directory / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
         result = run(request(), python_path)
