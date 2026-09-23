@@ -203,6 +203,7 @@ test("configuration forbids forwarding the coordinator private key", () => {
     "nvidia-gpu",
     "sionna-cuda",
     "sionna-gpu",
+    "wgpu-cuda",
   ]) {
     const retiredHost = JSON.parse(JSON.stringify(setup.config));
     retiredHost.hosts[0].capabilities.push(retiredCapability);
