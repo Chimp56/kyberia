@@ -63,11 +63,11 @@ commands above are the constituent commands specified by the package's
 `check` script and used the installed pinned dependencies.
 
 Focused Python regression (`tests.test_sionna_worker`,
-`tests.test_research_harness`, and `tests.test_ledger`) passes 117 tests with two
-platform skips. The ledger check passes (5,396 source blocks, 438 explicit ID
-occurrences, 447 headings), as do architecture-direction validation, source
-inventory (522 locked packages), TypeScript schema syntax validation, and
-`git diff --check`.
+`tests.test_research_harness`, and `tests.test_ledger`) ran 117 tests: 115
+passed and two were skipped for platform reasons. The ledger check passes
+(5,396 source blocks, 438 explicit ID occurrences, 447 headings), as do
+architecture-direction validation, source inventory (522 locked packages),
+TypeScript schema syntax validation, and `git diff --check`.
 
 The checked-in CPU proof remains historical worker-0.1.0 evidence. The pinned
 worker-0.2.0 Sionna engine has not been run here; CPU numerical/runtime proof,

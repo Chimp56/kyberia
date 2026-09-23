@@ -8,8 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; and safe bootstrap-stage diagnostics through `c4a1219`. The CPU/LLVM-only Sionna capability correction is integrated at `84a5bcb`; its runtime review found no code findings, while documentation corrections are being re-reviewed. Final renderer and product gates remain open.
-- Most recent integration change: CPU/LLVM-only Sionna capability correction `84a5bcb`, followed by a Lab MCP test-fixture isolation correction. This does not close a roadmap phase; physical and hosted product gates remain open.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; and safe bootstrap-stage diagnostics through `c4a1219`. The CPU/LLVM-only Sionna capability correction is integrated at `84a5bcb`; runtime and documentation reviews of follow-up `d0a88eb` pass. See the [CPU-only Sionna review](docs/reviews/cpu-only-sionna-removal-review.md). Final renderer and product gates remain open.
+- Most recent integration change: CPU/LLVM-only Sionna capability correction `84a5bcb` and test/evidence follow-up `d0a88eb`. This does not close a roadmap phase; physical and hosted product gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -20,10 +20,10 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 ## Current execution checkpoint — 2026-09-23
 
 The CPU/LLVM-only Sionna correction is integrated on `main` at `84a5bcb`.
-The independent runtime review of that implementation found no code findings.
-The docs/ledger review identified stale integration wording and test claims
-that lacked candidate scope; those records are corrected below and await fresh
-review. A Lab MCP test exposed shared-fixture mutation in its portable-`wgpu`
+Independent runtime and docs/ledger reviews of follow-up `d0a88eb` pass with no
+findings; their scopes and evidence limits are recorded in the
+[review artifact](docs/reviews/cpu-only-sionna-removal-review.md). A Lab MCP
+test exposed shared-fixture mutation in its portable-`wgpu`
 acceptance assertion; the fixture is now isolated and all 33 Lab MCP tests pass
 (32 passed, one Windows-only skip) using the already-installed dependencies.
 Formatting, TypeScript checks/build, runner build, package inventory and supply-
@@ -167,7 +167,7 @@ product capability is validated.
 | Barrier-aware measured interpolation | Integrated and independently approved at `425edfe` | Direct finite-segment path cost, stable weights, unknown support, budgets and cancellation are validated; polygon shortest paths, floors, calibrated uncertainty and publication remain open |
 | Active TCP measurement foundation | Integrated through `e4eec6d`; reviewed Windows fixture correction `f019928` | Reviewed scheduling, attribution, budgets, cancellation and statistics are integrated. Native Windows hosted validation of refusal completion remains |
 | Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
-| Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction integrated at `84a5bcb`, docs/ledger re-review pending | Runtime review found no code findings; docs review requested correction of stale integration wording and evidence scope. The change removes the accelerator suite/selector; provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
+| Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction at `84a5bcb`, independently reviewed follow-up `d0a88eb` | Runtime and docs/ledger reviews pass for the bounded correction. The change removes the accelerator suite/selector; pinned worker-0.2.0 execution and provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
 | Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 
@@ -293,8 +293,9 @@ IDs must remain section-qualified.
    refusal-race correction.
 2. Provision authenticated Lab runner configuration on available Windows,
    Kismet and spectrum hosts and execute the signed runtime gates.
-3. Complete the documentation re-review for the integrated CPU/LLVM-only
-   Sionna correction, then keep its pinned runtime and host gates explicit.
+3. Execute the pinned CPU/LLVM worker-0.2.0 and close its numerical/runtime
+   evidence before any Sionna product-quality claim; keep authenticated-host,
+   Windows, Kismet and spectrum gates explicit.
 4. Implement defensive map-asset admission and operation-backed floorplan
    calibration through application and desktop boundaries, with parser/security
    review and real UI evidence.
