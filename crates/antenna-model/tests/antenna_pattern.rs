@@ -162,7 +162,7 @@ fn coordinate_axes_mount_rotation_poles_and_asymmetric_sample_order_are_explicit
 }
 
 #[test]
-fn direction_and_frequency_interpolation_are_in_linear_power_with_periodic_azimuth() {
+fn direction_elevation_and_frequency_interpolation_are_in_linear_power() {
     let antenna = parse(&document());
     let halfway_power = |left_dbi: f64, right_dbi: f64| {
         10.0 * ((10.0_f64.powf(left_dbi / 10.0) + 10.0_f64.powf(right_dbi / 10.0)) / 2.0).log10()
@@ -176,6 +176,20 @@ fn direction_and_frequency_interpolation_are_in_linear_power_with_periodic_azimu
         )
         .unwrap();
     assert!((azimuth_midpoint.gain_dbi - halfway_power(6.0, 0.0)).abs() < 1.0e-12);
+
+    // Local +X is azimuth zero, and positive elevation points toward +Z.
+    // At +45 degrees the lookup is halfway from the 0-degree +6 dBi sample
+    // to the +90-degree pole's -10 dBi sample, in linear power.
+    let elevation_midpoint = antenna
+        .evaluate_gain(
+            2_400_000_000,
+            direction(0.0, 45.0),
+            PolarizationComponent::CoPolar,
+        )
+        .unwrap();
+    assert!(elevation_midpoint.local_azimuth_degrees.abs() < 1.0e-12);
+    assert!((elevation_midpoint.local_elevation_degrees - 45.0).abs() < 1.0e-12);
+    assert!((elevation_midpoint.gain_dbi - 3.0974422984797583).abs() < 1.0e-12);
 
     let seam_midpoint = antenna
         .evaluate_gain(

@@ -53097,16 +53097,16 @@
         {
           "path": "crates/antenna-model/tests/antenna_pattern.rs",
           "description": "Synthetic contract and evaluator acceptance regressions",
-          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
-          "sha256": "b981f9a146d825f093cc3ece96528ad9eb060a83e864f6817332aa3f7904f6a8"
+          "revision": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e",
+          "sha256": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused candidate test, lint, formatting, architecture, and source-inventory results with explicit exclusions",
-          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
-          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "revision": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
+          "sha256": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_contract"
@@ -175357,8 +175357,8 @@
         {
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused candidate tests and scoped validation results",
-          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
-          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "revision": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
+          "sha256": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_schema_contract"
@@ -175491,7 +175491,7 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "synthetic axis, mount rotation, interpolation, pole, and sample-order golden cases"
+        "synthetic axis/rotation/pole/sample-order cases and a 0-degree to +90-degree non-pole elevation interpolation golden"
       ],
       "implementation": [
         {
@@ -175503,16 +175503,16 @@
         {
           "path": "crates/antenna-model/tests/antenna_pattern.rs",
           "description": "Synthetic axes, mount rotation, interpolation, pole, and sample-order acceptance tests",
-          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
-          "sha256": "b981f9a146d825f093cc3ece96528ad9eb060a83e864f6817332aa3f7904f6a8"
+          "revision": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e",
+          "sha256": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused candidate tests and scoped validation results",
-          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
-          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "revision": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
+          "sha256": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_axis_rotation_contract"
@@ -238889,16 +238889,16 @@
         {
           "path": "crates/antenna-model/tests/antenna_pattern.rs",
           "description": "Synthetic import/evaluation and provenance acceptance tests",
-          "revision": "b86bd130dc77443fe53a6840f28cdc9d5e98b4a6",
-          "sha256": "b981f9a146d825f093cc3ece96528ad9eb060a83e864f6817332aa3f7904f6a8"
+          "revision": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e",
+          "sha256": "26f9da99039fedb6a4c2ec688b16ec8dd2873d7b70dc11535870187d100f178e"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase-three-antenna-current.md",
           "description": "Focused candidate tests and scoped validation results; catalog and Sionna adapter remain unvalidated",
-          "revision": "fd8738bfd69fb4bfe7f3d9801f3d435c8cb51b32",
-          "sha256": "cb83232503c66d79ec0bc45bf2738a2ad1854a979b47358d74109bd612ae7e42",
+          "revision": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
+          "sha256": "890c49e40ebe1e03f16a41757a43342db2cf5640b1567860e47352afb87029c1",
           "command": "cargo test -p kyberia-antenna-model --locked --offline",
           "result": "PASS",
           "scope": "synthetic_open_tabulated_contract"
