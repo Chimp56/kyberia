@@ -19,7 +19,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 
 ## Current execution checkpoint — 2026-09-22
 
-Main is at `adb2b69`. Hosted run
+The most recent product/tooling change is `adb2b69`. Hosted run
 [`34775283924`](https://github.com/Chimp56/kyberia/actions/runs/34775283924)
 confirms that the Windows Corepack startup failure is resolved: the pinned
 toolchain bootstrap, frontend dependency install, and Chromium install all
