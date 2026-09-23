@@ -35,6 +35,32 @@ class ConvergenceError(ValueError):
 class ConvergenceCancelled(ConvergenceError):
     """The caller cancelled the sweep; no subsequent worker job is started."""
 
+    def __init__(self, message, envelope=None):
+        self.envelope = envelope
+        super().__init__(message)
+
+
+class ConvergenceWorkerFailure(ConvergenceError):
+    """A failed worker call, retaining its original bounded client envelope."""
+
+    def __init__(self, envelope, reason=None):
+        self.envelope = envelope
+        self.worker_error = envelope.get("error") if type(envelope) is dict else None
+        self.cleanup_error = envelope.get("cleanup_error") if type(envelope) is dict else None
+        self.cancel_error = envelope.get("cancel_error") if type(envelope) is dict else None
+        details = []
+        for name, value in (("error", self.worker_error),
+                            ("cleanup_error", self.cleanup_error),
+                            ("cancel_error", self.cancel_error)):
+            if value is not None:
+                details.append(name + "=" + str(value)[:1024])
+        if reason:
+            details.append("reason=" + str(reason)[:512])
+        message = "radio_map worker failed"
+        if details:
+            message += ": " + "; ".join(details)
+        super().__init__(message)
+
 
 def _finite_nonnegative(value):
     return type(value) in (int, float) and math.isfinite(value) and value >= 0
@@ -107,22 +133,18 @@ def _request_for_run(base_request, samples, seed):
     return request
 
 
-def _validate_envelope(envelope, request):
-    if type(envelope) is not dict:
-        raise ConvergenceError("worker client returned a malformed envelope")
+def _validate_envelope_metadata(envelope, request):
     if (envelope.get("schema_version") != 1
             or type(envelope.get("schema_version")) is not int
-            or envelope.get("status") != "completed"
             or envelope.get("request_id") != request["request_id"]
             or envelope.get("request_sha256") != digest(request)
-            or envelope.get("returncode") != 0
-            or type(envelope.get("returncode")) is not int
-            or not _HEX_256.fullmatch(envelope.get("log_sha256", ""))
-            or envelope.get("cleanup_error") is not None
-            or envelope.get("cancel_error") is not None
             or not _finite_nonnegative(envelope.get("elapsed_s"))
+            or type(envelope.get("returncode")) is not int
             or type(envelope.get("resource_limits")) is not dict):
-        raise ConvergenceError("worker envelope identity, status, or provenance is invalid")
+        raise ConvergenceError("worker envelope identity or provenance is invalid")
+    log_sha256 = envelope.get("log_sha256")
+    if type(log_sha256) is not str or not _HEX_256.fullmatch(log_sha256):
+        raise ConvergenceError("worker envelope log checksum is invalid")
     timestamps = []
     for field in ("started_utc", "ended_utc"):
         value = envelope.get(field)
@@ -145,6 +167,36 @@ def _validate_envelope(envelope, request):
             raise ConvergenceError("worker envelope log is malformed or over budget")
     except UnicodeError as exc:
         raise ConvergenceError("worker envelope log is malformed or over budget") from exc
+    return timestamps
+
+
+def _validate_envelope(envelope, request, cancel=None):
+    if type(envelope) is not dict:
+        raise ConvergenceError("worker client returned a malformed envelope")
+    status = envelope.get("status")
+    if status != "completed":
+        try:
+            _validate_envelope_metadata(envelope, request)
+        except Exception as exc:
+            raise ConvergenceWorkerFailure(envelope, "malformed failure envelope: " + str(exc)) from exc
+        if (status == "failed" and type(envelope.get("error")) is str
+                and envelope.get("error") == "cancelled"
+                and envelope.get("cleanup_error") is None
+                and envelope.get("cancel_error") is None
+                and "result" not in envelope):
+            try:
+                _check_cancel(cancel, "during a worker call")
+            except ConvergenceCancelled as cancelled:
+                cancelled.envelope = envelope
+                raise
+        raise ConvergenceWorkerFailure(envelope)
+
+    if envelope.get("cleanup_error") is not None or envelope.get("cancel_error") is not None:
+        raise ConvergenceWorkerFailure(envelope)
+    _validate_envelope_metadata(envelope, request)
+    if (envelope.get("returncode") != 0
+            or type(envelope.get("returncode")) is not int):
+        raise ConvergenceWorkerFailure(envelope, "completed envelope has nonzero return code")
     result = envelope.get("result")
     if type(result) is not dict:
         raise ConvergenceError("worker envelope does not contain a result object")
@@ -165,6 +217,11 @@ def _validate_envelope(envelope, request):
     warnings = result.get("warnings")
     if type(warnings) is not list or any(type(item) is not str for item in warnings):
         raise ConvergenceError("worker result has malformed warnings")
+    try:
+        _check_cancel(cancel, "during a worker call")
+    except ConvergenceCancelled as cancelled:
+        cancelled.envelope = envelope
+        raise
     return result
 
 
@@ -261,16 +318,8 @@ def run_sweep(request, sample_budgets, seeds, python_executable, *, cancel=None,
             check_semantics["solver"].pop("seed")
             if check_semantics != base_semantics:
                 raise ConvergenceError("sweep modified an unrelated request field")
-            try:
-                envelope = execute(deepcopy(run_request), python_executable, cancel)
-            except Exception as exc:
-                try:
-                    _check_cancel(cancel, "during a worker call")
-                except ConvergenceCancelled as cancelled:
-                    raise cancelled from exc
-                raise ConvergenceError("radio_map worker call raised an exception") from exc
-            _check_cancel(cancel, "during a worker call")
-            result = _validate_envelope(envelope, run_request)
+            envelope = execute(deepcopy(run_request), python_executable, cancel)
+            result = _validate_envelope(envelope, run_request, cancel)
             data = result["data"]
             gains = _flatten_map(data.get("path_gain"), shape)
             if any(value == 0 for value in gains) or any(

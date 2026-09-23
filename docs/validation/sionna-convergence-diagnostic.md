@@ -36,8 +36,12 @@ are retained.
 An optional event-like `cancel` token with `is_set()` may be passed to
 `run_sweep`. The same token is forwarded to each existing `client.run` call;
 the helper checks it before the first call, before and after each worker call,
-and raises `ConvergenceCancelled` without dispatching another run. Each
-individual worker request retains its original timeout and CPU limit.
+and prevents subsequent requests after cancellation. A clean cancellation is
+reported as `ConvergenceCancelled`; failed envelopes carrying cleanup or
+cancel diagnostics are instead raised as `ConvergenceWorkerFailure` with the
+original envelope attached. Exceptions raised by the client are propagated
+unchanged, even when cancellation is simultaneously set. Each individual
+worker request retains its original timeout and CPU limit.
 
 For each sample budget the report contains the per-cell mean path gain and the
 standard error across its distinct seed runs (sample standard deviation divided
@@ -70,9 +74,10 @@ variance, and RF Atlas Wi-Fi composition evidence.
 ## Local author check
 
 On 2026-09-23, `python3 -m unittest discover -s tests -p 'test_sionna_convergence.py' -v`
-passed all 12 synthetic algorithm tests, including cancellation before a run,
-token propagation during a run, and stopping before the next run. They
-exercise the ordinary-client dispatch seam through a synthetic runner; no
-worker process, Sionna package, radio-map field result, or Phase 7 acceptance
-gate was run. This is contract/algorithm evidence only. The test source SHA-256
-is recorded as implementation evidence in the source-qualified ledger.
+passed all 14 synthetic algorithm tests, including cancellation before a run,
+token propagation during a run, stopping before the next run, and preserving
+cleanup/containment diagnostics and client exceptions. They exercise the
+ordinary-client dispatch seam through a synthetic runner; no worker process,
+Sionna package, radio-map field result, or Phase 7 acceptance gate was run.
+This is contract/algorithm evidence only. Source hashes are recorded in the
+source-qualified ledger.

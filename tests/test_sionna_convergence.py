@@ -17,7 +17,7 @@ from rfatlas_sionna import (AUDITED_REVISION, CAPABILITY_SCHEMA_VERSION,
                             ENGINE_PINS, WORKER_VERSION)
 from rfatlas_sionna.contract import digest
 from rfatlas_sionna.convergence import (ConvergenceCancelled, ConvergenceError,
-                                        run_sweep)
+                                        ConvergenceWorkerFailure, run_sweep)
 from rfatlas_sionna.examples import request as example_request
 
 
@@ -109,6 +109,27 @@ def _synthetic_envelope(request, gains, elapsed, *, version_change=False, malfor
         "resource_limits": {"wall_timeout_s": request["limits"]["timeout_s"]},
         "result": result,
         "status": "completed",
+    }
+
+
+def _synthetic_failure_envelope(request, *, error="cancelled", cleanup_error=None,
+                                cancel_error=None):
+    now = datetime.now(timezone.utc).isoformat()
+    return {
+        "schema_version": 1,
+        "request_id": request["request_id"],
+        "request_sha256": digest(request),
+        "started_utc": now,
+        "ended_utc": now,
+        "elapsed_s": .1,
+        "returncode": -15,
+        "log_sha256": "b" * 64,
+        "log": "",
+        "cleanup_error": cleanup_error,
+        "cancel_error": cancel_error,
+        "resource_limits": {"wall_timeout_s": request["limits"]["timeout_s"]},
+        "status": "failed",
+        "error": error,
     }
 
 
@@ -248,9 +269,7 @@ class ConvergenceSweepTests(unittest.TestCase):
         def cancel_in_client(request, _python, client_cancel):
             self.assertIs(client_cancel, cancel)
             client_cancel.set()
-            return {"schema_version": 1, "request_id": request["request_id"],
-                    "request_sha256": digest(request), "status": "failed",
-                    "error": "cancelled"}
+            return _synthetic_failure_envelope(request)
 
         with mock.patch("rfatlas_sionna.convergence.run_worker",
                         side_effect=cancel_in_client) as client_run:
@@ -271,6 +290,41 @@ class ConvergenceSweepTests(unittest.TestCase):
             with self.assertRaises(ConvergenceCancelled):
                 run_sweep(self.base, [10, 20], [1, 2], "unused", cancel=cancel)
         self.assertEqual(client_run.call_count, 1)
+
+    def test_cancellation_does_not_hide_cleanup_or_containment_diagnostics(self):
+        cancel = threading.Event()
+
+        def failed_cancel(request, _python, client_cancel):
+            client_cancel.set()
+            return _synthetic_failure_envelope(
+                request, cleanup_error="Windows containment unknown",
+                cancel_error="CTRL_BREAK delivery failed")
+
+        with mock.patch("rfatlas_sionna.convergence.run_worker",
+                        side_effect=failed_cancel) as client_run:
+            with self.assertRaises(ConvergenceWorkerFailure) as caught:
+                run_sweep(self.base, [10, 20], [1, 2], "unused", cancel=cancel)
+        self.assertEqual(client_run.call_count, 1)
+        self.assertIn("Windows containment unknown", str(caught.exception))
+        self.assertIn("CTRL_BREAK delivery failed", str(caught.exception))
+        self.assertEqual(caught.exception.envelope["error"], "cancelled")
+
+    def test_client_exception_is_not_masked_by_simultaneous_cancellation(self):
+        cancel = threading.Event()
+        containment_failure = RuntimeError("POSIX _stop could not reap process group")
+        calls = []
+
+        def raises_during_cancel(request, _python, client_cancel):
+            calls.append(request["request_id"])
+            client_cancel.set()
+            raise containment_failure
+
+        with mock.patch("rfatlas_sionna.convergence.run_worker",
+                        side_effect=raises_during_cancel):
+            with self.assertRaises(RuntimeError) as caught:
+                run_sweep(self.base, [10, 20], [1, 2], "unused", cancel=cancel)
+        self.assertIs(caught.exception, containment_failure)
+        self.assertEqual(len(calls), 1)
 
     def test_enforces_serialized_output_limit(self):
         with mock.patch("rfatlas_sionna.convergence.MAX_OUTPUT_BYTES", 1):
