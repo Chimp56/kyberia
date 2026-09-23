@@ -176444,8 +176444,8 @@
         {
           "path": "docs/validation/phase4-planner-evaluator.md",
           "description": "Boundary-test candidate's focused verifier tests and governance checks; broader optimizer and RF acceptance remain open",
-          "revision": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
-          "sha256": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
+          "revision": "92f4bc24cb5a4729388a8738ffd3c73fbd4acb012068ee89f9d20afde138e93f",
+          "sha256": "92f4bc24cb5a4729388a8738ffd3c73fbd4acb012068ee89f9d20afde138e93f",
           "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
           "result": "PASS",
           "scope": "Eleven deterministic contract tests including adjacent represented-constraint and RF-threshold values, non-decisive missing-link and resource-ceiling boundaries; no candidate generation, optimizer, airtime/interference, repair, physical site, or real-RF validation"
@@ -176544,8 +176544,8 @@
         {
           "path": "docs/validation/phase4-planner-evaluator.md",
           "description": "Boundary-test candidate's focused verifier tests and governance checks; broader optimizer and RF acceptance remain open",
-          "revision": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
-          "sha256": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
+          "revision": "92f4bc24cb5a4729388a8738ffd3c73fbd4acb012068ee89f9d20afde138e93f",
+          "sha256": "92f4bc24cb5a4729388a8738ffd3c73fbd4acb012068ee89f9d20afde138e93f",
           "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
           "result": "PASS",
           "scope": "Eleven deterministic verifier contract tests only; solver, repair, airtime/interference, physical-site validation and Phase 4 runtime gates remain open"

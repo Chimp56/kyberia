@@ -15,9 +15,8 @@ prove optimality.
 
 ## Candidate checks
 
-- `cargo test -p kyberia-planner-evaluator --locked --offline` — PASS, 7
-  baseline tests before the follow-up. The follow-up suite now has 11
-  integration tests; no unit or doctests.
+- `cargo test -p kyberia-planner-evaluator --locked --offline` — PASS, 11
+  integration tests (7 existing + 4 added); 0 unit tests and 0 doctests.
 - `cargo clippy -p kyberia-planner-evaluator --all-targets --locked --offline -- -D warnings` — PASS.
 - `cargo fmt -p kyberia-planner-evaluator -- --check` — PASS.
 - `python3 tools/architecture.py` — PASS.
