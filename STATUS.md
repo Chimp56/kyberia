@@ -8,8 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17`; and bounded Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Most recent integration change: the bounded Phase 6 pose/anchor fusion contract, with exact-sample speed and source-covariance corrections, independently approved at `b792bf9`. This is not mobile acquisition or route/field evidence; Phase 0 and all Phase 6 exit gates remain open.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17`; Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, independently reviewed at `0d065d4` and followed up at `0ac5efb`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
+- Most recent integration change: the bounded Phase 3 antenna-pattern importer/evaluator, with elevation golden and independent follow-up review. Draft 2020-12 execution remains unverified; no Phase 3 exit or manufacturer-data acceptance is claimed.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -71,6 +71,13 @@ validated anchor corrections; it does not acquire mobile sensor data,
 authenticate control points, compare routes, or establish device/field
 accuracy. Native platform integration, relocalization, remote-sensor pairing,
 route comparison, and Phase 6 exit remain open.
+
+The bounded Phase 3 antenna-pattern v1 importer/evaluator is integrated at
+`6709813`, with the elevation-interpolation golden at `c016288` and independent
+reviews at `0d065d4` and `0ac5efb`. Ten synthetic tests pass. Executable Draft
+2020-12 schema conformance remains unverified; licensed vendor data, source
+rights/checksum validation, uncertainty-aware planning, visual review, adapters,
+and Phase 3 exit remain open.
 
 ## Historical execution checkpoint — 2026-09-22
 
@@ -201,7 +208,7 @@ product capability is validated.
 | Project application boundary | Integrated and independently approved at `c61afc0` | Typed create/open/current-snapshot use cases are validated; operation-backed mutations and the reviewed desktop product path remain open |
 | Barrier-aware measured interpolation | Integrated and independently approved at `425edfe` | Direct finite-segment path cost, stable weights, unknown support, budgets and cancellation are validated; polygon shortest paths, floors, calibrated uncertainty and publication remain open |
 | Active TCP measurement foundation | Integrated through `e4eec6d`; reviewed Windows fixture correction `f019928` | Reviewed scheduling, attribution, budgets, cancellation and statistics are integrated. Native Windows hosted validation of refusal completion remains |
-| Versioned antenna-pattern contract | Candidate source `feat/phase3-antenna-current` | Independent review and integration remain; v1 omits azimuth/elevation cuts, harmonics, manufacturer-format import, visual validation, polarization mismatch loss, and Sionna adapter |
+| Versioned antenna-pattern contract | Integrated at `6709813`; elevation golden `c016288`; review `0d065d4` and follow-up `0ac5efb` | Ten synthetic contract tests pass, including the non-pole elevation interpolation golden. Executable Draft 2020-12 schema conformance remains unverified; licensed manufacturer data, source rights/checksum validation, uncertainty-aware planning, cuts/harmonics, visual review, polarization mismatch loss, Sionna adapter, and Phase 3 exit remain open |
 | Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
 | Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction at `84a5bcb`, independently reviewed follow-up `d0a88eb` | Runtime and docs/ledger reviews pass for the bounded correction. The change removes the accelerator suite/selector; pinned worker-0.2.0 execution and provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
 | Phase 5 spectrum evidence contract | Integrated on `main` at `9641431`; correction re-review `16a9111` | Signature rules v2 fail closed for dBm/Hz and require 80% per-bin coverage across event sweeps; 14 synthetic contract tests pass. Both prior MAJOR findings are resolved; one non-blocking v1 decoder-diagnostic MINOR is documented. No SoapySDR/vendor adapter, bandwidth normalization, hardware, remote-sensor or labeled-trace execution; Phase 5 remains open. See [validation](docs/validation/phase5-spectrum-contract.md) |
