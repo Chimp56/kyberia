@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 90 | NOT_STARTED: 3180 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 93 | NOT_STARTED: 3177 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3717,11 +3717,11 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 90 | NO
 | `source:spacing:01ba4719c80b6fe911b0:1043` | [L4359](../../plan.md#L4359) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:table_row:0bd212b038e8e0d96e4e:9` | [L4360](../../plan.md#L4360) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; ID &#124; Pri &#124; Work item &#124; Acceptance evidence &#124; | obligation | NOT_STARTED |  |
 | `source:table_separator:13da3925573fa31a966f:9` | [L4361](../../plan.md#L4361) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124;---&#124;---:&#124;---&#124;---&#124; | structure | COVERAGE_ONLY |  |
-| `backlog:SPEB-001:1` | [L4362](../../plan.md#L4362) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-001 &#124; P2 &#124; Spectrum capability/schema &#124; Calibration and sweep metadata required &#124; | obligation | NOT_STARTED |  |
+| `backlog:SPEB-001:1` | [L4362](../../plan.md#L4362) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-001 &#124; P2 &#124; Spectrum capability/schema &#124; Calibration and sweep metadata required &#124; | obligation | IN_PROGRESS | [implementation](../../crates/spectrum-contract/src/model.rs), [validation](../../crates/spectrum-contract/tests/contract.rs) |
 | `backlog:SPEB-002:1` | [L4363](../../plan.md#L4363) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-002 &#124; P2 &#124; SoapySDR plugin &#124; Recorded sweep replay fixture &#124; | obligation | NOT_STARTED |  |
 | `backlog:SPEB-003:1` | [L4364](../../plan.md#L4364) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-003 &#124; P2 &#124; PSD/waterfall/max/occupancy &#124; Numerical/visual golden tests &#124; | obligation | NOT_STARTED |  |
-| `backlog:SPEB-004:1` | [L4365](../../plan.md#L4365) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-004 &#124; P2 &#124; Position-correlated spectrum &#124; Point/continuous completeness &#124; | obligation | NOT_STARTED |  |
-| `backlog:SPEB-005:1` | [L4366](../../plan.md#L4366) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-005 &#124; P3 &#124; Deterministic interferer signatures &#124; Labeled test traces and unknown class &#124; | obligation | NOT_STARTED |  |
+| `backlog:SPEB-004:1` | [L4365](../../plan.md#L4365) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-004 &#124; P2 &#124; Position-correlated spectrum &#124; Point/continuous completeness &#124; | obligation | IN_PROGRESS | [implementation](../../crates/spectrum-contract/src/model.rs), [validation](../../crates/spectrum-contract/tests/contract.rs) |
+| `backlog:SPEB-005:1` | [L4366](../../plan.md#L4366) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-005 &#124; P3 &#124; Deterministic interferer signatures &#124; Labeled test traces and unknown class &#124; | obligation | IN_PROGRESS | [implementation](../../crates/spectrum-contract/src/signature.rs), [validation](../../crates/spectrum-contract/tests/contract.rs) |
 | `backlog:SPEB-006:1` | [L4367](../../plan.md#L4367) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — &#124; SPEB-006 &#124; P3 &#124; Vendor analyzer plugins &#124; License-separated distribution &#124; | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:1044` | [L4368](../../plan.md#L4368) RF Atlas / 18. Prioritized engineering backlog / 18.9 Spectrum — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:heading:7767b4664cf86104fcde:1` | [L4369](../../plan.md#L4369) RF Atlas / 18. Prioritized engineering backlog / 18.10 UI, reporting, and ecosystem — ### 18.10 UI, reporting, and ecosystem | obligation_group | NOT_STARTED |  |

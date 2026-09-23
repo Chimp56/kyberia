@@ -103279,8 +103279,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "a566a9629575fc53750215fe9bca0231bfad5ec6eaabb94bec9e53b6bd92b7d7",
-          "sha256": "a566a9629575fc53750215fe9bca0231bfad5ec6eaabb94bec9e53b6bd92b7d7"
+          "revision": "49969d6f7e2017d31aa34822d7210903bfdd52fc0b17a3da3926a45d57221a4a",
+          "sha256": "49969d6f7e2017d31aa34822d7210903bfdd52fc0b17a3da3926a45d57221a4a"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -176522,14 +176522,36 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spectrum",
       "phase": 5,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "related_requirements": [
+        "catalog:SPE-001:1",
+        "catalog:SPE-005:1"
+      ],
+      "acceptance_cases": [
+        "Versioned sweep/calibration metadata, explicit unknown bins, provenance and bounded canonical validation; adapters and calibration execution remain open."
+      ],
+      "implementation": [
+        {
+          "path": "crates/spectrum-contract/src/model.rs",
+          "description": "Typed v1 sweep, calibration, acquisition, frequency-grid and evidence validation contract",
+          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
+          "sha256": "9d51c13d483fc8e2e28352ae33c58a5091fda7ad7cf17705b918fdd651b79dbc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spectrum-contract/tests/contract.rs",
+          "description": "Focused serialization, malformed-input, provenance and resource-bound contract tests",
+          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
+          "sha256": "d9e1932bba309f2a5f1db1c8a7bc7f37580a9bb89db3f1686b4ad97c6295ea7b",
+          "command": "cargo test -p kyberia-spectrum-contract --offline",
+          "result": "PASS",
+          "scope": "Synthetic schema contract tests only; no hardware or adapter execution"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -176651,14 +176673,35 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spectrum",
       "phase": 5,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "related_requirements": [
+        "catalog:SPE-003:1"
+      ],
+      "acceptance_cases": [
+        "Each sweep retains pose/time provenance and explicit unknowns; path completeness, interpolation and heatmaps remain open."
+      ],
+      "implementation": [
+        {
+          "path": "crates/spectrum-contract/src/model.rs",
+          "description": "Sweep schema carries capture time/window and pose evidence without synthesizing missing values",
+          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
+          "sha256": "9d51c13d483fc8e2e28352ae33c58a5091fda7ad7cf17705b918fdd651b79dbc"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spectrum-contract/tests/contract.rs",
+          "description": "Known and unknown position/time provenance round-trip checks",
+          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
+          "sha256": "d9e1932bba309f2a5f1db1c8a7bc7f37580a9bb89db3f1686b4ad97c6295ea7b",
+          "command": "cargo test -p kyberia-spectrum-contract --offline",
+          "result": "PASS",
+          "scope": "Synthetic contract provenance only; no survey path or physical positioning validation"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -176694,14 +176737,35 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "spectrum",
       "phase": 5,
       "depends_on": [],
-      "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "related_requirements": [
+        "catalog:SPE-004:1"
+      ],
+      "acceptance_cases": [
+        "Synthetic deterministic narrowband/wideband support patterns and conservative unknown handling; labeled traces and runtime classifier acceptance remain open."
+      ],
+      "implementation": [
+        {
+          "path": "crates/spectrum-contract/src/signature.rs",
+          "description": "Version-bound deterministic signature identity, temporal eligibility and limited generic pattern rules",
+          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
+          "sha256": "54a7ed10320ec92c5ae0b2816a86a278d1c90133288a920d70b86e054a0b6b67"
+        }
+      ],
+      "validation": [
+        {
+          "path": "crates/spectrum-contract/tests/contract.rs",
+          "description": "Synthetic deterministic signature, event identity, unsupported-evidence and forgery tests",
+          "revision": "5dab9d42531e8b9818afb3f919d080d6d3ddf419",
+          "sha256": "d9e1932bba309f2a5f1db1c8a7bc7f37580a9bb89db3f1686b4ad97c6295ea7b",
+          "command": "cargo test -p kyberia-spectrum-contract --offline",
+          "result": "PASS",
+          "scope": "Synthetic contract fixtures only; no labeled traces, emitter identification or field validation"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
