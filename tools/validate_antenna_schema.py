@@ -75,6 +75,18 @@ def main():
     malformed_gain["frequencies"][0]["samples"][4]["co_polar_gain_dbi"] = "6 dBi"
     invalid_instances["numeric gain sample"] = malformed_gain
 
+    trailing_lf_model_id = copy.deepcopy(valid_instance)
+    trailing_lf_model_id["model_id"] += "\n"
+    invalid_instances["trailing line feed in model_id"] = trailing_lf_model_id
+
+    trailing_lf_license = copy.deepcopy(valid_instance)
+    trailing_lf_license["source"]["license_spdx"] += "\n"
+    invalid_instances["trailing line feed in source.license_spdx"] = trailing_lf_license
+
+    trailing_lf_uri = copy.deepcopy(valid_instance)
+    trailing_lf_uri["source"]["source_uri"] += "\n"
+    invalid_instances["trailing line feed in source.source_uri"] = trailing_lf_uri
+
     for label, instance in invalid_instances.items():
         if validator.is_valid(instance):
             print("ERROR: invalid instance passed schema: {}".format(label), file=sys.stderr)
@@ -82,7 +94,7 @@ def main():
 
     print(
         "PASS: Draft 2020-12 schema is valid; canonical Rust fixture and optional cross-plane "
-        "form accepted; {} structural rejection cases passed (jsonschema {}).".format(
+        "form accepted; {} invalid-instance rejection cases passed (jsonschema {}).".format(
             len(invalid_instances), installed
         )
     )

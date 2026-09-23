@@ -15,7 +15,7 @@ or Sionna execution in this evidence.
 
 | Command | Result and scope |
 | --- | --- |
-| `cargo test -p kyberia-antenna-model --locked --offline` | PASS: 10 integration tests; includes a local +X/45° elevation golden between the 0° +6 dBi sample and +90° −10 dBi pole. No unit or doctests are defined. |
+| `cargo test -p kyberia-antenna-model --locked --offline` | PASS: 11 integration tests; includes a local +X/45° elevation golden and trailing-line-feed rejection in all three Rust-validated text fields. No unit or doctests are defined. |
 | `cargo test -p kyberia-antenna-model --locked --offline direction_elevation_and_frequency_interpolation_are_in_linear_power -- --exact` | PASS: targeted non-pole elevation golden. |
 | `cargo clippy -p kyberia-antenna-model --all-targets --locked --offline -- -D warnings` | PASS: all crate targets, warnings denied. |
 | `cargo fmt --all -- --check` | PASS: candidate workspace formatting. |
@@ -24,7 +24,7 @@ or Sionna execution in this evidence.
 | `python3 tools/ledger.py check` | PASS: 5,396 source blocks, 438 explicit ID occurrences, 447 headings. |
 | `python3 -m unittest discover -s tests -p 'test_ledger.py'` | PASS: 31 ledger tests. |
 | `git diff --check` | PASS: candidate working-tree whitespace check. |
-| `python3 tools/dev.py validate-antenna-schema` | PASS on the schema-validation candidate with the existing pinned `jsonschema==4.25.1` interpreter: `Draft202012Validator.check_schema` accepts the committed schema; the JSON fixture shared with the Rust test is accepted; an all-absent optional cross-polar plane is accepted; and four invalid instances are rejected for closed properties, required coordinate fields, elevation endpoints, and numeric sample values. |
+| `python3 tools/dev.py validate-antenna-schema` | PASS on the schema-validation candidate with the existing pinned `jsonschema==4.25.1` interpreter: `Draft202012Validator.check_schema` accepts the committed schema; the JSON fixture shared with the Rust test is accepted; an all-absent optional cross-polar plane is accepted; and seven invalid instances are rejected, including trailing line feeds in `model_id`, `source.license_spdx`, and `source.source_uri`. |
 
 The exact candidate run used the already-installed interpreter from the
 integration checkout:

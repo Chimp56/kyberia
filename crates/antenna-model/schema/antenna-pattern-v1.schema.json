@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema": {"const": "kyberia.antenna-pattern/1"},
-    "model_id": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^[!-~](?:[ -~]*[!-~])?$"},
+    "model_id": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^[!-~](?:[ -~]*[!-~])?$(?![\\s\\S])"},
     "representation": {"const": "full_sphere_sample_grid"},
     "coordinate_convention": {
       "type": "object", "additionalProperties": false,
@@ -68,8 +68,8 @@
       "type": "object", "additionalProperties": false,
       "required": ["source_uri", "license_spdx", "source_checksum_sha256"],
       "properties": {
-        "source_uri": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^(?:https?://|file://|urn:)[!-~]+$"},
-        "license_spdx": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^[!-~](?:[ -~]*[!-~])?$"},
+        "source_uri": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^(?:https?://|file://|urn:)[!-~]+$(?![\\s\\S])"},
+        "license_spdx": {"type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^[!-~](?:[ -~]*[!-~])?$(?![\\s\\S])"},
         "source_checksum_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
       }
     },

@@ -352,6 +352,22 @@ fn source_uri_checksum_and_spdx_expression_are_bounded_and_validated() {
 }
 
 #[test]
+fn text_identifiers_reject_trailing_line_feeds() {
+    for pointer in ["/model_id", "/source/license_spdx", "/source/source_uri"] {
+        let mut with_line_feed = document();
+        let original = with_line_feed.pointer(pointer).unwrap().as_str().unwrap();
+        *with_line_feed.pointer_mut(pointer).unwrap() = json!(format!("{original}\n"));
+        assert!(
+            matches!(
+                parse_error(&with_line_feed),
+                AntennaError::Invalid(_) | AntennaError::InvalidJson(_)
+            ),
+            "{pointer}"
+        );
+    }
+}
+
+#[test]
 fn schema_is_valid_json_and_marks_cross_polar_data_optional() {
     let schema: Value = serde_json::from_str(JSON_SCHEMA_V1).unwrap();
     assert_eq!(
