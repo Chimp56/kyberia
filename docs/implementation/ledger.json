@@ -28396,16 +28396,16 @@
         {
           "path": "crates/ieee80211/src/lib.rs",
           "description": "Partial Rust core: zero-copy ordered IE view, numeric IE identity, warning access, and bounded duplicate-preserving content diff; association parsing and Lab UI remain open",
-          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
-          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
+          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
+          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase2-ie-explorer-core.md",
           "description": "Focused Rust core tests and resource-boundary validation; association frames, desktop integration, and standards clause links remain unverified",
-          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
-          "sha256": "131ffbdcf66a2e9e3a9d69b27d9089469096030b41e48741aca2be9f602d599e",
+          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
+          "sha256": "e68ecd9cd24c6807e7a014a9d1190902720959ef70881b80d7b6e2b947d3190e",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "bounded Rust information-element explorer/diff core only"
@@ -161143,16 +161143,16 @@
         {
           "path": "crates/ieee80211/src/lib.rs",
           "description": "Bounded Phase 2 IE-explorer source progress only; other Phase 2 deliverables and exit criteria remain open",
-          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
-          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
+          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
+          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase2-ie-explorer-core.md",
           "description": "Focused validation for the IE-explorer Rust core; no Phase 2 completion claim",
-          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
-          "sha256": "131ffbdcf66a2e9e3a9d69b27d9089469096030b41e48741aca2be9f602d599e",
+          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
+          "sha256": "e68ecd9cd24c6807e7a014a9d1190902720959ef70881b80d7b6e2b947d3190e",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "single Phase 2 parser/explorer deliverable, Rust core only"
@@ -161576,16 +161576,16 @@
         {
           "path": "crates/ieee80211/src/lib.rs",
           "description": "Partial information-element explorer/diff API over currently supported Beacon and Probe management frames",
-          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
-          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
+          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
+          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase2-ie-explorer-core.md",
           "description": "Core parser/explorer test, strict Clippy, and formatting results with open integration requirements recorded",
-          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
-          "sha256": "131ffbdcf66a2e9e3a9d69b27d9089469096030b41e48741aca2be9f602d599e",
+          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
+          "sha256": "e68ecd9cd24c6807e7a014a9d1190902720959ef70881b80d7b6e2b947d3190e",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
           "result": "PASS",
           "scope": "Rust core for beacon/probe frames; association parsing and user-facing explorer remain open"
@@ -171570,8 +171570,8 @@
         {
           "path": "crates/ieee80211/src/lib.rs",
           "description": "Bounded Beacon/Probe IE parser source; current file also contains a separately tracked partial explorer core. This source-identity update does not extend historical parser review or fuzz claims",
-          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
-          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
+          "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
+          "sha256": "b2605cfc69e1e8a0b7c564d9a6a85971e565556d98148895e4147aab1a8647f7"
         }
       ],
       "validation": [

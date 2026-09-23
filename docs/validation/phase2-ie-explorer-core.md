@@ -4,7 +4,8 @@ This isolated source increment adds a zero-copy `ManagementFrame::ie_explorer`
 view and a bounded `diff_information_elements` API to
 `crates/ieee80211/src/lib.rs`. The view exposes ordered IE entries, each exact
 raw TLV and payload, the current typed `ElementDecode`, and malformed or
-contradictory-repeat evidence. The numeric standards identity is the IEEE
+repeated-singleton evidence, including identical duplicates, and contradictory
+repeat evidence. The numeric standards identity is the IEEE
 802.11 element identifier plus an extension identifier when the IE uses the
 extension element ID. It is an identifier only: this increment adds no clause
 citations, registry display names, or external standards links. An IE the
@@ -31,7 +32,7 @@ INS-005 requirement and Phase 2 remain in progress.
 On base `bc51e80b14e30f927628f4ba9f2e92a4773423fe` in isolated branch
 `feat/phase2-ie-explorer-current`:
 
-- `cargo test -p kyberia-ieee80211 --locked --offline`: 30 unit tests, 3
+- `cargo test -p kyberia-ieee80211 --locked --offline`: 31 unit tests, 3
   fixture differential tests, and 3 compile-fail doctests passed; one explicit
   tcpdump differential test remains intentionally ignored by the default run.
 - `cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D
@@ -43,7 +44,8 @@ On base `bc51e80b14e30f927628f4ba9f2e92a4773423fe` in isolated branch
 
 The added regressions cover no change, payload modification, addition, removal,
 reorder-only differences, duplicate occurrence modification/addition,
-malformed and contradictory warnings, unknown and extension identities,
+malformed, contradictory, and identical-singleton cardinality warnings,
+unknown and extension identities,
 subtype context change, exact work/allocation limits, cancellation, and a diff
 at the default 1,024-element boundary. These are core API tests, not an
 end-to-end product or association-frame test.

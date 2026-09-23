@@ -500,8 +500,13 @@ impl ElementWarnings<'_> {
         self.repetition.is_some_and(RepeatedElement::contradictory)
     }
 
+    /// True for malformed values or any repeated singleton, including
+    /// identical payloads that violate singleton cardinality.
     pub fn has_warning(&self) -> bool {
-        self.malformed.is_some() || self.is_contradictory()
+        self.malformed.is_some()
+            || self
+                .repetition
+                .is_some_and(RepeatedElement::violates_singleton_cardinality)
     }
 }
 
@@ -1681,6 +1686,32 @@ mod tests {
         assert_eq!(element.raw_bytes(), &[255, 3, 35, 0xaa, 0xbb]);
         assert_eq!(element.raw_payload(), &[35, 0xaa, 0xbb]);
         assert!(matches!(element.decoded(), ElementDecode::Extension { .. }));
+    }
+
+    #[test]
+    fn explorer_warns_on_identical_singleton_repeats_but_not_allowed_vendor_repeats() {
+        let singleton = probe_request_with(&[0, 1, b'a', 0, 1, b'a']);
+        let views = singleton.ie_explorer().elements().collect::<Vec<_>>();
+        assert_eq!(views.len(), 2);
+        for view in views {
+            let warnings = view.warnings();
+            let repetition = warnings.repetition().unwrap();
+            assert!(repetition.violates_singleton_cardinality());
+            assert!(repetition.payloads_identical());
+            assert!(!warnings.is_contradictory());
+            assert!(warnings.has_warning());
+        }
+
+        let vendor = probe_request_with(&[221, 1, 7, 221, 1, 7]);
+        let views = vendor.ie_explorer().elements().collect::<Vec<_>>();
+        assert_eq!(views.len(), 2);
+        for view in views {
+            let warnings = view.warnings();
+            let repetition = warnings.repetition().unwrap();
+            assert!(!repetition.violates_singleton_cardinality());
+            assert!(repetition.payloads_identical());
+            assert!(!warnings.has_warning());
+        }
     }
 
     #[test]
