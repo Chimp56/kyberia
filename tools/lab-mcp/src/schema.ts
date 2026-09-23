@@ -28,12 +28,15 @@ export const SUITES = [
 export const Suite = z.enum(SUITES);
 export const Probe = z.enum(["wifi", "kismet", "sionna", "spectrum"]);
 
+const hasRetiredAcceleratorCapability = (id: string): boolean =>
+  id.split(/[._-]/).some((part) => /^(?:cuda|nvidia|gpu)[a-z0-9]*$/.test(part));
+
 const capabilities = z
   .array(ID)
   .max(64)
   .refine((v) => new Set(v).size === v.length)
   .refine(
-    (v) => !v.some((id) => ["cuda", "gpu", "sionna-gpu"].includes(id)),
+    (v) => !v.some(hasRetiredAcceleratorCapability),
     "retired accelerator capabilities are unsupported",
   );
 

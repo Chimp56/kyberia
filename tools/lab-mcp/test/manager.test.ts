@@ -194,7 +194,16 @@ test("configuration forbids forwarding the coordinator private key", () => {
   retiredSuite.hosts[0].suites["sionna-gpu"] =
     retiredSuite.hosts[0].suites.foundation;
   assert.throws(() => Config.parse(retiredSuite));
-  for (const retiredCapability of ["cuda", "gpu", "sionna-gpu"]) {
+  for (const retiredCapability of [
+    "cuda",
+    "cuda12",
+    "gpu",
+    "gpu0",
+    "nvidia",
+    "nvidia-gpu",
+    "sionna-cuda",
+    "sionna-gpu",
+  ]) {
     const retiredHost = JSON.parse(JSON.stringify(setup.config));
     retiredHost.hosts[0].capabilities.push(retiredCapability);
     assert.throws(
@@ -202,6 +211,9 @@ test("configuration forbids forwarding the coordinator private key", () => {
       /retired accelerator capabilities/,
     );
   }
+  const portableCompute = JSON.parse(JSON.stringify(setup.config));
+  portableCompute.hosts[0].capabilities.push("wgpu");
+  assert.doesNotThrow(() => Config.parse(portableCompute));
 });
 
 test("coordinator and host key fingerprints must be distinct and paired", () => {

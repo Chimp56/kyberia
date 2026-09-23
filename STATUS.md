@@ -62,8 +62,8 @@ hosted run must identify and correct that stage before the reviewed refusal
 fixtures receive native Windows execution. Physical-radio, Kismet and
 spectrum executions remain runtime gates rather than simulated evidence.
 
-The generated traceability matrix currently reports **66 VALIDATED, 83
-IN_PROGRESS, and 3,186 NOT_STARTED leaf obligations**, with zero
+The regenerated candidate traceability matrix currently reports **66
+VALIDATED, 88 IN_PROGRESS, and 3,182 NOT_STARTED leaf obligations**, with zero
 BLOCKED_EXTERNAL or DEFERRED_BY_ADR. These are source-coverage records rather
 than a product completion percentage.
 
