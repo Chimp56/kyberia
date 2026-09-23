@@ -2285,6 +2285,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-spectrum-contract"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "kyberia-stored-analysis"
 version = "0.1.0"
 dependencies = [
