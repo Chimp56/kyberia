@@ -8,8 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17`; Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, independently reviewed at `0d065d4` and followed up at `0ac5efb`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Most recent integration change: the bounded Phase 3 antenna-pattern importer/evaluator, with elevation golden and independent follow-up review. Draft 2020-12 execution remains unverified; no Phase 3 exit or manufacturer-data acceptance is claimed.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17` with the independently approved, test-only threshold/resource-boundary follow-up at `141fc0e` (`bde0b98`, `5426ec0`); Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, independently reviewed at `0d065d4` and followed up at `0ac5efb`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
+- Most recent integration change: the Phase 4 planner-evaluator boundary-test follow-up at `141fc0e`, independently reviewed at `bde0b98` and re-reviewed at `5426ec0`. It adds threshold and resource-boundary evidence only; Phase 4 remains open. The separate Phase 3 schema-validation candidate `0f1bfe2` has not been integrated or independently approved. Draft 2020-12 execution therefore remains unverified on `main`; no Phase 3 exit or manufacturer-data acceptance is claimed.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -59,8 +59,9 @@ deserialization. WIT compilation, component execution, sandbox enforcement,
 sample integrations and Phase 8 exit remain open.
 
 The bounded Phase 4 evaluator is integrated at `3370d17`, with its independent
-review at `015b86f`. It verifies deterministic, caller-supplied assignments
-against represented constraints. A separate, unintegrated follow-up adds exact
+review at `015b86f`. The test-only threshold/resource-boundary follow-up is
+integrated at `141fc0e`, clarified at `7ac93ce`, and independently reviewed at
+`bde0b98` with the wording correction re-reviewed at `5426ec0`. It adds exact
 and adjacent RF-threshold tests, missing-coefficient coverage behavior, and
 resource-ceiling boundary tests; this is verifier-test evidence only, not an
 optimizer. Candidate generation, optimization, airtime, interference, repair,
@@ -77,7 +78,9 @@ route comparison, and Phase 6 exit remain open.
 The bounded Phase 3 antenna-pattern v1 importer/evaluator is integrated at
 `6709813`, with the elevation-interpolation golden at `c016288` and independent
 reviews at `0d065d4` and `0ac5efb`. Ten synthetic tests pass. Executable Draft
-2020-12 schema conformance remains unverified; licensed vendor data, source
+2020-12 schema conformance remains unverified on `main`; candidate `0f1bfe2`
+adds a pinned-validator command and shared positive/negative fixtures but is
+awaiting independent review and integration. Licensed vendor data, source
 rights/checksum validation, uncertainty-aware planning, visual review, adapters,
 and Phase 3 exit remain open.
 

@@ -1,8 +1,11 @@
 # Phase 4 bounded planner-evaluator validation
 
 Integrated code baseline: `3370d17`; independent review report: `015b86f`.
-Boundary-test follow-up base: `bc51e80b14e30f927628f4ba9f2e92a4773423fe` on
-`feat/phase4-evaluator-boundaries-current` (separate, not integrated).
+The test-only boundary follow-up is integrated at `141fc0e` from base
+`bc51e80b14e30f927628f4ba9f2e92a4773423fe`; independent review is recorded in
+[`phase4-evaluator-boundaries-follow-up-review-current.md`](../reviews/phase4-evaluator-boundaries-follow-up-review-current.md)
+and the wording re-review in
+[`phase4-evaluator-boundaries-f1-rereview-20260923.md`](../reviews/phase4-evaluator-boundaries-f1-rereview-20260923.md).
 
 ## Scope
 
@@ -37,5 +40,5 @@ production evaluator change was needed.
 
 The full workspace suite, physical-site validation and real-RF evaluation were
 not run. Physical-site/mounting identity, aggregate-capacity limitations,
-solver/repair behavior and broader Phase 4 acceptance remain open. The follow-up
-is not integrated until separate independent review and promotion.
+solver/repair behavior and broader Phase 4 acceptance remain open. The integrated
+follow-up is test evidence only; it does not add production evaluator behavior.
