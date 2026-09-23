@@ -19,9 +19,13 @@ or capability conclusion is made.
 canonical bytes, cumulative logical allocation bytes, and deterministic work
 units for each public operation. The allocation admission includes raw and IE
 copies, derived byte views, repeat indices/grouping scratch, and canonical
-output. `Cancellation` is polled throughout CRC, TLV, typed-decode, repeat
-grouping, canonical encode, and replay validation loops. Canonical documents
-contain the exact input MPDU plus its explicit framing policy; decoding uses
+output. `Cancellation` is polled in CRC/TLV traversal, at typed-IE dispatch and
+allocation checkpoints, repeat grouping, canonical encode, and replay
+validation loops. Per-IE typed value decoding is bounded by the IE payload
+length (at most 255 bytes) and does not poll inside each value-copy loop; a
+cancellation arriving mid-IE is observed at the next parser checkpoint.
+Canonical documents contain the exact input MPDU plus its explicit framing
+policy; decoding uses
 one cumulative control while reparsing that evidence. Parsed frame fields and
 owned collections are exposed only through read-only accessors.
 

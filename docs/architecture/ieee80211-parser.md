@@ -44,9 +44,13 @@ Input, IE count/payload, canonical bytes, cumulative logical allocation, and
 deterministic work are bounded with checked arithmetic under one control per
 public operation. Allocation admission includes retained raw/IE/derived bytes,
 exact-sized collection storage, repeat-group scratch and indices, and canonical
-output. Cancellation is polled throughout CRC, TLV, grouping, copy and replay
-loops. The bounds are deterministic logical allocation/work limits, not
-allocator resident-memory or wall-clock guarantees.
+output. Cancellation is polled in CRC/TLV traversal, at typed-IE dispatch and
+allocation checkpoints, in repeat grouping and replay validation, and during
+canonical encoding. Per-IE typed value decoding is bounded by the IE's maximum
+255-byte payload and does not poll inside each value-copy loop; cancellation
+arriving mid-IE is observed at the next parser checkpoint. The bounds are
+deterministic logical allocation/work limits, not allocator resident-memory or
+wall-clock guarantees.
 
 ## Validation tooling boundary
 
@@ -65,11 +69,15 @@ paths cannot silently disappear from the seed set.
 The ignored `tcpdump_differential` test is an explicit external-oracle check.
 It writes deterministic classic PCAP bytes and requires the host's absolute
 `/usr/sbin/tcpdump` executable to decode the same Beacon, Probe Request, and
-Probe Response fixtures. This is acceptance evidence for stable frame roles,
-SSID text, rates, and DS channel only. It neither makes `tcpdump` a runtime
-dependency nor delegates Kyberia's parser authority to that tool. The recorded
-run is host-specific and does not establish cross-platform behavior, broader
-capture framing, or advanced Wi-Fi semantics.
+Probe Response fixtures. The test directly compares Kyberia's typed frame
+roles, printable/empty SSID display, supported rates where tcpdump emits them,
+DS channel where displayed, and Beacon ESS/privacy flags against tcpdump's
+parsed output. In the recorded tcpdump build, rates are emitted for Beacon and
+Probe Request but not Probe Response; hidden-versus-wildcard SSID semantics are
+checked internally, not distinguished by tcpdump's empty display. It neither
+makes `tcpdump` a runtime dependency nor delegates Kyberia's parser authority
+to that tool. The recorded run is host-specific and does not establish
+cross-platform behavior, broader capture framing, or advanced Wi-Fi semantics.
 
 This decision does not implement or validate WIFI-002 through WIFI-007,
 INS-005, radiotap/PCAP/PCAPNG parsing, association/data/control frames,
