@@ -1,9 +1,11 @@
-# Mobile pose fusion contract (candidate)
+# Bounded Phase 6 mobile pose fusion contract
 
-This is a platform-neutral Phase 6 foundation candidate on
-`feat/phase6-mobile-pose-current`. It covers a bounded numerical contract, not
-a mobile companion. The current phase remains Phase 0, and Phase 6 remains
-open pending platform, route-comparison, pairing, and independent-review gates.
+This platform-neutral foundation is integrated on `main`: implementation
+`3caa22e`, correctness fixes `acc35e9`, and evidence refresh `85e0a23`.
+Independent rereview is recorded at `b792bf9`. It covers a bounded numerical
+contract, not a mobile companion. The current roadmap phase remains Phase 0;
+Phase 6 remains open pending platform, route-comparison, pairing, and field
+acceptance gates.
 
 ## Plan traceability
 
@@ -108,17 +110,17 @@ in this worktree). This candidate addresses the bounded findings as follows:
   historical branch/revision and identifies its absent path without a broken
   relative link.
 
-The first independent review of candidate `ea7a4a4c445bf6f311db4a270846b9e042f305e4`
-rejected integration pending fixes to exact-sample speed gating (MPR-005) and
-anchor-source covariance propagation (MPR-006). Those author-side corrections
-and regression tests are present here; a fresh independent rereview is pending.
-
-These statements describe this API and focused tests only; they do not assert
-that a new independent review has accepted the implementation.
+The first independent review of candidate
+`ea7a4a4c445bf6f311db4a270846b9e042f305e4` rejected integration pending fixes
+to exact-sample speed gating (MPR-005) and anchor-source covariance propagation
+(MPR-006). Those author-side corrections and regressions were independently
+re-reviewed and approved with no remaining findings. See
+[`phase6-mobile-pose-rereview-20260923.md`](../reviews/phase6-mobile-pose-rereview-20260923.md)
+for the bounded approval and its evidence limits.
 
 ## Focused validation
 
-Executed in the isolated worktree with its locked dependencies and offline:
+Reproduced on integrated `main` with locked dependencies and offline:
 
 ```text
 cargo test -p kyberia-mobile-pose --locked --offline

@@ -35704,15 +35704,25 @@
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
-          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
-          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "description": "Integrated-main 21 focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; fresh independent rereview approved with no remaining findings",
+          "revision": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
+          "sha256": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
           "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase6-mobile-pose-rereview-20260923.md",
+          "description": "Independent Phase 6 bounded-fusion rereview; MPR-005 and MPR-006 closed with no remaining findings",
+          "revision": "b792bf9240a9ab4073bc31400acb3bc2ffb83930",
+          "sha256": "a6a529d22368f81604d16b982cdbbac3c4b9610b015de66fbd20fc8fe5ce7518",
+          "reviewer": "/root/phase6_mobile_pose_independent_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:3ae603c45088cc463dc2:1",
@@ -35925,9 +35935,9 @@
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
-          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
-          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "description": "Integrated-main 21 focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; fresh independent rereview approved with no remaining findings",
+          "revision": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
+          "sha256": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
           "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
@@ -35992,9 +36002,9 @@
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
-          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
-          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "description": "Integrated-main 21 focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; fresh independent rereview approved with no remaining findings",
+          "revision": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
+          "sha256": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
           "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
@@ -103413,8 +103423,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "a02fd3ff210cfdc5575f8a8ecd17eebef0c0dda95ef6e3f7853d1c8396d67e3b",
-          "sha256": "a02fd3ff210cfdc5575f8a8ecd17eebef0c0dda95ef6e3f7853d1c8396d67e3b"
+          "revision": "7678ed0b3e8ced1a979da07ad9e9fec9726e5e0a55b324bdaec98ed3602d60e2",
+          "sha256": "7678ed0b3e8ced1a979da07ad9e9fec9726e5e0a55b324bdaec98ed3602d60e2"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -165357,9 +165367,9 @@
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
-          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
-          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "description": "Integrated-main 21 focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; fresh independent rereview approved with no remaining findings",
+          "revision": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
+          "sha256": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
           "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"
@@ -165740,9 +165750,9 @@
       "validation": [
         {
           "path": "docs/validation/mobile-pose-contract.md",
-          "description": "Twenty-one focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; initial independent rejection and pending rereview are recorded",
-          "revision": "25f979a9458c0a34d00b980d751021b304a21b8b",
-          "sha256": "f863cd0a3034ef5d15575adf1905568c10ab8d76cfe281258d03de13240065a2",
+          "description": "Integrated-main 21 focused pose/anchor tests cover exact-sample speed checks, duplicate pose IDs, separated-anchor covariance, unknown evidence, and bounded fusion; fresh independent rereview approved with no remaining findings",
+          "revision": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
+          "sha256": "4700f1ac4daf1cc69deadbcd96c1ddb83e6e544fd83897f4e4a2e9ad9741d6e4",
           "command": "cargo test -p kyberia-mobile-pose --locked --offline; cargo clippy -p kyberia-mobile-pose --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check",
           "scope": "contract",
           "result": "PASS"

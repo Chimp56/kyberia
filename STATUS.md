@@ -8,8 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; and the bounded Phase 4 planner evaluator at `3370d17`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Most recent integration change: the bounded Phase 4 planner evaluator at `3370d17`, independently reviewed at `015b86f`. It verifies caller-proposed plans only and does not close the optimizer, airtime/interference, repair, or broader Phase 4 gates.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17`; and bounded Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
+- Most recent integration change: the bounded Phase 6 pose/anchor fusion contract, with exact-sample speed and source-covariance corrections, independently approved at `b792bf9`. This is not mobile acquisition or route/field evidence; Phase 0 and all Phase 6 exit gates remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -63,6 +63,14 @@ review at `015b86f`. It verifies deterministic, caller-supplied assignments
 against represented constraints. Exact-threshold/resource-boundary test cases
 remain useful follow-ups; candidate generation, optimization, airtime,
 interference, repair and Phase 4 exit remain open.
+
+The bounded Phase 6 pose/anchor fusion foundation is integrated at `3caa22e`
+with speed/covariance corrections through `acc35e9` and fresh independent
+rereview at `b792bf9`. It consumes provider-supplied pose evidence and applies
+validated anchor corrections; it does not acquire mobile sensor data,
+authenticate control points, compare routes, or establish device/field
+accuracy. Native platform integration, relocalization, remote-sensor pairing,
+route comparison, and Phase 6 exit remain open.
 
 ## Historical execution checkpoint — 2026-09-22
 
@@ -196,6 +204,7 @@ product capability is validated.
 | Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
 | Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction at `84a5bcb`, independently reviewed follow-up `d0a88eb` | Runtime and docs/ledger reviews pass for the bounded correction. The change removes the accelerator suite/selector; pinned worker-0.2.0 execution and provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
 | Phase 5 spectrum evidence contract | Integrated on `main` at `9641431`; correction re-review `16a9111` | Signature rules v2 fail closed for dBm/Hz and require 80% per-bin coverage across event sweeps; 14 synthetic contract tests pass. Both prior MAJOR findings are resolved; one non-blocking v1 decoder-diagnostic MINOR is documented. No SoapySDR/vendor adapter, bandwidth normalization, hardware, remote-sensor or labeled-trace execution; Phase 5 remains open. See [validation](docs/validation/phase5-spectrum-contract.md) |
+| Phase 6 pose/anchor fusion foundation | Integrated at `3caa22e`, fixes through `acc35e9`; independent rereview `b792bf9` | 21 focused contract tests, strict Clippy, formatting, architecture, package inventory and ledger checks pass on main. Exact-sample speed and source-covariance issues were corrected; rereview has no findings. Native platform acquisition, relocalization, route comparison, remote pairing and device/field acceptance remain open; see [validation](docs/validation/mobile-pose-contract.md) |
 | Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 | WIFI-001 bounded Beacon/Probe IE parser | Integrated on `main` at `1d8e68f`; promotion validation recorded at `7d126cc` | Mainline focused tests, direct typed-field tcpdump comparison, deterministic mutation, formatting, strict Clippy, ledger, architecture and source-inventory checks pass. Independent correction re-review is PASS in `ffcaa8d` (review source commit `622452b`). Coverage-guided campaign is prior hash-matched evidence, not rerun here; other WIFI items, `INS-005`, Phase 2 exit, Kismet/physical capture and broader TST-002 gates remain open |

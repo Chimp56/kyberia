@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 104 | NOT_STARTED: 3166 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 107 | NOT_STARTED: 3163 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -799,7 +799,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 104 | N
 | `source:list_item:320c029d34be3cdcbec7:1` | [L905](../../plan.md#L905) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-002 — Manual continuous-path survey — - Allow editing path anchors after survey and recompute positions without altering raw timestamps. | obligation | NOT_STARTED |  |
 | `source:list_item:efbf59f5dacf16d0f48c:1` | [L906](../../plan.md#L906) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-002 — Manual continuous-path survey — - Show unobserved channel gaps along each segment. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:228` | [L907](../../plan.md#L907) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-002 — Manual continuous-path survey — Whitespace | structure | COVERAGE_ONLY |  |
-| `catalog:SUR-003:1` | [L908](../../plan.md#L908) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-003 — AR/SLAM path survey — #### SUR-003 — AR/SLAM path survey | obligation_group | IN_PROGRESS | [implementation](../../crates/mobile-pose/src/fusion.rs), [implementation](../../crates/mobile-pose/src/model.rs), [validation](../../docs/validation/mobile-pose-contract.md) |
+| `catalog:SUR-003:1` | [L908](../../plan.md#L908) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-003 — AR/SLAM path survey — #### SUR-003 — AR/SLAM path survey | obligation_group | IN_PROGRESS | [implementation](../../crates/mobile-pose/src/fusion.rs), [implementation](../../crates/mobile-pose/src/model.rs), [validation](../../docs/validation/mobile-pose-contract.md), [reviews](../../docs/reviews/phase6-mobile-pose-rereview-20260923.md) |
 | `source:spacing:01ba4719c80b6fe911b0:229` | [L909](../../plan.md#L909) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-003 — AR/SLAM path survey — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:paragraph:0443f991dde4906ebc6d:1` | [L910](../../plan.md#L910) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-003 — AR/SLAM path survey — Mobile companion estimates continuous 6-DoF motion using camera and IMU, anchored to floor-plan control points. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:230` | [L911](../../plan.md#L911) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-003 — AR/SLAM path survey — Whitespace | structure | COVERAGE_ONLY |  |
