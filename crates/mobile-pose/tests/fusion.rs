@@ -148,10 +148,11 @@ fn covariance_bound_does_not_claim_independent_endpoint_samples() {
         panic!("supported pose should fuse")
     };
     let covariance = result.position_covariance.as_known().unwrap().packed();
-    // The implementation uses 2*(rotated pose covariance + alignment
-    // covariance), a conservative bound that permits unknown correlation.
-    assert!((covariance[0] - 0.08).abs() < 1e-12);
-    assert!((covariance[3] - 0.08).abs() < 1e-12);
+    // Each correction includes its source anchor-pose covariance under a
+    // factor-of-two bound; fusion then applies the same bound between the
+    // interpolated query pose and correction.
+    assert!((covariance[0] - 0.24).abs() < 1e-12);
+    assert!((covariance[3] - 0.24).abs() < 1e-12);
 }
 
 #[test]
@@ -164,7 +165,121 @@ fn process_variance_grows_uncertainty_between_samples_and_anchors() {
         panic!("supported pose should fuse")
     };
     let variance = result.position_covariance.as_known().unwrap().packed()[0];
-    assert!((variance - 0.58).abs() < 1e-12);
+    assert!((variance - 0.74).abs() < 1e-12);
+}
+
+#[test]
+fn anchor_source_covariance_contributes_even_when_query_samples_are_exactly_known() {
+    let policy = limits(16.0, 0.0);
+    let samples = vec![
+        pose_sample(
+            60,
+            0,
+            0.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            covariance(1.0),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+        pose_sample(
+            61,
+            5_000_000_000,
+            5.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            covariance(0.0),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+        pose_sample(
+            62,
+            10_000_000_000,
+            10.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            covariance(0.0),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+        pose_sample(
+            63,
+            15_000_000_000,
+            15.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            covariance(1.0),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+    ];
+    let anchors = vec![
+        anchor(64, &samples[0], 0.0, 0.0, 0.0, covariance(0.0)),
+        anchor(65, &samples[3], 15.0, 0.0, 0.0, covariance(0.0)),
+    ];
+    let validated =
+        ValidatedAnchors::new(PoseTimeline::new(&samples, policy).unwrap(), &anchors).unwrap();
+
+    let Evidence::Known(result) = fuse_at(&validated, timestamp(7_500_000_000)).unwrap() else {
+        panic!("supported pose should fuse")
+    };
+    let covariance = result.position_covariance.as_known().unwrap().packed();
+    assert!((covariance[0] - 4.0).abs() < 1e-12);
+    assert!((covariance[3] - 4.0).abs() < 1e-12);
+}
+
+#[test]
+fn unknown_anchor_source_covariance_keeps_fused_covariance_unknown() {
+    let policy = limits(16.0, 0.0);
+    let samples = vec![
+        pose_sample(
+            66,
+            0,
+            0.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            Evidence::Unknown(kyberia_domain::evidence::UnknownReason::NotMeasured),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+        pose_sample(
+            67,
+            5_000_000_000,
+            5.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            covariance(0.0),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+        pose_sample(
+            68,
+            10_000_000_000,
+            10.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            covariance(0.0),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+        pose_sample(
+            69,
+            15_000_000_000,
+            15.0,
+            Evidence::Known(Radians::new(0.0).unwrap()),
+            Evidence::Unknown(kyberia_domain::evidence::UnknownReason::NotMeasured),
+            TrackingState::Tracking,
+            Evidence::Known(kyberia_domain::units::Probability::new(0.9).unwrap()),
+        ),
+    ];
+    let anchors = vec![
+        anchor(70, &samples[0], 0.0, 0.0, 0.0, covariance(0.0)),
+        anchor(71, &samples[3], 15.0, 0.0, 0.0, covariance(0.0)),
+    ];
+    let validated =
+        ValidatedAnchors::new(PoseTimeline::new(&samples, policy).unwrap(), &anchors).unwrap();
+
+    let Evidence::Known(result) = fuse_at(&validated, timestamp(7_500_000_000)).unwrap() else {
+        panic!("supported position should remain available")
+    };
+    assert!((result.position.x.get() - 7.5).abs() < 1e-12);
+    assert!(matches!(
+        result.position_covariance,
+        Evidence::Unknown(kyberia_domain::evidence::UnknownReason::NotMeasured)
+    ));
 }
 
 #[test]
@@ -400,4 +515,38 @@ fn refuses_large_gaps_implausible_speed_and_not_tracking_samples() {
         fuse_at(&validated, timestamp(5_000_000_000)).unwrap(),
         Evidence::Unknown(kyberia_domain::evidence::UnknownReason::NotObservable)
     ));
+}
+
+#[test]
+fn exact_pose_samples_still_enforce_speed_limit_on_adjacent_segments() {
+    let policy = limits(11.0, 0.0);
+    let (samples, anchors) = two_point_track(policy);
+    let valid =
+        ValidatedAnchors::new(PoseTimeline::new(&samples, policy).unwrap(), &anchors).unwrap();
+    assert!(matches!(
+        fuse_at(&valid, timestamp(0)).unwrap(),
+        Evidence::Known(_)
+    ));
+
+    let fast_samples = vec![
+        tracked_sample(72, 0, 0.0, 0.0),
+        tracked_sample(73, 5, 1_500.0, 0.0),
+        tracked_sample(74, 10, 10.0, 0.0),
+    ];
+    let fast_anchors = vec![
+        anchor(75, &fast_samples[0], 0.0, 0.0, 0.0, covariance(0.0)),
+        anchor(76, &fast_samples[2], 10.0, 0.0, 0.0, covariance(0.0)),
+    ];
+    let fast = ValidatedAnchors::new(
+        PoseTimeline::new(&fast_samples, policy).unwrap(),
+        &fast_anchors,
+    )
+    .unwrap();
+
+    for at in [0, 5_000_000_000, 10_000_000_000] {
+        assert!(matches!(
+            fuse_at(&fast, timestamp(at)).unwrap(),
+            Evidence::Unknown(kyberia_domain::evidence::UnknownReason::OutsideEvidenceSupport)
+        ));
+    }
 }

@@ -95,10 +95,10 @@ pub struct PoseSupport {
 /// Scope of the numeric position covariance emitted by this 2.5D fusion.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PositionCovarianceScope {
-    /// Includes translational pose covariance, anchor alignment covariance,
-    /// and configured process variance, conditional on supplied orientation
-    /// estimates. Orientation uncertainty and frame-calibration uncertainty
-    /// are not modeled by this contract.
+    /// Includes translational query-pose covariance, source anchor-pose and
+    /// target-alignment covariance, and configured process variance,
+    /// conditional on supplied orientation estimates. Orientation uncertainty
+    /// and frame-calibration uncertainty are not modeled by this contract.
     ConditionalOnInputOrientation,
 }
 
@@ -154,12 +154,23 @@ pub fn fuse_at(
     {
         return Ok(Evidence::Unknown(UnknownReason::NotObservable));
     }
-    if pose_gap > 0.0 {
-        let implied_speed =
-            distance(left_sample.pose().position, right_sample.pose().position)? / pose_gap;
-        if implied_speed > timeline.limits().maximum_speed_mps() {
-            return Ok(Evidence::Unknown(UnknownReason::OutsideEvidenceSupport));
-        }
+    let samples = timeline.samples();
+    let maximum_speed = timeline.limits().maximum_speed_mps();
+    let implausible_speed = if pose_bracket.left == pose_bracket.right {
+        let index = pose_bracket.left;
+        (index > 0
+            && segment_exceeds_speed_limit(&samples[index - 1], &samples[index], maximum_speed)?)
+            || (index + 1 < samples.len()
+                && segment_exceeds_speed_limit(
+                    &samples[index],
+                    &samples[index + 1],
+                    maximum_speed,
+                )?)
+    } else {
+        pose_gap > 0.0 && segment_exceeds_speed_limit(left_sample, right_sample, maximum_speed)?
+    };
+    if implausible_speed {
+        return Ok(Evidence::Unknown(UnknownReason::OutsideEvidenceSupport));
     }
 
     let anchor_left = &anchors.anchors[anchor_bracket.left];
@@ -197,7 +208,7 @@ pub fn fuse_at(
     )?;
     let position_covariance = fused_covariance(CovarianceSupport {
         samples: [left_sample, right_sample],
-        alignments: [left_correction.covariance, right_correction.covariance],
+        correction_covariances: [left_correction.covariance, right_correction.covariance],
         pose_bracket,
         anchor_bracket,
         anchor_gap,
@@ -255,7 +266,7 @@ struct Correction {
 
 struct CovarianceSupport<'a> {
     samples: [&'a PoseSample; 2],
-    alignments: [Evidence<PositionCovariance>; 2],
+    correction_covariances: [Evidence<PositionCovariance>; 2],
     pose_bracket: Bracket,
     anchor_bracket: Bracket,
     anchor_gap: f64,
@@ -339,6 +350,18 @@ fn bracket_gap_seconds(start: MonotonicTimestamp, end: MonotonicTimestamp) -> f6
     (end.nanoseconds - start.nanoseconds) as f64 / 1_000_000_000.0
 }
 
+fn segment_exceeds_speed_limit(
+    left: &PoseSample,
+    right: &PoseSample,
+    maximum_speed_mps: f64,
+) -> Result<bool, PoseError> {
+    let duration = bracket_gap_seconds(left.monotonic_time(), right.monotonic_time());
+    if duration <= 0.0 {
+        return Err(PoseError::UnorderedTime);
+    }
+    Ok(distance(left.pose().position, right.pose().position)? / duration > maximum_speed_mps)
+}
+
 fn anchor_correction(
     timeline: PoseTimeline<'_>,
     anchor: &DriftAnchor,
@@ -355,6 +378,11 @@ fn anchor_correction(
         s * source.x.get() + c * source.y.get(),
         source.z.get(),
     ];
+    let covariance = correction_covariance(
+        &sample.pose().covariance,
+        anchor.alignment_covariance(),
+        yaw,
+    )?;
     Ok(Correction {
         yaw,
         translation: [
@@ -362,8 +390,29 @@ fn anchor_correction(
             anchor.target_position().y.get() - rotated[1],
             anchor.target_position().z.get() - rotated[2],
         ],
-        covariance: anchor.alignment_covariance().clone(),
+        covariance,
     })
+}
+
+fn correction_covariance(
+    source_pose_covariance: &Evidence<PositionCovariance>,
+    target_alignment_covariance: &Evidence<PositionCovariance>,
+    yaw: f64,
+) -> Result<Evidence<PositionCovariance>, PoseError> {
+    let (Some(source_pose), Some(target_alignment)) = (
+        source_pose_covariance.as_known(),
+        target_alignment_covariance.as_known(),
+    ) else {
+        let unknown = if source_pose_covariance.as_known().is_none() {
+            source_pose_covariance
+        } else {
+            target_alignment_covariance
+        };
+        return Ok(Evidence::Unknown(unknown_from(unknown)));
+    };
+    let rotated_source = rotate_covariance(source_pose.packed(), yaw)?;
+    let correction = add_covariances(rotated_source, target_alignment.packed(), 2.0)?;
+    Ok(Evidence::Known(PositionCovariance::new(correction)?))
 }
 
 fn source_yaw(pose: &PoseReference) -> Result<f64, PoseError> {
@@ -459,7 +508,7 @@ fn fused_covariance(
     support: CovarianceSupport<'_>,
 ) -> Result<Evidence<PositionCovariance>, PoseError> {
     let [left_sample, right_sample] = support.samples;
-    let [left_alignment, right_alignment] = support.alignments;
+    let [left_correction, right_correction] = support.correction_covariances;
     let CovarianceSupport {
         pose_bracket,
         anchor_bracket,
@@ -479,13 +528,13 @@ fn fused_covariance(
         };
         return Ok(Evidence::Unknown(unknown_from(covariance)));
     };
-    let (Evidence::Known(left_anchor), Evidence::Known(right_anchor)) =
-        (left_alignment.clone(), right_alignment.clone())
+    let (Evidence::Known(left_correction), Evidence::Known(right_correction)) =
+        (left_correction.clone(), right_correction.clone())
     else {
-        let covariance = if left_alignment.as_known().is_none() {
-            &left_alignment
+        let covariance = if left_correction.as_known().is_none() {
+            &left_correction
         } else {
-            &right_alignment
+            &right_correction
         };
         return Ok(Evidence::Unknown(unknown_from(covariance)));
     };
@@ -500,13 +549,17 @@ fn fused_covariance(
 
     let pose_covariance =
         interpolate_covariance(left_pose, right_pose, pose_bracket.fraction, 0.0)?;
-    let anchor_covariance =
-        interpolate_covariance(left_anchor, right_anchor, anchor_bracket.fraction, 0.0)?;
+    let correction_covariance = interpolate_covariance(
+        left_correction,
+        right_correction,
+        anchor_bracket.fraction,
+        0.0,
+    )?;
     let rotated_pose = rotate_covariance(pose_covariance, correction_yaw)?;
-    // Covariance between pose and its alignment residual is unknown. The
-    // factor of two is a Loewner upper bound for arbitrary cross-correlation;
-    // it deliberately avoids an unproven independence assumption.
-    let total = add_covariances(rotated_pose, anchor_covariance, 2.0)?;
+    // Correlations are unknown both inside an anchor correction and between
+    // the interpolated query pose and correction. Each factor of two is a
+    // Loewner upper bound for arbitrary cross-correlation at that stage.
+    let total = add_covariances(rotated_pose, correction_covariance, 2.0)?;
     let with_process = add_isotropic(total, process_variance)?;
     Ok(Evidence::Known(PositionCovariance::new(with_process)?))
 }

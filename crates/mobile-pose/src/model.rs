@@ -1,4 +1,6 @@
 //! Validated, borrowed mobile-pose and anchor evidence.
+use std::collections::BTreeSet;
+
 use kyberia_domain::{
     ValidationError,
     evidence::{Evidence, UnknownReason},
@@ -178,8 +180,9 @@ impl PoseSample {
 }
 
 /// A validated view of one source/session/frame/clock-epoch pose stream.
-/// Construction is O(n), performs no allocation, and rejects mixed authority
-/// or unordered times. The slice remains borrowed and immutable for its life.
+/// Construction is O(n log n) and uses a temporary pose-identity set bounded
+/// by the hard sample cap to reject duplicate identities. The sample slice
+/// remains borrowed and immutable for its life; the temporary set is not kept.
 #[derive(Clone, Copy, Debug)]
 pub struct PoseTimeline<'a> {
     samples: &'a [PoseSample],
@@ -205,6 +208,8 @@ impl<'a> PoseTimeline<'a> {
         let source_frame_id = first.pose.frame_id;
         let clock_epoch = first_time.epoch;
         let mut previous = first_time;
+        let mut pose_ids = BTreeSet::new();
+        pose_ids.insert(first.pose.pose_id);
         for sample in &samples[1..] {
             let current = sample.monotonic_time();
             if sample.session_id != session_id || sample.source_id != source_id {
@@ -218,6 +223,9 @@ impl<'a> PoseTimeline<'a> {
             }
             if current.nanoseconds <= previous.nanoseconds {
                 return Err(PoseError::UnorderedTime);
+            }
+            if !pose_ids.insert(sample.pose.pose_id) {
+                return Err(PoseError::DuplicatePoseId);
             }
             previous = current;
         }
@@ -259,6 +267,9 @@ impl<'a> PoseTimeline<'a> {
 /// A manual or visual landmark alignment bound to one exact pose sample.
 /// `target_yaw` gives the source-to-map rotation around +z; pitch and roll are
 /// retained from tracking and are not corrected by this bounded 2.5D contract.
+/// Callers must provide source and target coordinates in compatible,
+/// right-handed, +z-up metric frames; this type does not resolve frame graphs,
+/// tilt, scale, or frame-calibration uncertainty.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DriftAnchor {
     anchor_id: AnchorId,
@@ -349,6 +360,7 @@ pub enum PoseError {
     MixedSourceFrame,
     MixedTargetFrame,
     UnorderedTime,
+    DuplicatePoseId,
     DuplicateAnchor,
     AnchorPoseMismatch,
     AnchorPoseNotTracking,

@@ -119,6 +119,31 @@ fn known_clock_model_must_name_the_pose_clock_epoch() {
 }
 
 #[test]
+fn timeline_rejects_reused_pose_identity_at_a_distinct_time() {
+    let limits = limits(5.0, 0.0);
+    let first = tracked_sample(77, 0, 0.0, 0.0);
+    let second = tracked_sample(78, 1, 1.0, 0.0);
+    let duplicate_identity = PoseReference {
+        pose_id: first.pose().pose_id,
+        ..second.pose().clone()
+    };
+    let second = PoseSample::new(
+        session(),
+        source(),
+        duplicate_identity,
+        second.capture_time().clone(),
+        second.tracking_state(),
+        second.tracking_quality().clone(),
+    )
+    .unwrap();
+
+    assert_eq!(
+        PoseTimeline::new(&[first, second], limits).unwrap_err(),
+        PoseError::DuplicatePoseId
+    );
+}
+
+#[test]
 fn caller_limits_have_hard_caps_and_apply_before_timeline_work() {
     assert!(PoseLimits::new(100_001, 2, Seconds::new(1.0).unwrap(), 10.0, 0.0,).is_err());
     assert!(PoseLimits::new(2, 513, Seconds::new(1.0).unwrap(), 10.0, 0.0,).is_err());
