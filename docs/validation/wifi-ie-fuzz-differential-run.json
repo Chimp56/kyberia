@@ -175,6 +175,45 @@
     },
     "coverage_guided_campaign": "Not rerun; all four source SHA-256 values still match the retained prior campaign. The pinned nightly and cargo-fuzz are unavailable."
   },
+  "mainline_promotion_verification": {
+    "recorded_at": "2026-09-23",
+    "revision": "1d8e68fada38bf63222ced87cd0ff78ed22181ae",
+    "tree": "da0c01ee4fb1718f71de482900bcd345d328db67",
+    "commands": [
+      "cargo test -p kyberia-ieee80211 --locked --offline",
+      "cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings",
+      "cargo fmt --all -- --check",
+      "cargo test -p kyberia-ieee80211 --locked --offline --test tcpdump_differential -- --ignored --exact checked_in_management_frames_match_tcpdump_stable_fields --nocapture",
+      "cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked --offline",
+      "python3 tools/ledger.py check",
+      "python3 tools/architecture.py check",
+      "python3 tools/source_inventory.py check",
+      "git diff --check"
+    ],
+    "results": {
+      "unit_tests": 22,
+      "internal_differential_tests": 3,
+      "compile_fail_doctests": 3,
+      "strict_clippy": "PASS",
+      "format": "PASS",
+      "deterministic_mutation_cases": 619,
+      "tcpdump_fixtures": 3,
+      "typed_tcpdump_test": "PASS",
+      "ledger": "PASS: 5,396 source blocks, 438 explicit ID occurrences, 447 headings",
+      "architecture": "PASS",
+      "source_inventory": "PASS: 522 locked external packages",
+      "diff_check": "PASS"
+    },
+    "tcpdump": {
+      "version": "tcpdump 4.99.1 -- Apple version 161",
+      "libpcap_version": "1.10.1",
+      "retained_path": ".trash/test-runs/wifi-ie-tcpdump-29392-1790188232992388000",
+      "pcap_sha256": "533a525eaa804856198f24182525d029d320c36a8cf312cbf537eaf69309740b",
+      "normalized_output_sha256": "99d170422ce4e618a47eff939ab310a6c30d3276d7052a99a7a0a1cbe00da13a",
+      "version_output_sha256": "b700fd67878107ec1cd0a87902891548adc3e24bca353b9bb80ada30b51cf7ee"
+    },
+    "scope": "Focused local package validation after promotion; not a full workspace or cross-platform run. Coverage-guided campaign was not rerun."
+  },
   "independent_review": {
     "report": "docs/reviews/wifi-ie-parser-correction-20260923.md",
     "reviewer": "/root/wifi_parser_review",

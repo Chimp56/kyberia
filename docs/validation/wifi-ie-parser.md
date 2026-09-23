@@ -159,3 +159,17 @@ offline; the candidate's recorded Cargo test/Clippy run remains separate
 author-worktree evidence. The pinned nightly and `cargo-fuzz` remain unavailable,
 so the coverage-guided campaign was not rerun. No Phase 2 exit, `INS-005`, other
 WIFI backlog item, Kismet/physical capture, or broader TST-002 gate is closed.
+
+## Mainline promotion verification (2026-09-23)
+
+After promotion, the exact `main` revision `1d8e68fada38bf63222ced87cd0ff78ed22181ae`
+(tree `da0c01ee4fb1718f71de482900bcd345d328db67`) passed the same focused
+locked/offline package tests (22 unit, 3 fixture-differential, 3 compile-fail
+doctests), strict package Clippy, workspace formatting check, explicit
+three-fixture tcpdump typed-field differential, 619-case deterministic mutation
+run, ledger, architecture, source-inventory, and whitespace checks. The explicit
+tcpdump artifacts are retained at
+`.trash/test-runs/wifi-ie-tcpdump-29392-1790188232992388000/`; their PCAP,
+normalized output, and version hashes match the corrected candidate evidence.
+This is focused local validation, not a full workspace build or cross-platform
+run; the coverage-guided campaign remains prior exact-hash-matched evidence.

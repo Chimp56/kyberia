@@ -171192,8 +171192,8 @@
         {
           "path": "docs/validation/wifi-ie-parser.md",
           "description": "Bounded parser tests, direct typed-field tcpdump comparison, exact-source-hash prior fuzz campaign, and review correction with explicit limitations",
-          "revision": "981bbbc77bdaeeda814569ba0b875a55baf683036c634fcd6a03d77745b2266a",
-          "sha256": "981bbbc77bdaeeda814569ba0b875a55baf683036c634fcd6a03d77745b2266a",
+          "revision": "1801508f40a261b0d4ca91363d39ba48335c0feb3dcc7bc4058063ae7c925af7",
+          "sha256": "1801508f40a261b0d4ca91363d39ba48335c0feb3dcc7bc4058063ae7c925af7",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check; cargo test -p kyberia-ieee80211 --locked --offline --test tcpdump_differential -- --ignored --exact checked_in_management_frames_match_tcpdump_stable_fields --nocapture; cargo run -p kyberia-ieee80211 --example deterministic_mutation --locked --offline",
           "result": "PASS",
           "scope": "Current isolated review-correction candidate, including direct comparisons of typed outputs against stable tcpdump fields; libFuzzer campaign is historical, exact-hash-matched evidence and was not rerun here."
@@ -171201,8 +171201,8 @@
         {
           "path": "docs/validation/wifi-ie-fuzz-differential-run.json",
           "description": "Exact source hashes, retained prior libFuzzer statistics, and explicit distinction between pre-review decode-only and corrected typed-field tcpdump runs",
-          "revision": "74de9fddba2a9462d05d1af1746fb8212e28c67ec5df3808fdd086089b8178b3",
-          "sha256": "74de9fddba2a9462d05d1af1746fb8212e28c67ec5df3808fdd086089b8178b3",
+          "revision": "5c401559255339eda496407981309342afc30258ac9f15d89b7bc9d558c03c52",
+          "sha256": "5c401559255339eda496407981309342afc30258ac9f15d89b7bc9d558c03c52",
           "command": "python3 -m json.tool docs/validation/wifi-ie-fuzz-differential-run.json; shasum -a 256 crates/ieee80211/src/lib.rs crates/ieee80211/fuzz/src/lib.rs crates/ieee80211/fuzz/fuzz_targets/management_frame.rs crates/ieee80211/fuzz/tests/seed_contract.rs",
           "result": "PASS",
           "scope": "Evidence manifest syntax, source binding, retained artifact hashes, corrected current-candidate test results, and explicit campaign/differential limitations."
