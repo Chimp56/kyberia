@@ -39,6 +39,14 @@ promotion validation is recorded at `7d126cc`. Typed-field tcpdump comparison,
 deterministic mutation and focused quality gates pass, but this does not close
 other Phase 2 items or the product gates.
 
+An isolated Phase 2 IE-explorer core increment is awaiting independent review on
+`feat/phase2-ie-explorer-current`, based on `bc51e80`. It adds a zero-copy
+ordered view with exact raw TLVs, numeric IEEE IE/extension identities,
+malformed/contradictory evidence, and a bounded duplicate-preserving content
+diff. The parser still lacks association-frame support, and there is no desktop
+Lab UI/IPC or standards clause/help catalog; `INS-005` and Phase 2 remain in
+progress. See [core validation](docs/validation/phase2-ie-explorer-core.md).
+
 The bounded PNG admission and operation-backed map import/two-point calibration
 increment is integrated on `main` at `2670207`. The broader independent review
 and PNG-ordering correction re-review are recorded in
@@ -221,6 +229,7 @@ product capability is validated.
 | Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 | WIFI-001 bounded Beacon/Probe IE parser | Integrated on `main` at `1d8e68f`; promotion validation recorded at `7d126cc` | Mainline focused tests, direct typed-field tcpdump comparison, deterministic mutation, formatting, strict Clippy, ledger, architecture and source-inventory checks pass. Independent correction re-review is PASS in `ffcaa8d` (review source commit `622452b`). Coverage-guided campaign is prior hash-matched evidence, not rerun here; other WIFI items, `INS-005`, Phase 2 exit, Kismet/physical capture and broader TST-002 gates remain open |
+| Phase 2 IE-explorer Rust core | Isolated source candidate on `feat/phase2-ie-explorer-current`, based on `bc51e80`; review/integration pending | Core tests cover raw ordered projection, numeric IE references, warning visibility and bounded duplicate-aware diffs. Association frames, desktop Lab UI/IPC, standards clause/help links, remaining Phase 2 deliverables and Phase 2 exit remain open; see [validation](docs/validation/phase2-ie-explorer-core.md) |
 
 
 The publication review is approved for the bounded increment in

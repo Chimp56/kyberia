@@ -28386,14 +28386,31 @@
           "level": 4
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "UI/visualization",
       "phase": 1,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "implementation": [
+        {
+          "path": "crates/ieee80211/src/lib.rs",
+          "description": "Partial Rust core: zero-copy ordered IE view, numeric IE identity, warning access, and bounded duplicate-preserving content diff; association parsing and Lab UI remain open",
+          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
+          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase2-ie-explorer-core.md",
+          "description": "Focused Rust core tests and resource-boundary validation; association frames, desktop integration, and standards clause links remain unverified",
+          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
+          "sha256": "131ffbdcf66a2e9e3a9d69b27d9089469096030b41e48741aca2be9f602d599e",
+          "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
+          "result": "PASS",
+          "scope": "bounded Rust information-element explorer/diff core only"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -161116,14 +161133,31 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration/release",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "implementation": [
+        {
+          "path": "crates/ieee80211/src/lib.rs",
+          "description": "Bounded Phase 2 IE-explorer source progress only; other Phase 2 deliverables and exit criteria remain open",
+          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
+          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase2-ie-explorer-core.md",
+          "description": "Focused validation for the IE-explorer Rust core; no Phase 2 completion claim",
+          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
+          "sha256": "131ffbdcf66a2e9e3a9d69b27d9089469096030b41e48741aca2be9f602d599e",
+          "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
+          "result": "PASS",
+          "scope": "single Phase 2 parser/explorer deliverable, Rust core only"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -161532,14 +161566,31 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration/release",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "implementation": [
+        {
+          "path": "crates/ieee80211/src/lib.rs",
+          "description": "Partial information-element explorer/diff API over currently supported Beacon and Probe management frames",
+          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
+          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase2-ie-explorer-core.md",
+          "description": "Core parser/explorer test, strict Clippy, and formatting results with open integration requirements recorded",
+          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
+          "sha256": "131ffbdcf66a2e9e3a9d69b27d9089469096030b41e48741aca2be9f602d599e",
+          "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
+          "result": "PASS",
+          "scope": "Rust core for beacon/probe frames; association parsing and user-facing explorer remain open"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -171518,9 +171569,9 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Bounded Beacon/Probe IE parser and normalized evidence model; scope excludes other WIFI backlog items and collector/runtime integration",
-          "revision": "b05accc08b4fd202b258e46dcc59aba10c3f856fcbab26a3db0b46bf998af5ff",
-          "sha256": "b05accc08b4fd202b258e46dcc59aba10c3f856fcbab26a3db0b46bf998af5ff"
+          "description": "Bounded Beacon/Probe IE parser source; current file also contains a separately tracked partial explorer core. This source-identity update does not extend historical parser review or fuzz claims",
+          "revision": "3a20bac42a9800935591da5e150d1b496d1b62e2",
+          "sha256": "32565435755373a7d95557a3505a0da8c406531ea7f28bc98da8d8a03d4abd82"
         }
       ],
       "validation": [

@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 121 | NOT_STARTED: 3149 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 122 | NOT_STARTED: 3148 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -652,7 +652,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 121 | N
 | `source:list_item:88fa3dd3ecf317a07e3b:1` | [L735](../../plan.md#L735) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-004 — Network comparison — - historical change; | obligation | NOT_STARTED |  |
 | `source:list_item:013686a13a3558bf202c:1` | [L736](../../plan.md#L736) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-004 — Network comparison — - likely physical-device grouping. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:185` | [L737](../../plan.md#L737) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-004 — Network comparison — Whitespace | structure | COVERAGE_ONLY |  |
-| `catalog:INS-005:1` | [L738](../../plan.md#L738) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-005 — Information-element explorer — #### INS-005 — Information-element explorer | obligation_group | NOT_STARTED |  |
+| `catalog:INS-005:1` | [L738](../../plan.md#L738) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-005 — Information-element explorer — #### INS-005 — Information-element explorer | obligation_group | IN_PROGRESS | [implementation](../../crates/ieee80211/src/lib.rs), [validation](../../docs/validation/phase2-ie-explorer-core.md) |
 | `source:spacing:01ba4719c80b6fe911b0:186` | [L739](../../plan.md#L739) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-005 — Information-element explorer — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:paragraph:92af5aaf4dfd45cf263c:1` | [L740](../../plan.md#L740) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-005 — Information-element explorer — Lab-mode decoded 802.11 beacon/probe/association information elements with: | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:187` | [L741](../../plan.md#L741) RF Atlas / 6. RF Atlas capability catalog / 6.1 Inspector and live RF browser / INS-005 — Information-element explorer — Whitespace | structure | COVERAGE_ONLY |  |
@@ -3395,7 +3395,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 121 | N
 | `source:list_item:77e826be60734d920c21:1` | [L4037](../../plan.md#L4037) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Every map cell exposes source samples and whether it is observed/interpolated/extrapolated. | obligation | NOT_STARTED |  |
 | `source:list_item:a8b2f10f7c3fcf32603e:1` | [L4038](../../plan.md#L4038) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Survey can be repeated before/after an AP move. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:980` | [L4039](../../plan.md#L4039) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — Whitespace | structure | COVERAGE_ONLY |  |
-| `source:heading:127b34061e3d4c941a66:1` | [L4040](../../plan.md#L4040) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — ### Phase 2 — Professional passive/active survey | obligation_group | NOT_STARTED |  |
+| `source:heading:127b34061e3d4c941a66:1` | [L4040](../../plan.md#L4040) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — ### Phase 2 — Professional passive/active survey | obligation_group | IN_PROGRESS | [implementation](../../crates/ieee80211/src/lib.rs), [validation](../../docs/validation/phase2-ie-explorer-core.md) |
 | `source:spacing:01ba4719c80b6fe911b0:981` | [L4041](../../plan.md#L4041) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:paragraph:97c227c655e102cbea41:1` | [L4042](../../plan.md#L4042) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — **Goal:** match the core measured-survey strengths of NetSpot Pro, Acrylic, and TamoGraph. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:982` | [L4043](../../plan.md#L4043) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — Whitespace | structure | COVERAGE_ONLY |  |
@@ -3404,7 +3404,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 121 | N
 | `source:list_item:37fefee3607089d68e90:1` | [L4046](../../plan.md#L4046) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Kismet-backed Linux monitor/remote capture as the preferred first professional passive path; supported Windows monitor | obligation | NOT_STARTED |  |
 | `source:list_item:68126cafbbbc51c2f0a3:1` | [L4047](../../plan.md#L4047) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Independent RF Atlas 802.11 parser/normalizer and PCAPNG replay so Kismet is enrichment/integration rather than semant | obligation | NOT_STARTED |  |
 | `source:list_item:b48e6bae41706fc6d616:1` | [L4048](../../plan.md#L4048) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Full channel scheduler and completeness metrics. | obligation | NOT_STARTED |  |
-| `source:list_item:0572162f5d398f21459e:1` | [L4049](../../plan.md#L4049) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Information-element parser/explorer. | obligation | NOT_STARTED |  |
+| `source:list_item:0572162f5d398f21459e:1` | [L4049](../../plan.md#L4049) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Information-element parser/explorer. | obligation | IN_PROGRESS | [implementation](../../crates/ieee80211/src/lib.rs), [validation](../../docs/validation/phase2-ie-explorer-core.md) |
 | `source:list_item:2742a498ddbaa105be96:1` | [L4050](../../plan.md#L4050) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Identity graph for multi-BSSID/physical radios/MLO. | obligation | NOT_STARTED |  |
 | `source:list_item:609f1e53b96377a575cb:1` | [L4051](../../plan.md#L4051) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Noise/SNR where available; SIR/SINR; channel overlap/coupling. | obligation | NOT_STARTED |  |
 | `source:list_item:e8ddc54b0070c89372df:1` | [L4052](../../plan.md#L4052) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Retry, airtime, client-density, frame/width, expected-PHY maps. | obligation | NOT_STARTED |  |

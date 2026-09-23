@@ -188,6 +188,70 @@ pub struct RepeatedElement {
     contradictory: bool,
 }
 
+/// Numeric standards identity for an information element. This deliberately
+/// carries no clause number, citation, or registry display name.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StandardsElementReference {
+    Ieee80211ElementIdentifier { id: u8, extension_id: Option<u8> },
+}
+
+/// Zero-copy view over one successfully parsed management frame for an IE
+/// explorer. Elements remain in on-air order and retain duplicates.
+#[derive(Clone, Copy, Debug)]
+pub struct InformationElementExplorer<'a> {
+    frame: &'a ManagementFrame,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ExplorerElement<'a> {
+    frame: &'a ManagementFrame,
+    index: usize,
+}
+
+pub struct ExplorerElementIter<'a> {
+    frame: &'a ManagementFrame,
+    next_index: usize,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ElementWarnings<'a> {
+    malformed: Option<ElementProblem>,
+    repetition: Option<&'a RepeatedElement>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ElementChangeKind {
+    Added,
+    Removed,
+    Modified,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ElementChange<'before, 'after> {
+    kind: ElementChangeKind,
+    occurrence: usize,
+    before: Option<ExplorerElement<'before>>,
+    after: Option<ExplorerElement<'after>>,
+}
+
+/// Deterministic IE-content diff. Changes are ordered by numeric IE identity
+/// and occurrence within that identity; each explorer view separately retains
+/// original frame order, and `wire_ie_sequence_changed` reports any ordered
+/// raw IE sequence difference.
+#[derive(Debug)]
+pub struct InformationElementDiff<'before, 'after> {
+    changes: Vec<ElementChange<'before, 'after>>,
+    subtype_changed: bool,
+    wire_ie_sequence_changed: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct ElementOccurrence {
+    key: ElementKey,
+    occurrence: usize,
+    index: usize,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ManagementFrame {
     schema_version: u16,
@@ -325,6 +389,162 @@ impl RepeatedElement {
     }
 }
 
+impl<'a> InformationElementExplorer<'a> {
+    pub fn subtype(&self) -> ManagementSubtype {
+        self.frame.subtype
+    }
+
+    /// Original management MPDU bytes, including a validated FCS when the
+    /// caller supplied one.
+    pub fn raw_mpdu(&self) -> &'a [u8] {
+        self.frame.raw_mpdu()
+    }
+
+    pub fn elements(&self) -> ExplorerElementIter<'a> {
+        ExplorerElementIter {
+            frame: self.frame,
+            next_index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for ExplorerElementIter<'a> {
+    type Item = ExplorerElement<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.next_index >= self.frame.elements.len() {
+            return None;
+        }
+        let index = self.next_index;
+        self.next_index += 1;
+        Some(ExplorerElement {
+            frame: self.frame,
+            index,
+        })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.frame.elements.len() - self.next_index;
+        (remaining, Some(remaining))
+    }
+}
+
+impl ExactSizeIterator for ExplorerElementIter<'_> {}
+
+impl<'a> ExplorerElement<'a> {
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    pub fn standards_reference(&self) -> StandardsElementReference {
+        let element = &self.frame.elements[self.index];
+        StandardsElementReference::Ieee80211ElementIdentifier {
+            id: element.id,
+            extension_id: element.extension_id,
+        }
+    }
+
+    /// The complete raw TLV, including the identifier and length octets.
+    pub fn raw_bytes(&self) -> &[u8] {
+        let element = &self.frame.elements[self.index];
+        let start = element.offset as usize;
+        let end = element.payload_offset as usize + element.payload.len();
+        &self.frame.raw_mpdu[start..end]
+    }
+
+    pub fn raw_payload(&self) -> &[u8] {
+        self.frame.elements[self.index].payload()
+    }
+
+    pub fn decoded(&self) -> &ElementDecode {
+        self.frame.elements[self.index].decoded()
+    }
+
+    pub fn is_unrecognized_by_decoder(&self) -> bool {
+        matches!(self.decoded(), ElementDecode::Unknown)
+    }
+
+    pub fn warnings(&self) -> ElementWarnings<'a> {
+        let element = &self.frame.elements[self.index];
+        let malformed = match &element.decoded {
+            ElementDecode::Malformed(problem) => Some(*problem),
+            _ => None,
+        };
+        let key = ElementKey {
+            id: element.id,
+            extension_id: element.extension_id,
+        };
+        let repetition = self
+            .frame
+            .repeated_elements
+            .binary_search_by_key(&key, RepeatedElement::key)
+            .ok()
+            .map(|index| &self.frame.repeated_elements[index]);
+        ElementWarnings {
+            malformed,
+            repetition,
+        }
+    }
+}
+
+impl ElementWarnings<'_> {
+    pub fn malformed_problem(&self) -> Option<ElementProblem> {
+        self.malformed
+    }
+
+    pub fn repetition(&self) -> Option<&RepeatedElement> {
+        self.repetition
+    }
+
+    pub fn is_contradictory(&self) -> bool {
+        self.repetition.is_some_and(RepeatedElement::contradictory)
+    }
+
+    pub fn has_warning(&self) -> bool {
+        self.malformed.is_some() || self.is_contradictory()
+    }
+}
+
+impl<'before, 'after> ElementChange<'before, 'after> {
+    pub fn kind(&self) -> ElementChangeKind {
+        self.kind
+    }
+
+    /// Zero-based occurrence among IEs with the same numeric ID and, for
+    /// extension IEs, the same extension ID.
+    pub fn occurrence(&self) -> usize {
+        self.occurrence
+    }
+
+    pub fn before(&self) -> Option<ExplorerElement<'before>> {
+        self.before
+    }
+
+    pub fn after(&self) -> Option<ExplorerElement<'after>> {
+        self.after
+    }
+}
+
+impl<'before, 'after> InformationElementDiff<'before, 'after> {
+    pub fn changes(&self) -> &[ElementChange<'before, 'after>] {
+        &self.changes
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.changes.is_empty()
+    }
+
+    pub fn subtype_changed(&self) -> bool {
+        self.subtype_changed
+    }
+
+    /// True if the ordered sequence of raw IE TLVs differs, including changes
+    /// caused only by IE ordering. This does not include frame-header changes.
+    pub fn wire_ie_sequence_changed(&self) -> bool {
+        self.wire_ie_sequence_changed
+    }
+}
+
 impl ResourceUsage {
     pub fn work_units(self) -> usize {
         self.work_units
@@ -430,6 +650,249 @@ pub fn parse_with_usage<C: Cancellation>(
     };
     let frame = parse_controlled(input, framing, &mut control)?;
     Ok((frame, control.usage()))
+}
+
+pub fn diff_information_elements<'before, 'after>(
+    before: &'before ManagementFrame,
+    after: &'after ManagementFrame,
+) -> Result<InformationElementDiff<'before, 'after>, Error> {
+    diff_information_elements_with_usage(before, after, ParseLimits::default(), &NeverCancel)
+        .map(|(diff, _)| diff)
+}
+
+/// Compare raw IE payloads while preserving every repeated occurrence. The
+/// returned change list is bounded by the sum of both frames' IE counts.
+pub fn diff_information_elements_with_usage<'before, 'after, C: Cancellation>(
+    before: &'before ManagementFrame,
+    after: &'after ManagementFrame,
+    limits: ParseLimits,
+    cancellation: &C,
+) -> Result<(InformationElementDiff<'before, 'after>, ResourceUsage), Error> {
+    let mut control = Control {
+        limits,
+        cancellation,
+        work: 0,
+        allocation: 0,
+    };
+    let before_occurrences = index_occurrences(before, &mut control)?;
+    let after_occurrences = index_occurrences(after, &mut control)?;
+    let wire_ie_sequence_changed = ordered_ie_sequence_changed(before, after, &mut control)?;
+    let max_changes = before_occurrences
+        .len()
+        .checked_add(after_occurrences.len())
+        .ok_or(Error::LimitExceeded("element count"))?;
+    control.allocate(
+        max_changes
+            .checked_mul(std::mem::size_of::<ElementChange<'before, 'after>>())
+            .ok_or(Error::LimitExceeded("allocation bytes"))?,
+    )?;
+    let mut changes = Vec::with_capacity(max_changes);
+    let (mut before_index, mut after_index) = (0, 0);
+    while before_index < before_occurrences.len() || after_index < after_occurrences.len() {
+        control.charge(1)?;
+        let ordering = match (
+            before_occurrences.get(before_index),
+            after_occurrences.get(after_index),
+        ) {
+            (Some(before), Some(after)) => occurrence_order(before, after),
+            (Some(_), None) => std::cmp::Ordering::Less,
+            (None, Some(_)) => std::cmp::Ordering::Greater,
+            (None, None) => break,
+        };
+        match ordering {
+            std::cmp::Ordering::Less => {
+                let occurrence = before_occurrences[before_index];
+                changes.push(ElementChange {
+                    kind: ElementChangeKind::Removed,
+                    occurrence: occurrence.occurrence,
+                    before: Some(ExplorerElement {
+                        frame: before,
+                        index: occurrence.index,
+                    }),
+                    after: None,
+                });
+                before_index += 1;
+            }
+            std::cmp::Ordering::Greater => {
+                let occurrence = after_occurrences[after_index];
+                changes.push(ElementChange {
+                    kind: ElementChangeKind::Added,
+                    occurrence: occurrence.occurrence,
+                    before: None,
+                    after: Some(ExplorerElement {
+                        frame: after,
+                        index: occurrence.index,
+                    }),
+                });
+                after_index += 1;
+            }
+            std::cmp::Ordering::Equal => {
+                let before_occurrence = before_occurrences[before_index];
+                let after_occurrence = after_occurrences[after_index];
+                let before_element = &before.elements[before_occurrence.index];
+                let after_element = &after.elements[after_occurrence.index];
+                control.charge(
+                    before_element
+                        .payload
+                        .len()
+                        .max(after_element.payload.len())
+                        .max(1),
+                )?;
+                if before_element.payload != after_element.payload {
+                    changes.push(ElementChange {
+                        kind: ElementChangeKind::Modified,
+                        occurrence: before_occurrence.occurrence,
+                        before: Some(ExplorerElement {
+                            frame: before,
+                            index: before_occurrence.index,
+                        }),
+                        after: Some(ExplorerElement {
+                            frame: after,
+                            index: after_occurrence.index,
+                        }),
+                    });
+                }
+                before_index += 1;
+                after_index += 1;
+            }
+        }
+    }
+    Ok((
+        InformationElementDiff {
+            changes,
+            subtype_changed: before.subtype != after.subtype,
+            wire_ie_sequence_changed,
+        },
+        control.usage(),
+    ))
+}
+
+fn index_occurrences<C: Cancellation>(
+    frame: &ManagementFrame,
+    control: &mut Control<'_, C>,
+) -> Result<Vec<ElementOccurrence>, Error> {
+    if frame.raw_mpdu.len() > control.limits.max_frame_bytes {
+        return Err(Error::LimitExceeded("frame bytes"));
+    }
+    if frame.elements.len() > control.limits.max_elements {
+        return Err(Error::LimitExceeded("element count"));
+    }
+    control.allocate(
+        frame
+            .elements
+            .len()
+            .checked_mul(std::mem::size_of::<ElementOccurrence>())
+            .ok_or(Error::LimitExceeded("allocation bytes"))?,
+    )?;
+    let mut occurrences = Vec::with_capacity(frame.elements.len());
+    let mut counts = [0_usize; 511];
+    let mut total_payload = 0_usize;
+    for (index, element) in frame.elements.iter().enumerate() {
+        control.charge(1)?;
+        total_payload = total_payload
+            .checked_add(element.payload.len())
+            .ok_or(Error::LimitExceeded("IE payload bytes"))?;
+        if total_payload > control.limits.max_ie_payload_bytes {
+            return Err(Error::LimitExceeded("IE payload bytes"));
+        }
+        let key = ElementKey {
+            id: element.id,
+            extension_id: element.extension_id,
+        };
+        let slot = element_slot(key, element.offset)?;
+        let occurrence = counts[slot];
+        counts[slot] = occurrence
+            .checked_add(1)
+            .ok_or(Error::LimitExceeded("element count"))?;
+        occurrences.push(ElementOccurrence {
+            key,
+            occurrence,
+            index,
+        });
+    }
+    heap_sort_occurrences(&mut occurrences, control)?;
+    Ok(occurrences)
+}
+
+fn element_slot(key: ElementKey, offset: u32) -> Result<usize, Error> {
+    if key.id == 255 {
+        key.extension_id
+            .map(|extension_id| 255 + usize::from(extension_id))
+            .ok_or(Error::EmptyExtensionElement { offset })
+    } else {
+        Ok(usize::from(key.id))
+    }
+}
+
+fn occurrence_order(left: &ElementOccurrence, right: &ElementOccurrence) -> std::cmp::Ordering {
+    left.key
+        .cmp(&right.key)
+        .then_with(|| left.occurrence.cmp(&right.occurrence))
+}
+
+fn heap_sort_occurrences<C: Cancellation>(
+    occurrences: &mut [ElementOccurrence],
+    control: &mut Control<'_, C>,
+) -> Result<(), Error> {
+    for root in (0..occurrences.len() / 2).rev() {
+        sift_occurrence_heap(occurrences, root, occurrences.len(), control)?;
+    }
+    for end in (1..occurrences.len()).rev() {
+        control.charge(1)?;
+        occurrences.swap(0, end);
+        sift_occurrence_heap(occurrences, 0, end, control)?;
+    }
+    Ok(())
+}
+
+fn sift_occurrence_heap<C: Cancellation>(
+    occurrences: &mut [ElementOccurrence],
+    mut root: usize,
+    heap_len: usize,
+    control: &mut Control<'_, C>,
+) -> Result<(), Error> {
+    loop {
+        let child = root
+            .checked_mul(2)
+            .and_then(|value| value.checked_add(1))
+            .ok_or(Error::LimitExceeded("work units"))?;
+        if child >= heap_len {
+            return Ok(());
+        }
+        let mut largest = child;
+        if child + 1 < heap_len {
+            control.charge(1)?;
+            if occurrence_order(&occurrences[largest], &occurrences[child + 1])
+                == std::cmp::Ordering::Less
+            {
+                largest = child + 1;
+            }
+        }
+        control.charge(1)?;
+        if occurrence_order(&occurrences[root], &occurrences[largest]) != std::cmp::Ordering::Less {
+            return Ok(());
+        }
+        control.charge(1)?;
+        occurrences.swap(root, largest);
+        root = largest;
+    }
+}
+
+fn ordered_ie_sequence_changed<C: Cancellation>(
+    before: &ManagementFrame,
+    after: &ManagementFrame,
+    control: &mut Control<'_, C>,
+) -> Result<bool, Error> {
+    if before.elements.len() != after.elements.len() {
+        return Ok(true);
+    }
+    for (before, after) in before.elements.iter().zip(&after.elements) {
+        control.charge(before.payload.len().max(after.payload.len()).max(1))?;
+        if before.id != after.id || before.payload != after.payload {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 fn parse_controlled<C: Cancellation>(
@@ -678,6 +1141,9 @@ impl ManagementFrame {
     }
     pub fn repeated_elements(&self) -> &[RepeatedElement] {
         &self.repeated_elements
+    }
+    pub fn ie_explorer(&self) -> InformationElementExplorer<'_> {
+        InformationElementExplorer { frame: self }
     }
 
     pub fn canonical_bytes(&self) -> Result<Vec<u8>, Error> {
@@ -1156,6 +1622,315 @@ mod tests {
         ));
         assert_eq!(frame.elements[4].extension_id, Some(35));
         assert!(matches!(frame.elements[5].decoded, ElementDecode::Unknown));
+    }
+
+    fn probe_request_with(elements: &[u8]) -> ManagementFrame {
+        let mut raw = header(4);
+        raw.extend_from_slice(elements);
+        parse(&raw, InputFraming::FcsAbsent).unwrap()
+    }
+
+    #[test]
+    fn explorer_view_preserves_raw_order_unknown_identity_and_warnings() {
+        let frame = probe_request_with(&[
+            221, 2, 0xaa, 0xbb, // unknown decoder ID
+            3, 2, 1, 2, // malformed DS element
+            0, 1, b'a', 0, 1, b'b', // contradictory singleton SSIDs
+        ]);
+        let explorer = frame.ie_explorer();
+        assert_eq!(explorer.subtype(), ManagementSubtype::ProbeRequest);
+        assert_eq!(explorer.raw_mpdu(), frame.raw_mpdu());
+        let elements = explorer.elements().collect::<Vec<_>>();
+        assert_eq!(elements.len(), 4);
+        assert_eq!(elements[0].index(), 0);
+        assert_eq!(elements[0].raw_bytes(), &[221, 2, 0xaa, 0xbb]);
+        assert_eq!(elements[0].raw_payload(), &[0xaa, 0xbb]);
+        assert_eq!(
+            elements[0].standards_reference(),
+            StandardsElementReference::Ieee80211ElementIdentifier {
+                id: 221,
+                extension_id: None
+            }
+        );
+        assert!(elements[0].is_unrecognized_by_decoder());
+        assert!(!elements[0].warnings().has_warning());
+        assert_eq!(
+            elements[1].warnings().malformed_problem(),
+            Some(ElementProblem::DsLength)
+        );
+        assert!(elements[1].warnings().has_warning());
+        assert!(elements[2].warnings().is_contradictory());
+        assert!(elements[3].warnings().is_contradictory());
+        assert_eq!(
+            elements[2].warnings().repetition().unwrap().indices(),
+            &[2, 3]
+        );
+    }
+
+    #[test]
+    fn explorer_reports_extension_identity_without_inventing_clause_citations() {
+        let frame = probe_request_with(&[255, 3, 35, 0xaa, 0xbb]);
+        let element = frame.ie_explorer().elements().next().unwrap();
+        assert_eq!(
+            element.standards_reference(),
+            StandardsElementReference::Ieee80211ElementIdentifier {
+                id: 255,
+                extension_id: Some(35)
+            }
+        );
+        assert_eq!(element.raw_bytes(), &[255, 3, 35, 0xaa, 0xbb]);
+        assert_eq!(element.raw_payload(), &[35, 0xaa, 0xbb]);
+        assert!(matches!(element.decoded(), ElementDecode::Extension { .. }));
+    }
+
+    #[test]
+    fn ie_diff_covers_no_change_change_add_remove_and_wire_order() {
+        let before = probe_request_with(&[0, 1, b'a', 3, 1, 11]);
+        let identical = probe_request_with(&[0, 1, b'a', 3, 1, 11]);
+        let no_change = diff_information_elements(&before, &identical).unwrap();
+        assert!(no_change.is_empty());
+        assert!(!no_change.subtype_changed());
+        assert!(!no_change.wire_ie_sequence_changed());
+
+        let changed = probe_request_with(&[0, 1, b'b', 3, 1, 11]);
+        let diff = diff_information_elements(&before, &changed).unwrap();
+        assert_eq!(diff.changes().len(), 1);
+        assert_eq!(diff.changes()[0].kind(), ElementChangeKind::Modified);
+        assert_eq!(diff.changes()[0].occurrence(), 0);
+        assert_eq!(diff.changes()[0].before().unwrap().raw_payload(), b"a");
+        assert_eq!(diff.changes()[0].after().unwrap().raw_payload(), b"b");
+        assert!(diff.wire_ie_sequence_changed());
+
+        let added = probe_request_with(&[0, 1, b'a', 3, 1, 11, 221, 1, 0x55]);
+        let add_diff = diff_information_elements(&before, &added).unwrap();
+        assert_eq!(add_diff.changes().len(), 1);
+        assert_eq!(add_diff.changes()[0].kind(), ElementChangeKind::Added);
+        assert_eq!(
+            add_diff.changes()[0].after().unwrap().raw_bytes(),
+            &[221, 1, 0x55]
+        );
+
+        let removed = diff_information_elements(&added, &before).unwrap();
+        assert_eq!(removed.changes().len(), 1);
+        assert_eq!(removed.changes()[0].kind(), ElementChangeKind::Removed);
+        assert_eq!(removed.changes()[0].before().unwrap().index(), 2);
+
+        let reordered = probe_request_with(&[3, 1, 11, 0, 1, b'a']);
+        let order_diff = diff_information_elements(&before, &reordered).unwrap();
+        assert!(order_diff.is_empty());
+        assert!(order_diff.wire_ie_sequence_changed());
+        assert_eq!(
+            reordered
+                .ie_explorer()
+                .elements()
+                .map(|element| element.standards_reference())
+                .collect::<Vec<_>>(),
+            [
+                StandardsElementReference::Ieee80211ElementIdentifier {
+                    id: 3,
+                    extension_id: None
+                },
+                StandardsElementReference::Ieee80211ElementIdentifier {
+                    id: 0,
+                    extension_id: None
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn ie_diff_keeps_duplicate_occurrences_and_malformed_raw_evidence() {
+        let before = probe_request_with(&[0, 1, b'a', 0, 1, b'b']);
+        let after = probe_request_with(&[0, 1, b'a', 0, 1, b'c', 0, 1, b'd']);
+        let diff = diff_information_elements(&before, &after).unwrap();
+        assert_eq!(diff.changes().len(), 2);
+        assert_eq!(diff.changes()[0].kind(), ElementChangeKind::Modified);
+        assert_eq!(diff.changes()[0].occurrence(), 1);
+        assert_eq!(
+            diff.changes()[0].before().unwrap().raw_bytes(),
+            &[0, 1, b'b']
+        );
+        assert_eq!(
+            diff.changes()[0].after().unwrap().raw_bytes(),
+            &[0, 1, b'c']
+        );
+        assert_eq!(diff.changes()[1].kind(), ElementChangeKind::Added);
+        assert_eq!(diff.changes()[1].occurrence(), 2);
+        assert_eq!(
+            diff.changes()[1].after().unwrap().raw_bytes(),
+            &[0, 1, b'd']
+        );
+
+        let malformed = probe_request_with(&[3, 2, 1, 2]);
+        let malformed_changed = probe_request_with(&[3, 2, 1, 3]);
+        let malformed_diff = diff_information_elements(&malformed, &malformed_changed).unwrap();
+        assert_eq!(malformed_diff.changes().len(), 1);
+        assert_eq!(
+            malformed_diff.changes()[0]
+                .before()
+                .unwrap()
+                .warnings()
+                .malformed_problem(),
+            Some(ElementProblem::DsLength)
+        );
+        assert_eq!(
+            malformed_diff.changes()[0]
+                .after()
+                .unwrap()
+                .warnings()
+                .malformed_problem(),
+            Some(ElementProblem::DsLength)
+        );
+    }
+
+    #[test]
+    fn ie_diff_exposes_frame_context_changes_even_when_raw_ies_match() {
+        let probe = probe_request_with(&[0, 0]);
+        let mut beacon_raw = header(8);
+        beacon_raw.extend_from_slice(&[0; RESPONSE_FIXED_LEN]);
+        beacon_raw.extend_from_slice(&[0, 0]);
+        let beacon = parse(&beacon_raw, InputFraming::FcsAbsent).unwrap();
+        assert_ne!(
+            probe.elements()[0].decoded(),
+            beacon.elements()[0].decoded()
+        );
+        let diff = diff_information_elements(&probe, &beacon).unwrap();
+        assert!(diff.is_empty());
+        assert!(diff.subtype_changed());
+        assert!(!diff.wire_ie_sequence_changed());
+    }
+
+    #[test]
+    fn ie_diff_obeys_work_allocation_payload_count_and_cancellation_limits() {
+        struct Cancelled;
+        impl Cancellation for Cancelled {
+            fn is_cancelled(&self) -> bool {
+                true
+            }
+        }
+        let before = probe_request_with(&[0, 1, b'a']);
+        let after = probe_request_with(&[0, 1, b'b']);
+        let (_, usage) = diff_information_elements_with_usage(
+            &before,
+            &after,
+            ParseLimits::default(),
+            &NeverCancel,
+        )
+        .unwrap();
+        let exact = ParseLimits {
+            max_work_units: usage.work_units(),
+            max_allocation_bytes: usage.allocation_bytes(),
+            ..ParseLimits::default()
+        };
+        assert!(diff_information_elements_with_usage(&before, &after, exact, &NeverCancel).is_ok());
+        assert!(matches!(
+            diff_information_elements_with_usage(
+                &before,
+                &after,
+                ParseLimits {
+                    max_work_units: usage.work_units() - 1,
+                    ..exact
+                },
+                &NeverCancel,
+            ),
+            Err(Error::LimitExceeded("work units"))
+        ));
+        assert!(matches!(
+            diff_information_elements_with_usage(
+                &before,
+                &after,
+                ParseLimits {
+                    max_allocation_bytes: usage.allocation_bytes() - 1,
+                    ..exact
+                },
+                &NeverCancel,
+            ),
+            Err(Error::LimitExceeded("allocation bytes"))
+        ));
+        assert!(matches!(
+            diff_information_elements_with_usage(
+                &before,
+                &after,
+                ParseLimits {
+                    max_elements: 0,
+                    ..ParseLimits::default()
+                },
+                &NeverCancel,
+            ),
+            Err(Error::LimitExceeded("element count"))
+        ));
+        assert!(matches!(
+            diff_information_elements_with_usage(
+                &before,
+                &after,
+                ParseLimits {
+                    max_ie_payload_bytes: 0,
+                    ..ParseLimits::default()
+                },
+                &NeverCancel,
+            ),
+            Err(Error::LimitExceeded("IE payload bytes"))
+        ));
+        assert!(matches!(
+            diff_information_elements_with_usage(
+                &before,
+                &after,
+                ParseLimits::default(),
+                &Cancelled,
+            ),
+            Err(Error::Cancelled)
+        ));
+    }
+
+    #[test]
+    fn ie_diff_accepts_default_maximum_element_count() {
+        let mut raw = header(4);
+        for _ in 0..ParseLimits::default().max_elements {
+            raw.extend_from_slice(&[221, 0]);
+        }
+        let frame = parse(&raw, InputFraming::FcsAbsent).unwrap();
+        let (diff, usage) = diff_information_elements_with_usage(
+            &frame,
+            &frame,
+            ParseLimits::default(),
+            &NeverCancel,
+        )
+        .unwrap();
+        assert!(diff.is_empty());
+        assert!(!diff.wire_ie_sequence_changed());
+        assert!(usage.work_units() <= ParseLimits::default().max_work_units);
+        assert!(usage.allocation_bytes() <= ParseLimits::default().max_allocation_bytes);
+    }
+
+    #[test]
+    fn ie_diff_heap_indexing_handles_mixed_order_and_polls_cancellation() {
+        let mut reversed_ids = Vec::new();
+        for id in (20..40_u8).rev() {
+            reversed_ids.extend_from_slice(&[id, 0]);
+        }
+        let mixed = probe_request_with(&reversed_ids);
+        let diff = diff_information_elements(&mixed, &mixed).unwrap();
+        assert!(diff.is_empty());
+        assert!(!diff.wire_ie_sequence_changed());
+
+        struct CancelDuringSort(Cell<usize>);
+        impl Cancellation for CancelDuringSort {
+            fn is_cancelled(&self) -> bool {
+                let check = self.0.get();
+                self.0.set(check + 1);
+                check >= 2
+            }
+        }
+        let three = probe_request_with(&[22, 0, 20, 0, 21, 0]);
+        assert!(matches!(
+            diff_information_elements_with_usage(
+                &three,
+                &three,
+                ParseLimits::default(),
+                &CancelDuringSort(Cell::new(0)),
+            ),
+            Err(Error::Cancelled)
+        ));
     }
 
     #[test]
