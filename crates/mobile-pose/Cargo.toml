@@ -1,0 +1,12 @@
+[package]
+name = "kyberia-mobile-pose"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Bounded platform-neutral mobile pose and drift-correction contracts"
+
+[dependencies]
+kyberia-domain = { path = "../domain" }
+
+[lints]
+workspace = true

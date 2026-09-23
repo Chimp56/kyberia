@@ -2177,6 +2177,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-mobile-pose"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+]
+
+[[package]]
 name = "kyberia-observation-analysis"
 version = "0.1.0"
 dependencies = [

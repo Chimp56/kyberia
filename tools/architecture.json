@@ -9,6 +9,7 @@
     "kyberia-plugin-sdk": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-operation-log": {"layer": "domain", "external_dependencies": ["serde", "serde_json", "sha2"]},
     "kyberia-materialization-identity": {"layer": "application", "external_dependencies": ["serde_json", "sha2"]},
+    "kyberia-mobile-pose": {"layer": "numerical", "external_dependencies": []},
     "kyberia-causal-materializer": {"layer": "application", "external_dependencies": []},
     "kyberia-application": {"layer": "composition", "external_dependencies": ["rusqlite", "uuid"]},
     "kyberia-spatial-analysis": {"layer": "numerical", "external_dependencies": ["serde", "serde_json", "sha2"]},
