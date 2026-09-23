@@ -5,11 +5,12 @@
 //! SQLite owns the publication index, current pointer, and bundle revision.
 //! No storage type is imported by the domain or materializer.
 
+use crate::bundle::validate_map_source_reference_at_with_budget;
 use crate::bundle::{atomic_projection, load_manifest};
-use crate::manifest::{MAX_ARTIFACT_BYTES, SCHEMA_VERSION};
+use crate::manifest::{MAX_ARTIFACT_BYTES, SCHEMA_VERSION, validate_opaque_provenance_id};
 use crate::operation_log::{
-    ValidatedOperationInventory, validated_operation_set,
-    validated_operation_set_at_revision_with_budget,
+    ValidatedOperationInventory, validate_map_sources, validate_map_sources_with_budget,
+    validated_operation_set, validated_operation_set_at_revision_with_budget,
 };
 use crate::{
     ArtifactEntry, ArtifactKind, Bundle, BundleManifest, OpenMode, Result, StoreError,
@@ -23,7 +24,7 @@ use kyberia_materialization_identity::{
 };
 use kyberia_operation_log::{OperationSet, ProjectVersion};
 use kyberia_resource_budget::{
-    BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError, ResourceLimits,
+    BudgetKind, CancellationHook, NeverCancel, ResourceBudget, ResourceBudgetError, ResourceLimits,
 };
 use rusqlite::{OptionalExtension, Row, Transaction, TransactionBehavior, params};
 use std::fmt;
@@ -1336,6 +1337,108 @@ fn input(
     })
 }
 
+fn input_with_budget<H: CancellationHook>(
+    baseline: &Project,
+    operations: &OperationSet,
+    materialized: &MaterializedProject,
+    budget: &mut ResourceBudget<H>,
+) -> Result<PublicationInput> {
+    budget.check_cancelled().map_err(budget_error)?;
+    let baseline_identity = BaselineIdentity::from_project_with_budget(baseline, budget)
+        .map_err(identity_input_error)?;
+    let operation_set_identity =
+        OperationSetIdentity::from_operation_set_with_budget(operations, budget)
+            .map_err(identity_input_error)?;
+    let identity = MaterializationIdentity::bind(&baseline_identity, &operation_set_identity)
+        .map_err(identity_input_error)?;
+    if materialized.identity() != &identity {
+        return Err(StoreError::Materialization(
+            PublicationError::InputIdentityMismatch,
+        ));
+    }
+    if baseline.id() != operations.project_id() || materialized.project().id() != baseline.id() {
+        return Err(StoreError::Materialization(PublicationError::WrongProject));
+    }
+    // The output is bounded by the durable artifact limit. Charge the bound
+    // before serde starts growing its output buffer.
+    budget
+        .charge(BudgetKind::WorkingSetBytes, MAX_ARTIFACT_BYTES as usize)
+        .map_err(budget_error)?;
+    let materialized_project_bytes = serde_json::to_vec(materialized.project())?;
+    if materialized_project_bytes.len() as u64 > MAX_ARTIFACT_BYTES {
+        return Err(StoreError::Materialization(
+            PublicationError::ResourceLimit("materialized_project_bytes"),
+        ));
+    }
+    let publication_id = publication_id(baseline.id(), &identity);
+    let operation_max_causal_depth = operations
+        .operations()
+        .map(|operation| operation.causal_depth().value())
+        .max()
+        .unwrap_or(0);
+    Ok(PublicationInput {
+        publication_id,
+        project_id: baseline.id(),
+        baseline_artifact_hash: content_hash(baseline_identity.canonical_bytes()),
+        materialized_artifact_hash: content_hash(&materialized_project_bytes),
+        baseline_artifact_bytes: baseline_identity.canonical_bytes().len(),
+        materialized_artifact_bytes: materialized_project_bytes.len(),
+        materialized_project_revision: materialized.project().revision(),
+        materialized_logical_time: materialized.project().logical_time(),
+        operation_count: identity.operation_count(),
+        baseline_identity,
+        operation_set_identity,
+        materialization_identity: identity,
+        materialized_project_bytes,
+        operation_max_causal_depth,
+        protocol_version: MATERIALIZER_PROTOCOL_VERSION,
+        result_schema_version: materialized.project().schema_version(),
+    })
+}
+
+fn validate_project_map_sources(
+    root: &std::path::Path,
+    manifest: &BundleManifest,
+    project: &Project,
+) -> Result<()> {
+    for map in project.maps() {
+        validate_opaque_provenance_id(map.data().provenance.as_str())?;
+        let source = &map.data().source;
+        let hash = String::from(source.sha256);
+        crate::bundle::validate_map_source_reference_at(
+            root,
+            manifest,
+            &hash,
+            source.media_type.as_str(),
+            source.byte_length,
+        )?;
+    }
+    Ok(())
+}
+
+fn validate_project_map_sources_with_budget<H: CancellationHook>(
+    root: &std::path::Path,
+    manifest: &BundleManifest,
+    project: &Project,
+    budget: &mut ResourceBudget<H>,
+) -> Result<()> {
+    for map in project.maps() {
+        budget.check_cancelled().map_err(budget_error)?;
+        validate_opaque_provenance_id(map.data().provenance.as_str())?;
+        let source = &map.data().source;
+        let hash = String::from(source.sha256);
+        validate_map_source_reference_at_with_budget(
+            root,
+            manifest,
+            &hash,
+            source.media_type.as_str(),
+            source.byte_length,
+            budget,
+        )?;
+    }
+    Ok(())
+}
+
 fn public_receipt(row: &RawPublication) -> Result<MaterializationPublicationReceipt> {
     row.receipt()
 }
@@ -1354,6 +1457,35 @@ fn validate_existing_duplicate(
         )));
     }
     let _project = validate_artifacts(None, transaction, bundle, manifest, row, baseline_row)?;
+    public_receipt(row)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn validate_existing_duplicate_with_budget<H: CancellationHook>(
+    inventory: Option<&ValidatedOperationInventory>,
+    transaction: &Transaction<'_>,
+    bundle: &Bundle,
+    manifest: &BundleManifest,
+    input: &PublicationInput,
+    row: &RawPublication,
+    baseline_row: &RawBaseline,
+    budget: &mut ResourceBudget<H>,
+) -> Result<MaterializationPublicationReceipt> {
+    if !publication_values_match(input, row)? {
+        return Err(StoreError::Materialization(PublicationError::Corrupt(
+            "publication identity already stores different immutable inputs".into(),
+        )));
+    }
+    let _project = validate_artifacts_with_budget(
+        inventory,
+        transaction,
+        bundle,
+        manifest,
+        row,
+        baseline_row,
+        None,
+        budget,
+    )?;
     public_receipt(row)
 }
 
@@ -1441,6 +1573,7 @@ impl Bundle {
         if manifest.project_id != identity.project_id() {
             return Err(StoreError::Materialization(PublicationError::WrongProject));
         }
+        validate_project_map_sources(&self.root, &manifest, baseline)?;
         if let Some(row) = project_baseline_query(&transaction, identity.project_id())? {
             if row.baseline_identity_hash != String::from(identity.content_hash()) {
                 return Err(StoreError::Materialization(
@@ -1524,12 +1657,36 @@ impl Bundle {
         expected_operation_revision: ProjectVersion,
         utc_ms: i64,
     ) -> Result<MaterializationPublicationOutcome> {
+        self.publish_materialized_project_inner::<NeverCancel>(
+            baseline,
+            operations,
+            materialized,
+            expected_operation_revision,
+            utc_ms,
+            None,
+            false,
+        )
+    }
+
+    /// Publish through the same transactional boundary while charging all
+    /// bounded identity, inventory, source-closure and publication work to a
+    /// caller-owned cumulative budget.
+    pub fn publish_materialized_project_with_budget<H: CancellationHook>(
+        &mut self,
+        baseline: &Project,
+        operations: &OperationSet,
+        materialized: &MaterializedProject,
+        expected_operation_revision: ProjectVersion,
+        utc_ms: i64,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<MaterializationPublicationOutcome> {
         self.publish_materialized_project_inner(
             baseline,
             operations,
             materialized,
             expected_operation_revision,
             utc_ms,
+            Some(budget),
             false,
         )
     }
@@ -1543,23 +1700,26 @@ impl Bundle {
         expected_operation_revision: ProjectVersion,
         utc_ms: i64,
     ) -> Result<MaterializationPublicationOutcome> {
-        self.publish_materialized_project_inner(
+        self.publish_materialized_project_inner::<NeverCancel>(
             baseline,
             operations,
             materialized,
             expected_operation_revision,
             utc_ms,
+            None,
             true,
         )
     }
 
-    fn publish_materialized_project_inner(
+    #[allow(clippy::too_many_arguments)]
+    fn publish_materialized_project_inner<H: CancellationHook>(
         &mut self,
         baseline: &Project,
         operations: &OperationSet,
         materialized: &MaterializedProject,
         expected_operation_revision: ProjectVersion,
         utc_ms: i64,
+        mut budget: Option<&mut ResourceBudget<H>>,
         fail_after_projection: bool,
     ) -> Result<MaterializationPublicationOutcome> {
         if self.mode == OpenMode::ReadOnly {
@@ -1571,7 +1731,31 @@ impl Bundle {
             )));
         }
         ensure_publication_schema(self)?;
-        let input = input(baseline, operations, materialized)?;
+        if let Some(budget) = budget.as_deref_mut() {
+            budget.check_cancelled().map_err(budget_error)?;
+        }
+        let input = if let Some(budget) = budget.as_deref_mut() {
+            input_with_budget(baseline, operations, materialized, budget)?
+        } else {
+            input(baseline, operations, materialized)?
+        };
+        if let Some(budget) = budget.as_deref_mut() {
+            budget
+                .charge(
+                    BudgetKind::WorkingSetBytes,
+                    input
+                        .baseline_artifact_bytes
+                        .checked_add(input.materialized_artifact_bytes)
+                        .and_then(|value| value.checked_add(256))
+                        .ok_or_else(|| {
+                            StoreError::Materialization(PublicationError::ResourceLimit(
+                                "publication_artifact_bytes",
+                            ))
+                        })?,
+                )
+                .map_err(budget_error)?;
+            budget.check_cancelled().map_err(budget_error)?;
+        }
         let baseline_artifact_hash =
             self.write_artifact_file(input.baseline_identity.canonical_bytes())?;
         let materialized_artifact_hash =
@@ -1583,10 +1767,16 @@ impl Bundle {
                 "publication artifact hash changed during write".into(),
             )));
         }
+        if let Some(budget) = budget.as_deref_mut() {
+            budget.check_cancelled().map_err(budget_error)?;
+        }
 
         self.start_operation()?;
         let transaction =
             Transaction::new_unchecked(&self.connection, TransactionBehavior::Immediate)?;
+        if let Some(budget) = budget.as_deref_mut() {
+            charge_manifest_decode(&transaction, budget)?;
+        }
         let manifest = load_manifest(&transaction)?;
         if manifest.schema_version != SCHEMA_VERSION || !manifest.required_features.is_empty() {
             return Err(StoreError::UnsupportedVersion(manifest.schema_version));
@@ -1594,8 +1784,38 @@ impl Bundle {
         if manifest.project_id != input.project_id {
             return Err(StoreError::Materialization(PublicationError::WrongProject));
         }
-        let (operation_state, persisted_operations) =
-            validated_operation_set(&transaction, manifest.project_id)?;
+        let inventory = if let Some(budget) = budget.as_deref_mut() {
+            Some(ValidatedOperationInventory::load_with_budget(
+                &transaction,
+                manifest.project_id,
+                budget,
+            )?)
+        } else {
+            None
+        };
+        let (operation_state, persisted_operations) = if let Some(inventory) = inventory.as_ref() {
+            if let Some(budget) = budget.as_deref_mut() {
+                inventory.current_with_budget(budget)?
+            } else {
+                unreachable!("budgeted inventory requires a budget")
+            }
+        } else {
+            validated_operation_set(&transaction, manifest.project_id)?
+        };
+        if let Some(budget) = budget.as_deref_mut() {
+            validate_project_map_sources_with_budget(&self.root, &manifest, baseline, budget)?;
+            validate_project_map_sources_with_budget(
+                &self.root,
+                &manifest,
+                materialized.project(),
+                budget,
+            )?;
+            validate_map_sources_with_budget(&self.root, &manifest, &persisted_operations, budget)?;
+        } else {
+            validate_project_map_sources(&self.root, &manifest, baseline)?;
+            validate_project_map_sources(&self.root, &manifest, materialized.project())?;
+            validate_map_sources(&self.root, &manifest, &persisted_operations)?;
+        }
         // Resolve the exact immutable publication first. This is deliberately
         // before the optimistic current-revision check so a lost response can
         // be retried with its original expected revision.
@@ -1607,19 +1827,37 @@ impl Bundle {
                         "publication points to missing baseline registration".into(),
                     ))
                 })?;
-            let receipt = validate_existing_duplicate(
-                &transaction,
-                self,
-                &manifest,
-                &input,
-                &row,
-                &baseline_row,
-            )?;
+            let receipt = if let Some(budget) = budget.as_deref_mut() {
+                validate_existing_duplicate_with_budget(
+                    inventory.as_ref(),
+                    &transaction,
+                    self,
+                    &manifest,
+                    &input,
+                    &row,
+                    &baseline_row,
+                    budget,
+                )?
+            } else {
+                validate_existing_duplicate(
+                    &transaction,
+                    self,
+                    &manifest,
+                    &input,
+                    &row,
+                    &baseline_row,
+                )?
+            };
             transaction.commit()?;
             return Ok(MaterializationPublicationOutcome::Duplicate(receipt));
         }
-        let persisted_identity = OperationSetIdentity::from_operation_set(&persisted_operations)
-            .map_err(identity_validation_error)?;
+        let persisted_identity = if let Some(budget) = budget.as_deref_mut() {
+            OperationSetIdentity::from_operation_set_with_budget(&persisted_operations, budget)
+                .map_err(identity_validation_error)?
+        } else {
+            OperationSetIdentity::from_operation_set(&persisted_operations)
+                .map_err(identity_validation_error)?
+        };
         if persisted_identity != input.operation_set_identity {
             return Err(StoreError::Materialization(
                 PublicationError::StaleOperationRevision {
@@ -1719,6 +1957,12 @@ impl Bundle {
         next_manifest.revision = next_bundle_revision;
         next_manifest.updated_utc_ms = next_manifest.updated_utc_ms.max(utc_ms);
         let encoded_manifest = next_manifest.encode()?;
+        if let Some(budget) = budget.as_deref_mut() {
+            budget
+                .charge(BudgetKind::WorkingSetBytes, encoded_manifest.len())
+                .map_err(budget_error)?;
+            budget.check_cancelled().map_err(budget_error)?;
+        }
         transaction.execute(
             "INSERT INTO materialized_project_publications (publication_id,project_id,protocol_version,result_schema_version,baseline_identity_hash,baseline_artifact_hash,baseline_artifact_bytes,operation_set_identity_hash,operation_count,operation_project_revision,operation_max_causal_depth,baseline_project_revision,baseline_logical_time,materialized_artifact_hash,materialized_artifact_bytes,materialized_project_revision,materialized_logical_time,bundle_revision,committed_utc_ms) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)",
             params![
@@ -1807,10 +2051,17 @@ impl Bundle {
             ))
         })?;
         validate_state(&next_manifest, &stored_state, &stored)?;
+        if let Some(budget) = budget.as_deref_mut() {
+            charge_manifest_decode(&transaction, budget)?;
+            budget.check_cancelled().map_err(budget_error)?;
+        }
         if load_manifest(&transaction)? != next_manifest {
             return Err(StoreError::Materialization(PublicationError::Corrupt(
                 "materialization manifest readback mismatch".into(),
             )));
+        }
+        if let Some(budget) = budget {
+            budget.check_cancelled().map_err(budget_error)?;
         }
         atomic_projection(&self.root, &next_manifest)?;
         if fail_after_projection {
@@ -1834,6 +2085,30 @@ impl Bundle {
         } else {
             None
         };
+        transaction.commit()?;
+        Ok(baseline)
+    }
+
+    /// Load the canonical baseline while charging decoding and retained
+    /// project bytes to a caller-owned budget.
+    pub fn materialization_baseline_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<Option<Project>> {
+        budget.check_cancelled().map_err(budget_error)?;
+        ensure_publication_schema(self)?;
+        self.start_operation()?;
+        let transaction =
+            Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
+        charge_manifest_decode(&transaction, budget)?;
+        let manifest = load_manifest(&transaction)?;
+        let baseline = if sqlite_guard::has_materialized_project_schema(&transaction)? {
+            read_verified_baseline(self, &transaction, &manifest, budget)?
+                .map(|baseline| baseline.project)
+        } else {
+            None
+        };
+        budget.check_cancelled().map_err(budget_error)?;
         transaction.commit()?;
         Ok(baseline)
     }

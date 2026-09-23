@@ -1,10 +1,13 @@
 use crate::manifest::{MAX_ARTIFACT_BYTES, MAX_MANIFEST_BYTES, SCHEMA_VERSION, validate_hash};
 use crate::{
-    ArtifactEntry, ArtifactKind, BundleManifest, Result, StoreError, content_hash, sqlite_guard,
+    ArtifactEntry, ArtifactKind, BundleManifest, PublicationError, Result, StoreError,
+    content_hash, sqlite_guard,
 };
 use kyberia_domain::identity::{ProjectId, SnapshotId};
+use kyberia_resource_budget::{BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError};
 use rusqlite::{Connection, OpenFlags, TransactionBehavior};
 use serde::Serialize;
+use sha2::Digest;
 use std::collections::BTreeMap;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -44,6 +47,96 @@ pub(crate) fn regular(path: &Path, directory: bool) -> Result<()> {
         )));
     }
     Ok(())
+}
+
+pub(crate) fn validate_map_source_reference_at(
+    root: &Path,
+    manifest: &BundleManifest,
+    hash: &str,
+    media_type: &str,
+    bytes: u64,
+) -> Result<()> {
+    validate_map_source_reference_at_with_check(root, manifest, hash, media_type, bytes, || Ok(()))
+}
+
+pub(crate) fn validate_map_source_reference_at_with_budget<H: CancellationHook>(
+    root: &Path,
+    manifest: &BundleManifest,
+    hash: &str,
+    media_type: &str,
+    bytes: u64,
+    budget: &mut ResourceBudget<H>,
+) -> Result<()> {
+    budget
+        .charge(BudgetKind::WorkingSetBytes, 64 * 1024)
+        .map_err(map_budget_error)?;
+    validate_map_source_reference_at_with_check(root, manifest, hash, media_type, bytes, || {
+        budget.check_cancelled().map_err(map_budget_error)
+    })
+}
+
+fn validate_map_source_reference_at_with_check<F>(
+    root: &Path,
+    manifest: &BundleManifest,
+    hash: &str,
+    media_type: &str,
+    bytes: u64,
+    mut check: F,
+) -> Result<()>
+where
+    F: FnMut() -> Result<()>,
+{
+    check()?;
+    validate_hash(hash)?;
+    let entry = manifest.artifacts.get(hash).ok_or_else(|| {
+        StoreError::Corrupt("map source reference points to missing artifact".into())
+    })?;
+    if entry.kind != ArtifactKind::MapSource
+        || entry.media_type != media_type
+        || entry.bytes != bytes
+    {
+        return Err(StoreError::Corrupt(
+            "map source reference does not match durable artifact registration".into(),
+        ));
+    }
+    let path = root.join("artifacts").join(hash);
+    let file = open_nonsymlink_read(&path)?;
+    let actual_bytes = file.metadata()?.len();
+    if actual_bytes > MAX_ARTIFACT_BYTES || actual_bytes != entry.bytes {
+        return Err(StoreError::Corrupt(
+            "map source artifact length does not match durable registration".into(),
+        ));
+    }
+    let mut reader = std::io::BufReader::new(file);
+    let mut digest = sha2::Sha256::new();
+    let mut chunk = [0_u8; 64 * 1024];
+    let mut total = 0_u64;
+    loop {
+        check()?;
+        let read = reader.read(&mut chunk)?;
+        if read == 0 {
+            break;
+        }
+        total = total
+            .checked_add(read as u64)
+            .ok_or_else(|| StoreError::Corrupt("map source artifact length overflow".into()))?;
+        digest.update(&chunk[..read]);
+    }
+    if total != entry.bytes || format!("{:x}", digest.finalize()) != hash {
+        return Err(StoreError::Corrupt(
+            "map source artifact hash does not match durable registration".into(),
+        ));
+    }
+    Ok(())
+}
+
+fn map_budget_error(error: ResourceBudgetError) -> StoreError {
+    match error {
+        ResourceBudgetError::Cancelled => StoreError::Cancelled,
+        ResourceBudgetError::LimitExceeded(limit) => {
+            StoreError::Materialization(PublicationError::ResourceLimit(limit.kind().label()))
+        }
+    }
 }
 
 fn open_nonsymlink_read(path: &Path) -> Result<File> {

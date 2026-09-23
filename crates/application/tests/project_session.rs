@@ -1,10 +1,29 @@
 use kyberia_application::{
-    Application, ApplicationError, CreateProject, OpenProject, ProjectQuery, ProjectQueryResult,
-    ProjectState, SessionMode,
+    Application, ApplicationError, CalibrateMapRequest, CreateProject, ImportMapRequest,
+    MapOperationContext, OpenProject, ProjectQuery, ProjectQueryResult, ProjectState, SessionMode,
 };
-use kyberia_domain::identity::Text;
+use kyberia_domain::{
+    evidence::{Evidence, SchemaVersion, UnknownReason},
+    identity::{
+        BuildingId, CalibrationId, FloorId, MapAssetId, OperationId, ProjectId, SiteId, Text,
+    },
+    project::{
+        Building, BuildingData, CommandRequest, Floor, FloorData, MapCalibration, Project,
+        ProjectCommand, Site,
+    },
+    spatial::{
+        CalibrationControls, CoordinateFrame, FrameKind, ImageYAxis, PixelPoint, Point2, Point3,
+        TwoPointCalibration,
+    },
+    units::{CoordinateMeters, Meters, Pixels, Radians},
+};
+use kyberia_operation_log::{
+    CausalDepth, ImmutableReference, LogicalTimestamp, Mutation, NonReversibleReason, Operation,
+    ProjectVersion,
+};
 use kyberia_project_store::{ArtifactEntry, ArtifactKind, Bundle, OpenMode};
 use kyberia_resource_budget::{CancellationHook, ResourceBudget, ResourceLimits};
+use std::num::NonZeroU64;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -45,6 +64,191 @@ fn current(
     view
 }
 
+fn identity<T>(value: u8) -> T
+where
+    T: TryFrom<String>,
+    <T as TryFrom<String>>::Error: std::fmt::Debug,
+{
+    T::try_from(format!("{value:02x}").repeat(16)).unwrap()
+}
+
+fn frame(value: u8, kind: FrameKind) -> CoordinateFrame {
+    CoordinateFrame {
+        id: identity(value),
+        name: Text::new("frame").unwrap(),
+        kind,
+    }
+}
+
+fn execute_baseline(project: Project, operation: u8, command: ProjectCommand) -> Project {
+    project
+        .execute(CommandRequest {
+            schema_version: SchemaVersion::V1,
+            operation_id: identity(operation),
+            project_id: project.id(),
+            actor_id: identity(90),
+            device_id: identity(91),
+            logical_time: NonZeroU64::new(u64::from(operation - 199)).unwrap(),
+            expected_revision: project.revision(),
+            wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+            command,
+        })
+        .unwrap()
+        .project
+}
+
+fn project_with_floor() -> (Project, FloorId, CoordinateFrame, CoordinateFrame) {
+    let project_id: ProjectId = identity(1);
+    let site_id: SiteId = identity(2);
+    let building_id: BuildingId = identity(3);
+    let floor_id: FloorId = identity(4);
+    let building_frame = frame(5, FrameKind::BuildingLocalMeters);
+    let floor_frame = frame(6, FrameKind::FloorLocalMeters);
+    let image_frame = frame(7, FrameKind::ImagePixels);
+    let project = Project::new(project_id, Text::new("Maps").unwrap());
+    let project = execute_baseline(
+        project,
+        200,
+        ProjectCommand::CreateSite(Site {
+            id: site_id,
+            name: Text::new("Site").unwrap(),
+        }),
+    );
+    let project = execute_baseline(
+        project,
+        201,
+        ProjectCommand::CreateBuilding(
+            Building::new(BuildingData {
+                id: building_id,
+                site_id,
+                name: Text::new("Building").unwrap(),
+                frame: building_frame.clone(),
+            })
+            .unwrap(),
+        ),
+    );
+    let project = execute_baseline(
+        project,
+        202,
+        ProjectCommand::CreateFloor(
+            Floor::new(FloorData {
+                id: floor_id,
+                building_id,
+                name: Text::new("Floor").unwrap(),
+                frame: floor_frame.clone(),
+                building_frame: building_frame.id,
+                origin: Point3 {
+                    x: CoordinateMeters::new(0.0).unwrap(),
+                    y: CoordinateMeters::new(0.0).unwrap(),
+                    z: CoordinateMeters::new(0.0).unwrap(),
+                },
+                yaw: Radians::new(0.0).unwrap(),
+                clear_height: Meters::new(2.5).unwrap(),
+            })
+            .unwrap(),
+        ),
+    );
+    (project, floor_id, floor_frame, image_frame)
+}
+
+fn png(width: u32, height: u32) -> Vec<u8> {
+    fn crc32(bytes: &[u8]) -> u32 {
+        let mut crc = u32::MAX;
+        for byte in bytes {
+            crc ^= u32::from(*byte);
+            for _ in 0..8 {
+                crc = (crc >> 1) ^ (0xedb8_8320 & 0u32.wrapping_sub(crc & 1));
+            }
+        }
+        !crc
+    }
+    fn chunk(kind: &[u8; 4], data: &[u8]) -> Vec<u8> {
+        let mut out = Vec::new();
+        out.extend_from_slice(&(data.len() as u32).to_be_bytes());
+        out.extend_from_slice(kind);
+        out.extend_from_slice(data);
+        out.extend_from_slice(&crc32(&out[4..]).to_be_bytes());
+        out
+    }
+    let mut out = b"\x89PNG\r\n\x1a\n".to_vec();
+    let mut ihdr = Vec::new();
+    ihdr.extend_from_slice(&width.to_be_bytes());
+    ihdr.extend_from_slice(&height.to_be_bytes());
+    ihdr.extend_from_slice(&[8, 6, 0, 0, 0]);
+    out.extend(chunk(b"IHDR", &ihdr));
+    out.extend(chunk(b"IDAT", &[0x78, 1, 1]));
+    out.extend(chunk(b"IEND", &[]));
+    out
+}
+
+fn limits() -> ResourceLimits {
+    ResourceLimits::new(
+        16_000_000,
+        16_000_000,
+        8_000_000,
+        64 * 1024 * 1024,
+        64 * 1024 * 1024,
+        128 * 1024 * 1024,
+    )
+}
+
+fn context(
+    operation: u8,
+    logical: u64,
+    depth: u64,
+    parents: Vec<OperationId>,
+    revision: u64,
+    utc: i64,
+) -> MapOperationContext {
+    MapOperationContext {
+        operation_id: identity(operation),
+        actor_id: identity(20),
+        device_id: identity(21),
+        logical_time: LogicalTimestamp::new(logical).unwrap(),
+        causal_depth: CausalDepth::new(depth),
+        parents,
+        expected_project_revision: ProjectVersion::new(revision),
+        committed_utc_ms: utc,
+    }
+}
+
+fn calibration(
+    id: u8,
+    map_id: MapAssetId,
+    image: &CoordinateFrame,
+    floor: &CoordinateFrame,
+    distance: f64,
+) -> MapCalibration {
+    MapCalibration {
+        id: identity(id),
+        map_id,
+        transform: TwoPointCalibration::new(CalibrationControls {
+            source_frame: image.id,
+            target_frame: floor.id,
+            image_first: PixelPoint {
+                x: Pixels::new(10.0).unwrap(),
+                y: Pixels::new(20.0).unwrap(),
+            },
+            image_second: PixelPoint {
+                x: Pixels::new(110.0).unwrap(),
+                y: Pixels::new(20.0).unwrap(),
+            },
+            target_origin: Point2 {
+                x: CoordinateMeters::new(2.0).unwrap(),
+                y: CoordinateMeters::new(3.0).unwrap(),
+            },
+            known_distance: Meters::new(distance).unwrap(),
+            target_direction: Radians::new(0.0).unwrap(),
+            image_y_axis: ImageYAxis::Down,
+            distance_uncertainty: Evidence::Unknown(UnknownReason::NotMeasured),
+            control_point_uncertainty: Evidence::Unknown(UnknownReason::NotMeasured),
+        })
+        .unwrap(),
+        provenance: Text::new("two selected controls").unwrap(),
+        method_version: Text::new("two-point-v1").unwrap(),
+    }
+}
+
 #[test]
 fn create_then_reopen_returns_the_same_canonical_baseline() {
     let root = retained_directory();
@@ -68,6 +272,249 @@ fn create_then_reopen_returns_the_same_canonical_baseline() {
         .unwrap();
     assert_eq!(reopened.mode(), SessionMode::ReadOnly);
     assert_eq!(current(&reopened), first);
+}
+
+#[test]
+fn map_import_and_calibration_are_idempotent_published_and_reopenable() {
+    let root = retained_directory();
+    let path = root.join("maps.rfatlas");
+    let (baseline, floor_id, floor_frame, image_frame) = project_with_floor();
+    let mut bundle = Bundle::create(&path, baseline.id(), "Maps".into(), 1).unwrap();
+    bundle
+        .register_materialization_baseline(&baseline, 1)
+        .unwrap();
+    drop(bundle);
+
+    let app = Application;
+    let mut session = app
+        .open(OpenProject {
+            path: path.clone(),
+            mode: SessionMode::ReadWrite,
+        })
+        .unwrap();
+    let map_id: MapAssetId = identity(30);
+    let import_id: OperationId = identity(31);
+    let import = ImportMapRequest {
+        context: context(31, 4, 0, vec![], 0, 2),
+        map_id,
+        floor_id,
+        name: Text::new("Ground plan").unwrap(),
+        image_frame: image_frame.clone(),
+        provenance: Text::new("fixture-import-1").unwrap(),
+    };
+    let bytes = png(320, 200);
+    let mut budget = ResourceBudget::new(limits());
+    let first = session
+        .import_map_with_budget(import.clone(), &bytes, &mut budget)
+        .unwrap();
+    assert_eq!(first.project_revision.value(), 1);
+    let mut retry_budget = ResourceBudget::new(limits());
+    assert_eq!(
+        session
+            .import_map_with_budget(import, &bytes, &mut retry_budget)
+            .unwrap(),
+        first
+    );
+    let imported = current(&session);
+    let map = imported.project().unwrap().map(map_id).unwrap();
+    assert_eq!(
+        (map.data().width.get(), map.data().height.get()),
+        (320, 200)
+    );
+    assert_eq!(map.data().source.media_type.as_str(), "image/png");
+    assert!(!map.data().provenance.as_str().contains('/'));
+
+    let calibration_id: CalibrationId = identity(32);
+    let calibrate_id: OperationId = identity(33);
+    let request = CalibrateMapRequest {
+        context: context(33, 5, 1, vec![import_id], 1, 3),
+        calibration: calibration(32, map_id, &image_frame, &floor_frame, 20.0),
+        prior_active: Evidence::Unknown(UnknownReason::NotMeasured),
+    };
+    let mut budget = ResourceBudget::new(limits());
+    let calibrated = session
+        .calibrate_map_with_budget(request.clone(), &mut budget)
+        .unwrap();
+    assert_eq!(calibrated.project_revision.value(), 2);
+    let mut retry_budget = ResourceBudget::new(limits());
+    assert_eq!(
+        session
+            .calibrate_map_with_budget(request, &mut retry_budget)
+            .unwrap(),
+        calibrated
+    );
+    let view = current(&session);
+    let project = view.project().unwrap();
+    assert_eq!(
+        project.active_calibration(map_id),
+        Some(Evidence::Known(calibration_id))
+    );
+    let point = project
+        .calibration(calibration_id)
+        .unwrap()
+        .transform
+        .to_floor(
+            image_frame.id,
+            PixelPoint {
+                x: Pixels::new(110.0).unwrap(),
+                y: Pixels::new(20.0).unwrap(),
+            },
+        )
+        .unwrap();
+    assert!((point.x.get() - 22.0).abs() < 1e-12);
+    assert!((point.y.get() - 3.0).abs() < 1e-12);
+
+    drop(session);
+    let mut reopened = app
+        .open(OpenProject {
+            path: path.clone(),
+            mode: SessionMode::ReadOnly,
+        })
+        .unwrap();
+    assert_eq!(
+        current(&reopened)
+            .project()
+            .unwrap()
+            .active_calibration(map_id),
+        Some(Evidence::Known(calibration_id))
+    );
+    let mut budget = ResourceBudget::new(limits());
+    let error = reopened
+        .calibrate_map_with_budget(
+            CalibrateMapRequest {
+                context: context(34, 6, 2, vec![calibrate_id], 2, 4),
+                calibration: calibration(35, map_id, &image_frame, &floor_frame, 30.0),
+                prior_active: Evidence::Known(calibration_id),
+            },
+            &mut budget,
+        )
+        .unwrap_err();
+    assert_eq!(error.kind(), kyberia_application::ErrorKind::ReadOnly);
+
+    drop(reopened);
+    let bind_id: OperationId = identity(36);
+    let mut writer = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    let bind = Operation::try_apply_v2_non_reversible(
+        bind_id,
+        baseline.id(),
+        identity(20),
+        identity(21),
+        LogicalTimestamp::new(6).unwrap(),
+        CausalDepth::new(2),
+        vec![calibrate_id],
+        Mutation::bind_floor_evidence(
+            floor_id,
+            ImmutableReference::new(
+                kyberia_domain::identity::ContentHash::from_sha256([9; 32]),
+                Text::new("application/x-rfatlas-survey").unwrap(),
+                1,
+            )
+            .unwrap(),
+        ),
+        NonReversibleReason::FloorEvidenceBinding,
+    )
+    .unwrap();
+    writer
+        .append_operation_if_revision(bind, Some(ProjectVersion::new(2)))
+        .unwrap();
+    let operations = writer.operation_set().unwrap();
+    let materialized = kyberia_causal_materializer::materialize(&baseline, &operations).unwrap();
+    writer
+        .publish_materialized_project(
+            &baseline,
+            &operations,
+            &materialized,
+            ProjectVersion::new(3),
+            4,
+        )
+        .unwrap();
+    drop(writer);
+
+    let mut writer_session = app
+        .open(OpenProject {
+            path: path.clone(),
+            mode: SessionMode::ReadWrite,
+        })
+        .unwrap();
+    let before_locked = current(&writer_session);
+    let mut budget = ResourceBudget::new(limits());
+    let locked = writer_session
+        .calibrate_map_with_budget(
+            CalibrateMapRequest {
+                context: context(37, 7, 3, vec![bind_id], 3, 5),
+                calibration: calibration(38, map_id, &image_frame, &floor_frame, 30.0),
+                prior_active: Evidence::Known(calibration_id),
+            },
+            &mut budget,
+        )
+        .unwrap_err();
+    assert_eq!(
+        locked.kind(),
+        kyberia_application::ErrorKind::InvalidRequest
+    );
+    assert_eq!(current(&writer_session), before_locked);
+    drop(writer_session);
+    assert_eq!(
+        Bundle::open(&path, OpenMode::ReadOnly)
+            .unwrap()
+            .operation_store_state()
+            .unwrap()
+            .project_revision(),
+        ProjectVersion::new(3)
+    );
+}
+
+#[test]
+fn cancelled_or_stale_map_mutation_does_not_publish_a_new_current_project() {
+    #[derive(Debug)]
+    struct Cancelled;
+    impl CancellationHook for Cancelled {
+        fn is_cancelled(&mut self) -> bool {
+            true
+        }
+    }
+
+    let root = retained_directory();
+    let path = root.join("cancelled-map.rfatlas");
+    let (baseline, floor_id, _, image_frame) = project_with_floor();
+    let mut bundle = Bundle::create(&path, baseline.id(), "Maps".into(), 1).unwrap();
+    bundle
+        .register_materialization_baseline(&baseline, 1)
+        .unwrap();
+    drop(bundle);
+    let mut session = Application
+        .open(OpenProject {
+            path,
+            mode: SessionMode::ReadWrite,
+        })
+        .unwrap();
+    let request = ImportMapRequest {
+        context: context(40, 4, 0, vec![], 1, 2),
+        map_id: identity(41),
+        floor_id,
+        name: Text::new("No publish").unwrap(),
+        image_frame,
+        provenance: Text::new("fixture-import-2").unwrap(),
+    };
+    let before = current(&session);
+    let mut cancelled = ResourceBudget::with_cancellation(limits(), Cancelled);
+    assert_eq!(
+        session
+            .import_map_with_budget(request.clone(), &png(1, 1), &mut cancelled)
+            .unwrap_err()
+            .kind(),
+        kyberia_application::ErrorKind::Cancelled
+    );
+    assert_eq!(current(&session), before);
+    let mut budget = ResourceBudget::new(limits());
+    assert_eq!(
+        session
+            .import_map_with_budget(request, &png(1, 1), &mut budget)
+            .unwrap_err()
+            .kind(),
+        kyberia_application::ErrorKind::Conflict
+    );
+    assert_eq!(current(&session).project(), before.project());
 }
 
 #[test]

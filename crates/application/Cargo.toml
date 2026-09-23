@@ -9,12 +9,12 @@ description = "Canonical project lifecycle commands and immutable queries"
 kyberia-domain = { version = "=0.1.0", path = "../domain" }
 kyberia-project-store = { version = "=0.1.0", path = "../project-store" }
 kyberia-resource-budget = { version = "=0.1.0", path = "../resource-budget" }
+kyberia-causal-materializer = { version = "=0.1.0", path = "../causal-materializer" }
+kyberia-operation-log = { version = "=0.1.0", path = "../operation-log" }
 rusqlite = { version = "=0.40.2", features = ["bundled"] }
 uuid = { version = "=1.21.0", features = ["v4"] }
 
 [dev-dependencies]
-kyberia-causal-materializer = { version = "=0.1.0", path = "../causal-materializer" }
-kyberia-operation-log = { version = "=0.1.0", path = "../operation-log" }
 serde_json = "=1.0.149"
 
 [lints]

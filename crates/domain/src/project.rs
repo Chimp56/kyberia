@@ -169,6 +169,9 @@ impl Project {
     pub fn floors(&self) -> impl Iterator<Item = &Floor> {
         self.0.floors.values()
     }
+    pub fn maps(&self) -> impl Iterator<Item = &MapAsset> {
+        self.0.maps.values()
+    }
 
     /// Apply one already-admitted operation effect to a DAG materialized
     /// aggregate.  This is deliberately separate from [`Self::execute`]:

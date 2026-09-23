@@ -9,7 +9,10 @@ use kyberia_operation_log::{
     CausalDepth, InversePrior, LogicalTimestamp, Mutation, Operation, OperationReference,
     OperationSet, ProjectVersion, ResolutionValue,
 };
-use kyberia_project_store::{AppliedEffect, Bundle, OpenMode, OperationAppendOutcome, StoreError};
+use kyberia_project_store::{
+    AppliedEffect, Bundle, OpenMode, OperationAppendOutcome, PublicationError, StoreError,
+};
+use kyberia_resource_budget::{CancellationHook, ResourceBudget, ResourceLimits};
 use rusqlite::Connection;
 use std::{fs, path::PathBuf};
 
@@ -134,6 +137,71 @@ fn retained_test_dir(prefix: &str) -> PathBuf {
         .tempdir_in(root)
         .unwrap()
         .keep()
+}
+
+struct AlwaysCancel;
+
+impl CancellationHook for AlwaysCancel {
+    fn is_cancelled(&mut self) -> bool {
+        true
+    }
+}
+
+#[test]
+fn budgeted_operation_read_and_append_reject_before_inventory_materialization() {
+    let dir = tempfile::tempdir().unwrap().keep();
+    let path = dir.join("project");
+    let mut bundle = bundle(&path);
+    let limits = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        0,
+    );
+    let mut read_budget = ResourceBudget::new(limits);
+    assert!(matches!(
+        bundle.operation_set_with_budget(&mut read_budget),
+        Err(StoreError::Materialization(
+            PublicationError::ResourceLimit(_)
+        ))
+    ));
+    assert_eq!(bundle.operation_store_state().unwrap().operation_count(), 0);
+
+    let mut append_budget = ResourceBudget::new(limits);
+    assert!(matches!(
+        bundle.append_operation_if_revision_with_budget(
+            apply(2, 1, 1, 0, vec![], "new", "old"),
+            None,
+            &mut append_budget
+        ),
+        Err(StoreError::Materialization(
+            PublicationError::ResourceLimit(_)
+        ))
+    ));
+    assert_eq!(bundle.operation_store_state().unwrap().operation_count(), 0);
+
+    let mut cancelled = ResourceBudget::with_cancellation(
+        ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        ),
+        AlwaysCancel,
+    );
+    assert!(matches!(
+        bundle.append_operation_if_revision_with_budget(
+            apply(2, 1, 1, 0, vec![], "new", "old"),
+            None,
+            &mut cancelled,
+        ),
+        Err(StoreError::Cancelled)
+    ));
+    assert_eq!(bundle.operation_store_state().unwrap().operation_count(), 0);
 }
 
 #[test]

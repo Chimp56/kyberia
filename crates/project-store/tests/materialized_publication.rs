@@ -1,13 +1,22 @@
 use kyberia_causal_materializer::materialize;
 use kyberia_domain::{
-    identity::{ProjectId, Text},
-    project::Project,
+    evidence::ArtifactReference,
+    identity::{
+        ActorDeviceId, ActorId, ContentHash, FloorId, MapAssetId, OperationId, ProjectId, Text,
+    },
+    project::{
+        Building, BuildingData, Floor, FloorData, MapAsset, MapAssetData, Project, ProjectCommand,
+        Site,
+    },
+    spatial::{CoordinateFrame, FrameKind},
+    units::{CoordinateMeters, Meters, Radians},
 };
 use kyberia_operation_log::{
-    CausalDepth, LogicalTimestamp, Mutation, Operation, OperationSet, ProjectVersion,
+    CausalDepth, InversePrior, LogicalTimestamp, Mutation, Operation, OperationSet, ProjectVersion,
 };
 use kyberia_project_store::{
-    Bundle, MaterializationPublicationOutcome, OpenMode, PublicationError, StoreError,
+    ArtifactEntry, ArtifactKind, Bundle, MaterializationPublicationOutcome, OpenMode,
+    PublicationError, StoreError, content_hash,
 };
 use kyberia_resource_budget::{CancellationHook, ResourceBudget, ResourceLimits};
 use std::{cell::Cell, rc::Rc};
@@ -29,6 +38,312 @@ fn retained_test_root() -> std::path::PathBuf {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.trash/test-runs");
     std::fs::create_dir_all(&root).unwrap();
     tempfile::tempdir_in(root).unwrap().keep()
+}
+
+fn map_operation(source: ContentHash, media_type: &str, byte_length: u64) -> Operation {
+    map_operation_with_provenance(source, media_type, byte_length, "fixture:map-source")
+}
+
+fn map_operation_with_provenance(
+    source: ContentHash,
+    media_type: &str,
+    byte_length: u64,
+    provenance: &str,
+) -> Operation {
+    let map = MapAsset::new(MapAssetData {
+        id: MapAssetId::from_bytes([8; 16]).unwrap(),
+        floor_id: FloorId::from_bytes([9; 16]).unwrap(),
+        name: Text::new("floor plan").unwrap(),
+        image_frame: CoordinateFrame {
+            id: kyberia_domain::identity::FrameId::from_bytes([10; 16]).unwrap(),
+            name: Text::new("image").unwrap(),
+            kind: FrameKind::ImagePixels,
+        },
+        width: std::num::NonZeroU32::new(1).unwrap(),
+        height: std::num::NonZeroU32::new(1).unwrap(),
+        source: ArtifactReference {
+            sha256: source,
+            media_type: Text::new(media_type).unwrap(),
+            byte_length,
+        },
+        provenance: Text::new(provenance).unwrap(),
+    })
+    .unwrap();
+    Operation::try_apply_v3(
+        OperationId::from_bytes([11; 16]).unwrap(),
+        ProjectId::from_bytes([3; 16]).unwrap(),
+        ActorId::from_bytes([12; 16]).unwrap(),
+        ActorDeviceId::from_bytes([12; 16]).unwrap(),
+        LogicalTimestamp::new(4).unwrap(),
+        CausalDepth::new(0),
+        Vec::new(),
+        Mutation::import_map(map),
+        InversePrior::MapAbsent {
+            map_id: MapAssetId::from_bytes([8; 16]).unwrap(),
+        },
+    )
+    .unwrap()
+}
+
+fn baseline_with_floor() -> Project {
+    let project_id = ProjectId::from_bytes([3; 16]).unwrap();
+    let floor_id = FloorId::from_bytes([9; 16]).unwrap();
+    let building_frame = kyberia_domain::identity::FrameId::from_bytes([13; 16]).unwrap();
+    let floor_frame = kyberia_domain::identity::FrameId::from_bytes([14; 16]).unwrap();
+    Project::new(project_id, Text::new("Map closure").unwrap())
+        .apply_materialized(
+            OperationId::from_bytes([17; 16]).unwrap(),
+            1,
+            ProjectCommand::CreateSite(Site {
+                id: kyberia_domain::identity::SiteId::from_bytes([18; 16]).unwrap(),
+                name: Text::new("Site").unwrap(),
+            }),
+        )
+        .unwrap()
+        .apply_materialized(
+            OperationId::from_bytes([19; 16]).unwrap(),
+            2,
+            ProjectCommand::CreateBuilding(
+                Building::new(BuildingData {
+                    id: kyberia_domain::identity::BuildingId::from_bytes([16; 16]).unwrap(),
+                    site_id: kyberia_domain::identity::SiteId::from_bytes([18; 16]).unwrap(),
+                    name: Text::new("Building").unwrap(),
+                    frame: CoordinateFrame {
+                        id: building_frame,
+                        name: Text::new("building").unwrap(),
+                        kind: FrameKind::BuildingLocalMeters,
+                    },
+                })
+                .unwrap(),
+            ),
+        )
+        .unwrap()
+        .apply_materialized(
+            OperationId::from_bytes([20; 16]).unwrap(),
+            3,
+            ProjectCommand::CreateFloor(
+                Floor::new(FloorData {
+                    id: floor_id,
+                    building_id: kyberia_domain::identity::BuildingId::from_bytes([16; 16])
+                        .unwrap(),
+                    name: Text::new("Floor").unwrap(),
+                    frame: CoordinateFrame {
+                        id: floor_frame,
+                        name: Text::new("floor").unwrap(),
+                        kind: FrameKind::FloorLocalMeters,
+                    },
+                    building_frame,
+                    origin: kyberia_domain::spatial::Point3 {
+                        x: CoordinateMeters::new(0.0).unwrap(),
+                        y: CoordinateMeters::new(0.0).unwrap(),
+                        z: CoordinateMeters::new(0.0).unwrap(),
+                    },
+                    yaw: Radians::new(0.0).unwrap(),
+                    clear_height: Meters::new(3.0).unwrap(),
+                })
+                .unwrap(),
+            ),
+        )
+        .unwrap()
+}
+
+#[test]
+fn map_source_closure_rejects_missing_source_at_append_and_publication() {
+    let retained = tempfile::tempdir().unwrap().keep();
+    let root = retained.join("append");
+    let mut bundle = Bundle::create(
+        &root,
+        ProjectId::from_bytes([3; 16]).unwrap(),
+        "Map closure".into(),
+        1,
+    )
+    .unwrap();
+    let operation = map_operation(ContentHash::from_sha256([7; 32]), "image/png", 3);
+    assert!(matches!(
+        bundle.append_operation(operation),
+        Err(StoreError::Corrupt(message)) if message.contains("missing artifact")
+    ));
+    assert_eq!(bundle.operation_store_state().unwrap().operation_count(), 0);
+
+    let root = retained.join("publication");
+    let id = ProjectId::from_bytes([3; 16]).unwrap();
+    let baseline = baseline_with_floor();
+    let operations = OperationSet::from_operations([map_operation(
+        ContentHash::from_sha256([7; 32]),
+        "image/png",
+        3,
+    )])
+    .unwrap();
+    let result = materialize(&baseline, &operations).unwrap();
+    let mut bundle = Bundle::create(&root, id, "Map closure".into(), 1).unwrap();
+    bundle
+        .register_materialization_baseline(&baseline, 1)
+        .unwrap();
+    assert!(matches!(
+        bundle.publish_materialized_project(&baseline, &operations, &result, ProjectVersion::new(0), 2),
+        Err(StoreError::Corrupt(message)) if message.contains("missing artifact")
+    ));
+    assert!(bundle.materialized_project().unwrap().is_none());
+}
+
+#[test]
+fn map_source_closure_rejects_media_and_length_mismatches_at_publication() {
+    for (label, registered_media, referenced_media, registered_bytes, referenced_bytes) in [
+        ("media", "image/jpeg", "image/png", 3_u64, 3_u64),
+        ("length", "image/png", "image/png", 3_u64, 4_u64),
+    ] {
+        let retained = tempfile::tempdir().unwrap().keep();
+        let root = retained.join(label);
+        let id = ProjectId::from_bytes([3; 16]).unwrap();
+        let baseline = baseline_with_floor();
+        let bytes = b"map";
+        let hash = content_hash(bytes);
+        let operations = OperationSet::from_operations([map_operation(
+            ContentHash::try_from(hash.clone()).unwrap(),
+            referenced_media,
+            referenced_bytes,
+        )])
+        .unwrap();
+        let result = materialize(&baseline, &operations).unwrap();
+        let mut bundle = Bundle::create(&root, id, "Map closure".into(), 1).unwrap();
+        bundle
+            .register_materialization_baseline(&baseline, 1)
+            .unwrap();
+        bundle
+            .put_artifact(
+                bytes,
+                ArtifactEntry {
+                    kind: ArtifactKind::MapSource,
+                    bytes: registered_bytes,
+                    media_type: registered_media.into(),
+                    provenance_id: "fixture:map-source".into(),
+                },
+                2,
+            )
+            .unwrap();
+        assert!(matches!(
+            bundle.publish_materialized_project(
+                &baseline,
+                &operations,
+                &result,
+                ProjectVersion::new(0),
+                3
+            ),
+            Err(StoreError::Corrupt(message))
+                if message.contains("does not match durable artifact")
+        ));
+        assert!(bundle.materialized_project().unwrap().is_none());
+    }
+}
+
+#[test]
+fn publication_rejects_non_opaque_map_entity_provenance() {
+    let retained = tempfile::tempdir().unwrap().keep();
+    let root = retained.join("provenance");
+    let id = ProjectId::from_bytes([3; 16]).unwrap();
+    let baseline = baseline_with_floor();
+    let bytes = b"map";
+    let hash = content_hash(bytes);
+    let operations = OperationSet::from_operations([map_operation_with_provenance(
+        ContentHash::try_from(hash.clone()).unwrap(),
+        "image/png",
+        bytes.len() as u64,
+        "../private/map.png",
+    )])
+    .unwrap();
+    let result = materialize(&baseline, &operations).unwrap();
+    let mut bundle = Bundle::create(&root, id, "Map closure".into(), 1).unwrap();
+    bundle
+        .register_materialization_baseline(&baseline, 1)
+        .unwrap();
+    bundle
+        .put_artifact(
+            bytes,
+            ArtifactEntry {
+                kind: ArtifactKind::MapSource,
+                bytes: bytes.len() as u64,
+                media_type: "image/png".into(),
+                provenance_id: "fixture:map-source".into(),
+            },
+            2,
+        )
+        .unwrap();
+    assert!(matches!(
+        bundle.publish_materialized_project(
+            &baseline,
+            &operations,
+            &result,
+            ProjectVersion::new(0),
+            3
+        ),
+        Err(StoreError::Invalid(message)) if message.contains("opaque identifier")
+    ));
+}
+
+#[test]
+fn budgeted_publication_fails_before_artifact_materialization_and_honors_cancellation() {
+    let retained = tempfile::tempdir().unwrap().keep();
+    let root = retained.join("budget");
+    let id = ProjectId::from_bytes([4; 16]).unwrap();
+    let baseline = Project::new(id, Text::new("Budget").unwrap());
+    let operations = OperationSet::empty(id);
+    let result = materialize(&baseline, &operations).unwrap();
+    let mut bundle = Bundle::create(&root, id, "Budget".into(), 1).unwrap();
+    bundle
+        .register_materialization_baseline(&baseline, 1)
+        .unwrap();
+    let zero = ResourceLimits::new(
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        usize::MAX,
+        0,
+    );
+    let mut budget = ResourceBudget::new(zero);
+    assert!(matches!(
+        bundle.publish_materialized_project_with_budget(
+            &baseline,
+            &operations,
+            &result,
+            ProjectVersion::new(0),
+            2,
+            &mut budget,
+        ),
+        Err(StoreError::Materialization(
+            PublicationError::ResourceLimit(_)
+        ))
+    ));
+    assert!(bundle.materialized_project().unwrap().is_none());
+
+    let polls = Rc::new(Cell::new(0));
+    let mut cancelled = ResourceBudget::with_cancellation(
+        ResourceLimits::new(
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+            usize::MAX,
+        ),
+        CountHook {
+            polls: polls.clone(),
+            cancel_after: Some(0),
+        },
+    );
+    assert!(matches!(
+        bundle.publish_materialized_project_with_budget(
+            &baseline,
+            &operations,
+            &result,
+            ProjectVersion::new(0),
+            2,
+            &mut cancelled,
+        ),
+        Err(StoreError::Cancelled)
+    ));
+    assert!(polls.get() > 0);
+    assert!(bundle.materialized_project().unwrap().is_none());
 }
 
 #[test]

@@ -29,6 +29,11 @@ pub enum ProjectCommand {
         map_id: MapAssetId,
     },
     CalibrateMap(MapCalibration),
+    /// Remove one calibration revision and restore the map's prior active state.
+    RemoveCalibration {
+        calibration_id: CalibrationId,
+        active: Evidence<CalibrationId>,
+    },
     /// Switch an active revision without deleting historical calibrations.
     ActivateCalibration {
         map_id: MapAssetId,
@@ -61,6 +66,7 @@ pub enum EntityRef {
     Building(BuildingId),
     Floor(FloorId),
     Map(MapAssetId),
+    Calibration(CalibrationId),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -371,6 +377,39 @@ impl Project {
                     .calibrations
                     .insert(calibration.id, calibration.clone());
                 self.activate(calibration.map_id, Evidence::Known(calibration.id))
+            }
+            RemoveCalibration {
+                calibration_id,
+                active,
+            } => {
+                let calibration = self
+                    .0
+                    .calibrations
+                    .get(calibration_id)
+                    .ok_or(ProjectError::MissingEntity)?
+                    .clone();
+                self.unlocked(
+                    self.0
+                        .maps
+                        .get(&calibration.map_id)
+                        .ok_or(ProjectError::MissingEntity)?
+                        .data()
+                        .floor_id,
+                )?;
+                self.check_calibration_ref(calibration.map_id, active)?;
+                if *active == Evidence::Known(*calibration_id) {
+                    return Err(ProjectError::InvalidReference);
+                }
+                self.0.calibrations.remove(calibration_id);
+                self.0
+                    .active_calibrations
+                    .insert(calibration.map_id, active.clone());
+                Ok((
+                    ProjectEvent::Removed {
+                        entity: EntityRef::Calibration(*calibration_id),
+                    },
+                    Evidence::Known(CalibrateMap(calibration)),
+                ))
             }
             ActivateCalibration {
                 map_id,

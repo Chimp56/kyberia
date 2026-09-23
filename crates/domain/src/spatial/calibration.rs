@@ -46,6 +46,11 @@ pub struct TwoPointCalibration {
     cosine: f64,
     sine: f64,
 }
+
+// Construction/deserialization validates finite controls and derived values,
+// excluding NaN and preserving reflexive equality for canonical operations.
+impl Eq for TwoPointCalibration {}
+
 impl TwoPointCalibration {
     pub fn new(controls: CalibrationControls) -> Result<Self, ValidationError> {
         if controls.source_frame == controls.target_frame {

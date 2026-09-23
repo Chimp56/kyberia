@@ -65,6 +65,35 @@ fn duplicate_import_does_not_advance_revision_or_duplicate_bytes() {
 }
 
 #[test]
+fn map_source_provenance_rejects_paths_and_urls_before_storage() {
+    let dir = tempfile::tempdir().unwrap().keep();
+    let path = dir.as_path().join("project");
+    let mut project = Bundle::create(&path, id(), "Test".into(), 1).unwrap();
+    for provenance_id in [
+        "../private/map.png",
+        "/tmp/map.png",
+        "https://example.invalid/map",
+    ] {
+        let result = project.put_artifact(
+            b"map",
+            ArtifactEntry {
+                kind: ArtifactKind::MapSource,
+                bytes: 3,
+                media_type: "image/png".into(),
+                provenance_id: provenance_id.into(),
+            },
+            2,
+        );
+        assert!(matches!(
+            result,
+            Err(StoreError::Invalid(message))
+                if message.contains("opaque identifier")
+        ));
+    }
+    assert_eq!(project.manifest().unwrap().artifacts.len(), 0);
+}
+
+#[test]
 fn checksum_corruption_and_missing_blobs_never_verify_as_success() {
     let dir = tempfile::tempdir().unwrap().keep();
     let path = dir.as_path().join("project");

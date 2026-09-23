@@ -40,6 +40,12 @@ typed parser fields with tcpdump output and narrows the cancellation guarantee
 to bounded per-IE behavior. Independent re-review is pending before integration
 to `main`. No Phase 2 completion is claimed.
 
+A separate isolated current-main candidate, `feat/map-asset-admission-current-main`,
+adds a bounded PNG admission and operation-backed map import/two-point
+calibration increment. Its independent review is pending. It does not close the
+remaining import-format catalog, pixel decoding, map UI/desktop workflow,
+multi-point/CRS calibration, or the Phase 0 exit criteria.
+
 ## Historical execution checkpoint — 2026-09-22
 
 The most recent product/tooling change is `adb2b69`. Hosted run

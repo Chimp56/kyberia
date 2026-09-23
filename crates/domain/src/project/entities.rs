@@ -170,3 +170,8 @@ pub struct MapCalibration {
     pub provenance: Text,
     pub method_version: Text,
 }
+
+// `TwoPointCalibration` rejects non-finite controls and derived values during
+// construction/deserialization, so its admitted representations have
+// reflexive equality and are safe in canonical operation payloads.
+impl Eq for MapCalibration {}

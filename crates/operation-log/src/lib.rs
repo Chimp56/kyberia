@@ -17,6 +17,7 @@ use kyberia_domain::{
         ActorDeviceId, ActorId, CalibrationId, ContentHash, FloorId, MapAssetId, OperationId,
         ProjectId, SiteId, Text,
     },
+    project::{MapAsset, MapCalibration},
 };
 use kyberia_resource_budget::{
     BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError, ResourceLimits,
@@ -39,13 +40,16 @@ pub type DeviceId = ActorDeviceId;
 ///
 /// V1 remains byte-for-byte compatible with the original operation contract.
 /// V2 changes only inverse representation: it can carry an explicit typed
-/// prior calibration state and the non-reversible floor-evidence binding.
+/// prior calibration state and the non-reversible floor-evidence binding. V3
+/// adds typed structural map/calibration effects while V1/V2 remain closed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum OperationSchemaVersion {
     #[serde(rename = "1")]
     V1,
     #[serde(rename = "2")]
     V2,
+    #[serde(rename = "3")]
+    V3,
 }
 
 /// A positive Lamport-style logical time. It is never derived from UTC.
@@ -290,13 +294,15 @@ pub enum FieldKey {
     ProjectName,
     SiteName(SiteId),
     MapCalibration(MapAssetId),
+    MapAsset(MapAssetId),
     FloorEvidence(FloorId),
 }
 
-/// Closed, typed project mutations admitted by operation schema version 1.
+/// Closed typed mutations. Structural map mutations require schema V3.
 /// Observation payloads, packet bytes, and arbitrary JSON values have no
 /// variant in this enum.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)]
 #[serde(
     tag = "kind",
     content = "data",
@@ -318,6 +324,20 @@ pub enum Mutation {
     BindFloorEvidence {
         floor_id: FloorId,
         reference: ImmutableReference,
+    },
+    ImportMap {
+        map: MapAsset,
+    },
+    RemoveMap {
+        map_id: MapAssetId,
+    },
+    CalibrateMap {
+        calibration: MapCalibration,
+    },
+    RemoveCalibration {
+        calibration_id: CalibrationId,
+        map_id: MapAssetId,
+        active: Evidence<CalibrationId>,
     },
 }
 
@@ -344,21 +364,44 @@ impl Mutation {
         }
     }
 
+    pub fn import_map(map: MapAsset) -> Self {
+        Self::ImportMap { map }
+    }
+
+    pub fn calibrate_map(calibration: MapCalibration) -> Self {
+        Self::CalibrateMap { calibration }
+    }
+
     pub const fn field_key(&self) -> FieldKey {
         match self {
             Self::SetProjectName { .. } => FieldKey::ProjectName,
             Self::SetSiteName { site_id, .. } => FieldKey::SiteName(*site_id),
             Self::ActivateCalibration { map_id, .. } => FieldKey::MapCalibration(*map_id),
             Self::BindFloorEvidence { floor_id, .. } => FieldKey::FloorEvidence(*floor_id),
+            Self::ImportMap { map } => FieldKey::MapAsset(map.data().id),
+            Self::RemoveMap { map_id } => FieldKey::MapAsset(*map_id),
+            Self::CalibrateMap { calibration } => FieldKey::MapCalibration(calibration.map_id),
+            Self::RemoveCalibration { map_id, .. } => FieldKey::MapCalibration(*map_id),
         }
+    }
+
+    const fn is_pre_v3(&self) -> bool {
+        matches!(
+            self,
+            Self::SetProjectName { .. }
+                | Self::SetSiteName { .. }
+                | Self::ActivateCalibration { .. }
+                | Self::BindFloorEvidence { .. }
+        )
     }
 }
 
-/// The typed state that existed immediately before a V2 apply. This is a
+/// The typed state that existed immediately before a V2/V3 apply. This is a
 /// semantic prior, rather than a second generic command envelope. In
 /// particular, calibration may explicitly be `Unknown(NotMeasured)`, which
 /// cannot be represented by V1's `Mutation::ActivateCalibration` inverse.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(clippy::large_enum_variant)]
 #[serde(
     tag = "kind",
     content = "data",
@@ -377,14 +420,31 @@ pub enum InversePrior {
         map_id: MapAssetId,
         calibration: Evidence<CalibrationId>,
     },
+    MapAbsent {
+        map_id: MapAssetId,
+    },
+    CalibrationAbsent {
+        calibration_id: CalibrationId,
+        map_id: MapAssetId,
+        active: Evidence<CalibrationId>,
+    },
 }
 
 impl InversePrior {
+    const fn is_pre_v3(&self) -> bool {
+        matches!(
+            self,
+            Self::ProjectName { .. } | Self::SiteName { .. } | Self::MapCalibration { .. }
+        )
+    }
+
     pub const fn field_key(&self) -> FieldKey {
         match self {
             Self::ProjectName { .. } => FieldKey::ProjectName,
             Self::SiteName { site_id, .. } => FieldKey::SiteName(*site_id),
             Self::MapCalibration { map_id, .. } => FieldKey::MapCalibration(*map_id),
+            Self::MapAbsent { map_id } => FieldKey::MapAsset(*map_id),
+            Self::CalibrationAbsent { map_id, .. } => FieldKey::MapCalibration(*map_id),
         }
     }
 
@@ -408,6 +468,22 @@ impl InversePrior {
                 map_id == prior_map_id
                     && matches!(
                         calibration,
+                        Evidence::Known(_) | Evidence::Unknown(UnknownReason::NotMeasured)
+                    )
+            }
+            (Mutation::ImportMap { map }, Self::MapAbsent { map_id }) => map.data().id == *map_id,
+            (
+                Mutation::CalibrateMap { calibration },
+                Self::CalibrationAbsent {
+                    calibration_id,
+                    map_id,
+                    active,
+                },
+            ) => {
+                calibration.id == *calibration_id
+                    && calibration.map_id == *map_id
+                    && matches!(
+                        active,
                         Evidence::Known(_) | Evidence::Unknown(UnknownReason::NotMeasured)
                     )
             }
@@ -472,6 +548,16 @@ impl InversePrior {
                 calibration: Evidence::Unknown(_),
                 ..
             } => Err(OperationError::TypedPriorRequired),
+            Self::MapAbsent { map_id } => Ok(Mutation::RemoveMap { map_id: *map_id }),
+            Self::CalibrationAbsent {
+                calibration_id,
+                map_id,
+                active,
+            } => Ok(Mutation::RemoveCalibration {
+                calibration_id: *calibration_id,
+                map_id: *map_id,
+                active: active.clone(),
+            }),
         }
     }
 }
@@ -480,6 +566,10 @@ impl InversePrior {
 /// can select an explicitly unknown calibration state without inventing a
 /// calibration identifier.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+// Keep the public V2 payload variant inline so existing Rust construction and
+// matching remain source-compatible; operation count and canonical bytes are
+// bounded by the shared operation budget.
+#[allow(clippy::large_enum_variant)]
 #[serde(
     tag = "kind",
     content = "data",
@@ -795,6 +885,35 @@ impl Operation {
         )
     }
 
+    /// Construct a V3 typed structural apply. Its prior describes the exact
+    /// absent entity and any active calibration restored by undo.
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_apply_v3(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        mutation: Mutation,
+        prior: InversePrior,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V3,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Apply { mutation },
+            InverseMetadata::ApplyV2 { prior },
+            None,
+        )
+    }
+
     /// Construct a V2 apply whose domain effect has no executable inverse.
     /// The closed reason is persisted so consumers can distinguish an
     /// intentionally irreversible operation from malformed inverse metadata.
@@ -886,6 +1005,35 @@ impl Operation {
     }
 
     #[allow(clippy::too_many_arguments)]
+    pub fn try_undo_v3(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        target: OperationReference,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V3,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Undo { target },
+            InverseMetadata::Toggle {
+                target,
+                direction: ToggleDirection::Redo,
+            },
+            None,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
     pub fn try_redo(
         operation_id: OperationId,
         project_id: ProjectId,
@@ -928,6 +1076,35 @@ impl Operation {
     ) -> Result<Self, OperationError> {
         Self::try_parts(
             OperationSchemaVersion::V2,
+            operation_id,
+            project_id,
+            actor_id,
+            device_id,
+            logical_time,
+            causal_depth,
+            parents,
+            OperationPayload::Redo { target },
+            InverseMetadata::Toggle {
+                target,
+                direction: ToggleDirection::Undo,
+            },
+            None,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn try_redo_v3(
+        operation_id: OperationId,
+        project_id: ProjectId,
+        actor_id: ActorId,
+        device_id: DeviceId,
+        logical_time: LogicalTimestamp,
+        causal_depth: CausalDepth,
+        parents: Vec<OperationId>,
+        target: OperationReference,
+    ) -> Result<Self, OperationError> {
+        Self::try_parts(
+            OperationSchemaVersion::V3,
             operation_id,
             project_id,
             actor_id,
@@ -1302,7 +1479,9 @@ fn validate_payload_inverse(
     match schema_version {
         OperationSchemaVersion::V1 => match (payload, inverse) {
             (OperationPayload::Apply { mutation }, InverseMetadata::Apply { mutation: undo })
-                if mutation.field_key() == undo.field_key() => {}
+                if mutation.is_pre_v3()
+                    && undo.is_pre_v3()
+                    && mutation.field_key() == undo.field_key() => {}
             (
                 OperationPayload::Undo { target },
                 InverseMetadata::Toggle {
@@ -1320,16 +1499,54 @@ fn validate_payload_inverse(
             (
                 OperationPayload::Resolve { mutation, .. },
                 InverseMetadata::Apply { mutation: inverse },
-            ) if mutation.field_key() == inverse.field_key() => {}
+            ) if mutation.is_pre_v3()
+                && inverse.is_pre_v3()
+                && mutation.field_key() == inverse.field_key() => {}
             _ => return Err(OperationError::InvalidInverse),
         },
         OperationSchemaVersion::V2 => match (payload, inverse) {
             (OperationPayload::Apply { mutation }, InverseMetadata::ApplyV2 { prior })
             | (OperationPayload::Resolve { mutation, .. }, InverseMetadata::ApplyV2 { prior }) => {
+                if !mutation.is_pre_v3() || !prior.is_pre_v3() {
+                    return Err(OperationError::InvalidInverse);
+                }
                 prior.validate_for(mutation)?;
             }
             (OperationPayload::ResolveV2 { value, .. }, InverseMetadata::ApplyV2 { prior }) => {
+                if !prior.is_pre_v3()
+                    || matches!(value, ResolutionValue::Mutation(mutation) if !mutation.is_pre_v3())
+                {
+                    return Err(OperationError::InvalidInverse);
+                }
                 prior.validate_for_resolution(value)?;
+            }
+            (
+                OperationPayload::Apply {
+                    mutation: Mutation::BindFloorEvidence { .. },
+                },
+                InverseMetadata::NonReversible {
+                    reason: NonReversibleReason::FloorEvidenceBinding,
+                },
+            ) => {}
+            (
+                OperationPayload::Undo { target },
+                InverseMetadata::Toggle {
+                    target: inverse_target,
+                    direction: ToggleDirection::Redo,
+                },
+            )
+            | (
+                OperationPayload::Redo { target },
+                InverseMetadata::Toggle {
+                    target: inverse_target,
+                    direction: ToggleDirection::Undo,
+                },
+            ) if target == inverse_target => {}
+            _ => return Err(OperationError::InvalidInverse),
+        },
+        OperationSchemaVersion::V3 => match (payload, inverse) {
+            (OperationPayload::Apply { mutation }, InverseMetadata::ApplyV2 { prior }) => {
+                prior.validate_for(mutation)?;
             }
             (
                 OperationPayload::Apply {
@@ -1586,6 +1803,9 @@ enum FrontierIdentity {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+// This private normalized frontier value mirrors the existing inline public
+// V2 value; payload count and bytes are charged before frontier construction.
+#[allow(clippy::large_enum_variant)]
 enum EffectValue {
     Mutation(Mutation),
     Calibration {
@@ -2942,6 +3162,9 @@ impl AppliedMutation {
 /// [`OperationSet::replay`], while V2 consumers use this boundary to retain
 /// an explicitly unknown calibration prior during undo.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+// Preserve the public applied-effect payload shape and source-compatible
+// matching. The operation inventory and serialized payload are budgeted.
+#[allow(clippy::large_enum_variant)]
 #[serde(
     tag = "kind",
     content = "data",
@@ -3049,7 +3272,10 @@ impl InverseMetadata {
                     map_id: *map_id,
                     calibration: calibration.clone(),
                 }),
-                InversePrior::ProjectName { .. } | InversePrior::SiteName { .. } => {
+                InversePrior::ProjectName { .. }
+                | InversePrior::SiteName { .. }
+                | InversePrior::MapAbsent { .. }
+                | InversePrior::CalibrationAbsent { .. } => {
                     Ok(AppliedEffect::Mutation(AppliedMutation {
                         operation_id,
                         mutation: prior.as_mutation()?,

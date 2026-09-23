@@ -90,6 +90,7 @@ pub(crate) enum StoreContext {
     Open,
     Query,
     Baseline,
+    Mutation,
 }
 
 pub(crate) fn map_store_error(context: StoreContext, error: StoreError) -> ApplicationError {
@@ -134,6 +135,10 @@ fn map_io(context: StoreContext, error: io::Error) -> ApplicationError {
 }
 
 fn map_invalid(context: StoreContext, message: String) -> ApplicationError {
+    if context == StoreContext::Mutation && message.starts_with("stale operation project revision")
+    {
+        return ApplicationError::new(ErrorKind::Conflict, message);
+    }
     if matches!(context, StoreContext::Open | StoreContext::Query) {
         ApplicationError::new(ErrorKind::CorruptProject, message)
     } else {

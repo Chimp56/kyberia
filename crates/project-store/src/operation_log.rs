@@ -6,15 +6,22 @@
 //! The operation-only project revision is a local linear commit counter; it is
 //! deliberately separate from each operation's causal depth.
 
-use crate::bundle::{atomic_projection, load_manifest};
+use crate::bundle::{
+    atomic_projection, load_manifest, validate_map_source_reference_at,
+    validate_map_source_reference_at_with_budget,
+};
+use crate::manifest::{MAX_MANIFEST_BYTES, validate_opaque_provenance_id};
 use crate::{Bundle, PublicationError, Result, StoreError, sqlite_guard};
 use kyberia_domain::identity::{OperationId, ProjectId};
+use kyberia_domain::project::MapAsset;
 use kyberia_operation_log::{
     AppliedEffect, AppliedMutation, MAX_OPERATION_CANONICAL_BYTES, MAX_OPERATION_COUNT,
-    MAX_OPERATION_WIRE_BYTES, MergeError, Operation, OperationError, OperationSet, ProjectVersion,
+    MAX_OPERATION_WIRE_BYTES, MergeError, Mutation, Operation, OperationError, OperationPayload,
+    OperationSet, ProjectVersion,
 };
 use kyberia_resource_budget::{BudgetKind, CancellationHook, ResourceBudget, ResourceBudgetError};
 use rusqlite::{OptionalExtension, Row, Transaction, TransactionBehavior, params};
+use std::path::Path;
 
 const OPERATION_ROW_LIMIT: i64 = MAX_OPERATION_COUNT as i64 + 1;
 const OPERATION_ID_TEXT_BYTES: usize = 32;
@@ -246,6 +253,91 @@ fn budget_error(error: ResourceBudgetError) -> StoreError {
         ResourceBudgetError::LimitExceeded(limit) => {
             StoreError::Materialization(PublicationError::ResourceLimit(limit.kind().label()))
         }
+    }
+}
+
+fn charge_manifest_decode<H: CancellationHook>(
+    transaction: &Transaction<'_>,
+    budget: &mut ResourceBudget<H>,
+) -> Result<()> {
+    let length: i64 = transaction.query_row(
+        "SELECT length(body) FROM bundle_manifest WHERE singleton=1",
+        [],
+        |row| row.get(0),
+    )?;
+    let length = usize::try_from(length)
+        .map_err(|_| StoreError::Corrupt("negative manifest length".into()))?;
+    if length as u64 > MAX_MANIFEST_BYTES {
+        return Err(StoreError::Corrupt("manifest exceeds read budget".into()));
+    }
+    budget
+        .charge(
+            BudgetKind::WorkingSetBytes,
+            length
+                .checked_mul(4)
+                .and_then(|value| value.checked_add(128))
+                .ok_or_else(|| StoreError::Corrupt("manifest accounting overflow".into()))?,
+        )
+        .map_err(budget_error)
+}
+
+pub(crate) fn validate_map_sources(
+    root: &Path,
+    manifest: &crate::BundleManifest,
+    operations: &OperationSet,
+) -> Result<()> {
+    for operation in operations.operations() {
+        if let Some(map) = imported_map(operation) {
+            validate_opaque_provenance_id(map.data().provenance.as_str())?;
+            let source = &map.data().source;
+            validate_map_source_reference_at(
+                root,
+                manifest,
+                &String::from(source.sha256),
+                source.media_type.as_str(),
+                source.byte_length,
+            )?;
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn validate_map_sources_with_budget<H: CancellationHook>(
+    root: &Path,
+    manifest: &crate::BundleManifest,
+    operations: &OperationSet,
+    budget: &mut ResourceBudget<H>,
+) -> Result<()> {
+    for operation in operations.operations() {
+        budget.check_cancelled().map_err(budget_error)?;
+        if let Some(map) = imported_map(operation) {
+            validate_opaque_provenance_id(map.data().provenance.as_str())?;
+            let source = &map.data().source;
+            validate_map_source_reference_at_with_budget(
+                root,
+                manifest,
+                &String::from(source.sha256),
+                source.media_type.as_str(),
+                source.byte_length,
+                budget,
+            )?;
+        }
+    }
+    Ok(())
+}
+
+fn imported_map(operation: &Operation) -> Option<&MapAsset> {
+    let mutation = match operation.payload() {
+        OperationPayload::Apply { mutation } | OperationPayload::Resolve { mutation, .. } => {
+            mutation
+        }
+        OperationPayload::Undo { .. }
+        | OperationPayload::Redo { .. }
+        | OperationPayload::ResolveV2 { .. } => return None,
+    };
+    match mutation {
+        Mutation::ImportMap { map } => Some(map),
+        _ => None,
     }
 }
 
@@ -669,6 +761,13 @@ impl ValidatedOperationInventory {
             set,
         ))
     }
+
+    pub(crate) fn current_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<(OperationStoreState, OperationSet)> {
+        self.prefix_with_budget(self.state.project_revision, budget)
+    }
 }
 
 fn state_revision(transaction: &Transaction<'_>, project_id: ProjectId) -> Result<u64> {
@@ -810,6 +909,39 @@ impl Bundle {
         result
     }
 
+    /// Return the validated operation set while charging every retained
+    /// inventory/set allocation to the caller's cumulative budget.
+    pub fn operation_set_with_budget<H: CancellationHook>(
+        &self,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<OperationSet> {
+        budget.check_cancelled().map_err(budget_error)?;
+        ensure_schema(self)?;
+        self.start_operation()?;
+        let transaction =
+            Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
+        charge_manifest_decode(&transaction, budget)?;
+        let manifest = load_manifest(&transaction)?;
+        let (_, operations) =
+            validate_inventory_with_budget(&transaction, manifest.project_id, budget)?;
+        let result = if operations.is_empty() {
+            OperationSet::empty(manifest.project_id)
+        } else {
+            OperationSet::from_operations_with_budget(operations, budget).map_err(|error| {
+                match error {
+                    OperationError::Cancelled => StoreError::Cancelled,
+                    OperationError::ResourceLimit(reason) => {
+                        StoreError::Materialization(PublicationError::ResourceLimit(reason))
+                    }
+                    other => operation_error(other),
+                }
+            })?
+        };
+        budget.check_cancelled().map_err(budget_error)?;
+        transaction.commit()?;
+        Ok(result)
+    }
+
     /// Deterministic topological replay from the persisted immutable set.
     pub fn replay_operations(&self) -> Result<Vec<AppliedMutation>> {
         self.operation_set()?
@@ -843,6 +975,18 @@ impl Bundle {
         expected_project_revision: Option<ProjectVersion>,
     ) -> Result<OperationAppendOutcome> {
         self.append_operation_inner(operation, expected_project_revision, false)
+    }
+
+    /// Append one operation after charging all durable inventory, candidate
+    /// set construction, replay admission and map-source closure checks to a
+    /// caller-owned cumulative budget.
+    pub fn append_operation_if_revision_with_budget<H: CancellationHook>(
+        &mut self,
+        operation: Operation,
+        expected_project_revision: Option<ProjectVersion>,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<OperationAppendOutcome> {
+        self.append_operation_inner_with_budget(operation, expected_project_revision, false, budget)
     }
 
     #[cfg(test)]
@@ -921,6 +1065,7 @@ impl Bundle {
         validate_replay_admission(&candidate_set).map_err(|error| {
             StoreError::Operation(format!("operation replay is invalid: {error}"))
         })?;
+        validate_map_sources(&self.root, &manifest, &candidate_set)?;
         let next_project_revision = state
             .project_revision
             .value()
@@ -990,6 +1135,184 @@ impl Bundle {
         }
         // The projection is redundant. Publishing it while the transaction is
         // open makes a projection failure roll back the SQLite append.
+        atomic_projection(&self.root, &next_manifest)?;
+        if fail_after_projection {
+            return Err(StoreError::Operation(
+                "test fault after projection before SQLite commit".into(),
+            ));
+        }
+        transaction.commit()?;
+        Ok(OperationAppendOutcome::Appended {
+            project_revision: ProjectVersion::new(next_project_revision),
+            bundle_revision: next_bundle_revision,
+        })
+    }
+
+    fn append_operation_inner_with_budget<H: CancellationHook>(
+        &mut self,
+        operation: Operation,
+        expected_project_revision: Option<ProjectVersion>,
+        fail_after_projection: bool,
+        budget: &mut ResourceBudget<H>,
+    ) -> Result<OperationAppendOutcome> {
+        budget.check_cancelled().map_err(budget_error)?;
+        if self.mode == crate::OpenMode::ReadOnly {
+            return Err(StoreError::ReadOnly);
+        }
+        ensure_schema(self)?;
+        let wire_bytes = operation.wire_bytes_len().map_err(operation_error)?;
+        budget
+            .charge(
+                BudgetKind::WorkingSetBytes,
+                operation
+                    .canonical_bytes()
+                    .len()
+                    .checked_add(wire_bytes)
+                    .and_then(|value| value.checked_add(256))
+                    .ok_or_else(|| {
+                        StoreError::Materialization(PublicationError::ResourceLimit(
+                            "operation_bytes",
+                        ))
+                    })?,
+            )
+            .map_err(budget_error)?;
+        let columns = operation_columns(&operation)?;
+        self.start_operation()?;
+        let transaction = self
+            .connection
+            .transaction_with_behavior(TransactionBehavior::Immediate)?;
+        charge_manifest_decode(&transaction, budget)?;
+        let manifest = load_manifest(&transaction)?;
+        if manifest.schema_version != crate::manifest::SCHEMA_VERSION
+            || !manifest.required_features.is_empty()
+        {
+            return Err(StoreError::UnsupportedVersion(manifest.schema_version));
+        }
+        if operation.project_id() != manifest.project_id {
+            return Err(StoreError::Operation(
+                "operation belongs to another project".into(),
+            ));
+        }
+        let (state, existing_operations) =
+            validate_inventory_with_budget(&transaction, manifest.project_id, budget)?;
+        let existing = existing_operations
+            .iter()
+            .find(|stored| stored.operation_id() == operation.operation_id());
+        if let Some(existing) = existing {
+            let existing_wire = existing.to_bytes().map_err(operation_error)?;
+            if existing_wire == columns.wire
+                && existing.canonical_bytes() == columns.canonical
+                && existing.content_hash() == operation.content_hash()
+            {
+                let outcome = OperationAppendOutcome::Duplicate {
+                    project_revision: state.project_revision,
+                    bundle_revision: manifest.revision,
+                };
+                transaction.commit()?;
+                return Ok(outcome);
+            }
+            return Err(StoreError::Operation(
+                "operation ID already stores different immutable bytes".into(),
+            ));
+        }
+        // Exact duplicate detection precedes the optimistic precondition so
+        // a retry after an uncertain commit remains idempotent.
+        if let Some(expected) = expected_project_revision
+            && expected != state.project_revision
+        {
+            return Err(StoreError::Invalid(format!(
+                "stale operation project revision: expected {}, current {}",
+                expected.value(),
+                state.project_revision.value()
+            )));
+        }
+        if existing_operations.len() >= MAX_OPERATION_COUNT {
+            return Err(StoreError::Operation("operation_count".into()));
+        }
+        let mut candidate_operations = existing_operations;
+        candidate_operations.push(operation.clone());
+        budget
+            .charge(BudgetKind::WorkingSetBytes, 128)
+            .map_err(budget_error)?;
+        let candidate_set = OperationSet::from_operations_with_budget(candidate_operations, budget)
+            .map_err(|error| match error {
+                OperationError::Cancelled => StoreError::Cancelled,
+                OperationError::ResourceLimit(reason) => {
+                    StoreError::Materialization(PublicationError::ResourceLimit(reason))
+                }
+                other => operation_error(other),
+            })?;
+        validate_replay_admission_with_budget(&candidate_set, budget).map_err(
+            |error| match error {
+                MergeError::Cancelled => StoreError::Cancelled,
+                MergeError::ResourceLimit(reason) => {
+                    StoreError::Materialization(PublicationError::ResourceLimit(reason))
+                }
+                other => StoreError::Operation(format!("operation replay is invalid: {other}")),
+            },
+        )?;
+        validate_map_sources_with_budget(&self.root, &manifest, &candidate_set, budget)?;
+        let next_project_revision = state
+            .project_revision
+            .value()
+            .checked_add(1)
+            .filter(|revision| *revision <= MAX_OPERATION_COUNT as u64)
+            .ok_or_else(|| StoreError::Operation("project_revision".into()))?;
+        let next_project_revision_i64 = i64::try_from(next_project_revision)
+            .map_err(|_| StoreError::Operation("project_revision".into()))?;
+        let (next_bundle_revision, next_bundle_revision_i64) =
+            next_bundle_revision(manifest.revision)?;
+        let mut next_manifest = manifest;
+        next_manifest.revision = next_bundle_revision;
+        let encoded_manifest = next_manifest.encode()?;
+        budget
+            .charge(BudgetKind::WorkingSetBytes, encoded_manifest.len())
+            .map_err(budget_error)?;
+        transaction.execute(
+            "INSERT INTO project_operations (operation_id,project_id,project_revision,logical_time,causal_depth,content_hash,canonical_bytes,wire_bytes) VALUES (?1,?2,?3,?4,?5,?6,?7,?8)",
+            params![
+                columns.operation_id,
+                String::from(next_manifest.project_id),
+                next_project_revision_i64,
+                columns.logical_time,
+                columns.causal_depth,
+                columns.operation_hash,
+                columns.canonical,
+                columns.wire,
+            ],
+        )?;
+        let changed = transaction.execute(
+            "UPDATE operation_log_state SET project_revision=?1 WHERE singleton=1",
+            [next_project_revision_i64],
+        )?;
+        if changed != 1 {
+            return Err(StoreError::Corrupt(
+                "operation log state update did not affect exactly one row".into(),
+            ));
+        }
+        let changed = transaction.execute(
+            "UPDATE bundle_manifest SET revision=?1,body=?2 WHERE singleton=1",
+            (next_bundle_revision_i64, &encoded_manifest),
+        )?;
+        if changed != 1 {
+            return Err(StoreError::Corrupt(
+                "operation manifest update did not affect exactly one row".into(),
+            ));
+        }
+        budget.check_cancelled().map_err(budget_error)?;
+        let (stored_state, _) =
+            validate_inventory_with_budget(&transaction, next_manifest.project_id, budget)?;
+        if stored_state.project_revision.value() != next_project_revision {
+            return Err(StoreError::Corrupt(
+                "operation state failed authoritative readback".into(),
+            ));
+        }
+        let committed_manifest = load_manifest(&transaction)?;
+        if committed_manifest != next_manifest {
+            return Err(StoreError::Corrupt(
+                "operation manifest failed authoritative readback".into(),
+            ));
+        }
         atomic_projection(&self.root, &next_manifest)?;
         if fail_after_projection {
             return Err(StoreError::Operation(

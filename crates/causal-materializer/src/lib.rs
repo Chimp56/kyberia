@@ -31,6 +31,7 @@ struct Effect {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[allow(clippy::large_enum_variant)]
 enum EffectValue {
     Mutation(Mutation),
     Calibration {
@@ -132,7 +133,7 @@ pub enum MaterializationError {
     AggregateConflict {
         floor_id: FloorId,
         evidence_operation: OperationId,
-        calibration_operation: OperationId,
+        floor_mutation_operation: OperationId,
     },
     UnsupportedOperation {
         operation_id: OperationId,
@@ -934,6 +935,12 @@ fn inverse_effect(
                     name: name.clone(),
                 },
             )),
+            InversePrior::MapAbsent { .. } | InversePrior::CalibrationAbsent { .. } => {
+                Ok(direct_mutation_effect_by_id(
+                    operation_id,
+                    &prior.as_mutation().map_err(MergeError::Operation)?,
+                ))
+            }
         },
         InverseMetadata::NonReversible { .. } => Err(MaterializationError::UnsupportedOperation {
             operation_id,
@@ -1044,6 +1051,19 @@ fn apply_local_effect(
                     },
                 }
             }
+            Mutation::ImportMap { map } => ProjectCommand::ImportMap(map.clone()),
+            Mutation::RemoveMap { map_id } => ProjectCommand::RemoveMap { map_id: *map_id },
+            Mutation::CalibrateMap { calibration } => {
+                ProjectCommand::CalibrateMap(calibration.clone())
+            }
+            Mutation::RemoveCalibration {
+                calibration_id,
+                active,
+                ..
+            } => ProjectCommand::RemoveCalibration {
+                calibration_id: *calibration_id,
+                active: active.clone(),
+            },
         },
         EffectValue::Calibration {
             map_id,
@@ -1257,7 +1277,11 @@ fn validate_legacy_prior(
             field_value(before, &FieldKey::MapCalibration(*map_id))
                 == Some(CausalValue::Calibration(Evidence::Known(*calibration_id)))
         }
-        Mutation::BindFloorEvidence { .. } => false,
+        Mutation::BindFloorEvidence { .. }
+        | Mutation::ImportMap { .. }
+        | Mutation::RemoveMap { .. }
+        | Mutation::CalibrateMap { .. }
+        | Mutation::RemoveCalibration { .. } => false,
     };
     if matches {
         Ok(())
@@ -1290,6 +1314,18 @@ fn validate_typed_prior(
             field_value(before, &FieldKey::MapCalibration(*map_id))
                 == Some(CausalValue::Calibration(calibration.clone()))
         }
+        InversePrior::MapAbsent { map_id } => {
+            field_value(before, &FieldKey::MapAsset(*map_id)).is_none()
+        }
+        InversePrior::CalibrationAbsent {
+            calibration_id,
+            map_id,
+            active,
+        } => {
+            before.calibration(*calibration_id).is_none()
+                && field_value(before, &FieldKey::MapCalibration(*map_id))
+                    == Some(CausalValue::Calibration(active.clone()))
+        }
     };
     if matches {
         Ok(())
@@ -1306,6 +1342,7 @@ enum CausalValue {
     ProjectName(Text),
     SiteName(Text),
     Calibration(Evidence<CalibrationId>),
+    MapPresent,
 }
 
 fn field_value(project: &Project, field: &FieldKey) -> Option<CausalValue> {
@@ -1319,6 +1356,7 @@ fn field_value(project: &Project, field: &FieldKey) -> Option<CausalValue> {
             .and_then(|_| project.active_calibration(*map_id))
             .map(CausalValue::Calibration),
         FieldKey::FloorEvidence(_) => None,
+        FieldKey::MapAsset(map_id) => project.map(*map_id).map(|_| CausalValue::MapPresent),
     }
 }
 
@@ -1330,8 +1368,10 @@ fn reject_cross_field_aggregate_conflicts<H: CancellationHook>(
     local_usage: &mut ResourceUsage,
 ) -> Result<(), MaterializationError> {
     // Reserve the two per-effect indexes before their maps and value vectors
-    // are created. The exact allocator footprint is implementation-specific,
-    // so this is the same deterministic structural proxy used by replay.
+    // are created. Replay-visible map overrides are charged separately only
+    // when a V3 ImportMap/RemoveMap effect needs one, preserving V1/V2 budget
+    // behavior. The allocator footprint is implementation-specific, so this is
+    // the deterministic structural proxy used by replay.
     budget
         .charge_with_limit(
             BudgetKind::WorkingSetBytes,
@@ -1341,34 +1381,73 @@ fn reject_cross_field_aggregate_conflicts<H: CancellationHook>(
         )
         .map_err(materialization_budget_error)?;
     let mut locks: BTreeMap<FloorId, Vec<OperationId>> = BTreeMap::new();
-    let mut calibrations: BTreeMap<FloorId, Vec<OperationId>> = BTreeMap::new();
+    let mut floor_mutations: BTreeMap<FloorId, Vec<OperationId>> = BTreeMap::new();
+    // Some(floor) is a replay-visible import; None is a replay-visible removal.
+    // Absence from this map delegates to the immutable baseline.
+    let mut map_floor_overrides: BTreeMap<MapAssetId, Option<FloorId>> = BTreeMap::new();
     for effect in effects {
+        budget
+            .check_cancelled()
+            .map_err(materialization_budget_error)?;
         if let Some(Mutation::BindFloorEvidence { floor_id, .. }) = effect.mutation() {
             locks
                 .entry(*floor_id)
                 .or_default()
                 .push(effect.operation_id());
         }
-        let map_id = match effect {
-            AppliedEffect::Calibration { map_id, .. } => Some(*map_id),
+        let floor_id = match effect {
+            AppliedEffect::Calibration { map_id, .. } => {
+                map_floor(baseline, &map_floor_overrides, *map_id)
+            }
             AppliedEffect::Mutation(applied) => match applied.mutation() {
-                Mutation::ActivateCalibration { map_id, .. } => Some(*map_id),
-                _ => None,
+                Mutation::ActivateCalibration { map_id, .. }
+                | Mutation::RemoveCalibration { map_id, .. }
+                | Mutation::RemoveMap { map_id } => {
+                    map_floor(baseline, &map_floor_overrides, *map_id)
+                }
+                Mutation::CalibrateMap { calibration } => {
+                    map_floor(baseline, &map_floor_overrides, calibration.map_id)
+                }
+                Mutation::ImportMap { map } => Some(map.data().floor_id),
+                Mutation::SetProjectName { .. }
+                | Mutation::SetSiteName { .. }
+                | Mutation::BindFloorEvidence { .. } => None,
             },
         };
-        if let Some(map_id) = map_id
-            && let Some(map) = baseline.map(map_id)
-        {
-            calibrations
-                .entry(map.data().floor_id)
+        if let Some(floor_id) = floor_id {
+            floor_mutations
+                .entry(floor_id)
                 .or_default()
                 .push(effect.operation_id());
+        }
+        if let Some(mutation) = effect.mutation() {
+            let update = match mutation {
+                Mutation::ImportMap { map } => Some((map.data().id, Some(map.data().floor_id))),
+                Mutation::RemoveMap { map_id } => Some((*map_id, None)),
+                Mutation::SetProjectName { .. }
+                | Mutation::SetSiteName { .. }
+                | Mutation::ActivateCalibration { .. }
+                | Mutation::BindFloorEvidence { .. }
+                | Mutation::CalibrateMap { .. }
+                | Mutation::RemoveCalibration { .. } => None,
+            };
+            if let Some((map_id, floor_id)) = update {
+                budget
+                    .charge_with_limit(
+                        BudgetKind::WorkingSetBytes,
+                        ESTIMATED_STRUCTURAL_ENTRY_BYTES,
+                        local_usage,
+                        MAX_ESTIMATED_PROJECT_BYTES,
+                    )
+                    .map_err(materialization_budget_error)?;
+                map_floor_overrides.insert(map_id, floor_id);
+            }
         }
     }
     for (floor_id, lock_ids) in locks {
         for evidence_operation in lock_ids {
-            for calibration_operation in calibrations.get(&floor_id).into_iter().flatten() {
-                if evidence_operation == *calibration_operation {
+            for floor_mutation_operation in floor_mutations.get(&floor_id).into_iter().flatten() {
+                if evidence_operation == *floor_mutation_operation {
                     continue;
                 }
                 budget
@@ -1382,28 +1461,39 @@ fn reject_cross_field_aggregate_conflicts<H: CancellationHook>(
                 let evidence_ancestor = is_ancestor(
                     operations,
                     evidence_operation,
-                    *calibration_operation,
+                    *floor_mutation_operation,
                     budget,
                     local_usage,
                 )?;
-                let calibration_ancestor = is_ancestor(
+                let floor_mutation_ancestor = is_ancestor(
                     operations,
-                    *calibration_operation,
+                    *floor_mutation_operation,
                     evidence_operation,
                     budget,
                     local_usage,
                 )?;
-                if !evidence_ancestor && !calibration_ancestor {
+                if !evidence_ancestor && !floor_mutation_ancestor {
                     return Err(MaterializationError::AggregateConflict {
                         floor_id,
                         evidence_operation,
-                        calibration_operation: *calibration_operation,
+                        floor_mutation_operation: *floor_mutation_operation,
                     });
                 }
             }
         }
     }
     Ok(())
+}
+
+fn map_floor(
+    baseline: &Project,
+    overrides: &BTreeMap<MapAssetId, Option<FloorId>>,
+    map_id: MapAssetId,
+) -> Option<FloorId> {
+    overrides
+        .get(&map_id)
+        .copied()
+        .unwrap_or_else(|| baseline.map(map_id).map(|map| map.data().floor_id))
 }
 
 #[cfg(test)]
@@ -2756,6 +2846,299 @@ mod tests {
             materialize(&baseline, &set),
             Err(MaterializationError::AggregateConflict { .. })
         ));
+    }
+
+    #[test]
+    fn concurrent_v3_calibration_and_floor_evidence_binding_conflict_in_both_id_orders() {
+        let baseline = full_project();
+        let project_id = baseline.id();
+        let map_id = MapAssetId::from_bytes([1; 16]).unwrap();
+        let floor_id = FloorId::from_bytes([1; 16]).unwrap();
+        let binding_id = id(20);
+
+        for (calibration_operation_id, calibration_id_bytes) in
+            [(id(10), [10; 16]), (id(30), [30; 16])]
+        {
+            let calibration_id =
+                kyberia_domain::identity::CalibrationId::from_bytes(calibration_id_bytes).unwrap();
+            let calibration_operation = Operation::try_apply_v3(
+                calibration_operation_id,
+                project_id,
+                actor(1),
+                device(1),
+                kyberia_operation_log::LogicalTimestamp::new(5).unwrap(),
+                kyberia_operation_log::CausalDepth::new(0),
+                vec![],
+                Mutation::calibrate_map(kyberia_domain::project::MapCalibration {
+                    id: calibration_id,
+                    map_id,
+                    transform: calibration(),
+                    provenance: Text::new("two controls").unwrap(),
+                    method_version: Text::new("two-point/v1").unwrap(),
+                }),
+                InversePrior::CalibrationAbsent {
+                    calibration_id,
+                    map_id,
+                    active: Evidence::Unknown(UnknownReason::NotMeasured),
+                },
+            )
+            .unwrap();
+            let binding = Operation::try_apply_v2_non_reversible(
+                binding_id,
+                project_id,
+                actor(2),
+                device(2),
+                kyberia_operation_log::LogicalTimestamp::new(5).unwrap(),
+                kyberia_operation_log::CausalDepth::new(0),
+                vec![],
+                Mutation::bind_floor_evidence(
+                    floor_id,
+                    kyberia_operation_log::ImmutableReference::new(
+                        kyberia_domain::identity::ContentHash::from_sha256([9; 32]),
+                        Text::new("application/json").unwrap(),
+                        10,
+                    )
+                    .unwrap(),
+                ),
+                kyberia_operation_log::NonReversibleReason::FloorEvidenceBinding,
+            )
+            .unwrap();
+            let set = OperationSet::from_operations([calibration_operation, binding]).unwrap();
+            assert_eq!(
+                materialize(&baseline, &set),
+                Err(MaterializationError::AggregateConflict {
+                    floor_id,
+                    evidence_operation: binding_id,
+                    floor_mutation_operation: calibration_operation_id,
+                })
+            );
+        }
+    }
+
+    #[test]
+    fn v3_calibration_on_another_floor_is_independent_of_evidence_binding() {
+        let baseline = full_project();
+        let second_floor_id = FloorId::from_bytes([2; 16]).unwrap();
+        let second_floor =
+            kyberia_domain::project::Floor::new(kyberia_domain::project::FloorData {
+                id: second_floor_id,
+                building_id: kyberia_domain::identity::BuildingId::from_bytes([1; 16]).unwrap(),
+                name: Text::new("Upper").unwrap(),
+                frame: frame(4, FrameKind::FloorLocalMeters),
+                building_frame: kyberia_domain::identity::FrameId::from_bytes([1; 16]).unwrap(),
+                origin: Point3 {
+                    x: CoordinateMeters::new(0.0).unwrap(),
+                    y: CoordinateMeters::new(0.0).unwrap(),
+                    z: CoordinateMeters::new(3.0).unwrap(),
+                },
+                yaw: Radians::new(0.0).unwrap(),
+                clear_height: Meters::new(2.5).unwrap(),
+            })
+            .unwrap();
+        let baseline = baseline
+            .execute(CommandRequest {
+                schema_version: kyberia_domain::evidence::SchemaVersion::V1,
+                operation_id: id(5),
+                project_id: baseline.id(),
+                actor_id: actor(1),
+                device_id: device(1),
+                logical_time: NonZeroU64::new(baseline.logical_time() + 1).unwrap(),
+                expected_revision: baseline.revision(),
+                wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+                command: ProjectCommand::CreateFloor(second_floor),
+            })
+            .unwrap()
+            .project;
+
+        let map_id = MapAssetId::from_bytes([1; 16]).unwrap();
+        let calibration_id = kyberia_domain::identity::CalibrationId::from_bytes([10; 16]).unwrap();
+        let calibration_operation = Operation::try_apply_v3(
+            id(10),
+            baseline.id(),
+            actor(1),
+            device(1),
+            kyberia_operation_log::LogicalTimestamp::new(6).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::calibrate_map(kyberia_domain::project::MapCalibration {
+                id: calibration_id,
+                map_id,
+                transform: calibration(),
+                provenance: Text::new("two controls").unwrap(),
+                method_version: Text::new("two-point/v1").unwrap(),
+            }),
+            InversePrior::CalibrationAbsent {
+                calibration_id,
+                map_id,
+                active: Evidence::Unknown(UnknownReason::NotMeasured),
+            },
+        )
+        .unwrap();
+        let binding = Operation::try_apply_v2_non_reversible(
+            id(20),
+            baseline.id(),
+            actor(2),
+            device(2),
+            kyberia_operation_log::LogicalTimestamp::new(6).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::bind_floor_evidence(
+                second_floor_id,
+                kyberia_operation_log::ImmutableReference::new(
+                    kyberia_domain::identity::ContentHash::from_sha256([9; 32]),
+                    Text::new("application/json").unwrap(),
+                    10,
+                )
+                .unwrap(),
+            ),
+            kyberia_operation_log::NonReversibleReason::FloorEvidenceBinding,
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([calibration_operation, binding]).unwrap();
+        let result = materialize(&baseline, &set).unwrap();
+        assert_eq!(
+            result.project().active_calibration(map_id),
+            Some(Evidence::Known(calibration_id))
+        );
+    }
+
+    #[test]
+    fn imported_map_floor_is_resolved_for_concurrent_calibration_and_binding() {
+        let baseline = full_project();
+        let map_id = MapAssetId::from_bytes([1; 16]).unwrap();
+        let floor_id = FloorId::from_bytes([1; 16]).unwrap();
+        let map = baseline.map(map_id).unwrap().clone();
+        let baseline = baseline
+            .execute(CommandRequest {
+                schema_version: kyberia_domain::evidence::SchemaVersion::V1,
+                operation_id: id(5),
+                project_id: baseline.id(),
+                actor_id: actor(1),
+                device_id: device(1),
+                logical_time: NonZeroU64::new(baseline.logical_time() + 1).unwrap(),
+                expected_revision: baseline.revision(),
+                wall_time: Evidence::Unknown(UnknownReason::ClockUnavailable),
+                command: ProjectCommand::RemoveMap { map_id },
+            })
+            .unwrap()
+            .project;
+
+        let import_id = id(30);
+        let import = Operation::try_apply_v3(
+            import_id,
+            baseline.id(),
+            actor(1),
+            device(1),
+            kyberia_operation_log::LogicalTimestamp::new(6).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::import_map(map),
+            InversePrior::MapAbsent { map_id },
+        )
+        .unwrap();
+        let calibration_id = kyberia_domain::identity::CalibrationId::from_bytes([40; 16]).unwrap();
+        let calibration = Operation::try_apply_v3(
+            id(40),
+            baseline.id(),
+            actor(2),
+            device(2),
+            kyberia_operation_log::LogicalTimestamp::new(7).unwrap(),
+            kyberia_operation_log::CausalDepth::new(1),
+            vec![import_id],
+            Mutation::calibrate_map(kyberia_domain::project::MapCalibration {
+                id: calibration_id,
+                map_id,
+                transform: calibration(),
+                provenance: Text::new("two controls").unwrap(),
+                method_version: Text::new("two-point/v1").unwrap(),
+            }),
+            InversePrior::CalibrationAbsent {
+                calibration_id,
+                map_id,
+                active: Evidence::Unknown(UnknownReason::NotMeasured),
+            },
+        )
+        .unwrap();
+        let binding_id = id(20);
+        let binding = Operation::try_apply_v2_non_reversible(
+            binding_id,
+            baseline.id(),
+            actor(3),
+            device(3),
+            kyberia_operation_log::LogicalTimestamp::new(7).unwrap(),
+            kyberia_operation_log::CausalDepth::new(1),
+            vec![import_id],
+            Mutation::bind_floor_evidence(
+                floor_id,
+                kyberia_operation_log::ImmutableReference::new(
+                    kyberia_domain::identity::ContentHash::from_sha256([8; 32]),
+                    Text::new("application/json").unwrap(),
+                    10,
+                )
+                .unwrap(),
+            ),
+            kyberia_operation_log::NonReversibleReason::FloorEvidenceBinding,
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([binding, calibration, import]).unwrap();
+        assert!(matches!(
+            materialize(&baseline, &set),
+            Err(MaterializationError::AggregateConflict {
+                floor_id: conflicted_floor,
+                evidence_operation,
+                floor_mutation_operation,
+            }) if conflicted_floor == floor_id
+                && evidence_operation == binding_id
+                && floor_mutation_operation == id(40)
+        ));
+    }
+
+    #[test]
+    fn v3_calibration_undo_restores_the_explicit_unknown_active_prior() {
+        let baseline = full_project();
+        let map_id = MapAssetId::from_bytes([1; 16]).unwrap();
+        let calibration_id = kyberia_domain::identity::CalibrationId::from_bytes([10; 16]).unwrap();
+        let operation_id = id(10);
+        let apply = Operation::try_apply_v3(
+            operation_id,
+            baseline.id(),
+            actor(1),
+            device(1),
+            kyberia_operation_log::LogicalTimestamp::new(5).unwrap(),
+            kyberia_operation_log::CausalDepth::new(0),
+            vec![],
+            Mutation::calibrate_map(kyberia_domain::project::MapCalibration {
+                id: calibration_id,
+                map_id,
+                transform: calibration(),
+                provenance: Text::new("two controls").unwrap(),
+                method_version: Text::new("two-point/v1").unwrap(),
+            }),
+            InversePrior::CalibrationAbsent {
+                calibration_id,
+                map_id,
+                active: Evidence::Unknown(UnknownReason::NotMeasured),
+            },
+        )
+        .unwrap();
+        let undo = Operation::try_undo_v3(
+            id(20),
+            baseline.id(),
+            actor(1),
+            device(1),
+            kyberia_operation_log::LogicalTimestamp::new(6).unwrap(),
+            kyberia_operation_log::CausalDepth::new(1),
+            vec![operation_id],
+            kyberia_operation_log::OperationReference::new(operation_id, apply.content_hash()),
+        )
+        .unwrap();
+        let set = OperationSet::from_operations([apply, undo]).unwrap();
+        let result = materialize(&baseline, &set).unwrap();
+        assert!(result.project().calibration(calibration_id).is_none());
+        assert_eq!(
+            result.project().active_calibration(map_id),
+            Some(Evidence::Unknown(UnknownReason::NotMeasured))
+        );
     }
 
     #[test]

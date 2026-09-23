@@ -71,10 +71,30 @@ pub(crate) fn validate_hash(hash: &str) -> Result<()> {
     Ok(())
 }
 
+/// Map-source provenance is an opaque record identifier. Paths and URLs are
+/// intentionally rejected at the durable boundary so imported project files
+/// cannot retain host filesystem or network locations as provenance.
+pub(crate) fn validate_opaque_provenance_id(value: &str) -> Result<()> {
+    validate_text(value, 1024)?;
+    if !value
+        .bytes()
+        .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b':' | b'_' | b'-' | b'.'))
+    {
+        return Err(StoreError::Invalid(
+            "map source provenance must be an opaque identifier".into(),
+        ));
+    }
+    Ok(())
+}
+
 impl ArtifactEntry {
     pub fn validate(&self) -> Result<()> {
         validate_text(&self.media_type, 255)?;
-        validate_text(&self.provenance_id, 1024)?;
+        if matches!(self.kind, ArtifactKind::MapSource) {
+            validate_opaque_provenance_id(&self.provenance_id)?;
+        } else {
+            validate_text(&self.provenance_id, 1024)?;
+        }
         if self.bytes > MAX_ARTIFACT_BYTES {
             return Err(StoreError::Invalid(
                 "artifact exceeds 64 MiB chunk limit".into(),
