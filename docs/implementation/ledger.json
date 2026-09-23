@@ -153243,8 +153243,8 @@
         {
           "description": "Deterministic infeasibility, unknown, mutation and permutation tests; no solver tests",
           "path": "crates/planner-evaluator/tests/evaluator.rs",
-          "revision": "dfbc1fc91c1c96ef44d930b079210987109ec252d9e950c710725464f829ea7e",
-          "sha256": "dfbc1fc91c1c96ef44d930b079210987109ec252d9e950c710725464f829ea7e"
+          "revision": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737",
+          "sha256": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737"
         }
       ],
       "validation": [],
@@ -176421,7 +176421,10 @@
       ],
       "acceptance_cases": [
         "capacity_clients_ap_count_and_budget_violations_are_independent",
-        "feasible_small_plan_recomputes_metrics_and_reports_equalities_as_binding"
+        "feasible_small_plan_recomputes_metrics_and_reports_equalities_as_binding",
+        "represented_hard_constraints_classify_values_adjacent_to_their_limits",
+        "rssi_thresholds_are_inclusive_at_each_tenth_dbm_boundary",
+        "resource_limits_accept_the_ceiling_and_reject_ceiling_plus_one"
       ],
       "implementation": [
         {
@@ -176429,17 +176432,23 @@
           "path": "crates/planner-evaluator/src/lib.rs",
           "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
           "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        },
+        {
+          "description": "Exact inclusive RF-threshold and resource-ceiling contract regression tests",
+          "path": "crates/planner-evaluator/tests/evaluator.rs",
+          "revision": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737",
+          "sha256": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase4-planner-evaluator.md",
-          "description": "Mainline focused verifier tests and governance gates; broader optimizer and RF acceptance remain open",
-          "revision": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
-          "sha256": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
+          "description": "Boundary-test candidate's focused verifier tests and governance checks; broader optimizer and RF acceptance remain open",
+          "revision": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
+          "sha256": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
           "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
           "result": "PASS",
-          "scope": "Seven deterministic contract tests only; no candidate generation, optimizer, airtime/interference, repair, physical site, or real-RF validation"
+          "scope": "Eleven deterministic contract tests including adjacent represented-constraint and RF-threshold values, non-decisive missing-link and resource-ceiling boundaries; no candidate generation, optimizer, airtime/interference, repair, physical site, or real-RF validation"
         }
       ],
       "reviews": [
@@ -176510,8 +176519,12 @@
         "feasible_small_plan_recomputes_metrics_and_reports_equalities_as_binding",
         "bidirectional_coverage_failure_explains_uplink_deficit_and_available_alternative",
         "missing_selected_link_is_unknown_and_fails_closed",
+        "missing_selected_link_does_not_make_sufficient_known_coverage_unknown",
         "input_permutations_do_not_change_findings_or_objectives",
-        "malformed_and_overflowing_inputs_are_rejected"
+        "malformed_and_overflowing_inputs_are_rejected",
+        "represented_hard_constraints_classify_values_adjacent_to_their_limits",
+        "rssi_thresholds_are_inclusive_at_each_tenth_dbm_boundary",
+        "resource_limits_accept_the_ceiling_and_reject_ceiling_plus_one"
       ],
       "implementation": [
         {
@@ -176519,17 +176532,23 @@
           "path": "crates/planner-evaluator/src/lib.rs",
           "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
           "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+        },
+        {
+          "description": "Exact inclusive RF-threshold, missing-link and resource-ceiling contract regression tests",
+          "path": "crates/planner-evaluator/tests/evaluator.rs",
+          "revision": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737",
+          "sha256": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase4-planner-evaluator.md",
-          "description": "Mainline focused verifier tests and governance gates; broader optimizer and RF acceptance remain open",
-          "revision": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
-          "sha256": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
+          "description": "Boundary-test candidate's focused verifier tests and governance checks; broader optimizer and RF acceptance remain open",
+          "revision": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
+          "sha256": "5af8195f312e800da42e1939a2055a6d5fce653d7082edf4f67cc99e77f0198a",
           "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
           "result": "PASS",
-          "scope": "Bounded deterministic proposed-plan verifier only; solver, repair, airtime/interference and Phase 4 runtime gates remain open"
+          "scope": "Eleven deterministic verifier contract tests only; solver, repair, airtime/interference, physical-site validation and Phase 4 runtime gates remain open"
         }
       ],
       "reviews": [

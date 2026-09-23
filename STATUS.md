@@ -60,9 +60,11 @@ sample integrations and Phase 8 exit remain open.
 
 The bounded Phase 4 evaluator is integrated at `3370d17`, with its independent
 review at `015b86f`. It verifies deterministic, caller-supplied assignments
-against represented constraints. Exact-threshold/resource-boundary test cases
-remain useful follow-ups; candidate generation, optimization, airtime,
-interference, repair and Phase 4 exit remain open.
+against represented constraints. A separate, unintegrated follow-up adds exact
+and adjacent RF-threshold tests, missing-coefficient coverage behavior, and
+resource-ceiling boundary tests; this is verifier-test evidence only, not an
+optimizer. Candidate generation, optimization, airtime, interference, repair,
+physical-site validation and Phase 4 exit remain open.
 
 The bounded Phase 6 pose/anchor fusion foundation is integrated at `3caa22e`
 with speed/covariance corrections through `acc35e9` and fresh independent
