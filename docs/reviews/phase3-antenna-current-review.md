@@ -165,3 +165,37 @@ acceptance gates are met.
     graph tools were available in the parent environment; source and plan
     fallback was used. No broad workspace or real antenna-data validation was
     run.
+
+## Follow-up review: elevation golden and schema-validator limitation
+
+Date: 2026-09-23
+
+Reviewed follow-up: `239335158eda7afd4818c9f74da34f5528d4584f` on
+`feat/phase3-antenna-current`, based on the reviewed candidate.
+
+- The elevation interpolation MINOR finding is **RESOLVED**. The added fixture
+  evaluates local +X at +45° elevation between the +6 dBi equatorial sample and
+  the −10 dBi north-pole sample. Its expected midpoint is
+  `10*log10((10^(6/10) + 10^(-10/10))/2) = 3.0974422984797583 dBi`, correctly
+  computed in linear power. Assertions also verify the evaluated local azimuth
+  and elevation. I independently reran the targeted test with Cargo output
+  directed to the review worktree's ignored `target/`; it passed (1 passed,
+  9 filtered out), without modifying the author worktree.
+- The executable Draft 2020-12 schema-conformance MINOR finding remains
+  **OPEN / UNVERIFIED**. The updated validation note clearly says no validator
+  was available, lists the uncached/uninstalled alternatives, and confirms no
+  dependency or fake validator was added. The existing test still only parses
+  the schema JSON and inspects selected structural fields; it does not execute
+  the schema against fixtures.
+- Commit `2393351` changes only
+  `crates/antenna-model/tests/antenna_pattern.rs`,
+  `docs/implementation/ledger.json`, and
+  `docs/validation/phase-three-antenna-current.md`; no production source,
+  manifest, lockfile, or runtime code changed. The author worktree was clean at
+  the reviewed commit. The new test and validation document SHA-256 values
+  match the ledger entries. Ledger records for PRE-006, PREB-001, PREB-004,
+  and MAP-011 remain `IN_PROGRESS`, and `python3 tools/ledger.py check` passes
+  at 5,396 blocks.
+
+This follow-up does not change the initial bounded approval or any of its
+remaining requirement boundaries.
