@@ -176148,8 +176148,34 @@
           "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
         }
       ],
-      "validation": [],
-      "reviews": [],
+      "validation": [
+        {
+          "path": "docs/validation/phase4-planner-evaluator.md",
+          "description": "Mainline focused verifier tests and governance gates; broader optimizer and RF acceptance remain open",
+          "revision": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
+          "sha256": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
+          "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
+          "result": "PASS",
+          "scope": "Seven deterministic contract tests only; no candidate generation, optimizer, airtime/interference, repair, physical site, or real-RF validation"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase4-planner-evaluator-review.md",
+          "description": "Independent bounded evaluator review",
+          "revision": "7170906070ed32076c5257ddeda1d542e6cd66d2",
+          "sha256": "83bf013b1efbd9e39c023ba6f4946a0a0dcab2b69380b38b63d900c2aceae823",
+          "reviewer": "/root/phase5_spectrum_independent_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Exact RSSI-threshold/resource-limit boundaries and non-decisive missing-link coefficient behavior could use dedicated regression tests.",
+              "resolution": "DOCUMENTED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:9d60f9af713d891fd383:1",
@@ -176212,8 +176238,34 @@
           "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
         }
       ],
-      "validation": [],
-      "reviews": [],
+      "validation": [
+        {
+          "path": "docs/validation/phase4-planner-evaluator.md",
+          "description": "Mainline focused verifier tests and governance gates; broader optimizer and RF acceptance remain open",
+          "revision": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
+          "sha256": "de55b1ea150d7c58825e5480b53b535b393ce227576f31ffbe1c32ac6654417a",
+          "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
+          "result": "PASS",
+          "scope": "Bounded deterministic proposed-plan verifier only; solver, repair, airtime/interference and Phase 4 runtime gates remain open"
+        }
+      ],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase4-planner-evaluator-review.md",
+          "description": "Independent bounded evaluator review",
+          "revision": "7170906070ed32076c5257ddeda1d542e6cd66d2",
+          "sha256": "83bf013b1efbd9e39c023ba6f4946a0a0dcab2b69380b38b63d900c2aceae823",
+          "reviewer": "/root/phase5_spectrum_independent_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Exact RSSI-threshold/resource-limit boundaries and non-decisive missing-link coefficient behavior could use dedicated regression tests.",
+              "resolution": "DOCUMENTED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:9d60f9af713d891fd383:1",

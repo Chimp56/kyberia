@@ -8,8 +8,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current phase: **Phase 0 — Research harness and architecture proof**.
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
-- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; and Phase 8 plugin parser contract at `8cce7c1`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Most recent integration change: the bounded Phase 8 plugin declaration/parser contract at `8cce7c1`, with independent correction re-review `51f5caa`. This does not close a roadmap phase; WIT validation, component execution, sandbox/runtime enforcement, physical and hosted product gates remain open.
+- Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; and the bounded Phase 4 planner evaluator at `3370d17`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
+- Most recent integration change: the bounded Phase 4 planner evaluator at `3370d17`, independently reviewed at `015b86f`. It verifies caller-proposed plans only and does not close the optimizer, airtime/interference, repair, or broader Phase 4 gates.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -57,6 +57,12 @@ The Phase 8 plugin declaration/parser contract is integrated at `8cce7c1`
 with correction re-review `51f5caa`. Raw input and nesting are bounded before
 deserialization. WIT compilation, component execution, sandbox enforcement,
 sample integrations and Phase 8 exit remain open.
+
+The bounded Phase 4 evaluator is integrated at `3370d17`, with its independent
+review at `015b86f`. It verifies deterministic, caller-supplied assignments
+against represented constraints. Exact-threshold/resource-boundary test cases
+remain useful follow-ups; candidate generation, optimization, airtime,
+interference, repair and Phase 4 exit remain open.
 
 ## Historical execution checkpoint — 2026-09-22
 
@@ -332,13 +338,14 @@ Earlier detailed checkpoints and validation histories are retained in
 Tests and trash artifacts remain retained for manual cleanup. Agents use isolated
 worktrees, and no author is the sole reviewer of a meaningful feature.
 
-## Isolated Phase 4 candidate — pending review
+## Integrated Phase 4 foundation — bounded plan verifier
 
-Branch `feat/phase4-planner-evaluator-current` contains a bounded deterministic
-contract for independently checking small proposed AP plans from caller-supplied
-link coefficients and explicit assignments. It reports represented coverage,
-capacity, client-count, AP-count, and budget constraints with structured
-binding/violation/unknown evidence. The candidate is isolated and not integrated;
-it does not include a solver, airtime/interference model, repair loop, or proof
-of optimality. Phase 4 remains open pending independent review and the broader
-plan acceptance gates.
+The bounded deterministic verifier is integrated on `main` at `3370d17` and
+independently reviewed in
+[`phase4-planner-evaluator-review.md`](docs/reviews/phase4-planner-evaluator-review.md).
+It checks small proposed AP plans from caller-supplied link coefficients and
+explicit assignments, reporting represented coverage, capacity, client-count,
+AP-count and budget constraints with structured binding/violation/unknown
+evidence. The reviewer found no blocker or major issue and recommends stronger
+exact-threshold/resource-boundary tests. This is not a solver, airtime or
+interference model, repair loop or proof of optimality. Phase 4 remains open.
