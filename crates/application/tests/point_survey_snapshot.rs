@@ -1,8 +1,9 @@
 use kyberia_application::{
     Application, ErrorKind, OpenProject, PointId, PointSnapshotInputVersion, PointSurvey,
-    PointSurveySnapshotRequest, SessionMode,
+    PointSurveySnapshotHistoryPageLimits, PointSurveySnapshotRequest, SessionMode,
 };
 use kyberia_domain::identity::{SessionId, Text};
+use kyberia_resource_budget::NeverCancel;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -182,11 +183,118 @@ fn snapshot_history_is_validated_and_filtered_by_survey_session() {
         .list_point_survey_snapshot_history(Some(second_session))
         .unwrap();
     let all_history = session.list_point_survey_snapshot_history(None).unwrap();
-    assert_eq!(first_history.len(), 1);
-    assert_eq!(first_history[0].receipt(), &first_receipt);
-    assert_eq!(second_history.len(), 1);
-    assert_eq!(second_history[0].receipt(), &second_receipt);
-    assert_eq!(all_history.len(), 2);
-    assert_eq!(all_history[0].receipt().snapshot_id(), identity(45));
-    assert_eq!(all_history[1].receipt().snapshot_id(), identity(46));
+    assert_eq!(first_history.entries().len(), 1);
+    assert_eq!(first_history.entries()[0].receipt(), &first_receipt);
+    assert_eq!(second_history.entries().len(), 1);
+    assert_eq!(second_history.entries()[0].receipt(), &second_receipt);
+    assert_eq!(all_history.entries().len(), 2);
+    assert_eq!(
+        all_history.entries()[0].receipt().snapshot_id(),
+        identity(45)
+    );
+    assert_eq!(
+        all_history.entries()[1].receipt().snapshot_id(),
+        identity(46)
+    );
+}
+
+#[test]
+fn history_page_pins_revision_checks_resource_limits_and_cancels_cooperatively() {
+    let path = retained_directory().join("history-page.rfatlas");
+    let mut session = create_project(&path);
+    session
+        .save_point_survey_snapshot(request(47, survey(1), 2, Some(1)))
+        .unwrap();
+    session
+        .save_point_survey_snapshot(request(48, survey(2), 3, Some(2)))
+        .unwrap();
+
+    let limits = PointSurveySnapshotHistoryPageLimits {
+        max_items: 1,
+        ..PointSurveySnapshotHistoryPageLimits::default()
+    };
+    let first = session
+        .list_point_survey_snapshot_history_page_with_cancel(None, None, limits, &mut NeverCancel)
+        .unwrap();
+    assert_eq!(first.entries().len(), 1);
+    let cursor = first.next_cursor().unwrap().clone();
+    session
+        .save_point_survey_snapshot(request(49, survey(3), 4, Some(3)))
+        .unwrap();
+    let second = session
+        .list_point_survey_snapshot_history_page_with_cancel(
+            None,
+            Some(cursor),
+            limits,
+            &mut NeverCancel,
+        )
+        .unwrap();
+    assert_eq!(second.entries().len(), 1);
+    assert_eq!(second.entries()[0].receipt().snapshot_id(), identity(48));
+    assert!(
+        second.next_cursor().is_none(),
+        "new writes are above the pinned high-water revision"
+    );
+
+    let invalid_limits = PointSurveySnapshotHistoryPageLimits {
+        max_items: 0,
+        ..PointSurveySnapshotHistoryPageLimits::default()
+    };
+    let error = session
+        .list_point_survey_snapshot_history_page_with_cancel(
+            None,
+            None,
+            invalid_limits,
+            &mut NeverCancel,
+        )
+        .unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::InvalidRequest);
+
+    let insufficient_work = PointSurveySnapshotHistoryPageLimits {
+        max_work_units: 1,
+        ..PointSurveySnapshotHistoryPageLimits::default()
+    };
+    let error = session
+        .list_point_survey_snapshot_history_page_with_cancel(
+            None,
+            None,
+            insufficient_work,
+            &mut NeverCancel,
+        )
+        .unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::ResourceLimit);
+
+    struct CancelNow;
+    impl kyberia_resource_budget::CancellationHook for CancelNow {
+        fn is_cancelled(&mut self) -> bool {
+            true
+        }
+    }
+    let error = session
+        .list_point_survey_snapshot_history_page_with_cancel(
+            None,
+            None,
+            PointSurveySnapshotHistoryPageLimits::default(),
+            &mut CancelNow,
+        )
+        .unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::Cancelled);
+}
+
+#[test]
+fn snapshot_write_errors_classify_identity_conflicts_and_timestamp_requests() {
+    let path = retained_directory().join("snapshot-errors.rfatlas");
+    let mut session = create_project(&path);
+    session
+        .save_point_survey_snapshot(request(50, survey(1), 2, Some(1)))
+        .unwrap();
+    let conflict = session
+        .save_point_survey_snapshot(request(50, survey(2), 3, Some(2)))
+        .unwrap_err();
+    assert_eq!(conflict.kind(), ErrorKind::Conflict);
+
+    let timestamp = session
+        .save_point_survey_snapshot(request(51, survey(1), 1, Some(2)))
+        .unwrap_err();
+    assert_eq!(timestamp.kind(), ErrorKind::InvalidRequest);
 }

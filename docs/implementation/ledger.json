@@ -34662,12 +34662,28 @@
         },
         {
           "path": "crates/application/src/session.rs",
-          "description": "ProjectSession exposes typed immutable point-survey snapshot save/load/history; capture orchestration and desktop flow remain open",
-          "revision": "f44547cdb5e262a9d1fa546f4d91e6ec75d45bb98be054048aa8a73d711a4be0",
-          "sha256": "f44547cdb5e262a9d1fa546f4d91e6ec75d45bb98be054048aa8a73d711a4be0"
+          "description": "ProjectSession exposes typed snapshot save/load and bounded cancellable cursor pages; capture orchestration and desktop flow remain open",
+          "revision": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00",
+          "sha256": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00"
+        },
+        {
+          "path": "crates/project-store/src/survey_snapshot.rs",
+          "description": "Complete metadata validation with all-or-error cursor pages, per-page byte/work bounds, and cooperative cancellation",
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         }
       ],
-      "validation": [],
+      "validation": [
+        {
+          "path": "docs/validation/phase1-point-survey-application-session-20260923.md",
+          "description": "Bounded/cancellable history pages replay returned artifacts only while validating full inventory metadata; Phase 1/SUR-001 remain open",
+          "command": "cargo test --locked --offline -p kyberia-project-store",
+          "result": "PASS",
+          "scope": "Snapshot persistence/history foundation only; not complete point capture or SUR-001 acceptance",
+          "revision": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9",
+          "sha256": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9"
+        }
+      ],
       "reviews": [
         {
           "path": "docs/reviews/survey-point-review.md",
@@ -103483,8 +103499,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -106275,8 +106291,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -106520,8 +106536,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -106748,8 +106764,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -106976,8 +106992,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -107161,8 +107177,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -107347,8 +107363,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -107533,8 +107549,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -107719,8 +107735,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -107905,8 +107921,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -108135,8 +108151,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/observation_chunks.rs",
@@ -114549,8 +114565,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -114688,8 +114704,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118019,14 +118035,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118045,8 +118061,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -118198,14 +118214,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118224,8 +118240,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -118365,14 +118381,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118391,8 +118407,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -118489,14 +118505,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118515,8 +118531,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -118613,14 +118629,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118639,8 +118655,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -118737,14 +118753,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118763,8 +118779,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -118862,14 +118878,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -118900,8 +118916,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -121105,14 +121121,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -121131,8 +121147,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -126200,14 +126216,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -126226,8 +126242,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -126376,14 +126392,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -126402,8 +126418,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -126544,14 +126560,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -126570,8 +126586,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -126711,14 +126727,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -126737,8 +126753,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -159508,14 +159524,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -159546,8 +159562,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -160090,14 +160106,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -160116,8 +160132,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -160383,9 +160399,9 @@
       "implementation": [
         {
           "path": "crates/application/src/session.rs",
-          "description": "Phase 1 point-survey snapshot persistence is integrated; Phase 1 product acceptance remains open",
-          "revision": "f44547cdb5e262a9d1fa546f4d91e6ec75d45bb98be054048aa8a73d711a4be0",
-          "sha256": "f44547cdb5e262a9d1fa546f4d91e6ec75d45bb98be054048aa8a73d711a4be0"
+          "description": "Integrated application history exposes bounded/cancellable cursor pages; Phase 1 product acceptance remains open",
+          "revision": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00",
+          "sha256": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00"
         }
       ],
       "validation": [],
@@ -160757,20 +160773,20 @@
       "implementation": [
         {
           "path": "crates/application/src/session.rs",
-          "description": "Application session persists completed point-survey snapshots and exposes verified history; manual continuous survey and capture orchestration remain open",
-          "revision": "f44547cdb5e262a9d1fa546f4d91e6ec75d45bb98be054048aa8a73d711a4be0",
-          "sha256": "f44547cdb5e262a9d1fa546f4d91e6ec75d45bb98be054048aa8a73d711a4be0"
+          "description": "Application session persists completed point-survey snapshots and exposes bounded/cancellable cursor history; manual continuous survey and capture orchestration remain open",
+          "revision": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00",
+          "sha256": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase1-point-survey-application-session-20260923.md",
-          "description": "Locked/offline application, project-store, and survey tests plus focused architecture, source inventory, ledger, formatting, and strict Clippy checks",
+          "description": "Locked/offline application, project-store, survey, and observation-pipeline tests; strict Clippy, format, architecture, and source-inventory checks",
           "command": "cargo test --locked --offline -p kyberia-application",
           "result": "PASS",
           "scope": "Application point-survey persistence boundary and its underlying store/survey validation only; no capture orchestration, desktop flow, or Phase 1 acceptance",
-          "revision": "b2849a05dfd6b2ef3904565347562226452135a5328de3136e778919100c5285",
-          "sha256": "b2849a05dfd6b2ef3904565347562226452135a5328de3136e778919100c5285"
+          "revision": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9",
+          "sha256": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9"
         }
       ],
       "reviews": [],
@@ -169666,8 +169682,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/tests/schema_guard.rs",
@@ -169678,8 +169694,8 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -169707,8 +169723,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -169868,14 +169884,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/survey/src/config.rs",
@@ -169888,8 +169904,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -170013,8 +170029,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -170480,8 +170496,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/domain/src/project/commands.rs",
@@ -180472,14 +180488,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -180498,8 +180514,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -187101,8 +187117,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -187295,8 +187311,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -187477,8 +187493,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -187659,8 +187675,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -187798,8 +187814,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -187937,8 +187953,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -188119,8 +188135,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -191798,8 +191814,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "SQLite-authoritative durable publication, additive migration, verification, and recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -238542,14 +238558,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -238568,8 +238584,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -238667,14 +238683,14 @@
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
           "description": "Bounded immutable point-survey snapshot index, history, replay, identity, and artifact verification",
-          "revision": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc",
-          "sha256": "abd78b8f4101d7a6d5789c75f0b89863d741d4ca6e3eaa75e0f5f5f5a8f499cc"
+          "revision": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386",
+          "sha256": "d247abf5792c177b4d845fdbc11a036e93a69e68a88c65176a7635164d30b386"
         },
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Transactional project manifest and defensive read-only compatibility preflight",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/project-store/src/sqlite_guard.rs",
@@ -238693,8 +238709,8 @@
         {
           "path": "crates/project-store/tests/survey_snapshot.rs",
           "description": "Adversarial snapshot persistence, replay, migration, corruption, bounds, future-version, and transaction tests",
-          "revision": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
-          "sha256": "0bdb837beb8366729ef82ccc586882d7c3544e92f7a8a5c654493c931ba43f2a",
+          "revision": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
+          "sha256": "6b8e3b4d3c82b577de0acbd021fc462b574080d2e82c61f339c5d9c6406c3aba",
           "command": "cargo test -p kyberia-project-store --test survey_snapshot --locked --offline",
           "scope": "survey_snapshot_contract",
           "result": "PASS"
@@ -238811,8 +238827,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         },
         {
           "path": "crates/application/src/lib.rs",
@@ -241190,8 +241206,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [
@@ -246466,8 +246482,8 @@
         {
           "path": "crates/project-store/src/bundle.rs",
           "description": "Project-bundle operation migration, verification, and projection recovery integration",
-          "revision": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a",
-          "sha256": "3edf65fd5c073198a87eec666853b6b876d715c8763276e8234adc2447a5c97a"
+          "revision": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3",
+          "sha256": "f32ab57a89f0084f911ae3c4f30ce1dfc052e8066f1664c7c597f7a26d57cbe3"
         }
       ],
       "validation": [

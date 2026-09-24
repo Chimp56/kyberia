@@ -25,8 +25,70 @@ use std::path::Path;
 /// JSON document would only increase parser/resource exposure.
 pub const MAX_SURVEY_SNAPSHOT_BYTES: u64 = 8 * 1024 * 1024;
 pub const MAX_SURVEY_SNAPSHOTS: u64 = 4096;
+pub const MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_ITEMS: usize = 64;
+pub const MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_BYTES: u64 = 16 * 1024 * 1024;
+// `BundleManifest::validate` caps the artifact registry at 10,000 entries.
+const MAX_BUNDLE_ARTIFACT_REGISTRY_ENTRIES: u64 = 10_000;
+const MAX_SNAPSHOT_LOOKUP_COMPARISONS: u64 = 13;
+/// Hard maximum page work: up to 10,000 manifest artifact-registry entries,
+/// two SQL row scans, a 13-comparison binary lookup (`ceil(log2(4096 + 1))`),
+/// one index/history pairing, and one page-selection scan per each of 4,096
+/// snapshots (69,632 units), plus one overflow-sentinel row and 64 replays.
+pub const MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS: u64 = MAX_BUNDLE_ARTIFACT_REGISTRY_ENTRIES
+    + MAX_SURVEY_SNAPSHOTS * (2 + MAX_SNAPSHOT_LOOKUP_COMPARISONS + 1 + 1)
+    + 1
+    + MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_ITEMS as u64;
 const SNAPSHOT_MEDIA_TYPE: &str = "application/vnd.kyberia.point-survey+json";
 const SNAPSHOT_OPERATION: &str = "survey_snapshot_commit/v1";
+
+/// Hard limits supplied for one history page. Callers may choose stricter
+/// limits, but cannot raise these per-call resource ceilings.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SurveySnapshotHistoryPageLimits {
+    pub max_items: usize,
+    pub max_artifact_bytes: u64,
+    pub max_work_units: u64,
+}
+
+impl Default for SurveySnapshotHistoryPageLimits {
+    fn default() -> Self {
+        Self {
+            max_items: MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_ITEMS,
+            max_artifact_bytes: MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_BYTES,
+            max_work_units: MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS,
+        }
+    }
+}
+
+/// Opaque append-only traversal position pinned to a project revision and
+/// optional session filter. A cursor must be returned by the same project and
+/// reused with the same filter.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SurveySnapshotHistoryCursor {
+    project_id: ProjectId,
+    session_id: Option<SessionId>,
+    high_water_revision: u64,
+    after: Option<(u64, SnapshotId)>,
+}
+
+/// One all-or-error page of history. Only entries in this page have their
+/// artifact bytes read and replayed; all index/history and artifact-registry
+/// metadata is checked against the complete bounded inventory on every page.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SurveySnapshotHistoryPage {
+    entries: Vec<SurveySnapshotHistory>,
+    next_cursor: Option<SurveySnapshotHistoryCursor>,
+}
+
+impl SurveySnapshotHistoryPage {
+    pub fn entries(&self) -> &[SurveySnapshotHistory] {
+        &self.entries
+    }
+
+    pub fn next_cursor(&self) -> Option<&SurveySnapshotHistoryCursor> {
+        self.next_cursor.as_ref()
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SurveySnapshotRecord {
@@ -448,13 +510,55 @@ impl RawHistoryRow {
     }
 }
 
-fn read_index_rows(transaction: &rusqlite::Transaction<'_>) -> Result<Vec<SurveySnapshotRecord>> {
+fn charge_history_work(work: &mut u64, limit: u64, cancel: &dyn Cancellation) -> Result<()> {
+    charge_history_work_units(work, limit, cancel, 1)
+}
+
+fn charge_history_work_units(
+    work: &mut u64,
+    limit: u64,
+    cancel: &dyn Cancellation,
+    units: u64,
+) -> Result<()> {
+    if cancel.is_cancelled() {
+        return Err(StoreError::Cancelled);
+    }
+    *work = work.checked_add(units).ok_or_else(|| {
+        StoreError::Invalid("survey snapshot history page work resource limit exceeded".into())
+    })?;
+    if *work > limit {
+        return Err(StoreError::Invalid(
+            "survey snapshot history page work resource limit exceeded".into(),
+        ));
+    }
+    Ok(())
+}
+
+fn charge_artifact_registry_work(
+    manifest: &crate::BundleManifest,
+    work: &mut u64,
+    work_limit: u64,
+    cancel: &dyn Cancellation,
+) -> Result<()> {
+    for _ in manifest.artifacts.keys() {
+        charge_history_work(work, work_limit, cancel)?;
+    }
+    Ok(())
+}
+
+fn read_index_rows(
+    transaction: &rusqlite::Transaction<'_>,
+    cancel: &dyn Cancellation,
+    work: &mut u64,
+    work_limit: u64,
+) -> Result<Vec<SurveySnapshotRecord>> {
     let mut statement = transaction.prepare(
-        "SELECT snapshot_id,project_id,session_id,point_id,source_id,collector_id,artifact_hash,input_schema,output_schema,decoder_version,source_version,created_utc_ms,revision FROM survey_snapshots ORDER BY revision,snapshot_id LIMIT ?1",
+        "SELECT snapshot_id,project_id,session_id,point_id,source_id,collector_id,artifact_hash,input_schema,output_schema,decoder_version,source_version,created_utc_ms,revision FROM survey_snapshots ORDER BY snapshot_id LIMIT ?1",
     )?;
     let mut rows = statement.query([HISTORY_QUERY_LIMIT])?;
     let mut result = Vec::new();
     while let Some(row) = rows.next()? {
+        charge_history_work(work, work_limit, cancel)?;
         result.push(RawSnapshotRow::from_row(row)?.record()?);
     }
     if result.len() as i64 >= HISTORY_QUERY_LIMIT {
@@ -467,6 +571,9 @@ fn read_index_rows(transaction: &rusqlite::Transaction<'_>) -> Result<Vec<Survey
 
 fn read_history_rows(
     transaction: &rusqlite::Transaction<'_>,
+    cancel: &dyn Cancellation,
+    work: &mut u64,
+    work_limit: u64,
 ) -> Result<Vec<SurveySnapshotHistory>> {
     let mut statement = transaction.prepare(
         "SELECT snapshot_id,project_id,session_id,point_id,source_id,collector_id,artifact_hash,input_schema,output_schema,decoder_version,source_version,operation,revision,committed_utc_ms FROM survey_snapshot_history ORDER BY revision LIMIT ?1",
@@ -474,6 +581,7 @@ fn read_history_rows(
     let mut rows = statement.query([HISTORY_QUERY_LIMIT])?;
     let mut result = Vec::new();
     while let Some(row) = rows.next()? {
+        charge_history_work(work, work_limit, cancel)?;
         result.push(RawHistoryRow::from_row(row)?.history()?);
     }
     if result.len() as i64 >= HISTORY_QUERY_LIMIT {
@@ -540,47 +648,53 @@ fn validate_history_matches_index(
 fn validate_history_inventory(
     transaction: &rusqlite::Transaction<'_>,
     manifest: &crate::BundleManifest,
-) -> Result<(Vec<SurveySnapshotRecord>, Vec<SurveySnapshotHistory>)> {
-    let indexes = read_index_rows(transaction)?;
-    let histories = read_history_rows(transaction)?;
+    cancel: &dyn Cancellation,
+    work: &mut u64,
+    work_limit: u64,
+) -> Result<Vec<(SurveySnapshotRecord, SurveySnapshotHistory)>> {
+    let indexes = read_index_rows(transaction, cancel, work, work_limit)?;
+    let histories = read_history_rows(transaction, cancel, work, work_limit)?;
     if indexes.len() != histories.len() {
         return Err(StoreError::Corrupt(
             "survey snapshot index and history cardinalities differ".into(),
         ));
     }
-    for index in &indexes {
-        let mut matches = histories
-            .iter()
-            .filter(|history| history.snapshot_id == index.snapshot_id);
-        let Some(history) = matches.next() else {
+    // `read_index_rows` orders by the primary-key snapshot_id. Its lowercase
+    // hex encoding has the same order as SnapshotId's byte-array Ord.
+    let mut matched_index_count = 0;
+    let mut matched_indices = vec![false; indexes.len()];
+    let mut matched = Vec::with_capacity(histories.len());
+    for history in histories {
+        charge_history_work_units(work, work_limit, cancel, MAX_SNAPSHOT_LOOKUP_COMPARISONS)?;
+        let position = indexes
+            .binary_search_by_key(&history.snapshot_id, |index| index.snapshot_id)
+            .map_err(|_| {
+                StoreError::Corrupt("survey snapshot history has no matching index".into())
+            })?;
+        charge_history_work(work, work_limit, cancel)?;
+        if std::mem::replace(&mut matched_indices[position], true) {
             return Err(StoreError::Corrupt(
-                "survey snapshot index has missing history".into(),
-            ));
-        };
-        if matches.next().is_some() {
-            return Err(StoreError::Corrupt(
-                "survey snapshot index has duplicate history".into(),
-            ));
-        }
-        validate_history_matches_index(history, index, manifest)?;
-    }
-    for history in &histories {
-        let mut matches = indexes
-            .iter()
-            .filter(|index| index.snapshot_id == history.snapshot_id);
-        let Some(index) = matches.next() else {
-            return Err(StoreError::Corrupt(
-                "survey snapshot history has an extra index".into(),
-            ));
-        };
-        if matches.next().is_some() {
-            return Err(StoreError::Corrupt(
-                "survey snapshot history has duplicate index".into(),
+                "survey snapshot history has duplicate snapshot identity".into(),
             ));
         }
-        validate_history_matches_index(history, index, manifest)?;
+        matched_index_count += 1;
+        let index = &indexes[position];
+        validate_history_matches_index(&history, index, manifest)?;
+        let entry = manifest
+            .artifacts
+            .get(&index.artifact_hash)
+            .ok_or_else(|| {
+                StoreError::Corrupt("survey snapshot artifact is unregistered".into())
+            })?;
+        validate_snapshot_entry(entry, index)?;
+        matched.push((index.clone(), history));
     }
-    Ok((indexes, histories))
+    if matched_index_count != indexes.len() {
+        return Err(StoreError::Corrupt(
+            "survey snapshot index has no matching history".into(),
+        ));
+    }
+    Ok(matched)
 }
 
 fn validate_snapshot_history_pair(
@@ -720,7 +834,20 @@ impl Bundle {
         }
         // Preserve the fail-closed property for all write paths: an existing
         // index/history divergence must not be hidden by a later snapshot.
-        validate_history_inventory(&transaction, &manifest)?;
+        let mut history_work = 0;
+        charge_artifact_registry_work(
+            &manifest,
+            &mut history_work,
+            MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS,
+            &NeverCancel,
+        )?;
+        validate_history_inventory(
+            &transaction,
+            &manifest,
+            &NeverCancel,
+            &mut history_work,
+            MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS,
+        )?;
         if let Some(raw) = existing_row(&transaction, &snapshot_text)? {
             let existing = raw.record()?;
             if existing.project_id != manifest.project_id {
@@ -914,9 +1041,23 @@ impl Bundle {
         // query. An already-open handle must not trust an externally replaced
         // table/view between operations.
         let manifest = load_manifest(&transaction)?;
-        let (indexes, _) = validate_history_inventory(&transaction, &manifest)?;
-        let record = indexes
+        let mut history_work = 0;
+        charge_artifact_registry_work(
+            &manifest,
+            &mut history_work,
+            MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS,
+            cancel,
+        )?;
+        let inventory = validate_history_inventory(
+            &transaction,
+            &manifest,
+            cancel,
+            &mut history_work,
+            MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS,
+        )?;
+        let record = inventory
             .into_iter()
+            .map(|(record, _)| record)
             .find(|record| record.snapshot_id == snapshot_id)
             .ok_or_else(|| StoreError::Invalid("survey snapshot is not registered".into()))?;
         if expected_session.is_some_and(|expected| expected != record.session_id) {
@@ -937,30 +1078,148 @@ impl Bundle {
         })
     }
 
-    /// Read append-only snapshot history in commit order. The complete bounded
-    /// inventory is checked before applying an optional session filter, so a
-    /// caller cannot hide an extra or missing history row by choosing a filter.
-    pub fn list_survey_snapshot_history(
+    /// Read one bounded page of append-only snapshot history in commit order.
+    /// Each call validates complete inventory metadata before applying the
+    /// optional session filter, then replays only artifacts returned on this
+    /// page. The opaque continuation cursor pins traversal to the first
+    /// request's project, filter, and high-water bundle revision.
+    pub fn list_survey_snapshot_history_page(
         &self,
         session_id: Option<SessionId>,
-    ) -> Result<Vec<SurveySnapshotHistory>> {
+        cursor: Option<SurveySnapshotHistoryCursor>,
+        limits: SurveySnapshotHistoryPageLimits,
+        cancel: &dyn Cancellation,
+    ) -> Result<SurveySnapshotHistoryPage> {
+        if cancel.is_cancelled() {
+            return Err(StoreError::Cancelled);
+        }
+        if limits.max_items == 0
+            || limits.max_items > MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_ITEMS
+            || limits.max_artifact_bytes == 0
+            || limits.max_artifact_bytes > MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_BYTES
+            || limits.max_work_units == 0
+            || limits.max_work_units > MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS
+        {
+            return Err(StoreError::Invalid(
+                "invalid survey snapshot history page limits".into(),
+            ));
+        }
         self.start_operation()?;
         ensure_snapshot_schema(self)?;
         let transaction =
             rusqlite::Transaction::new_unchecked(&self.connection, TransactionBehavior::Deferred)?;
         let manifest = load_manifest(&transaction)?;
-        let (indexes, histories) = validate_history_inventory(&transaction, &manifest)?;
-        // Replay every bounded index row before applying the optional session
-        // projection. A filtered query must not conceal corruption in another
-        // session or return metadata detached from its evidence bytes.
-        for index in &indexes {
-            read_and_replay_snapshot(&self.root, &manifest, index, &NeverCancel)?;
+        let (high_water_revision, after) = match &cursor {
+            Some(cursor) => {
+                if cursor.project_id != manifest.project_id
+                    || cursor.session_id != session_id
+                    || cursor.high_water_revision > manifest.revision
+                    || cursor
+                        .after
+                        .is_some_and(|(revision, _)| revision > cursor.high_water_revision)
+                {
+                    return Err(StoreError::Invalid(
+                        "survey snapshot history cursor does not match this project query".into(),
+                    ));
+                }
+                (cursor.high_water_revision, cursor.after)
+            }
+            None => (manifest.revision, None),
+        };
+        let mut work = 0;
+        charge_artifact_registry_work(&manifest, &mut work, limits.max_work_units, cancel)?;
+        let inventory = validate_history_inventory(
+            &transaction,
+            &manifest,
+            cancel,
+            &mut work,
+            limits.max_work_units,
+        )?;
+        let mut entries = Vec::new();
+        let mut total_bytes = 0_u64;
+        let mut has_more = false;
+        for (index, history) in inventory {
+            charge_history_work(&mut work, limits.max_work_units, cancel)?;
+            let after_cursor = after.is_none_or(|(revision, snapshot_id)| {
+                history.revision > revision
+                    || (history.revision == revision && history.snapshot_id > snapshot_id)
+            });
+            if !after_cursor
+                || history.revision > high_water_revision
+                || session_id.is_some_and(|session| history.session_id != session)
+            {
+                continue;
+            }
+            if entries.len() == limits.max_items {
+                has_more = true;
+                break;
+            }
+            let artifact = manifest
+                .artifacts
+                .get(&index.artifact_hash)
+                .expect("full inventory validation checked snapshot artifact metadata");
+            let Some(page_bytes) = total_bytes.checked_add(artifact.bytes) else {
+                return Err(StoreError::Invalid(
+                    "survey snapshot history page byte resource limit exceeded".into(),
+                ));
+            };
+            if page_bytes > limits.max_artifact_bytes {
+                if entries.is_empty() {
+                    return Err(StoreError::Invalid(
+                        "survey snapshot history page byte resource limit exceeded".into(),
+                    ));
+                }
+                has_more = true;
+                break;
+            }
+            charge_history_work(&mut work, limits.max_work_units, cancel)?;
+            read_and_replay_snapshot(&self.root, &manifest, &index, cancel)?;
+            total_bytes = page_bytes;
+            entries.push(history);
         }
-        let result: Vec<_> = histories
-            .into_iter()
-            .filter(|history| session_id.is_none_or(|session| history.session_id == session))
-            .collect();
+        if cancel.is_cancelled() {
+            return Err(StoreError::Cancelled);
+        }
+        let next_cursor = if has_more {
+            let after_revision = entries
+                .last()
+                .map(|entry| (entry.revision, entry.snapshot_id))
+                .or(after);
+            Some(SurveySnapshotHistoryCursor {
+                project_id: manifest.project_id,
+                session_id,
+                high_water_revision,
+                after: after_revision,
+            })
+        } else {
+            None
+        };
         transaction.commit()?;
-        Ok(result)
+        Ok(SurveySnapshotHistoryPage {
+            entries,
+            next_cursor,
+        })
+    }
+
+    /// Compatibility convenience for callers that only handle a small
+    /// history. It is strictly a single-page operation: histories exceeding
+    /// the default item/byte limits return an error without exposing a partial
+    /// result. New code should use `list_survey_snapshot_history_page`.
+    pub fn list_survey_snapshot_history(
+        &self,
+        session_id: Option<SessionId>,
+    ) -> Result<Vec<SurveySnapshotHistory>> {
+        let page = self.list_survey_snapshot_history_page(
+            session_id,
+            None,
+            SurveySnapshotHistoryPageLimits::default(),
+            &NeverCancel,
+        )?;
+        if page.next_cursor.is_some() {
+            return Err(StoreError::Invalid(
+                "survey snapshot history exceeds single-page compatibility resource limit; use cursor pages".into(),
+            ));
+        }
+        Ok(page.entries)
     }
 }

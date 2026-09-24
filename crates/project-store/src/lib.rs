@@ -34,8 +34,12 @@ pub use observation_chunks::{
     PARQUET_OBSERVATION_CHUNK_MEDIA_TYPE, PARQUET_SCHEMA_FINGERPRINT,
 };
 pub use operation_log::{OperationAppendOutcome, OperationStoreState};
-pub use survey_snapshot::MAX_SURVEY_SNAPSHOT_BYTES;
-pub use survey_snapshot::{LoadedSurveySnapshot, SurveySnapshotHistory, SurveySnapshotRecord};
+pub use survey_snapshot::{
+    LoadedSurveySnapshot, MAX_SURVEY_SNAPSHOT_BYTES, MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_BYTES,
+    MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_ITEMS, MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS,
+    SurveySnapshotHistory, SurveySnapshotHistoryCursor, SurveySnapshotHistoryPage,
+    SurveySnapshotHistoryPageLimits, SurveySnapshotRecord,
+};
 
 #[derive(Debug)]
 pub enum StoreError {

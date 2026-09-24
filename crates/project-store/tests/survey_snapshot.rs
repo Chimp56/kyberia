@@ -2,11 +2,13 @@ use kyberia_domain::{
     capability::*, evidence::*, identity::*, observation::*, spatial::*, time::*, units::*,
 };
 use kyberia_project_store::{
-    Bundle, MAX_SURVEY_SNAPSHOT_BYTES, OpenMode, StoreError, content_hash,
+    Bundle, Cancellation, MAX_SURVEY_SNAPSHOT_BYTES, NeverCancel, OpenMode, StoreError,
+    SurveySnapshotHistory, SurveySnapshotHistoryCursor, SurveySnapshotHistoryPageLimits,
+    content_hash,
 };
 use kyberia_survey::*;
 use rusqlite::Connection;
-use std::{collections::BTreeMap, fs, num::NonZeroU32};
+use std::{cell::Cell, collections::BTreeMap, fs, num::NonZeroU32};
 
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
@@ -32,6 +34,27 @@ fn project(root: &std::path::Path) -> Bundle {
         1,
     )
     .unwrap()
+}
+
+fn history(
+    bundle: &Bundle,
+    session_id: Option<SessionId>,
+) -> Result<Vec<SurveySnapshotHistory>, StoreError> {
+    let mut cursor: Option<SurveySnapshotHistoryCursor> = None;
+    let mut entries = Vec::new();
+    loop {
+        let page = bundle.list_survey_snapshot_history_page(
+            session_id,
+            cursor,
+            SurveySnapshotHistoryPageLimits::default(),
+            &NeverCancel,
+        )?;
+        entries.extend_from_slice(page.entries());
+        cursor = page.next_cursor().cloned();
+        if cursor.is_none() {
+            return Ok(entries);
+        }
+    }
 }
 
 fn snapshot_id(byte: u8) -> SnapshotId {
@@ -259,7 +282,7 @@ fn save_reopen_and_associations_roundtrip_with_receipt() {
     assert_eq!(record.source_id, state.config().data().source_id);
     assert_eq!(record.collector_id, state.config().data().collector_id);
     assert_eq!(bundle.manifest().unwrap().revision, 1);
-    let history = bundle.list_survey_snapshot_history(None).unwrap();
+    let history = history(&bundle, None).unwrap();
     assert_eq!(history.len(), 1);
     assert_eq!(history[0].source_id, state.config().data().source_id);
     assert_eq!(history[0].collector_id, state.config().data().collector_id);
@@ -316,7 +339,7 @@ fn duplicate_identity_is_idempotent_and_revisions_preserve_history() {
         .save_survey_snapshot(snapshot_id(2), &state, 4)
         .unwrap();
     assert_eq!(second.revision, 2);
-    let history = bundle.list_survey_snapshot_history(None).unwrap();
+    let history = history(&bundle, None).unwrap();
     assert_eq!(history.len(), 2);
     assert_eq!(history[0].revision, 1);
     assert_eq!(history[1].revision, 2);
@@ -342,7 +365,7 @@ fn malformed_future_and_oversized_input_fail_without_revision_changes() {
         bundle.import_survey_snapshot(snapshot_id(3), &oversized, 2, None),
         Err(StoreError::Corrupt(message)) if message.contains("8 MiB")
     ));
-    assert_eq!(bundle.list_survey_snapshot_history(None).unwrap().len(), 0);
+    assert_eq!(history(&bundle, None).unwrap().len(), 0);
 }
 
 #[test]
@@ -391,7 +414,7 @@ fn optimistic_revision_rejects_stale_handle_without_partial_metadata() {
         Err(StoreError::Invalid(message)) if message.contains("stale project revision")
     ));
     assert_eq!(second.manifest().unwrap().revision, 1);
-    assert_eq!(second.list_survey_snapshot_history(None).unwrap().len(), 1);
+    assert_eq!(history(&second, None).unwrap().len(), 1);
     second
         .save_survey_snapshot_if_revision(snapshot_id(6), &state, 4, Some(1))
         .unwrap();
@@ -413,12 +436,7 @@ fn projection_failure_rolls_back_snapshot_index_and_revision() {
             .is_err()
     );
     assert_eq!(bundle.manifest().unwrap(), before);
-    assert!(
-        bundle
-            .list_survey_snapshot_history(None)
-            .unwrap()
-            .is_empty()
-    );
+    assert!(history(&bundle, None).unwrap().is_empty());
     assert!(bundle.load_survey_snapshot(snapshot_id(7)).is_err());
 }
 
@@ -439,7 +457,7 @@ fn manifest_only_legacy_bundle_adds_snapshot_tables_transactionally() {
     upgraded
         .save_survey_snapshot(snapshot_id(8), &fixture_state(), 2)
         .unwrap();
-    let history = upgraded.list_survey_snapshot_history(None).unwrap();
+    let history = history(&upgraded, None).unwrap();
     assert_eq!(history.len(), 1);
     assert_eq!(
         history[0].source_id,
@@ -595,7 +613,7 @@ fn snapshot_timestamp_must_not_regress_manifest_and_equal_is_allowed() {
         Err(StoreError::Invalid(message)) if message.contains("precedes")
     ));
     assert_eq!(bundle.manifest().unwrap().revision, 1);
-    assert_eq!(bundle.list_survey_snapshot_history(None).unwrap().len(), 1);
+    assert_eq!(history(&bundle, None).unwrap().len(), 1);
 }
 
 #[test]
@@ -667,7 +685,7 @@ fn missing_extra_and_mismatched_history_fail_load_list_and_duplicate_save() {
 
         let mut reopened = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
         assert!(reopened.load_survey_snapshot(snapshot_id(13)).is_err());
-        assert!(reopened.list_survey_snapshot_history(None).is_err());
+        assert!(history(&reopened, None).is_err());
         assert!(!reopened.verify().unwrap().failures.is_empty());
         assert!(
             reopened
@@ -747,13 +765,13 @@ fn snapshot_timestamps_must_remain_inside_manifest_interval_on_replay() {
         drop(database);
         let bundle = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
         assert!(bundle.load_survey_snapshot(record.snapshot_id).is_err());
-        assert!(bundle.list_survey_snapshot_history(None).is_err());
+        assert!(history(&bundle, None).is_err());
         assert!(!bundle.verify().unwrap().failures.is_empty());
     }
 }
 
 #[test]
-fn filtered_history_listing_replays_and_validates_excluded_sessions() {
+fn filtered_history_replays_returned_artifacts_but_checks_full_metadata() {
     let dir = tempfile::tempdir().unwrap().keep();
     let path = dir.join("project");
     let mut bundle = project(&path);
@@ -772,11 +790,36 @@ fn filtered_history_listing_replays_and_validates_excluded_sessions() {
     )
     .unwrap();
     let bundle = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
+    assert_eq!(
+        history(&bundle, Some(first_record.session_id))
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(history(&bundle, Some(second_record.session_id)).is_err());
+    assert!(history(&bundle, None).is_err());
+
+    let database = Connection::open(path.join("project.sqlite")).unwrap();
+    let body: Vec<u8> = database
+        .query_row("SELECT body FROM bundle_manifest", [], |row| row.get(0))
+        .unwrap();
+    let mut manifest: kyberia_project_store::BundleManifest =
+        serde_json::from_slice(&body).unwrap();
+    manifest
+        .artifacts
+        .get_mut(&second_record.artifact_hash)
+        .unwrap()
+        .media_type = "application/octet-stream".into();
+    database
+        .execute(
+            "UPDATE bundle_manifest SET body=?1",
+            [serde_json::to_vec(&manifest).unwrap()],
+        )
+        .unwrap();
+    drop(database);
     assert!(
-        bundle
-            .list_survey_snapshot_history(Some(first_record.session_id))
-            .is_err(),
-        "filtered listing concealed another session's corrupt evidence"
+        history(&bundle, Some(first_record.session_id)).is_err(),
+        "filter concealed tampered artifact-registry metadata"
     );
 }
 
@@ -822,9 +865,196 @@ fn history_query_is_bounded_before_allocation() {
 
     let bundle = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
     assert!(matches!(
-        bundle.list_survey_snapshot_history(None),
+        bundle.list_survey_snapshot_history_page(
+            None,
+            None,
+            SurveySnapshotHistoryPageLimits::default(),
+            &NeverCancel,
+        ),
         Err(StoreError::Corrupt(message)) if message.contains("exceeds resource limit")
     ));
+}
+
+#[test]
+fn history_pages_pin_revision_and_advance_by_total_order_under_session_filter() {
+    let dir = tempfile::tempdir().unwrap().keep();
+    let path = dir.join("project");
+    let mut bundle = project(&path);
+    let first_session = SessionId::from_bytes([30; 16]).unwrap();
+    let other_session = SessionId::from_bytes([31; 16]).unwrap();
+    bundle
+        .save_survey_snapshot(snapshot_id(30), &fixture_state_for_session(30), 2)
+        .unwrap();
+    bundle
+        .save_survey_snapshot(snapshot_id(31), &fixture_state_for_session(31), 3)
+        .unwrap();
+    bundle
+        .save_survey_snapshot(snapshot_id(32), &fixture_state_for_session(30), 4)
+        .unwrap();
+
+    let limits = SurveySnapshotHistoryPageLimits {
+        max_items: 1,
+        ..SurveySnapshotHistoryPageLimits::default()
+    };
+    let first = bundle
+        .list_survey_snapshot_history_page(Some(first_session), None, limits, &NeverCancel)
+        .unwrap();
+    assert_eq!(first.entries().len(), 1);
+    assert_eq!(first.entries()[0].snapshot_id, snapshot_id(30));
+    let cursor = first.next_cursor().unwrap().clone();
+
+    bundle
+        .save_survey_snapshot(snapshot_id(33), &fixture_state_for_session(30), 5)
+        .unwrap();
+    let second = bundle
+        .list_survey_snapshot_history_page(
+            Some(first_session),
+            Some(cursor.clone()),
+            limits,
+            &NeverCancel,
+        )
+        .unwrap();
+    assert_eq!(second.entries().len(), 1);
+    assert_eq!(second.entries()[0].snapshot_id, snapshot_id(32));
+    assert!(second.next_cursor().is_none());
+
+    assert!(matches!(
+        bundle.list_survey_snapshot_history_page(
+            Some(other_session),
+            Some(cursor),
+            limits,
+            &NeverCancel,
+        ),
+        Err(StoreError::Invalid(message)) if message.contains("cursor does not match")
+    ));
+}
+
+#[test]
+fn single_page_compatibility_method_never_returns_partial_history() {
+    let dir = tempfile::tempdir().unwrap().keep();
+    let path = dir.join("project");
+    let mut bundle = project(&path);
+    let survey = fixture_state_for_session(35);
+    for id in 1..=65_u8 {
+        bundle
+            .save_survey_snapshot(snapshot_id(id), &survey, i64::from(id) + 1)
+            .unwrap();
+    }
+
+    assert!(matches!(
+        bundle.list_survey_snapshot_history(None),
+        Err(StoreError::Invalid(message)) if message.contains("single-page compatibility resource limit")
+    ));
+    assert_eq!(history(&bundle, None).unwrap().len(), 65);
+    assert!(bundle.verify().unwrap().failures.is_empty());
+}
+
+#[test]
+fn history_page_byte_work_and_cancellation_limits_are_all_or_error() {
+    let dir = tempfile::tempdir().unwrap().keep();
+    let path = dir.join("project");
+    let mut bundle = project(&path);
+    let survey = fixture_state_for_session(40);
+    let first = bundle
+        .save_survey_snapshot(snapshot_id(40), &survey, 2)
+        .unwrap();
+    bundle
+        .save_survey_snapshot(snapshot_id(41), &survey, 3)
+        .unwrap();
+    let artifact_bytes = bundle
+        .manifest()
+        .unwrap()
+        .artifacts
+        .get(&first.artifact_hash)
+        .unwrap()
+        .bytes;
+
+    let one_item_short_bytes = SurveySnapshotHistoryPageLimits {
+        max_items: 2,
+        max_artifact_bytes: artifact_bytes - 1,
+        ..SurveySnapshotHistoryPageLimits::default()
+    };
+    assert!(matches!(
+        bundle.list_survey_snapshot_history_page(
+            None,
+            None,
+            one_item_short_bytes,
+            &NeverCancel,
+        ),
+        Err(StoreError::Invalid(message)) if message.contains("byte resource limit")
+    ));
+
+    let exact_one_item_bytes = SurveySnapshotHistoryPageLimits {
+        max_items: 2,
+        max_artifact_bytes: artifact_bytes,
+        ..SurveySnapshotHistoryPageLimits::default()
+    };
+    let page = bundle
+        .list_survey_snapshot_history_page(None, None, exact_one_item_bytes, &NeverCancel)
+        .unwrap();
+    assert_eq!(page.entries().len(), 1);
+    assert!(page.next_cursor().is_some());
+    let second = bundle
+        .list_survey_snapshot_history_page(
+            None,
+            page.next_cursor().cloned(),
+            exact_one_item_bytes,
+            &NeverCancel,
+        )
+        .unwrap();
+    assert_eq!(second.entries().len(), 1);
+    assert!(second.next_cursor().is_none());
+
+    // Registry(1) + two row reads, a 13-comparison binary lookup, pair check,
+    // and selection scan per snapshot = 35 units; replay is unit 36.
+    let one_work_short = SurveySnapshotHistoryPageLimits {
+        max_items: 1,
+        max_work_units: 35,
+        ..SurveySnapshotHistoryPageLimits::default()
+    };
+    assert!(matches!(
+        bundle.list_survey_snapshot_history_page(None, None, one_work_short, &NeverCancel),
+        Err(StoreError::Invalid(message)) if message.contains("work resource limit")
+    ));
+    let exact_work = SurveySnapshotHistoryPageLimits {
+        max_items: 1,
+        max_work_units: 36,
+        ..SurveySnapshotHistoryPageLimits::default()
+    };
+    assert_eq!(
+        bundle
+            .list_survey_snapshot_history_page(None, None, exact_work, &NeverCancel)
+            .unwrap()
+            .entries()
+            .len(),
+        1
+    );
+
+    struct CancelOnPoll {
+        poll: Cell<usize>,
+        cancel_at: usize,
+    }
+    impl Cancellation for CancelOnPoll {
+        fn is_cancelled(&self) -> bool {
+            let next = self.poll.get() + 1;
+            self.poll.set(next);
+            next == self.cancel_at
+        }
+    }
+    let cancel_after_read = CancelOnPoll {
+        poll: Cell::new(0),
+        cancel_at: 15,
+    };
+    assert!(matches!(
+        bundle.list_survey_snapshot_history_page(
+            None,
+            None,
+            SurveySnapshotHistoryPageLimits::default(),
+            &cancel_after_read,
+        ),
+        Err(StoreError::Cancelled)
+    ));
+    assert!(cancel_after_read.poll.get() >= cancel_after_read.cancel_at);
 }
 
 #[test]
@@ -872,10 +1102,7 @@ fn history_listing_rejects_tampered_artifact_metadata_and_bytes() {
                 .unwrap();
         }
         let bundle = Bundle::open(&path, OpenMode::ReadOnly).unwrap();
-        assert!(
-            bundle.list_survey_snapshot_history(None).is_err(),
-            "accepted {tamper}"
-        );
+        assert!(history(&bundle, None).is_err(), "accepted {tamper}");
     }
 }
 

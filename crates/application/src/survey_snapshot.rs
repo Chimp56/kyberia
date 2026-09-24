@@ -4,7 +4,11 @@
 //! state and typed identities, never project-store records or storage errors.
 
 use kyberia_domain::identity::{CollectorId, ContentHash, SessionId, SnapshotId, SourceId};
-use kyberia_project_store::{LoadedSurveySnapshot, SurveySnapshotHistory, SurveySnapshotRecord};
+use kyberia_project_store::{
+    LoadedSurveySnapshot, SurveySnapshotHistory, SurveySnapshotHistoryCursor,
+    SurveySnapshotHistoryPage as StoreSurveySnapshotHistoryPage,
+    SurveySnapshotHistoryPageLimits as StoreSurveySnapshotHistoryPageLimits, SurveySnapshotRecord,
+};
 use kyberia_survey::{
     PointId, PointSnapshotDecodeReceipt, PointSnapshotInputVersion, PointSnapshotSchemaVersion,
     PointSurvey,
@@ -106,6 +110,51 @@ impl PointSurveySnapshotHistoryEntry {
     }
 }
 
+/// Opaque continuation position for append-only point-survey history. It is
+/// pinned to the project/filter/high-water revision from the first page.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PointSurveySnapshotHistoryCursor {
+    pub(crate) inner: SurveySnapshotHistoryCursor,
+}
+
+/// Caller-selectable per-page ceilings. Values may be lowered from defaults;
+/// values above the hard caps or zero are rejected as invalid requests.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PointSurveySnapshotHistoryPageLimits {
+    pub max_items: usize,
+    pub max_artifact_bytes: u64,
+    pub max_work_units: u64,
+}
+
+impl Default for PointSurveySnapshotHistoryPageLimits {
+    fn default() -> Self {
+        Self {
+            max_items: kyberia_project_store::MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_ITEMS,
+            max_artifact_bytes: kyberia_project_store::MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_BYTES,
+            max_work_units: kyberia_project_store::MAX_SURVEY_SNAPSHOT_HISTORY_PAGE_WORK_UNITS,
+        }
+    }
+}
+
+/// A fully validated page. Its entries have replay-validated artifacts; the
+/// complete index/history and artifact-registry metadata inventory was also
+/// checked, while artifact bytes outside this page were not read.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PointSurveySnapshotHistoryPage {
+    entries: Vec<PointSurveySnapshotHistoryEntry>,
+    next_cursor: Option<PointSurveySnapshotHistoryCursor>,
+}
+
+impl PointSurveySnapshotHistoryPage {
+    pub fn entries(&self) -> &[PointSurveySnapshotHistoryEntry] {
+        &self.entries
+    }
+
+    pub fn next_cursor(&self) -> Option<&PointSurveySnapshotHistoryCursor> {
+        self.next_cursor.as_ref()
+    }
+}
+
 pub(crate) fn receipt_from_store(
     record: SurveySnapshotRecord,
 ) -> Result<PointSurveySnapshotReceipt, ApplicationError> {
@@ -152,6 +201,34 @@ pub(crate) fn history_from_store(
         history.committed_utc_ms,
     )?;
     Ok(PointSurveySnapshotHistoryEntry { receipt })
+}
+
+pub(crate) fn history_page_from_store(
+    page: StoreSurveySnapshotHistoryPage,
+) -> Result<PointSurveySnapshotHistoryPage, ApplicationError> {
+    let entries = page
+        .entries()
+        .iter()
+        .cloned()
+        .map(history_from_store)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(PointSurveySnapshotHistoryPage {
+        entries,
+        next_cursor: page
+            .next_cursor()
+            .cloned()
+            .map(|inner| PointSurveySnapshotHistoryCursor { inner }),
+    })
+}
+
+pub(crate) fn store_history_page_limits(
+    limits: PointSurveySnapshotHistoryPageLimits,
+) -> StoreSurveySnapshotHistoryPageLimits {
+    StoreSurveySnapshotHistoryPageLimits {
+        max_items: limits.max_items,
+        max_artifact_bytes: limits.max_artifact_bytes,
+        max_work_units: limits.max_work_units,
+    }
 }
 
 #[allow(clippy::too_many_arguments)]

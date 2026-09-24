@@ -12,8 +12,9 @@ use crate::{
         query_with_cancel,
     },
     survey_snapshot::{
-        LoadedPointSurveySnapshot, PointSurveySnapshotHistoryEntry, PointSurveySnapshotReceipt,
-        PointSurveySnapshotRequest,
+        LoadedPointSurveySnapshot, PointSurveySnapshotHistoryCursor,
+        PointSurveySnapshotHistoryPage, PointSurveySnapshotHistoryPageLimits,
+        PointSurveySnapshotReceipt, PointSurveySnapshotRequest,
     },
 };
 use kyberia_domain::identity::{SessionId, SnapshotId};
@@ -121,8 +122,28 @@ impl ProjectSession {
     pub fn list_point_survey_snapshot_history(
         &self,
         session_id: Option<SessionId>,
-    ) -> Result<Vec<PointSurveySnapshotHistoryEntry>, ApplicationError> {
-        self.store.list_point_survey_snapshot_history(session_id)
+    ) -> Result<PointSurveySnapshotHistoryPage, ApplicationError> {
+        let mut cancel = kyberia_resource_budget::NeverCancel;
+        self.list_point_survey_snapshot_history_page_with_cancel(
+            session_id,
+            None,
+            PointSurveySnapshotHistoryPageLimits::default(),
+            &mut cancel,
+        )
+    }
+
+    /// Return one bounded, replay-validated history page with cooperative
+    /// cancellation. Continue by passing the returned cursor and same session
+    /// filter; the cursor pins traversal to the first page's bundle revision.
+    pub fn list_point_survey_snapshot_history_page_with_cancel<H: CancellationHook>(
+        &self,
+        session_id: Option<SessionId>,
+        cursor: Option<PointSurveySnapshotHistoryCursor>,
+        limits: PointSurveySnapshotHistoryPageLimits,
+        cancel: &mut H,
+    ) -> Result<PointSurveySnapshotHistoryPage, ApplicationError> {
+        self.store
+            .list_point_survey_snapshot_history_page(session_id, cursor, limits, cancel)
     }
 
     /// Admit and durably import one PNG using application-derived causal

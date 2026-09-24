@@ -8,8 +8,10 @@ use crate::{
     },
     query::{CurrentProjectView, snapshot_to_view},
     survey_snapshot::{
-        LoadedPointSurveySnapshot, PointSurveySnapshotHistoryEntry, PointSurveySnapshotReceipt,
-        PointSurveySnapshotRequest, history_from_store, loaded_from_store, receipt_from_store,
+        LoadedPointSurveySnapshot, PointSurveySnapshotHistoryCursor,
+        PointSurveySnapshotHistoryPage, PointSurveySnapshotHistoryPageLimits,
+        PointSurveySnapshotReceipt, PointSurveySnapshotRequest, history_page_from_store,
+        loaded_from_store, receipt_from_store, store_history_page_limits,
     },
 };
 use kyberia_domain::{
@@ -22,11 +24,11 @@ use kyberia_operation_log::{
     OperationError, OperationPayload, OperationSet, ProjectVersion,
 };
 use kyberia_project_store::{
-    ArtifactEntry, ArtifactKind, Bundle, CanonicalProjectSnapshot, OpenMode,
+    ArtifactEntry, ArtifactKind, Bundle, Cancellation, CanonicalProjectSnapshot, OpenMode,
     OperationAppendOutcome, OperationStoreState,
 };
 use kyberia_resource_budget::{CancellationHook, ResourceBudget};
-use std::{collections::BTreeSet, fs, path::Path};
+use std::{cell::RefCell, collections::BTreeSet, fs, path::Path};
 
 /// Inward port used by query/session orchestration. It returns only
 /// application-owned canonical views, so adapter schemas cannot leak outward.
@@ -622,7 +624,7 @@ impl BundleProjectStore {
                 request.committed_utc_ms,
                 request.expected_bundle_revision,
             )
-            .map_err(|error| map_store_error(StoreContext::Mutation, error))?;
+            .map_err(map_snapshot_write_error)?;
         receipt_from_store(record)
     }
 
@@ -638,16 +640,32 @@ impl BundleProjectStore {
         loaded_from_store(loaded)
     }
 
-    pub(crate) fn list_point_survey_snapshot_history(
+    pub(crate) fn list_point_survey_snapshot_history_page<H: CancellationHook>(
         &self,
         session_id: Option<SessionId>,
-    ) -> Result<Vec<PointSurveySnapshotHistoryEntry>, ApplicationError> {
-        self.bundle
-            .list_survey_snapshot_history(session_id)
-            .map_err(|error| map_store_error(StoreContext::Query, error))?
-            .into_iter()
-            .map(history_from_store)
-            .collect()
+        cursor: Option<PointSurveySnapshotHistoryCursor>,
+        limits: PointSurveySnapshotHistoryPageLimits,
+        cancel: &mut H,
+    ) -> Result<PointSurveySnapshotHistoryPage, ApplicationError> {
+        let adapter = StoreCancellationHook(RefCell::new(cancel));
+        let page = self
+            .bundle
+            .list_survey_snapshot_history_page(
+                session_id,
+                cursor.map(|cursor| cursor.inner),
+                store_history_page_limits(limits),
+                &adapter,
+            )
+            .map_err(map_snapshot_history_error)?;
+        history_page_from_store(page)
+    }
+}
+
+struct StoreCancellationHook<'a, H>(RefCell<&'a mut H>);
+
+impl<H: CancellationHook> Cancellation for StoreCancellationHook<'_, H> {
+    fn is_cancelled(&self) -> bool {
+        self.0.borrow_mut().is_cancelled()
     }
 }
 
@@ -659,6 +677,41 @@ fn map_snapshot_read_error(error: kyberia_project_store::StoreError) -> Applicat
         )
     {
         return ApplicationError::new(crate::ErrorKind::InvalidRequest, message.clone());
+    }
+    map_store_error(StoreContext::Query, error)
+}
+
+fn map_snapshot_write_error(error: kyberia_project_store::StoreError) -> ApplicationError {
+    if let kyberia_project_store::StoreError::Invalid(message) = &error {
+        if message == "snapshot identity already has different evidence" {
+            return ApplicationError::new(crate::ErrorKind::Conflict, message.clone());
+        }
+        if matches!(
+            message.as_str(),
+            "snapshot timestamp must be a nonnegative UTC millisecond value"
+                | "snapshot timestamp precedes project creation"
+                | "snapshot timestamp precedes the committed project timestamp"
+        ) {
+            return ApplicationError::new(crate::ErrorKind::InvalidRequest, message.clone());
+        }
+    }
+    map_store_error(StoreContext::Mutation, error)
+}
+
+fn map_snapshot_history_error(error: kyberia_project_store::StoreError) -> ApplicationError {
+    if let kyberia_project_store::StoreError::Invalid(message) = &error {
+        if message.starts_with("survey snapshot history page ")
+            && message.contains("resource limit exceeded")
+        {
+            return ApplicationError::new(crate::ErrorKind::ResourceLimit, message.clone());
+        }
+        if matches!(
+            message.as_str(),
+            "invalid survey snapshot history page limits"
+                | "survey snapshot history cursor does not match this project query"
+        ) {
+            return ApplicationError::new(crate::ErrorKind::InvalidRequest, message.clone());
+        }
     }
     map_store_error(StoreContext::Query, error)
 }

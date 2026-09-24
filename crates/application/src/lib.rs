@@ -36,8 +36,9 @@ pub use query::{
 };
 pub use session::ProjectSession;
 pub use survey_snapshot::{
-    LoadedPointSurveySnapshot, PointSurveySnapshotHistoryEntry, PointSurveySnapshotReceipt,
-    PointSurveySnapshotRequest,
+    LoadedPointSurveySnapshot, PointSurveySnapshotHistoryCursor, PointSurveySnapshotHistoryEntry,
+    PointSurveySnapshotHistoryPage, PointSurveySnapshotHistoryPageLimits,
+    PointSurveySnapshotReceipt, PointSurveySnapshotRequest,
 };
 
 /// Stateless entry point for application use cases.

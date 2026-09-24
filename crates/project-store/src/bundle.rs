@@ -851,8 +851,23 @@ impl Bundle {
                     failures.push("invalid snapshot_id in survey index".into());
                 }
             }
-            if let Err(error) = self.list_survey_snapshot_history(None) {
-                failures.push(error.to_string());
+            let mut cursor = None;
+            loop {
+                match self.list_survey_snapshot_history_page(
+                    None,
+                    cursor,
+                    crate::SurveySnapshotHistoryPageLimits::default(),
+                    &crate::NeverCancel,
+                ) {
+                    Ok(page) => cursor = page.next_cursor().cloned(),
+                    Err(error) => {
+                        failures.push(error.to_string());
+                        break;
+                    }
+                }
+                if cursor.is_none() {
+                    break;
+                }
             }
         }
         if sqlite_guard::has_operation_schema(&self.connection)?

@@ -81,7 +81,14 @@ integrated on `main` at `2a6b4a7` and independently approved in the report
 recorded at `c431869`. `ProjectSession` exposes typed save/load/history
 operations for immutable point-survey snapshots, with retained-bundle
 round-trip, read-only, optimistic-revision, unknown-snapshot, session-filter,
-and decoder-receipt tests. This foundation does not provide capture
+and decoder-receipt tests. The independently reviewed follow-up adds bounded,
+cancellable cursor pages: per-page artifact replay is item/byte/work bounded
+while full inventory and snapshot artifact metadata checks remain in force;
+the legacy single-page convenience method fails rather than returning partial
+history. Typed write errors distinguish stale/identity conflicts from caller
+timestamp requests. Retained-bundle round-trip, read-only, stale revision,
+unknown snapshot, filtering, pagination, byte/work exhaustion, cancellation,
+and error-mapping tests pass. This foundation does not provide capture
 orchestration, a desktop survey flow, continuous-survey support, or Phase 1
 acceptance. See the [focused validation record](docs/validation/phase1-point-survey-application-session-20260923.md)
 and [independent review](docs/reviews/phase1-application-survey-session-review-20260923.md).
