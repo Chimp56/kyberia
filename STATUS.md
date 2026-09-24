@@ -90,14 +90,15 @@ A separate manual current-main desktop workflow adaptation is under author
 validation on `feat/phase0-desktop-map-current`, based on `bc51e80`. It adds a
 fresh-project floor baseline, intent-derived application causality, native
 opaque PNG selection, bounded staging, canonical map/calibration projections,
-and a numeric-only no-preview UI path. Its first independent source review
-requested changes for committed-readback recovery and retry ordering; those
-author fixes are under validation, remain unintegrated, and require a fresh
-independent rereview. The renderer now retains the committed receipt in an
-explicit stale-view state and offers a project query that cannot repeat the
-mutation; an application fixture covers exact retry after reopen with nine
-causal heads. Frontend TSC/Vitest checks pass with generated caches directed to
-the author worktree; the root Vitest cache remained unchanged. The candidate
+and a numeric-only no-preview UI path. Independent reviews requested changes
+for committed-readback recovery, retry ordering and a browser-fixture scope
+error; the author follow-ups address these, and the focused Playwright recovery
+test now passes. The renderer retains the committed receipt in an explicit
+stale-view state and offers a project query that cannot repeat the mutation; an
+application fixture covers exact retry after reopen with nine causal heads.
+TSC, Vitest and the targeted Playwright test pass with generated caches and
+artifacts in the author worktree; the root Vitest cache remained unchanged.
+The candidate remains unintegrated pending fresh independent rereview. Its
 validation packet records remaining synthetic/mocked-only limits. This does
 not change the open Phase 0 exit criteria or the remaining map-format,
 pixel-decoding, two-platform, live-capability and raw-export gates.

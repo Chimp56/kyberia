@@ -12,7 +12,7 @@ rereview. It does not close Phase 0/1 or MAP-002/MAP-003/MAPB-001/MAPB-002.
 
 - §5.3 floor-plan ingestion and coordinate calibration: bounded PNG path and
   numeric two-point calibration only.
-- §6.2 MAP-002 and §6.3 MAP-003: initial floor baseline, operation-derived
+- §6.2 MAP-002 and MAP-003: initial floor baseline, operation-derived
   causality, durable mutation/readback semantics, opaque file selection and
   metadata-only map projection.
 - Phase 0 §17: contributes only a first project/map/calibrated-coordinate
@@ -72,8 +72,14 @@ rereview. It does not close Phase 0/1 or MAP-002/MAP-003/MAPB-001/MAPB-002.
   stale-view recovery and committed-receipt state assertions.
 - Focused exact-retry regression:
   `cargo test --locked --offline -p kyberia-application --test project_session intent_workflow_creates_floor_derives_causality_and_retries_after_reopen -- --exact --nocapture` — PASS with nine concurrent heads.
-- A mocked desktop Playwright E2E regression now covers lagging then successful
-  project readback and asserts one import call; it was not run in this follow-up.
+- `npm --cache ../../.trash/test-runs/npm-cache run e2e -- --config
+  .trash/test-runs/isolated-playwright.config.ts --grep 'committed map receipt
+  exposes a query recovery path without repeating import'` (from
+  `apps/desktop`) — PASS, one Chromium test. The serialized browser fixture
+  receives its baseline explicitly, verifies a lagging read keeps recovery
+  actionable, then verifies a same-project current read reconciles with one
+  import call. The ignored one-off config directs the Vite cache and Playwright
+  artifacts into the author worktree.
 - `cargo check --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml` — PASS on macOS.
 - `cargo check --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --target x86_64-pc-windows-gnu` — BLOCKED before compiling the desktop crate because `libsqlite3-sys` could not find `x86_64-w64-mingw32-gcc`; no Windows adapter compilation or runtime validation is claimed.
 - `python3 tools/architecture.py` — PASS after removing a rejected direct `libc` dependency and retaining platform-specific no-follow flags only for macOS/Linux.
@@ -91,14 +97,17 @@ The symlink was moved back to ignored `.trash/desktop-node-modules-root-link`
 after the checks; its root target was not touched. Before testing, Vitest's
 resolved cache directory was verified as
 `/private/tmp/kyberia-phase0-desktop-map/.trash/test-runs/desktop-vitest-cache`,
-and npm's cache was explicitly set to `.trash/test-runs/npm-cache`. Vitest's
-generated `results.json` appeared only in the author worktree cache. The
+and npm's cache was explicitly set to `.trash/test-runs/npm-cache`. Playwright
+used the same npm cache plus the retained isolated config under
+`apps/desktop/.trash/test-runs/`; its Vite cache and browser artifacts remained
+in the author worktree. Vitest's generated `results.json` appeared only in the
+author worktree cache. The
 pre-existing root cache
 `/Users/vincent/code/kyberia/apps/desktop/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json`
 retained the same modification time and SHA-256 before and after the final
 runs. No `npm install`, chmod or root-cache cleanup was performed.
 
-Playwright, frontend production build, native picker runtime, Windows adapter
+The full Playwright suite, frontend production build, native picker runtime, Windows adapter
 compilation/runtime, and two-platform determinism remain unvalidated. There is
 no live-radio, real PNG pixel decoding/display, field calibration, raw export
 or Phase 0 exit evidence. Fresh independent rereview of the author follow-up

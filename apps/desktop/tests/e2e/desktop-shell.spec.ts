@@ -342,7 +342,7 @@ test("committed map receipt exposes a query recovery path without repeating impo
     ...baselineResponse,
     project: { ...baselineResponse.project!, revision: 0 },
   };
-  await page.addInitScript(({ recovered, staleProject }) => {
+  await page.addInitScript(({ baseline, recovered, staleProject }) => {
     let currentQueries = 0;
     let importCalls = 0;
     window.__RF_ATLAS_IPC__ = {
@@ -353,7 +353,7 @@ test("committed map receipt exposes a query recovery path without repeating impo
       },
       selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/2", selection: null }),
       openProject: async () => recovered,
-      createBlankProject: async () => baselineResponse,
+      createBlankProject: async () => baseline,
       selectMapSource: async () => ({
         schema: "kyberia.desktop-ipc/2",
         selection: { grantId: "map-grant-1", displayName: "Plan.png", byteLength: 1024, kind: "png" },
@@ -379,12 +379,12 @@ test("committed map receipt exposes a query recovery path without repeating impo
       jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 50 }),
       cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
     };
-  }, { recovered: recoveredProject, staleProject });
+  }, { baseline: baselineResponse, recovered: recoveredProject, staleProject });
   await page.goto("/");
   await page.getByRole("region", { name: "Floor plan canvas" }).getByRole("button", { name: "New project", exact: true }).click();
   await page.getByRole("button", { name: "Choose PNG floor plan" }).click();
   await expect(page.getByRole("heading", { name: "Committed map change needs reconciliation" })).toBeVisible();
-  await expect(page.getByText("Operation operation-7 committed at revision 1")).toBeVisible();
+  await expect(page.getByText(/Operation operation-7 committed at revision 1, but its canonical view was not returned/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Refresh project view" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Refresh canonical project view" })).toBeVisible();
 

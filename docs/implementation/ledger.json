@@ -30550,7 +30550,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Author validation of the bounded current-main desktop adaptation; frontend cache isolation and independent review remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
+          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Focused application/core Rust validation passes; separate Tauri suite passes 22+6+2. Frontend checks are stale relative to final assertions and shared Vitest cache was touched; all desktop/product exits remain open."
@@ -31543,7 +31543,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Author validation of canonical two-point bounds, persisted scale projection and the bounded UI adaptation; independent review and later calibration breadth remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
+          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application intent tests verify causal order, exact import/calibration retry after reopen and strict bounds; native UI/adapter and cross-platform gates remain open."
@@ -102903,7 +102903,7 @@
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered Tauri shell lifecycle, progress, cancellation, and session preservation contract",
           "revision": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
-          "sha256": "f02bf593c21b7065f443f73e151b3d8bb3be8b1fed42d1ed86add1df5f1f7ad0",
+          "sha256": "2d142fcc46c3e75ee004e4508bb3d1ff55d1eaf2e97e1fcd1ff3417bf1e44870",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
@@ -102987,7 +102987,7 @@
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered React lifecycle, accessibility, progress, cancellation, retry, and responsive usability checks",
           "revision": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
-          "sha256": "f02bf593c21b7065f443f73e151b3d8bb3be8b1fed42d1ed86add1df5f1f7ad0",
+          "sha256": "2d142fcc46c3e75ee004e4508bb3d1ff55d1eaf2e97e1fcd1ff3417bf1e44870",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
@@ -172633,7 +172633,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Author validation covers bounded grant/staging tests; two-platform selection and independent review remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
+          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
           "command": "cargo test --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --quiet",
           "result": "PASS",
           "scope": "Desktop grant tests pass on macOS; Windows cross-check is blocked by absent MinGW and Linux/macOS runtime fixtures have not both run."
@@ -172716,7 +172716,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Focused current-main application and desktop author validation; frontend/E2E revalidation and independent review remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
+          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application tests validate strict bounds and exact retry/reopen; no pixel decoding, multi-point/CRS, native multi-OS or field calibration acceptance is claimed."
@@ -238066,7 +238066,7 @@
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered desktop/mobile shell, palette semantics, progress/cancel, session preservation and retry assertions",
           "revision": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
-          "sha256": "f02bf593c21b7065f443f73e151b3d8bb3be8b1fed42d1ed86add1df5f1f7ad0",
+          "sha256": "2d142fcc46c3e75ee004e4508bb3d1ff55d1eaf2e97e1fcd1ff3417bf1e44870",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
