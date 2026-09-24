@@ -86045,7 +86045,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md",
+          "description": "Independent current-main review of the Phase 7 convergence integration candidate; approved with no scoped findings",
+          "revision": "a903842570b21287d1f4657305ed93ac7c1ebc86",
+          "sha256": "06ea13f9949f9e84cb23e8895baf843f1138c92460ba31bc260df98d4d152013",
+          "reviewer": "/root/phase7_convergence_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:3d4847dee6c3bda15aee:1",
@@ -166526,7 +166536,17 @@
       "acceptance_cases": [],
       "implementation": [],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md",
+          "description": "Independent current-main review of the Phase 7 convergence integration candidate; approved with no scoped findings",
+          "revision": "a903842570b21287d1f4657305ed93ac7c1ebc86",
+          "sha256": "06ea13f9949f9e84cb23e8895baf843f1138c92460ba31bc260df98d4d152013",
+          "reviewer": "/root/phase7_convergence_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:3a4117f17182d69dee52:1",
@@ -167428,14 +167448,24 @@
         {
           "path": "docs/validation/sionna-convergence-diagnostic.md",
           "description": "Records the passing 14-test synthetic-only author check, including cancellation/failure preservation, and explicitly leaves actual worker, cross-runtime and product gates open.",
-          "revision": "7f32d8722cad9b7357a3b860a805f727e1f4f49e0bdecd52ac0c715618b4a6d8",
-          "sha256": "7f32d8722cad9b7357a3b860a805f727e1f4f49e0bdecd52ac0c715618b4a6d8",
+          "revision": "f0a368fd530343de6587dd3a323bf8510f18b5fd66c79389e316c637bab57235",
+          "sha256": "f0a368fd530343de6587dd3a323bf8510f18b5fd66c79389e316c637bab57235",
           "command": "python3 -m unittest discover -s tests -p 'test_sionna_convergence.py' -v",
           "result": "PASS",
           "scope": "contract"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md",
+          "description": "Independent current-main review of the Phase 7 convergence integration candidate; approved with no scoped findings",
+          "revision": "a903842570b21287d1f4657305ed93ac7c1ebc86",
+          "sha256": "06ea13f9949f9e84cb23e8895baf843f1138c92460ba31bc260df98d4d152013",
+          "reviewer": "/root/phase7_convergence_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:66df6bddc47f2e0c0973:1",
@@ -176126,7 +176156,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md",
+          "description": "Independent current-main review of the Phase 7 convergence integration candidate; approved with no scoped findings",
+          "revision": "a903842570b21287d1f4657305ed93ac7c1ebc86",
+          "sha256": "06ea13f9949f9e84cb23e8895baf843f1138c92460ba31bc260df98d4d152013",
+          "reviewer": "/root/phase7_convergence_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:21c5e3a3bdb2dd5c4f53:1",
@@ -243307,7 +243347,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md",
+          "description": "Independent current-main review of the Phase 7 convergence integration candidate; approved with no scoped findings",
+          "revision": "a903842570b21287d1f4657305ed93ac7c1ebc86",
+          "sha256": "06ea13f9949f9e84cb23e8895baf843f1138c92460ba31bc260df98d4d152013",
+          "reviewer": "/root/phase7_convergence_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",
@@ -248694,7 +248744,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md",
+          "description": "Independent current-main review of the Phase 7 convergence integration candidate; approved with no scoped findings",
+          "revision": "a903842570b21287d1f4657305ed93ac7c1ebc86",
+          "sha256": "06ea13f9949f9e84cb23e8895baf843f1138c92460ba31bc260df98d4d152013",
+          "reviewer": "/root/phase7_convergence_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:d308f1d8f2d4bf542aca:2",

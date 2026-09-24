@@ -11,6 +11,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17` with the independently approved, test-only threshold/resource-boundary follow-up at `141fc0e` (`bde0b98`, `5426ec0`); Phase 2 IE-explorer core at `41e88b7` with singleton-warning correction `26efb81`, independently reviewed at `9401e4a` and re-reviewed at `f1788ef`; Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, schema validator at `22b8b33`, trailing-LF corrections `11bd549` and `7986171`, and focused independent review through `1881ba4`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
 - Latest additional reviewed increments: Association/Reassociation Request/Response IE framing at `fefcce6`, independently reviewed in `3737372`; Phase 5 whole-bin band-power integration at `eb27cbf`, independently reviewed in `8406e06`; Phase 7 Sionna convergence support diagnostic at `a83ec42`, with cancellation and worker-failure corrections in `f74595d` and `0a0ee26`.
 - Most recent integration change: bounded Sionna CPU convergence support diagnostic, source commits `a83ec42`, `f74595d`, and `0a0ee26`; three independent reports record the first review, resolved cancellation findings, and final rereview. It passes 14 synthetic tests only; Sionna execution, held-out P2/P1 validation, calibrated uncertainty, cross-host variance and Phase 7 exit remain open.
+- The reconciled Phase 7 current-main candidate `c2f7a95`, based on mainline `9b9a136`, was independently approved with no scoped findings. Review report `a903842` verifies the Phase 2 association/reassociation and Phase 5 band-power ledger records were preserved. This is approval of the bounded integration candidate, not Sionna runtime or Phase 7 acceptance; see [the integration review](docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md).
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -42,7 +43,10 @@ at `fe060de`, `4b5da95`, and `ed3b53c` record the initial cancellation finding,
 the cleanup-diagnostic correction, and final resolution. Fourteen synthetic
 tests pass; no Sionna engine execution, measured convergence, P2/P1 holdout,
 calibrated uncertainty, cross-host variance, Wi-Fi composition, or Phase 7 exit
-is claimed. See [validation](docs/validation/sionna-convergence-diagnostic.md).
+is claimed. The current-main reconciliation candidate was approved by the
+independent review at `a903842`; see its
+[report](docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md)
+and the [validation note](docs/validation/sionna-convergence-diagnostic.md).
 
 The bounded Phase 2 `WIFI-001` parser is integrated on `main` at `1d8e68f`;
 promotion validation is recorded at `7d126cc`. Typed-field tcpdump comparison,

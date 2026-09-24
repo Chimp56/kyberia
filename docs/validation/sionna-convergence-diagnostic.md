@@ -8,7 +8,12 @@ Independent review artifacts are
 and
 [`phase7-sionna-convergence-final-rereview-20260923.md`](../reviews/phase7-sionna-convergence-final-rereview-20260923.md).
 The first two findings were resolved in the final rereview; current-main
-integration/documentation reconciliation is recorded separately.
+integration/documentation reconciliation is recorded separately. The
+reconciled candidate `c2f7a95`, based on mainline `9b9a136`, was independently
+approved with no scoped findings in
+[`phase7-sionna-convergence-main-integration-review-20260923.md`](../reviews/phase7-sionna-convergence-main-integration-review-20260923.md).
+That review verifies the Phase 2 association/reassociation and Phase 5 band-power
+records were retained; it approves this bounded integration candidate only.
 
 This is a bounded analysis helper for repeated ordinary Sionna `radio_map`
 worker calls. It is a Phase 7 support diagnostic, not a new worker operation or
