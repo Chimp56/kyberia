@@ -18,11 +18,17 @@ does not authorize promotion. No product files were changed by this review.
    `NOT_STARTED`. No graph/coverage claim is made; graph tools were unavailable
    in the parent review context.
 
-3. **Base and head.** Candidate `6bddfe701e026418398c9f1ee9253cb4593485aa`
-   is a direct child of base
-   `77347586dd94a494684a073d9a0756a78757b22d`. Reviewed the exact detached
-   candidate in `/private/tmp/kyberia-phase0-current-main-integration-review-6bddfe7-20260923`;
-   no rebase or merge was performed.
+3. **Base, merge-base, and assembly range.** Candidate
+   `6bddfe701e026418398c9f1ee9253cb4593485aa` has merge-base
+   `77347586dd94a494684a073d9a0756a78757b22d`; it is not a direct child of
+   that commit. Its actual first-parent assembly range from the merge-base is:
+   `dbc5adf` (bounded PNG workflow), `3634d21` (committed-readback recovery),
+   `e44e915` (browser fixture repair), `a5f4a73` (validation ledger),
+   `8ee4a6e` (source rereview), `2f9cace` (follow-up assessment), `192b074`
+   (ledger rereview), and `6bddfe7` (current-main reconciliation). The complete
+   `7734758..6bddfe7` tree was reviewed in
+   `/private/tmp/kyberia-phase0-current-main-integration-review-6bddfe7-20260923`;
+   no rebase or merge was performed during review.
 
 4. **Inspected paths.** `crates/application/src/session.rs`, `port.rs`,
    `map_mutation.rs`, `command.rs`, `error.rs`, `lib.rs`,
@@ -71,10 +77,11 @@ does not authorize promotion. No product files were changed by this review.
    updates. Ledger IDs and statuses are intact; no Phase 0/1 completion is
    claimed.
 
-8. **Report commit and cleanliness.** This Markdown report is the only change
-   made in the reviewer worktree. It is committed report-only; the commit ID is
-   returned in the handoff. Candidate files were not edited, and the worktree
-   is clean after the report commit.
+8. **Report commit and cleanliness.** The report is maintained only in
+   report-only commits in the reviewer worktree; its initial report commit is
+   `8a5debb6e3541cd3de98834b63492b2a95ffc262`. This ancestry correction is
+   likewise report-only; its commit ID is returned in the handoff. Candidate
+   files were not edited, and the worktree is clean after the correction.
 
 9. **Findings and residual risks.** No scoped integration finding. The
    validation packet accurately bounds the implementation to PNG-container
