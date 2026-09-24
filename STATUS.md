@@ -501,11 +501,10 @@ evidence. The reviewer found no blocker or major issue and recommends stronger
 exact-threshold/resource-boundary tests. This is not a solver, airtime or
 interference model, repair loop or proof of optimality. Phase 4 remains open.
 
-An isolated OPTB-007 author candidate on
-`feat/phase4-scenario-eval-20260923` adds bounded evaluation of caller-supplied
-failure and coefficient-perturbation cases, with exact rational feasibility
-policy and all-or-error aggregate resource admission. Its 19 focused tests and
-strict crate Clippy pass; independent review and integration are pending. It
-does not generate N-1 cases or uncertainty, solve/reassign/repair plans, or
-close Phase 4. Details are in
-[`phase4-planner-evaluator.md`](docs/validation/phase4-planner-evaluator.md).
+The bounded OPTB-007 caller-supplied scenario evaluator is integrated on
+`main` at `873d202` from candidate `3b25bed`; independent review approved the
+stated contract with no findings. Its 19 focused tests and strict crate Clippy
+pass. It does not generate N-1 cases or uncertainty, solve/reassign/repair
+plans, or close Phase 4. Details are in
+[`phase4-planner-evaluator.md`](docs/validation/phase4-planner-evaluator.md)
+and [`phase4-scenario-evaluation-current-review.md`](docs/reviews/phase4-scenario-evaluation-current-review.md).

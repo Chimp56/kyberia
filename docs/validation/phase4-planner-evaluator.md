@@ -40,9 +40,12 @@ production evaluator change was needed at that test-only checkpoint.
 
 ## OPTB-007 caller-supplied scenario evaluation candidate
 
-This isolated author candidate is based on `a8cf7dccbe1a1c40d6adc51868e90dfe2cdcd452`
-and the unchanged plan digest above. It is not integrated; independent review
-is still required. The candidate adds `evaluate_scenarios`, which evaluates a
+This implementation was integrated on `main` at `873d202` from reviewed
+candidate `3b25bed2e6ac08623b72cd3cb0091d785ccdd946`, based on
+`a8cf7dccbe1a1c40d6adc51868e90dfe2cdcd452` and the unchanged plan digest above.
+Independent review approved the stated contract with no findings; see
+[`phase4-scenario-evaluation-current-review.md`](../reviews/phase4-scenario-evaluation-current-review.md).
+The implementation adds `evaluate_scenarios`, which evaluates a
 non-empty set of uniquely identified complete `PlannerProblem` + `ProposedPlan`
 inputs using the existing single-plan verifier. A caller expresses an AP/radio
 failure by supplying its altered problem and plan, including any reassignment;
