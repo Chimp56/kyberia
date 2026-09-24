@@ -21,22 +21,26 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 
 ## Current execution checkpoint — 2026-09-23
 
-### Isolated manual continuous-path model candidate
+### Current-main manual continuous-path integration candidate
 
-Branch `feat/phase1-manual-path-survey-current-20260923`, based on
-`afc5070fadac46411f02d355a0d00351f388205f`, adds a bounded pure SUR-002 model
-in `kyberia-survey`. It supports monotonic-time start/turn/pause/resume/stop,
-pose-first timestamp assignment with an explicit uniform-motion assumption,
-typed speed/turn diagnostics, post-stop anchor correction, and schedule-backed
-channel gaps that do not claim AP absence, with a deterministic total gap-work
-cap. The full survey package passes 47
-tests with one existing ignored benchmark; strict all-target Clippy, formatting,
-architecture and source-inventory checks pass locally. See the
+The bounded SUR-002 model from `feat/phase1-manual-path-survey-current-20260923`
+at `91060ef`, based on `afc5070`, is assembled on
+`integrate/phase1-manual-path-main-20260923` from current main `172c4a3`.
+Independent source review approved the model and work-bound correction with no
+unresolved findings in report `b92e15b`; the combined current-main integration
+is pending its own independent review. The model supports monotonic-time
+start/turn/pause/resume/stop, pose-first timestamp assignment with an explicit
+uniform-motion assumption, typed speed/turn diagnostics, post-stop anchor
+correction, and schedule-backed channel gaps that do not claim AP absence. Its
+shared deterministic gap-work budget is covered by the dense zero-gap
+regression. The focused survey package passes 47 tests with one existing
+ignored benchmark; strict all-target Clippy, formatting, architecture, source
+inventory and ledger checks pass on the candidate. See the
 [validation note](docs/validation/manual-continuous-path.md).
 
-This candidate is not integrated or independently reviewed. Application/desktop
-capture wiring, canonical storage reconciliation, map HUD, human walking/field
-acceptance, and broader Phase 1/SUR-002 exit criteria remain open.
+Application/desktop capture wiring, canonical storage reconciliation, map HUD,
+human walking/field acceptance, and broader Phase 1/SUR-002 exit criteria
+remain open.
 
 The CPU/LLVM-only Sionna correction is integrated on `main` at `84a5bcb`.
 Independent runtime and docs/ledger reviews of follow-up `d0a88eb` pass with no

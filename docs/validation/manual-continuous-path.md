@@ -1,9 +1,14 @@
 # Manual continuous-path model (SUR-002) validation
 
-This is an isolated, model-level increment on branch
-`feat/phase1-manual-path-survey-current-20260923`, based on
-`afc5070fadac46411f02d355a0d00351f388205f`. The change has not been integrated
-to `main` or independently reviewed. It does not claim Phase 1 or SUR-002 exit.
+This model-level increment was authored on
+`feat/phase1-manual-path-survey-current-20260923` at `91060ef`, based on
+`afc5070`, and assembled on current-main base `172c4a3` in
+`integrate/phase1-manual-path-main-20260923`. Independent source review
+approved the implementation and work-budget correction with no unresolved
+findings in
+[`phase1-manual-path-budget-rereview-20260923.md`](../reviews/phase1-manual-path-budget-rereview-20260923.md).
+A fresh review of the assembled current-main integration is pending. This does
+not claim Phase 1 or SUR-002 exit.
 
 ## Implemented scope
 
@@ -118,5 +123,6 @@ capture backend, persistence adapter, human walking pace, or field usability.
 `catalog:SUR-002:1`, its five source-qualified bullets, and `backlog:MAPB-004:1`
 remain `IN_PROGRESS`. This code does not implement the map HUD, application
 commands, capture orchestration, durable project wiring, calibrated/map-frame
-admission, human usability, or independent review. Broader Phase 1 and SUR-002
-acceptance therefore remains open.
+admission, or human usability. Source-level review is approved, but fresh
+current-main integration review and broader Phase 1/SUR-002 acceptance remain
+open.

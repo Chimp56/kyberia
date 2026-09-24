@@ -35437,15 +35437,25 @@
       "validation": [
         {
           "path": "docs/validation/manual-continuous-path.md",
-          "description": "Reproducible local SUR-002 model validation; application, field and Phase 1 acceptance remain open.",
+          "description": "Reproducible 47-test SUR-002 model validation; source review is approved, while current-main integration review, application, field and Phase 1 acceptance remain open.",
           "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "9031d19f1edea662eeab181fc9e43d1c7e6a4fb317aeff84abdcb9d1e0d50f4f",
+          "sha256": "3d158a880e83a8d01abf68d1480eb977c24b50a713ce24dc1ab824aa061c1878",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS: 47 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
           "scope": "Pure survey model and local structural checks only; no application/desktop wiring, persistence adapter, field test, or phase exit."
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase1-manual-path-budget-rereview-20260923.md",
+          "description": "Independent source review of the manual-path model and channel-gap work bound; approved with no unresolved findings.",
+          "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
+          "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:3ae603c45088cc463dc2:1",
@@ -35556,7 +35566,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase1-manual-path-budget-rereview-20260923.md",
+          "description": "Independent source review of the manual-path model and channel-gap work bound; approved with no unresolved findings.",
+          "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
+          "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "catalog:SUR-002:1",
@@ -35611,7 +35631,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase1-manual-path-budget-rereview-20260923.md",
+          "description": "Independent source review of the manual-path model and channel-gap work bound; approved with no unresolved findings.",
+          "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
+          "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "catalog:SUR-002:1",
@@ -35666,7 +35696,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase1-manual-path-budget-rereview-20260923.md",
+          "description": "Independent source review of the manual-path model and channel-gap work bound; approved with no unresolved findings.",
+          "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
+          "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "catalog:SUR-002:1",
@@ -35721,7 +35761,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase1-manual-path-budget-rereview-20260923.md",
+          "description": "Independent source review of the manual-path model and channel-gap work bound; approved with no unresolved findings.",
+          "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
+          "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "catalog:SUR-002:1",
@@ -35776,7 +35826,17 @@
         }
       ],
       "validation": [],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase1-manual-path-budget-rereview-20260923.md",
+          "description": "Independent source review of the manual-path model and channel-gap work bound; approved with no unresolved findings.",
+          "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
+          "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "catalog:SUR-002:1",
@@ -172908,15 +172968,25 @@
       "validation": [
         {
           "path": "docs/validation/manual-continuous-path.md",
-          "description": "Local acceptance evidence for the bounded manual path foundation only.",
+          "description": "Local acceptance evidence for the bounded manual path foundation; source review is approved while fresh current-main integration review and product acceptance remain open.",
           "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "9031d19f1edea662eeab181fc9e43d1c7e6a4fb317aeff84abdcb9d1e0d50f4f",
+          "sha256": "3d158a880e83a8d01abf68d1480eb977c24b50a713ce24dc1ab824aa061c1878",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS: 47 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
           "scope": "Manual-path state model only. Product map workflow, app/store integration, user and field validation are not established."
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase1-manual-path-budget-rereview-20260923.md",
+          "description": "Independent source review of the manual-path model and channel-gap work bound; approved with no unresolved findings.",
+          "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
+          "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4d376c166d579dafe144:1",
@@ -240762,7 +240832,7 @@
           "path": "docs/validation/manual-continuous-path.md",
           "description": "Evidence-bounded validation; audit's broader resampling and field/pace semantics are not satisfied.",
           "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "9031d19f1edea662eeab181fc9e43d1c7e6a4fb317aeff84abdcb9d1e0d50f4f",
+          "sha256": "3d158a880e83a8d01abf68d1480eb977c24b50a713ce24dc1ab824aa061c1878",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS: bounded survey-model tests and local structural checks; no broader product validation claimed.",
           "scope": "Partial model implementation only; no pace guidance, spatial resampling, body-effect treatment or field replay evaluation."
