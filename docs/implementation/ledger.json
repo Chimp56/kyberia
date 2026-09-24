@@ -103838,8 +103838,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "b559079505659667fc5ae5832b00f736195f7f7d637f3bad030dc0488119d7e4",
-          "sha256": "b559079505659667fc5ae5832b00f736195f7f7d637f3bad030dc0488119d7e4"
+          "revision": "16890833799508c27e5145eb969c642b007ce4490c9f4a77b237a069ea75e1bb",
+          "sha256": "16890833799508c27e5145eb969c642b007ce4490c9f4a77b237a069ea75e1bb"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -161822,14 +161822,34 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration/release",
       "phase": 2,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "bounded-pcapng-to-ieee80211-management-replay",
+        "all-or-error-container-and-resource-boundaries"
+      ],
+      "implementation": [
+        {
+          "path": "crates/pcap-ie-replay/src/lib.rs",
+          "description": "Adds a composition-layer raw-linktype-105 replay bridge with explicit FCS policy, bounded staged publication, provenance, and skip accounting; live capture and Kismet integration remain open",
+          "revision": "87d733b1dd276e07585ec1ad43898259bec0c14c",
+          "sha256": "02f4747c98484be4c707f0ae2cede1736744d28de91ef422476ebc9416f46dbd"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase2-pcapng-ie-replay.md",
+          "description": "Thirteen synthetic replay tests plus focused strict quality and traceability checks; physical capture, product integration, independent review and Phase 2 acceptance remain open",
+          "revision": "87d733b1dd276e07585ec1ad43898259bec0c14c",
+          "sha256": "2998729b69ad1938900ac833d3d84810e1ce0878676f82b79f69aecd677d5d8a",
+          "command": "CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo test -p kyberia-pcap-ie-replay --locked --offline; CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo clippy -p kyberia-pcap-ie-replay --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
+          "result": "PASS",
+          "scope": "bounded offline PCAPNG-to-IEEE replay candidate only"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,

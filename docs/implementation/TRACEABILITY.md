@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 138 | NOT_STARTED: 3132 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 139 | NOT_STARTED: 3131 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3402,7 +3402,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 138 | N
 | `source:paragraph:41f5ed7d0a29a6a5e576:3` | [L4044](../../plan.md#L4044) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — Deliverables: | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:983` | [L4045](../../plan.md#L4045) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:list_item:37fefee3607089d68e90:1` | [L4046](../../plan.md#L4046) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Kismet-backed Linux monitor/remote capture as the preferred first professional passive path; supported Windows monitor | obligation | NOT_STARTED |  |
-| `source:list_item:68126cafbbbc51c2f0a3:1` | [L4047](../../plan.md#L4047) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Independent RF Atlas 802.11 parser/normalizer and PCAPNG replay so Kismet is enrichment/integration rather than semant | obligation | NOT_STARTED |  |
+| `source:list_item:68126cafbbbc51c2f0a3:1` | [L4047](../../plan.md#L4047) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Independent RF Atlas 802.11 parser/normalizer and PCAPNG replay so Kismet is enrichment/integration rather than semant | obligation | IN_PROGRESS | [implementation](../../crates/pcap-ie-replay/src/lib.rs), [validation](../../docs/validation/phase2-pcapng-ie-replay.md) |
 | `source:list_item:b48e6bae41706fc6d616:1` | [L4048](../../plan.md#L4048) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Full channel scheduler and completeness metrics. | obligation | NOT_STARTED |  |
 | `source:list_item:0572162f5d398f21459e:1` | [L4049](../../plan.md#L4049) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Information-element parser/explorer. | obligation | IN_PROGRESS | [implementation](../../crates/ieee80211/src/lib.rs), [validation](../../docs/validation/phase2-ie-explorer-core.md), [validation](../../docs/validation/phase2-association-ie-current.md), [reviews](../../docs/reviews/phase2-association-ie-current-review.md) |
 | `source:list_item:2742a498ddbaa105be96:1` | [L4050](../../plan.md#L4050) RF Atlas / 17. Delivery roadmap / Phase 2 — Professional passive/active survey — - Identity graph for multi-BSSID/physical radios/MLO. | obligation | NOT_STARTED |  |
