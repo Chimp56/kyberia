@@ -14,8 +14,8 @@ use kyberia_domain::{
 pub use offset::{MAX_OFFSET_WORK, OffsetDirection, OffsetError, OffsetOptions};
 pub use polygon::{
     BooleanError, BooleanOperation, MAX_BOOLEAN_WORK, MAX_MULTIPOLYGON_COORDINATES,
-    MAX_MULTIPOLYGON_POLYGONS, MAX_POLYGON_COORDINATES, MAX_POLYGON_HOLES, PolygonError,
-    ValidatedMultiPolygon, ValidatedPolygon,
+    MAX_MULTIPOLYGON_POLYGONS, MAX_POLYGON_COORDINATES, MAX_POLYGON_HOLES, PointLocation,
+    PolygonError, ValidatedMultiPolygon, ValidatedPolygon,
 };
 
 /// Numerical input bound, not a geographic projection or a snapping tolerance.
@@ -60,6 +60,7 @@ pub enum Intersection {
 pub enum GeometryError {
     FloorMismatch,
     FrameMismatch,
+    PointOutOfBounds,
     DegenerateSegment,
     CoordinateOutOfBounds,
     InvalidKernelResult,
@@ -69,8 +70,9 @@ pub enum GeometryError {
 impl std::fmt::Display for GeometryError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            Self::FloorMismatch => "planar segments belong to different floors",
-            Self::FrameMismatch => "planar segments belong to different coordinate frames",
+            Self::FloorMismatch => "planar geometry inputs belong to different floors",
+            Self::FrameMismatch => "planar geometry inputs belong to different coordinate frames",
+            Self::PointOutOfBounds => "planar query point exceeds the supported numerical range",
             Self::DegenerateSegment => "planar segment has identical endpoints",
             Self::CoordinateOutOfBounds => {
                 "planar coordinate exceeds the supported numerical range"

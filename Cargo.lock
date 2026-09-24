@@ -2245,6 +2245,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-planner-candidate-adapter"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "kyberia-geometry-adapter",
+ "kyberia-planner-evaluator",
+]
+
+[[package]]
 name = "kyberia-planner-evaluator"
 version = "0.1.0"
 

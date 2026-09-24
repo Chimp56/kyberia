@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 137 | NOT_STARTED: 3133 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 138 | NOT_STARTED: 3132 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3702,7 +3702,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 137 | N
 | `source:spacing:01ba4719c80b6fe911b0:1041` | [L4344](../../plan.md#L4344) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:table_row:0bd212b038e8e0d96e4e:8` | [L4345](../../plan.md#L4345) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; ID &#124; Pri &#124; Work item &#124; Acceptance evidence &#124; | obligation | NOT_STARTED |  |
 | `source:table_separator:13da3925573fa31a966f:8` | [L4346](../../plan.md#L4346) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124;---&#124;---:&#124;---&#124;---&#124; | structure | COVERAGE_ONLY |  |
-| `backlog:OPTB-001:1` | [L4347](../../plan.md#L4347) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-001 &#124; P2 &#124; Candidate generator &#124; Geometric/exclusion/cable constraints &#124; | obligation | NOT_STARTED |  |
+| `backlog:OPTB-001:1` | [L4347](../../plan.md#L4347) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-001 &#124; P2 &#124; Candidate generator &#124; Geometric/exclusion/cable constraints &#124; | obligation | IN_PROGRESS | [implementation](../../crates/planner-candidate-adapter/src/lib.rs), [implementation](../../crates/geometry-adapter/src/polygon.rs), [implementation](../../crates/geometry-adapter/src/lib.rs), [implementation](../../crates/planner-candidate-adapter/tests/candidates.rs), [implementation](../../crates/geometry-adapter/tests/polygons.rs), [validation](../../docs/validation/phase4-route-candidate-generator.md), [validation](../../docs/validation/phase4-route-candidate-generator.md), [validation](../../docs/validation/phase4-route-candidate-generator.md) |
 | `backlog:OPTB-002:1` | [L4348](../../plan.md#L4348) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-002 &#124; P2 &#124; Coverage coefficient cache &#124; Correct invalidation and reuse &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-003:1` | [L4349](../../plan.md#L4349) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-003 &#124; P2 &#124; CP-SAT placement model &#124; Known optimal small instances &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-004:1` | [L4350](../../plan.md#L4350) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-004 &#124; P2 &#124; Channel/width/power model &#124; Regulatory and interference constraints &#124; | obligation | NOT_STARTED |  |

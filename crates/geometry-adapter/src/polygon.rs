@@ -1,7 +1,7 @@
-use crate::{MAX_ABSOLUTE_COORDINATE_METERS, normalization_scale};
+use crate::{GeometryError, MAX_ABSOLUTE_COORDINATE_METERS, normalization_scale};
 use geo::{
-    Area, BooleanOps, Coord, Covers, Intersects, LineString, MultiPolygon, Polygon, Relate,
-    Validation, coordinate_position::CoordPos, dimensions::Dimensions,
+    Area, BooleanOps, Coord, CoordinatePosition, Covers, Intersects, LineString, MultiPolygon,
+    Polygon, Relate, Validation, coordinate_position::CoordPos, dimensions::Dimensions,
 };
 use kyberia_domain::{
     identity::{FloorId, FrameId},
@@ -231,6 +231,16 @@ pub enum BooleanOperation {
     Intersection,
     Union,
     Difference,
+}
+
+/// Topological relation of a point to a validated floor-local region.
+/// Polygon holes are outside their containing polygon; both hole and exterior
+/// edges are reported as boundary.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PointLocation {
+    Outside,
+    Boundary,
+    Inside,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -514,6 +524,78 @@ impl ValidatedMultiPolygon {
         self.polygons.is_empty()
     }
 
+    /// Locate a point only when the caller supplies the region's exact floor
+    /// and frame identity. This is a topological query with no tolerance,
+    /// projection, or implicit cross-frame conversion. Polygon and hole
+    /// boundaries are both reported as `Boundary`.
+    pub fn locate_point(
+        &self,
+        floor_id: FloorId,
+        frame_id: FrameId,
+        point: Point2,
+    ) -> Result<PointLocation, GeometryError> {
+        if self.floor_id != floor_id {
+            return Err(GeometryError::FloorMismatch);
+        }
+        if self.frame_id != frame_id {
+            return Err(GeometryError::FrameMismatch);
+        }
+        let coordinates = [point.x.get(), point.y.get()];
+        if coordinates
+            .iter()
+            .any(|value| !value.is_finite() || value.abs() > MAX_ABSOLUTE_COORDINATE_METERS)
+        {
+            return Err(GeometryError::PointOutOfBounds);
+        }
+
+        let mut inside = false;
+        for polygon in &self.polygons {
+            let bounds = polygon.exterior.iter().fold(
+                (
+                    f64::INFINITY,
+                    f64::NEG_INFINITY,
+                    f64::INFINITY,
+                    f64::NEG_INFINITY,
+                ),
+                |(min_x, max_x, min_y, max_y), vertex| {
+                    (
+                        min_x.min(vertex.x.get()),
+                        max_x.max(vertex.x.get()),
+                        min_y.min(vertex.y.get()),
+                        max_y.max(vertex.y.get()),
+                    )
+                },
+            );
+            if point.x.get() < bounds.0
+                || point.x.get() > bounds.1
+                || point.y.get() < bounds.2
+                || point.y.get() > bounds.3
+            {
+                continue;
+            }
+            let maximum = polygon
+                .exterior
+                .iter()
+                .chain(polygon.holes.iter().flatten())
+                .flat_map(|vertex| [vertex.x.get().abs(), vertex.y.get().abs()])
+                .chain(coordinates.into_iter().map(f64::abs))
+                .fold(0.0_f64, f64::max);
+            let scale = normalization_scale(maximum);
+            let location =
+                geo_polygon_for_query(polygon, scale).coordinate_position(&geo_point(point, scale));
+            match location {
+                CoordPos::OnBoundary => return Ok(PointLocation::Boundary),
+                CoordPos::Inside => inside = true,
+                CoordPos::Outside => {}
+            }
+        }
+        Ok(if inside {
+            PointLocation::Inside
+        } else {
+            PointLocation::Outside
+        })
+    }
+
     pub fn boolean(&self, other: &Self, operation: BooleanOperation) -> Result<Self, BooleanError> {
         if self.floor_id != other.floor_id {
             return Err(BooleanError::FloorMismatch);
@@ -734,6 +816,29 @@ fn geo_polygon(polygon: &ValidatedPolygon, scale: f64) -> Polygon<f64> {
                 canonical_ring(hole)
                     .into_iter()
                     .map(|point| geo_point(point, scale))
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect();
+    Polygon::new(LineString::from(exterior), holes)
+}
+
+/// Point location is invariant under ring start and winding direction. Avoid
+/// the quadratic canonical-ring search used by boolean operations so repeated
+/// bounded point queries remain linear in the validated coordinate count.
+fn geo_polygon_for_query(polygon: &ValidatedPolygon, scale: f64) -> Polygon<f64> {
+    let exterior = polygon
+        .exterior
+        .iter()
+        .map(|point| geo_point(*point, scale))
+        .collect::<Vec<_>>();
+    let holes = polygon
+        .holes
+        .iter()
+        .map(|hole| {
+            LineString::from(
+                hole.iter()
+                    .map(|point| geo_point(*point, scale))
                     .collect::<Vec<_>>(),
             )
         })

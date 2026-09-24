@@ -161,6 +161,16 @@ resource-ceiling boundary tests; this is verifier-test evidence only, not an
 optimizer. Candidate generation, optimization, airtime, interference, repair,
 physical-site validation and Phase 4 exit remain open.
 
+An unintegrated Phase 4 OPTB-001 candidate-generation slice is authored in the
+isolated `feat/phase4-candidate-generation-20260923` worktree from base
+`664f885649c40cee02865bc721205570259f0688`. It adds floor/frame-checked point
+location for validated polygons and deterministic candidate stations along an
+explicit caller-supplied cable polyline, pruned by allowed and exclusion
+regions with fail-closed bounds. Independent review and current-main
+integration remain pending. This does not infer infrastructure routes, add
+grid/Poisson or other whole-floor candidate sources, model mounting/power/RF,
+solve placement or assignments, or close OPTB-001 or Phase 4.
+
 The bounded Phase 6 pose/anchor fusion foundation is integrated at `3caa22e`
 with speed/covariance corrections through `acc35e9` and fresh independent
 rereview at `b792bf9`. It consumes provider-supplied pose evidence and applies

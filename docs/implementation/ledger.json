@@ -103838,8 +103838,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "8a7ecc9cf44dbc9e98ca6743123d8780e4f9d58def147de125c199ed1c1a8c09",
-          "sha256": "8a7ecc9cf44dbc9e98ca6743123d8780e4f9d58def147de125c199ed1c1a8c09"
+          "revision": "b559079505659667fc5ae5832b00f736195f7f7d637f3bad030dc0488119d7e4",
+          "sha256": "b559079505659667fc5ae5832b00f736195f7f7d637f3bad030dc0488119d7e4"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -176851,14 +176851,88 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "optimizer",
       "phase": 4,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "point_location_distinguishes_region_edges_holes_and_multipolygon_components",
+        "point_location_rejects_floor_and_frame_mismatch",
+        "point_location_is_invariant_to_ring_start_and_winding_direction",
+        "route_stations_are_deterministic_and_follow_metric_distance_through_a_turn",
+        "allowed_boundary_is_included_and_exclusion_boundary_is_excluded_without_renumbering",
+        "allowed_hole_interior_is_pruned_and_its_boundary_follows_boundary_policy",
+        "cable_length_threshold_is_inclusive_and_excess_rejects_the_whole_request",
+        "invalid_spacing_route_identity_and_degenerate_segments_fail_closed",
+        "station_and_aggregate_geometry_work_limits_reject_without_truncation",
+        "excessive_exclusion_region_count_is_not_silently_truncated",
+        "excessive_total_region_coordinates_fail_before_candidate_classification",
+        "aggregate_work_includes_visits_to_empty_exclusion_regions",
+        "removing_an_exclusion_only_restores_its_stations_with_original_ids",
+        "route_length_uses_the_full_polyline_not_just_endpoint_distance"
+      ],
+      "implementation": [
+        {
+          "description": "Bounded deterministic station generation along an explicitly identified caller-supplied cable route",
+          "path": "crates/planner-candidate-adapter/src/lib.rs",
+          "revision": "410d2f7b30e3438b3ad2642a6d58ef5a80c044fb93baf6cbcc84eda8468f9354",
+          "sha256": "410d2f7b30e3438b3ad2642a6d58ef5a80c044fb93baf6cbcc84eda8468f9354"
+        },
+        {
+          "description": "Frame-aware topological point-location query for validated floor regions",
+          "path": "crates/geometry-adapter/src/polygon.rs",
+          "revision": "92bfd0c8444adfecadbb329e43d08facd1d2c30493d72c312d444bff8675f35e",
+          "sha256": "92bfd0c8444adfecadbb329e43d08facd1d2c30493d72c312d444bff8675f35e"
+        },
+        {
+          "description": "Public point-location result and typed geometry bounds error",
+          "path": "crates/geometry-adapter/src/lib.rs",
+          "revision": "b093ba908078d836bfc96d76843e65d598e1c0929ab7160582189f73f7e9aed6",
+          "sha256": "b093ba908078d836bfc96d76843e65d598e1c0929ab7160582189f73f7e9aed6"
+        },
+        {
+          "description": "Route station, boundary, cable, resource, and metamorphic regression cases",
+          "path": "crates/planner-candidate-adapter/tests/candidates.rs",
+          "revision": "811f4a214ca0eb9a19514c9509130e976c4691d7e33bee65b3aac270b2e34943",
+          "sha256": "811f4a214ca0eb9a19514c9509130e976c4691d7e33bee65b3aac270b2e34943"
+        },
+        {
+          "description": "Point-location boundaries, holes, multipolygon, identity, and winding regression cases",
+          "path": "crates/geometry-adapter/tests/polygons.rs",
+          "revision": "16b61ebc3e03b340e70457456b6df3928c43fcaeff4a666fd9c624056e5ff40d",
+          "sha256": "16b61ebc3e03b340e70457456b6df3928c43fcaeff4a666fd9c624056e5ff40d"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase4-route-candidate-generator.md",
+          "description": "Focused deterministic geometry and route-backed candidate-generator validation",
+          "revision": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "sha256": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "command": "cargo test -p kyberia-geometry-adapter -p kyberia-planner-candidate-adapter --locked --offline",
+          "result": "PASS",
+          "scope": "53 focused Rust tests (41 geometry and 12 route-backed candidate tests); no full-floor sampling, infrastructure topology, RF, solver, or Phase 4 acceptance"
+        },
+        {
+          "path": "docs/validation/phase4-route-candidate-generator.md",
+          "description": "Strict lint validation of the geometry and candidate-generator packages",
+          "revision": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "sha256": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "command": "cargo clippy -p kyberia-geometry-adapter -p kyberia-planner-candidate-adapter --all-targets --locked --offline -- -D warnings",
+          "result": "PASS",
+          "scope": "Strict Clippy for both changed packages and all targets"
+        },
+        {
+          "path": "docs/validation/phase4-route-candidate-generator.md",
+          "description": "Formatting, architecture, external source-inventory, ledger, and diff checks",
+          "revision": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "sha256": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "command": "cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
+          "result": "PASS",
+          "scope": "Repository formatting and governance checks in the isolated candidate worktree"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -188649,14 +188723,14 @@
         {
           "path": "crates/geometry-adapter/src/lib.rs",
           "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
-          "revision": "51bea8a82fccd0169bd0ea1c1507d375ccff9ac29527dcf40aa3efcd9744b07c",
-          "sha256": "51bea8a82fccd0169bd0ea1c1507d375ccff9ac29527dcf40aa3efcd9744b07c"
+          "revision": "b093ba908078d836bfc96d76843e65d598e1c0929ab7160582189f73f7e9aed6",
+          "sha256": "b093ba908078d836bfc96d76843e65d598e1c0929ab7160582189f73f7e9aed6"
         },
         {
           "path": "crates/geometry-adapter/src/polygon.rs",
           "description": "Reviewed bounded canonical planar geometry adapter; full geometry gate remains open",
-          "revision": "2a3bd200600665b2f2ee5cff2ced732301529c26b24492c3c5954591715f4099",
-          "sha256": "2a3bd200600665b2f2ee5cff2ced732301529c26b24492c3c5954591715f4099"
+          "revision": "92bfd0c8444adfecadbb329e43d08facd1d2c30493d72c312d444bff8675f35e",
+          "sha256": "92bfd0c8444adfecadbb329e43d08facd1d2c30493d72c312d444bff8675f35e"
         },
         {
           "path": "crates/geometry-adapter/src/offset.rs",

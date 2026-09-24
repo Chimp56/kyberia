@@ -1,0 +1,14 @@
+[package]
+name = "kyberia-planner-candidate-adapter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Bounded route-backed geometric candidate generation for AP planning"
+
+[dependencies]
+kyberia-domain = { version = "=0.1.0", path = "../domain" }
+kyberia-geometry-adapter = { version = "=0.1.0", path = "../geometry-adapter" }
+kyberia-planner-evaluator = { version = "=0.1.0", path = "../planner-evaluator" }
+
+[lints]
+workspace = true

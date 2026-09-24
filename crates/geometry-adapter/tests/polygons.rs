@@ -4,7 +4,8 @@ use kyberia_domain::{
     units::CoordinateMeters,
 };
 use kyberia_geometry_adapter::{
-    BooleanError, PolygonError, ValidatedMultiPolygon, ValidatedPolygon,
+    BooleanError, GeometryError, PointLocation, PolygonError, ValidatedMultiPolygon,
+    ValidatedPolygon,
 };
 fn ring(points: &[(f64, f64)]) -> Vec<Point2> {
     points
@@ -85,6 +86,96 @@ fn touching_hole_and_resource_excess_are_explicitly_unsupported() {
         polygon(square(), vec![square(); 129]),
         Err(PolygonError::ResourceLimit)
     );
+}
+
+#[test]
+fn point_location_distinguishes_region_edges_holes_and_multipolygon_components() {
+    let floor_id = FloorId::from_bytes([1; 16]).unwrap();
+    let frame_id = FrameId::from_bytes([2; 16]).unwrap();
+    let first = ValidatedPolygon::new(
+        floor_id,
+        frame_id,
+        square(),
+        vec![ring(&[(2., 2.), (4., 2.), (4., 4.), (2., 4.), (2., 2.)])],
+    )
+    .unwrap();
+    let second = ValidatedPolygon::new(
+        floor_id,
+        frame_id,
+        ring(&[(20., 20.), (24., 20.), (24., 24.), (20., 24.), (20., 20.)]),
+        vec![],
+    )
+    .unwrap();
+    let region = ValidatedMultiPolygon::new(floor_id, frame_id, vec![first, second]).unwrap();
+
+    let locate = |x, y| {
+        region
+            .locate_point(floor_id, frame_id, point(x, y))
+            .unwrap()
+    };
+    assert_eq!(locate(1., 1.), PointLocation::Inside);
+    assert_eq!(locate(22., 22.), PointLocation::Inside);
+    assert_eq!(locate(20., 22.), PointLocation::Boundary);
+    assert_eq!(locate(0., 5.), PointLocation::Boundary);
+    assert_eq!(locate(3., 3.), PointLocation::Outside);
+    assert_eq!(locate(2., 3.), PointLocation::Boundary);
+    assert_eq!(locate(15., 5.), PointLocation::Outside);
+}
+
+#[test]
+fn point_location_rejects_floor_and_frame_mismatch() {
+    let region = polygon(square(), vec![]).unwrap().as_multipolygon();
+    let query = point(1., 1.);
+    assert_eq!(
+        region.locate_point(FloorId::from_bytes([3; 16]).unwrap(), frame(), query),
+        Err(GeometryError::FloorMismatch)
+    );
+    assert_eq!(
+        region.locate_point(floor(), FrameId::from_bytes([4; 16]).unwrap(), query),
+        Err(GeometryError::FrameMismatch)
+    );
+    assert_eq!(
+        region.locate_point(floor(), frame(), point(2_000_000_000., 0.)),
+        Err(GeometryError::PointOutOfBounds)
+    );
+}
+
+#[test]
+fn point_location_is_invariant_to_ring_start_and_winding_direction() {
+    let exterior = square();
+    let hole = ring(&[(2., 2.), (4., 2.), (4., 4.), (2., 4.), (2., 2.)]);
+    let original = polygon(exterior.clone(), vec![hole.clone()])
+        .unwrap()
+        .as_multipolygon();
+    let mut reversed_exterior = exterior;
+    reversed_exterior.reverse();
+    let mut reversed_hole = hole;
+    reversed_hole.reverse();
+    let reversed = polygon(reversed_exterior, vec![reversed_hole])
+        .unwrap()
+        .as_multipolygon();
+
+    for query in [point(1., 1.), point(3., 3.), point(2., 3.), point(12., 12.)] {
+        assert_eq!(
+            original.locate_point(floor(), frame(), query),
+            reversed.locate_point(floor(), frame(), query)
+        );
+    }
+}
+
+fn floor() -> FloorId {
+    FloorId::from_bytes([1; 16]).unwrap()
+}
+
+fn frame() -> FrameId {
+    FrameId::from_bytes([2; 16]).unwrap()
+}
+
+fn point(x: f64, y: f64) -> Point2 {
+    Point2 {
+        x: CoordinateMeters::new(x).unwrap(),
+        y: CoordinateMeters::new(y).unwrap(),
+    }
 }
 #[test]
 fn tiny_polygon_is_normalized_for_validation_without_altering_source() {

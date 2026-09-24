@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "All resolved targets and development dependencies; not a shipped-binary SBOM",
-  "cargo_lock_sha256": "8a7ecc9cf44dbc9e98ca6743123d8780e4f9d58def147de125c199ed1c1a8c09",
+  "cargo_lock_sha256": "b559079505659667fc5ae5832b00f736195f7f7d637f3bad030dc0488119d7e4",
   "packages": [
     {
       "name": "adler2",
