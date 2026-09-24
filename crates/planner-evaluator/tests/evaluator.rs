@@ -1,8 +1,9 @@
 use kyberia_planner_evaluator::{
     AreaWeight, AssignmentReason, CandidateAp, CandidateId, ConstraintEvidence, ConstraintKind,
     ConstraintMeasure, ConstraintScope, ConstraintStatus, CostCents, DbmTenths, DemandAssignment,
-    DemandCell, DemandId, EvaluationError, KilobitsPerSecond, LinkEstimate, PlannerProblem,
-    ProposedPlan, SignalFailure, evaluate,
+    DemandCell, DemandId, EvaluationError, KilobitsPerSecond, LinkEstimate, MAX_SCENARIO_CASES,
+    PlannerProblem, ProposedPlan, RobustnessPolicy, ScenarioCase, ScenarioEvaluationError,
+    ScenarioId, SignalFailure, evaluate, evaluate_scenarios,
 };
 
 fn dbm(value: i16) -> DbmTenths {
@@ -1020,5 +1021,309 @@ fn resource_limits_accept_the_ceiling_and_reject_ceiling_plus_one() {
     assert_eq!(
         evaluate(&too_many_links, &ProposedPlan::default()),
         Err(EvaluationError::ResourceLimit("link estimate count"))
+    );
+}
+
+fn scenario(id: u32, problem: PlannerProblem, plan: ProposedPlan) -> ScenarioCase {
+    ScenarioCase {
+        id: ScenarioId(id),
+        problem,
+        plan,
+    }
+}
+
+fn threshold_case(id: u32, downlink: i16) -> ScenarioCase {
+    let problem = problem(
+        vec![demand(1, 1, 0, 0)],
+        vec![candidate(7, 0, 0, 0, vec![link(1, downlink, -680)])],
+        1,
+        0,
+    );
+    let plan = ProposedPlan {
+        selected_candidates: vec![CandidateId(7)],
+        assignments: vec![DemandAssignment {
+            demand_id: DemandId(1),
+            candidate_id: CandidateId(7),
+        }],
+    };
+    scenario(id, problem, plan)
+}
+
+#[test]
+fn explicit_candidate_outage_and_caller_reassignment_pass_n_minus_one_cases() {
+    let demands = vec![demand(1, 12, 0, 0)];
+    let original = problem(
+        demands.clone(),
+        vec![
+            candidate(1, 5, 0, 0, vec![link(1, -600, -600)]),
+            candidate(2, 5, 0, 0, vec![link(1, -610, -610)]),
+        ],
+        1,
+        5,
+    );
+    let original_plan = ProposedPlan {
+        selected_candidates: vec![CandidateId(1)],
+        assignments: vec![DemandAssignment {
+            demand_id: DemandId(1),
+            candidate_id: CandidateId(1),
+        }],
+    };
+
+    // The caller explicitly removes failed candidate 1 and supplies a new
+    // assignment to candidate 2. No outage synthesis or repair occurs here.
+    let candidate_1_outage = problem(
+        demands,
+        vec![candidate(2, 5, 0, 0, vec![link(1, -610, -610)])],
+        1,
+        5,
+    );
+    let reassigned_plan = ProposedPlan {
+        selected_candidates: vec![CandidateId(2)],
+        assignments: vec![DemandAssignment {
+            demand_id: DemandId(1),
+            candidate_id: CandidateId(2),
+        }],
+    };
+
+    let result = evaluate_scenarios(
+        &[
+            scenario(10, candidate_1_outage, reassigned_plan),
+            scenario(0, original, original_plan),
+        ],
+        RobustnessPolicy::ALL_CASES,
+    )
+    .unwrap();
+
+    assert!(result.feasible);
+    assert_eq!(result.feasible_scenario_count, 2);
+    assert_eq!(result.minimum_feasible_scenario_count, 2);
+    assert_eq!(
+        result
+            .scenario_evaluations
+            .iter()
+            .map(|case| case.scenario_id)
+            .collect::<Vec<_>>(),
+        vec![ScenarioId(0), ScenarioId(10)]
+    );
+    assert!(
+        result
+            .scenario_evaluations
+            .iter()
+            .all(|case| case.evaluation.feasible)
+    );
+}
+
+#[test]
+fn a_failure_scenario_exposes_its_violated_constraint_and_fails_all_case_policy() {
+    let result = evaluate_scenarios(
+        &[threshold_case(1, -651), threshold_case(0, -650)],
+        RobustnessPolicy::ALL_CASES,
+    )
+    .unwrap();
+
+    assert!(!result.feasible);
+    assert_eq!(result.feasible_scenario_count, 1);
+    assert_eq!(result.minimum_feasible_scenario_count, 2);
+    let failed_case = &result.scenario_evaluations[1];
+    assert_eq!(failed_case.scenario_id, ScenarioId(1));
+    assert_eq!(
+        finding(
+            &failed_case.evaluation,
+            ConstraintKind::BidirectionalCoverage,
+            ConstraintScope::Demand(DemandId(1))
+        )
+        .status,
+        ConstraintStatus::Violated
+    );
+}
+
+#[test]
+fn uncertainty_coefficients_at_and_around_a_threshold_use_exact_rational_policy() {
+    let cases = vec![
+        threshold_case(3, -649),
+        threshold_case(1, -650),
+        threshold_case(2, -651),
+    ];
+    let policy = RobustnessPolicy {
+        minimum_feasible_numerator: 2,
+        minimum_feasible_denominator: 3,
+    };
+
+    let result = evaluate_scenarios(&cases, policy).unwrap();
+
+    assert!(result.feasible);
+    assert_eq!(result.feasible_scenario_count, 2);
+    assert_eq!(result.total_scenario_count, 3);
+    assert_eq!(result.minimum_feasible_scenario_count, 2);
+    assert_eq!(
+        result
+            .scenario_evaluations
+            .iter()
+            .map(|case| case.evaluation.feasible)
+            .collect::<Vec<_>>(),
+        vec![true, false, true]
+    );
+
+    let stricter_policy = RobustnessPolicy {
+        minimum_feasible_numerator: 3,
+        minimum_feasible_denominator: 4,
+    };
+    let stricter = evaluate_scenarios(&cases, stricter_policy).unwrap();
+    assert!(!stricter.feasible);
+    assert_eq!(stricter.minimum_feasible_scenario_count, 3);
+}
+
+#[test]
+fn scenario_input_permutation_does_not_change_output_or_case_order() {
+    let cases = vec![
+        threshold_case(9, -651),
+        threshold_case(2, -650),
+        threshold_case(5, -649),
+    ];
+    let mut reversed = cases.clone();
+    reversed.reverse();
+    let policy = RobustnessPolicy {
+        minimum_feasible_numerator: 2,
+        minimum_feasible_denominator: 3,
+    };
+
+    assert_eq!(
+        evaluate_scenarios(&cases, policy).unwrap(),
+        evaluate_scenarios(&reversed, policy).unwrap()
+    );
+}
+
+#[test]
+fn scenario_sets_reject_empty_duplicates_and_invalid_thresholds() {
+    assert_eq!(
+        evaluate_scenarios(&[], RobustnessPolicy::ALL_CASES),
+        Err(ScenarioEvaluationError::EmptyScenarioSet)
+    );
+    let duplicate = vec![threshold_case(4, -650), threshold_case(4, -649)];
+    assert_eq!(
+        evaluate_scenarios(&duplicate, RobustnessPolicy::ALL_CASES),
+        Err(ScenarioEvaluationError::DuplicateScenarioId(ScenarioId(4)))
+    );
+
+    for (numerator, denominator) in [(1, 0), (0, 1), (2, 1)] {
+        let policy = RobustnessPolicy {
+            minimum_feasible_numerator: numerator,
+            minimum_feasible_denominator: denominator,
+        };
+        assert_eq!(
+            evaluate_scenarios(&[threshold_case(0, -600)], policy),
+            Err(ScenarioEvaluationError::InvalidRobustnessPolicy {
+                numerator,
+                denominator,
+            })
+        );
+    }
+}
+
+#[test]
+fn scenario_count_cap_accepts_the_ceiling_and_rejects_ceiling_plus_one() {
+    let maximum: Vec<_> = (0..MAX_SCENARIO_CASES)
+        .map(|id| {
+            scenario(
+                id as u32,
+                problem(vec![], vec![], 0, 0),
+                ProposedPlan::default(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        evaluate_scenarios(&maximum, RobustnessPolicy::ALL_CASES)
+            .unwrap()
+            .total_scenario_count,
+        MAX_SCENARIO_CASES
+    );
+
+    let over_limit: Vec<_> = (0..=MAX_SCENARIO_CASES)
+        .map(|id| {
+            scenario(
+                id as u32,
+                problem(vec![], vec![], 0, 0),
+                ProposedPlan::default(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        evaluate_scenarios(&over_limit, RobustnessPolicy::ALL_CASES),
+        Err(ScenarioEvaluationError::ResourceLimit("scenario count"))
+    );
+}
+
+#[test]
+fn aggregate_work_limit_accepts_exact_ceiling_and_rejects_one_unit_more() {
+    const MAX_DEMANDS: u32 = 4_096;
+    const MAX_CANDIDATES: u32 = 128;
+
+    let maximum_work_case = |id| {
+        scenario(
+            id,
+            problem(
+                (0..MAX_DEMANDS)
+                    .map(|demand_id| demand(demand_id, 1, 0, 0))
+                    .collect(),
+                (0..MAX_CANDIDATES)
+                    .map(|candidate_id| candidate(candidate_id, 0, 0, 0, vec![]))
+                    .collect(),
+                0,
+                0,
+            ),
+            ProposedPlan::default(),
+        )
+    };
+    let at_limit = vec![maximum_work_case(0), maximum_work_case(1)];
+    let accepted = evaluate_scenarios(
+        &at_limit,
+        RobustnessPolicy {
+            minimum_feasible_numerator: 1,
+            minimum_feasible_denominator: 2,
+        },
+    )
+    .unwrap();
+    assert_eq!(accepted.total_scenario_count, 2);
+
+    // With no demands or links, the one available candidate contributes one
+    // work unit, taking the same set exactly one over the aggregate ceiling.
+    let one_extra_work_unit = scenario(
+        2,
+        problem(vec![], vec![candidate(3, 0, 0, 0, vec![])], 0, 0),
+        ProposedPlan::default(),
+    );
+    let over_limit = vec![
+        at_limit[0].clone(),
+        at_limit[1].clone(),
+        one_extra_work_unit,
+    ];
+    assert_eq!(
+        evaluate_scenarios(
+            &over_limit,
+            RobustnessPolicy {
+                minimum_feasible_numerator: 1,
+                minimum_feasible_denominator: 3,
+            }
+        ),
+        Err(ScenarioEvaluationError::ResourceLimit(
+            "aggregate scenario work"
+        ))
+    );
+}
+
+#[test]
+fn invalid_case_returns_only_an_error_even_after_an_earlier_case_was_valid() {
+    let invalid_problem = problem(vec![demand(1, 1, 0, 0), demand(1, 1, 0, 0)], vec![], 0, 0);
+    let cases = vec![
+        threshold_case(0, -600),
+        scenario(1, invalid_problem, ProposedPlan::default()),
+    ];
+
+    assert_eq!(
+        evaluate_scenarios(&cases, RobustnessPolicy::ALL_CASES),
+        Err(ScenarioEvaluationError::CaseEvaluation {
+            scenario_id: ScenarioId(1),
+            error: EvaluationError::DuplicateDemand(DemandId(1)),
+        })
     );
 }

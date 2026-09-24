@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 139 | NOT_STARTED: 3131 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 140 | NOT_STARTED: 3130 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -3708,7 +3708,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 139 | N
 | `backlog:OPTB-004:1` | [L4350](../../plan.md#L4350) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-004 &#124; P2 &#124; Channel/width/power model &#124; Regulatory and interference constraints &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-005:1` | [L4351](../../plan.md#L4351) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-005 &#124; P2 &#124; Client assignment/capacity &#124; Airtime and max-client constraints &#124; | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs), [implementation](../../crates/planner-evaluator/tests/evaluator.rs), [validation](../../docs/validation/phase4-planner-evaluator.md), [reviews](../../docs/reviews/phase4-planner-evaluator-review.md) |
 | `backlog:OPTB-006:1` | [L4352](../../plan.md#L4352) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-006 &#124; P2 &#124; Full evaluator/repair loop &#124; Every returned plan verified &#124; | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs), [implementation](../../crates/planner-evaluator/tests/evaluator.rs), [validation](../../docs/validation/phase4-planner-evaluator.md), [reviews](../../docs/reviews/phase4-planner-evaluator-review.md) |
-| `backlog:OPTB-007:1` | [L4353](../../plan.md#L4353) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-007 &#124; P2 &#124; Robust/failure scenarios &#124; N-1 and uncertainty tests &#124; | obligation | NOT_STARTED |  |
+| `backlog:OPTB-007:1` | [L4353](../../plan.md#L4353) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-007 &#124; P2 &#124; Robust/failure scenarios &#124; N-1 and uncertainty tests &#124; | obligation | IN_PROGRESS | [implementation](../../crates/planner-evaluator/src/lib.rs), [implementation](../../crates/planner-evaluator/tests/evaluator.rs), [validation](../../docs/validation/phase4-planner-evaluator.md), [validation](../../docs/validation/phase4-planner-evaluator.md), [validation](../../docs/validation/phase4-planner-evaluator.md) |
 | `backlog:OPTB-008:1` | [L4354](../../plan.md#L4354) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-008 &#124; P2 &#124; Pareto alternatives &#124; Non-dominated and explainable &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-009:1` | [L4355](../../plan.md#L4355) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-009 &#124; P2 &#124; Existing deployment replanning &#124; Lock/minimal-change behavior &#124; | obligation | NOT_STARTED |  |
 | `backlog:OPTB-010:1` | [L4356](../../plan.md#L4356) RF Atlas / 18. Prioritized engineering backlog / 18.8 Optimizer — &#124; OPTB-010 &#124; P3 &#124; Continuous position/orientation refinement &#124; Improves full score without violating constraints &#124; | obligation | NOT_STARTED |  |

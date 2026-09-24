@@ -14,6 +14,15 @@ const MAX_DEMANDS: usize = 4_096;
 const MAX_LINK_ESTIMATES: usize = 131_072;
 const MAX_ASSIGNMENTS: usize = MAX_DEMANDS;
 
+/// Maximum number of caller-supplied cases admitted to one robust evaluation.
+pub const MAX_SCENARIO_CASES: usize = 64;
+/// Maximum deterministic aggregate work units admitted across all cases.
+///
+/// A case accounts for `demands * candidates + demands + candidates + links +
+/// selected candidates + assignments`. This bounds both the evaluator's
+/// nested demand/candidate scan and its record-processing passes.
+pub const MAX_AGGREGATE_SCENARIO_WORK_UNITS: u64 = 1_057_024;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct CandidateId(pub u32);
 
@@ -218,6 +227,56 @@ pub struct PlanEvaluation {
     pub findings: Vec<ConstraintFinding>,
 }
 
+/// Stable caller-assigned identity for one explicit failure/uncertainty case.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub struct ScenarioId(pub u32);
+
+/// One complete scenario input. The caller supplies the full problem and plan
+/// for this case, including any candidate removal, coefficient perturbation,
+/// and reassignment. No failure or uncertainty is inferred by this crate.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ScenarioCase {
+    pub id: ScenarioId,
+    pub problem: PlannerProblem,
+    pub plan: ProposedPlan,
+}
+
+/// Exact minimum feasible-case fraction. Zero numerators, zero denominators,
+/// and fractions above one are rejected.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RobustnessPolicy {
+    pub minimum_feasible_numerator: u32,
+    pub minimum_feasible_denominator: u32,
+}
+
+impl RobustnessPolicy {
+    /// Require every supplied case to pass.
+    pub const ALL_CASES: Self = Self {
+        minimum_feasible_numerator: 1,
+        minimum_feasible_denominator: 1,
+    };
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ScenarioPlanEvaluation {
+    pub scenario_id: ScenarioId,
+    pub evaluation: PlanEvaluation,
+}
+
+/// Aggregate result for one explicitly supplied scenario set.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RobustEvaluation {
+    /// Whether the exact rational threshold is met. Individual case results
+    /// remain available even when a policy permits some failures.
+    pub feasible: bool,
+    pub policy: RobustnessPolicy,
+    pub feasible_scenario_count: usize,
+    pub total_scenario_count: usize,
+    pub minimum_feasible_scenario_count: usize,
+    /// Sorted by `ScenarioId`, independent of input case order.
+    pub scenario_evaluations: Vec<ScenarioPlanEvaluation>,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EvaluationError {
     ResourceLimit(&'static str),
@@ -240,6 +299,29 @@ pub enum EvaluationError {
     ArithmeticOverflow(&'static str),
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ScenarioEvaluationError {
+    EmptyScenarioSet,
+    DuplicateScenarioId(ScenarioId),
+    InvalidRobustnessPolicy {
+        numerator: u32,
+        denominator: u32,
+    },
+    ResourceLimit(&'static str),
+    CaseEvaluation {
+        scenario_id: ScenarioId,
+        error: EvaluationError,
+    },
+}
+
+impl fmt::Display for ScenarioEvaluationError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{self:?}")
+    }
+}
+
+impl std::error::Error for ScenarioEvaluationError {}
+
 impl fmt::Display for EvaluationError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "{self:?}")
@@ -248,13 +330,139 @@ impl fmt::Display for EvaluationError {
 
 impl std::error::Error for EvaluationError {}
 
-/// Recompute represented hard constraints and objective components for a
-/// proposed plan. Missing selected-candidate link coefficients are `Unknown`
-/// and fail closed when they could change a coverage result.
-pub fn evaluate(
+/// Evaluate an explicit set of complete plan cases and report whether the
+/// caller's exact rational feasibility policy is met. Cases are evaluated and
+/// returned in ascending ID order.
+///
+/// Scenario IDs, per-case resource caps, the scenario-count cap, and aggregate
+/// work budget are checked before any plan is evaluated. A malformed case or
+/// evaluator error returns only `Err`; no partial aggregate is observable.
+/// Numeric policy decisions use integer cross-multiplication, never floating point.
+/// This function neither generates N-1 cases nor infers uncertainty,
+/// reassigns demand, optimizes, or repairs plans.
+pub fn evaluate_scenarios(
+    cases: &[ScenarioCase],
+    policy: RobustnessPolicy,
+) -> Result<RobustEvaluation, ScenarioEvaluationError> {
+    if policy.minimum_feasible_denominator == 0
+        || policy.minimum_feasible_numerator == 0
+        || policy.minimum_feasible_numerator > policy.minimum_feasible_denominator
+    {
+        return Err(ScenarioEvaluationError::InvalidRobustnessPolicy {
+            numerator: policy.minimum_feasible_numerator,
+            denominator: policy.minimum_feasible_denominator,
+        });
+    }
+    if cases.is_empty() {
+        return Err(ScenarioEvaluationError::EmptyScenarioSet);
+    }
+    if cases.len() > MAX_SCENARIO_CASES {
+        return Err(ScenarioEvaluationError::ResourceLimit("scenario count"));
+    }
+
+    let mut ordered_cases: Vec<_> = cases.iter().collect();
+    ordered_cases.sort_by_key(|case| case.id);
+    for pair in ordered_cases.windows(2) {
+        if pair[0].id == pair[1].id {
+            return Err(ScenarioEvaluationError::DuplicateScenarioId(pair[0].id));
+        }
+    }
+
+    let mut aggregate_work_units = 0_u64;
+    for case in &ordered_cases {
+        let case_work_units =
+            scenario_work_units(case).map_err(|error| ScenarioEvaluationError::CaseEvaluation {
+                scenario_id: case.id,
+                error,
+            })?;
+        aggregate_work_units = aggregate_work_units.checked_add(case_work_units).ok_or(
+            ScenarioEvaluationError::ResourceLimit("aggregate scenario work overflow"),
+        )?;
+        if aggregate_work_units > MAX_AGGREGATE_SCENARIO_WORK_UNITS {
+            return Err(ScenarioEvaluationError::ResourceLimit(
+                "aggregate scenario work",
+            ));
+        }
+    }
+
+    let mut scenario_evaluations = Vec::with_capacity(ordered_cases.len());
+    let mut feasible_scenario_count = 0_usize;
+    for case in ordered_cases {
+        let evaluation = evaluate(&case.problem, &case.plan).map_err(|error| {
+            ScenarioEvaluationError::CaseEvaluation {
+                scenario_id: case.id,
+                error,
+            }
+        })?;
+        feasible_scenario_count += usize::from(evaluation.feasible);
+        scenario_evaluations.push(ScenarioPlanEvaluation {
+            scenario_id: case.id,
+            evaluation,
+        });
+    }
+
+    let scenario_count = scenario_evaluations.len();
+    let threshold_numerator = u128::from(policy.minimum_feasible_numerator);
+    let threshold_denominator = u128::from(policy.minimum_feasible_denominator);
+    let required_product = u128::try_from(scenario_count)
+        .expect("scenario cap fits u128")
+        .checked_mul(threshold_numerator)
+        .expect("bounded scenario threshold product fits u128");
+    let minimum_feasible_scenario_count = usize::try_from(
+        required_product / threshold_denominator
+            + u128::from(required_product % threshold_denominator != 0),
+    )
+    .expect("minimum required scenario count is at most the scenario count");
+    let meets_policy = u128::try_from(feasible_scenario_count)
+        .expect("scenario cap fits u128")
+        .checked_mul(threshold_denominator)
+        .expect("bounded scenario threshold product fits u128")
+        >= u128::try_from(scenario_count)
+            .expect("scenario cap fits u128")
+            .checked_mul(threshold_numerator)
+            .expect("bounded scenario threshold product fits u128");
+
+    Ok(RobustEvaluation {
+        feasible: meets_policy,
+        policy,
+        feasible_scenario_count,
+        total_scenario_count: scenario_count,
+        minimum_feasible_scenario_count,
+        scenario_evaluations,
+    })
+}
+
+fn scenario_work_units(case: &ScenarioCase) -> Result<u64, EvaluationError> {
+    let problem = &case.problem;
+    let link_count = bounded_input_link_count(problem, &case.plan)?;
+
+    let demands = u64::try_from(problem.demands.len())
+        .map_err(|_| EvaluationError::ResourceLimit("scenario demand count overflow"))?;
+    let candidates = u64::try_from(problem.candidates.len())
+        .map_err(|_| EvaluationError::ResourceLimit("scenario candidate count overflow"))?;
+    let links = u64::try_from(link_count)
+        .map_err(|_| EvaluationError::ResourceLimit("scenario link count overflow"))?;
+    let selected = u64::try_from(case.plan.selected_candidates.len())
+        .map_err(|_| EvaluationError::ResourceLimit("scenario selection count overflow"))?;
+    let assignments = u64::try_from(case.plan.assignments.len())
+        .map_err(|_| EvaluationError::ResourceLimit("scenario assignment count overflow"))?;
+
+    demands
+        .checked_mul(candidates)
+        .and_then(|units| units.checked_add(demands))
+        .and_then(|units| units.checked_add(candidates))
+        .and_then(|units| units.checked_add(links))
+        .and_then(|units| units.checked_add(selected))
+        .and_then(|units| units.checked_add(assignments))
+        .ok_or(EvaluationError::ResourceLimit(
+            "scenario work estimate overflow",
+        ))
+}
+
+fn bounded_input_link_count(
     problem: &PlannerProblem,
     plan: &ProposedPlan,
-) -> Result<PlanEvaluation, EvaluationError> {
+) -> Result<usize, EvaluationError> {
     if problem.candidates.len() > MAX_CANDIDATES {
         return Err(EvaluationError::ResourceLimit("candidate count"));
     }
@@ -281,6 +489,17 @@ pub fn evaluate(
     if link_count > MAX_LINK_ESTIMATES {
         return Err(EvaluationError::ResourceLimit("link estimate count"));
     }
+    Ok(link_count)
+}
+
+/// Recompute represented hard constraints and objective components for a
+/// proposed plan. Missing selected-candidate link coefficients are `Unknown`
+/// and fail closed when they could change a coverage result.
+pub fn evaluate(
+    problem: &PlannerProblem,
+    plan: &ProposedPlan,
+) -> Result<PlanEvaluation, EvaluationError> {
+    bounded_input_link_count(problem, plan)?;
 
     let mut demands = BTreeMap::new();
     for demand in &problem.demands {

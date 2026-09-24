@@ -96560,8 +96560,8 @@
         {
           "description": "Independent bidirectional threshold counting and fail-closed unknown coefficients; small-plan scope",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         }
       ],
       "validation": [],
@@ -96614,8 +96614,8 @@
         {
           "description": "Distinct AP threshold counting; scenario-specific failure resilience and recourse remain open",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         }
       ],
       "validation": [],
@@ -96668,8 +96668,8 @@
         {
           "description": "Integer-kbps radio aggregate capacity and max-client checks; airtime model remains open",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         }
       ],
       "validation": [],
@@ -97041,8 +97041,8 @@
         {
           "description": "Caller-weighted passing, nonpassing and unverified area components; no scalar objective",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         }
       ],
       "validation": [],
@@ -97354,8 +97354,8 @@
         {
           "description": "Deterministic per-radio capacity headroom and overload recomputation",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         }
       ],
       "validation": [],
@@ -101102,8 +101102,8 @@
         {
           "description": "Structured constraint findings for proposed plans; no smallest-repair generation",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         }
       ],
       "validation": [],
@@ -153618,8 +153618,8 @@
         {
           "description": "Deterministic infeasibility, unknown, mutation and permutation tests; no solver tests",
           "path": "crates/planner-evaluator/tests/evaluator.rs",
-          "revision": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737",
-          "sha256": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737"
+          "revision": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93",
+          "sha256": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93"
         }
       ],
       "validation": [],
@@ -177184,22 +177184,22 @@
         {
           "description": "Explicit assignment verification, aggregate kbps capacity and max-client limits; airtime remains open",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         },
         {
           "description": "Exact inclusive RF-threshold and resource-ceiling contract regression tests",
           "path": "crates/planner-evaluator/tests/evaluator.rs",
-          "revision": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737",
-          "sha256": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737"
+          "revision": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93",
+          "sha256": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase4-planner-evaluator.md",
           "description": "Boundary-test candidate's focused verifier tests and governance checks; broader optimizer and RF acceptance remain open",
-          "revision": "beffcd269ba66e90fb4fe23bd1e5fc1cfcade497014e04572d614db49ecbe51c",
-          "sha256": "beffcd269ba66e90fb4fe23bd1e5fc1cfcade497014e04572d614db49ecbe51c",
+          "revision": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "sha256": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
           "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
           "result": "PASS",
           "scope": "Eleven deterministic contract tests including adjacent represented-constraint and RF-threshold values, non-decisive missing-link and resource-ceiling boundaries; no candidate generation, optimizer, airtime/interference, repair, physical site, or real-RF validation"
@@ -177284,22 +177284,22 @@
         {
           "description": "Bounded deterministic proposed-plan verifier; solver, candidate generator and repair loop remain open",
           "path": "crates/planner-evaluator/src/lib.rs",
-          "revision": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57",
-          "sha256": "5f06e0779073b445f07aaf0f3129e1d4163c756e83d1d20894e2284218092c57"
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
         },
         {
           "description": "Exact inclusive RF-threshold, missing-link and resource-ceiling contract regression tests",
           "path": "crates/planner-evaluator/tests/evaluator.rs",
-          "revision": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737",
-          "sha256": "86571fc331a2557581f0c7a822f8ac3c64625d05944151fa62cca6c3fd398737"
+          "revision": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93",
+          "sha256": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase4-planner-evaluator.md",
           "description": "Boundary-test candidate's focused verifier tests and governance checks; broader optimizer and RF acceptance remain open",
-          "revision": "beffcd269ba66e90fb4fe23bd1e5fc1cfcade497014e04572d614db49ecbe51c",
-          "sha256": "beffcd269ba66e90fb4fe23bd1e5fc1cfcade497014e04572d614db49ecbe51c",
+          "revision": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "sha256": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
           "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
           "result": "PASS",
           "scope": "Eleven deterministic verifier contract tests only; solver, repair, airtime/interference, physical-site validation and Phase 4 runtime gates remain open"
@@ -177356,14 +177356,64 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "optimizer",
       "phase": 4,
       "depends_on": [],
       "related_requirements": [],
-      "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "acceptance_cases": [
+        "explicit_candidate_outage_and_caller_reassignment_pass_n_minus_one_cases",
+        "a_failure_scenario_exposes_its_violated_constraint_and_fails_all_case_policy",
+        "uncertainty_coefficients_at_and_around_a_threshold_use_exact_rational_policy",
+        "scenario_input_permutation_does_not_change_output_or_case_order",
+        "scenario_sets_reject_empty_duplicates_and_invalid_thresholds",
+        "scenario_count_cap_accepts_the_ceiling_and_rejects_ceiling_plus_one",
+        "aggregate_work_limit_accepts_exact_ceiling_and_rejects_one_unit_more",
+        "invalid_case_returns_only_an_error_even_after_an_earlier_case_was_valid"
+      ],
+      "implementation": [
+        {
+          "description": "Bounded deterministic aggregation of complete caller-supplied plan scenarios under an exact rational feasibility policy",
+          "path": "crates/planner-evaluator/src/lib.rs",
+          "revision": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9",
+          "sha256": "cb906bbda1c3e02bcd9593c733c369c38b476fd5537c829dd687792756f29db9"
+        },
+        {
+          "description": "N-1 reassignment, threshold uncertainty, deterministic-order, invalid-input, all-or-error, and resource-boundary acceptance tests",
+          "path": "crates/planner-evaluator/tests/evaluator.rs",
+          "revision": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93",
+          "sha256": "e8252fefd1f5849c3d64ca2b2bb714451c8235c3782bfaad018a0eb016e55c93"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase4-planner-evaluator.md",
+          "description": "Focused evaluator and scenario acceptance suite",
+          "revision": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "sha256": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "command": "cargo test -p kyberia-planner-evaluator --locked --offline",
+          "result": "PASS",
+          "scope": "19 focused integration tests, including eight explicit scenario-set tests; no optimizer, repair, airtime/interference, or Phase 4 acceptance"
+        },
+        {
+          "path": "docs/validation/phase4-planner-evaluator.md",
+          "description": "Strict all-target lint for the planner-evaluator crate",
+          "revision": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "sha256": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "command": "cargo clippy -p kyberia-planner-evaluator --all-targets --locked --offline -- -D warnings",
+          "result": "PASS",
+          "scope": "Strict Clippy for planner-evaluator library and all targets"
+        },
+        {
+          "path": "docs/validation/phase4-planner-evaluator.md",
+          "description": "Formatting and repository governance checks for the scenario-evaluator candidate",
+          "revision": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "sha256": "de2cb2c4500ff168da549d36ecf4ab4a6ef3f604acebfee4a8fd7047904ea7b0",
+          "command": "cargo fmt -p kyberia-planner-evaluator -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py generate; python3 tools/ledger.py check; git diff --check",
+          "result": "PASS",
+          "scope": "Crate formatting, architecture, locked external source inventory, regenerated implementation traceability ledger, ledger validation, and whitespace checks in the isolated worktree"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
