@@ -200,23 +200,9 @@ impl BundleProjectStore {
             ));
         }
         let (project, operations, state) = self.canonical_map_state(budget)?;
-        let context = derive_map_context_from_set(
-            &operations,
-            &intent.authority,
-            state.project_revision(),
-            budget,
-        )?;
-        let mut request = ImportMapRequest {
-            context,
-            map_id: intent.map_id,
-            floor_id: intent.floor_id,
-            name: intent.name,
-            image_frame: intent.image_frame,
-            provenance: intent.provenance,
-        };
-        let map = admitted_map(&request, admitted, bytes.len())?;
-        if let Some(existing) = operations.operation(request.context.operation_id) {
-            if !existing_import_matches(existing, project.id(), &request, &map) {
+        let map = admitted_map(&intent, admitted, bytes.len())?;
+        if let Some(existing) = operations.operation(intent.authority.operation_id) {
+            if !existing_import_matches(existing, project.id(), &intent, &map) {
                 return Err(ApplicationError::new(
                     crate::ErrorKind::Conflict,
                     "operation identity already belongs to different immutable map intent bytes",
@@ -235,6 +221,20 @@ impl BundleProjectStore {
             let operation = existing.clone();
             return self.exact_duplicate_outcome(operation, admitted.content_hash(), budget);
         }
+        let context = derive_map_context_from_set(
+            &operations,
+            &intent.authority,
+            state.project_revision(),
+            budget,
+        )?;
+        let mut request = ImportMapRequest {
+            context,
+            map_id: intent.map_id,
+            floor_id: intent.floor_id,
+            name: intent.name,
+            image_frame: intent.image_frame,
+            provenance: intent.provenance,
+        };
         if project.floor(request.floor_id).is_none() {
             return Err(ApplicationError::new(
                 crate::ErrorKind::Prerequisite,
@@ -690,7 +690,7 @@ fn map_materialization_error(
 }
 
 fn admitted_map(
-    request: &ImportMapRequest,
+    intent: &ImportMapIntent,
     admitted: AdmittedMapAsset,
     byte_length: usize,
 ) -> Result<MapAsset, ApplicationError> {
@@ -701,10 +701,10 @@ fn admitted_map(
         )
     })?;
     MapAsset::new(MapAssetData {
-        id: request.map_id,
-        floor_id: request.floor_id,
-        name: request.name.clone(),
-        image_frame: request.image_frame.clone(),
+        id: intent.map_id,
+        floor_id: intent.floor_id,
+        name: intent.name.clone(),
+        image_frame: intent.image_frame.clone(),
         width: admitted.width(),
         height: admitted.height(),
         source: ArtifactReference {
@@ -712,7 +712,7 @@ fn admitted_map(
             media_type: Text::new(PNG_MEDIA_TYPE).expect("static media type is valid"),
             byte_length,
         },
-        provenance: request.provenance.clone(),
+        provenance: intent.provenance.clone(),
     })
     .map_err(|error| ApplicationError::new(crate::ErrorKind::InvalidRequest, error.to_string()))
 }
@@ -821,12 +821,13 @@ fn derive_map_context_from_set<H: CancellationHook>(
 fn existing_import_matches(
     operation: &Operation,
     project_id: ProjectId,
-    request: &ImportMapRequest,
+    intent: &ImportMapIntent,
     map: &MapAsset,
 ) -> bool {
-    operation.project_id() == project_id
-        && operation.actor_id() == request.context.actor_id
-        && operation.device_id() == request.context.device_id
+    operation.operation_id() == intent.authority.operation_id
+        && operation.project_id() == project_id
+        && operation.actor_id() == intent.authority.actor_id
+        && operation.device_id() == intent.authority.device_id
         && operation.schema_version() == kyberia_operation_log::OperationSchemaVersion::V3
         && matches!(
             operation.payload(),
@@ -837,7 +838,7 @@ fn existing_import_matches(
             operation.inverse(),
             InverseMetadata::ApplyV2 {
                 prior: InversePrior::MapAbsent { map_id },
-            } if *map_id == request.map_id
+            } if *map_id == intent.map_id
         )
 }
 

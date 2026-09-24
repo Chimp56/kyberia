@@ -14,7 +14,8 @@ export function App() {
   const { state } = session;
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const paletteTriggerRef = useRef<HTMLButtonElement>(null);
-  const projectReady = state.projectState === "baseline_only" || state.projectState === "materialized_current";
+  const projectReady = state.readbackRecovery === null
+    && (state.projectState === "baseline_only" || state.projectState === "materialized_current");
   const busy = state.activeJob !== null || state.phase === "loading";
   const closePalette = useCallback(() => {
     session.setPaletteOpen(false);
@@ -53,8 +54,8 @@ export function App() {
     <div className="workspace">
       <ToolRail selected={state.selectedTool as ToolId} onSelect={session.selectTool} />
       <LayerPanel visibility={state.layerVisibility} onToggle={session.toggleLayer} />
-      <main className="map-region"><CanvasStage phase={state.phase} error={state.error} activeJob={state.activeJob} onImport={() => void session.importFloorPlan()} onNewProject={createProject} onRetry={() => void session.retry()} onCancel={() => void session.cancelActiveJob()} calibrated={state.calibrated} maps={state.maps} /></main>
-      <InspectorPanel projectName={state.projectName} projectReady={projectReady} isMobileOpen={inspectorOpen} maps={state.maps} error={state.error} onImport={() => void session.importFloorPlan()} onCalibrate={(input) => void session.calibrateMap(input)} />
+      <main className="map-region"><CanvasStage phase={state.phase} error={state.error} readbackRecovery={state.readbackRecovery} activeJob={state.activeJob} onImport={() => void session.importFloorPlan()} onNewProject={createProject} onRetry={() => void (state.readbackRecovery ? session.refreshProject() : session.retry())} onCancel={() => void session.cancelActiveJob()} calibrated={state.calibrated} maps={state.maps} /></main>
+      <InspectorPanel projectName={state.projectName} projectReady={projectReady} isMobileOpen={inspectorOpen} maps={state.maps} readbackRecovery={state.readbackRecovery} busy={busy} onImport={() => void session.importFloorPlan()} onRefresh={() => void session.refreshProject()} onCalibrate={(input) => void session.calibrateMap(input)} />
     </div>
     <StatusBar phase={state.phase} projectName={state.projectName} activeJob={state.activeJob} />
     {state.commandPaletteOpen && <CommandPalette onClose={closePalette} onSelectTool={session.selectTool} onNewProject={createProject} onOpenProject={() => void session.openProject()} onImport={session.importFloorPlan} />}

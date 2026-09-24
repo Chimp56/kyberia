@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRequestGate, initialWorkspaceState, mergeActiveProjectJobStatus, stateForError } from "./ui-state";
+import { createRequestGate, initialWorkspaceState, mapReadbackIsReconciled, mergeActiveProjectJobStatus, stateForError, stateForMapReadbackFailure } from "./ui-state";
 
 describe("workspace state semantics", () => {
   it("starts without inventing a project or measurements", () => {
@@ -56,6 +56,39 @@ describe("workspace state semantics", () => {
     }, current);
     expect(next.projectState).toBe("baseline_only");
     expect(next.projectName).toBe("Office");
+  });
+
+  it("keeps a committed receipt and marks the cached view stale after readback failure", () => {
+    const previous = {
+      ...initialWorkspaceState,
+      phase: "ready" as const,
+      projectState: "materialized_current" as const,
+      projectId: "project-1",
+      projectName: "Office",
+      hasFloorPlan: true,
+      maps: [{ mapId: "map-1", floorId: "floor-1", name: "Old plan.png", width: 200, height: 120, calibrated: false, metersPerPixel: null }],
+    };
+    const receipt = {
+      state: "committed" as const,
+      operationId: "operation-7",
+      projectRevision: 7,
+      contentHash: "a".repeat(64),
+    };
+    const error = {
+      schema: "kyberia.desktop-ipc/2" as const,
+      code: "storage",
+      message: "The canonical view could not be queried.",
+      retryable: false,
+    };
+
+    const recovery = stateForMapReadbackFailure(receipt, error, previous);
+    expect(recovery.phase).toBe("error");
+    expect(recovery.projectId).toBe("project-1");
+    expect(recovery.maps).toEqual(previous.maps);
+    expect(recovery.readbackRecovery).toEqual({ projectId: "project-1", receipt, error });
+    expect(mapReadbackIsReconciled("project-1", 7, recovery.readbackRecovery!)).toBe(true);
+    expect(mapReadbackIsReconciled("project-1", 6, recovery.readbackRecovery!)).toBe(false);
+    expect(mapReadbackIsReconciled("different-project", 7, recovery.readbackRecovery!)).toBe(false);
   });
 
   it("keeps cancellation visible when a late running status arrives", () => {

@@ -3,8 +3,10 @@
 This packet describes a manual, isolated adaptation from base
 `bc51e80b14e30f927628f4ba9f2e92a4773423fe` on
 `feat/phase0-desktop-map-current`. It is not integrated and has not received
-independent review. It does not close Phase 0/1 or MAP-002/MAP-003/MAPB-001/
-MAPB-002.
+independent approval. Its first independent source review requested changes:
+the MAJOR committed-readback recovery and MINOR retry-frontier findings are
+addressed in this author follow-up, which still requires fresh independent
+rereview. It does not close Phase 0/1 or MAP-002/MAP-003/MAPB-001/MAPB-002.
 
 ## Plan scope
 
@@ -27,15 +29,21 @@ MAPB-002.
   their projection has `floorId`, no map and `calibrated: false`.
 - Application map intents accept operation/actor/device identity, but derive
   causal parents, Lamport/logical value, causal depth and revision from the
-  canonical operation set. Exact retries reuse immutable stored operation and
-  artifact evidence after reopen.
+  canonical operation set. Exact import retries verify the existing immutable
+  operation and artifact before deriving a new frontier; an application
+  regression reopens and retries with nine current DAG heads.
 - The strict current-main `map_asset.rs` parser is not replaced. Import stays
   container-only: PNG signature, chunk order/length/CRC and bounded metadata
   are checked; IDAT is not inflated and pixels are neither returned nor
   rendered.
 - A durable receipt is authoritative after append. Canonical current-view
   readback is separate and can be reported as unavailable without describing
-  the mutation as rolled back.
+  the mutation as rolled back. The renderer retains the full committed receipt
+  and originating project ID, enters an explicit stale/error state, disables
+  stale map actions, and exposes a query action. Recovery clears only when a
+  query returns that same project at or beyond the committed revision; a
+  lagging query keeps recovery actionable. Query retry never repeats import or
+  calibration.
 - The native selector returns an opaque, expiring, one-shot grant bound to the
   project and floor active at selection. A regular file is opened without
   following Unix symlinks or Windows reparse points; staging checks
@@ -47,7 +55,9 @@ MAPB-002.
 - Renderer project/map operations are single-flight, use the same visible
   status/cancel route, preserve exact retry payloads, and discard stale
   completions. Cancellation or terminal selection failure requires a new
-  native selection.
+  native selection. A mocked desktop E2E regression models lagging and then
+  current project queries after one committed import and asserts import is
+  invoked once.
 
 ## Checks performed
 
@@ -55,8 +65,15 @@ MAPB-002.
 - `cargo test --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --quiet` — PASS after the final Rust test edits: 23 desktop library tests, 6 binary tests and 2 IPC boundary tests. Tests include fresh-floor projection, opaque one-shot project-bound grants, Unix symlink rejection, grant/retry bounds and TTL, bounded/cancellable staging, live map-picker status/cancellation, and committed-receipt preservation when the separate readback reports an error.
 - `cargo clippy --locked --offline -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application --all-targets -- -D warnings` — PASS.
 - `cargo clippy --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings` — PASS.
-- `npm run typecheck` — PASS before the final exact-retry comparison change and two new IPC contract assertions.
-- `npm test -- --reporter=dot` — PASS, 15/15 tests before the two new map IPC contract assertions.
+- `npm --cache ../../.trash/test-runs/npm-cache run typecheck` (from
+  `apps/desktop`) — PASS on the readback-recovery follow-up.
+- `npm --cache ../../.trash/test-runs/npm-cache run test -- --reporter=dot`
+  (from `apps/desktop`) — PASS, 18/18 Vitest tests across 3 files, including
+  stale-view recovery and committed-receipt state assertions.
+- Focused exact-retry regression:
+  `cargo test --locked --offline -p kyberia-application --test project_session intent_workflow_creates_floor_derives_causality_and_retries_after_reopen -- --exact --nocapture` — PASS with nine concurrent heads.
+- A mocked desktop Playwright E2E regression now covers lagging then successful
+  project readback and asserts one import call; it was not run in this follow-up.
 - `cargo check --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml` — PASS on macOS.
 - `cargo check --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --target x86_64-pc-windows-gnu` — BLOCKED before compiling the desktop crate because `libsqlite3-sys` could not find `x86_64-w64-mingw32-gcc`; no Windows adapter compilation or runtime validation is claimed.
 - `python3 tools/architecture.py` — PASS after removing a rejected direct `libc` dependency and retaining platform-specific no-follow flags only for macOS/Linux.
@@ -66,24 +83,23 @@ MAPB-002.
 - `cargo fmt --all -- --check` — PASS.
 - `git diff --check` — PASS.
 
-The npm commands used an ignored symlink at
-`apps/desktop/node_modules` pointing to the already-installed root desktop
-dependencies because offline installation in this worktree lacked the cached
-`yallist` tarball. The package-lock checksum and installed TypeScript/Vitest
-versions matched, but Vitest wrote
-`apps/desktop/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json`
-through that symlink. The symlink itself was moved (not deleted) from
-`apps/desktop/node_modules` to the ignored
-`.trash/desktop-node-modules-root-link`; its root target was not touched. The
-Vitest results cache was not cleaned or altered. Therefore
-the reported TSC/Vitest result is not isolated from the shared package cache,
-and frontend checks were stopped after that was discovered. The later contract
-assertions, Playwright, frontend build and browser/native picker execution have
-not been validated here.
+Offline npm dependency installation lacked a cached `yallist` tarball, so the
+TSC/Vitest executables read the already-installed desktop dependency tree
+through the author worktree's temporary symlink
+`apps/desktop/node_modules` → `/Users/vincent/code/kyberia/apps/desktop/node_modules`.
+The symlink was moved back to ignored `.trash/desktop-node-modules-root-link`
+after the checks; its root target was not touched. Before testing, Vitest's
+resolved cache directory was verified as
+`/private/tmp/kyberia-phase0-desktop-map/.trash/test-runs/desktop-vitest-cache`,
+and npm's cache was explicitly set to `.trash/test-runs/npm-cache`. Vitest's
+generated `results.json` appeared only in the author worktree cache. The
+pre-existing root cache
+`/Users/vincent/code/kyberia/apps/desktop/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json`
+retained the same modification time and SHA-256 before and after the final
+runs. No `npm install`, chmod or root-cache cleanup was performed.
 
-Other remaining checks before integration include frontend revalidation in a
-worktree-local dependency/cache environment, Playwright, final branch
-cleanliness and fresh independent review. No live radio,
-native two-OS, real PNG pixel
-decoding/display, field calibration, raw export or Phase 0 exit evidence is
-claimed.
+Playwright, frontend production build, native picker runtime, Windows adapter
+compilation/runtime, and two-platform determinism remain unvalidated. There is
+no live-radio, real PNG pixel decoding/display, field calibration, raw export
+or Phase 0 exit evidence. Fresh independent rereview of the author follow-up
+is required before integration.

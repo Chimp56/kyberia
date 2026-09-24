@@ -30508,8 +30508,8 @@
         {
           "path": "crates/application/src/port.rs",
           "description": "Application-owned map intents derive causal metadata from canonical operations, validate strict image bounds, and return receipt-first readback outcomes.",
-          "revision": "722fe815297f4e84a857e2e4225b82f8c72fd8274ee3011e6cc68ce8ae555030",
-          "sha256": "722fe815297f4e84a857e2e4225b82f8c72fd8274ee3011e6cc68ce8ae555030"
+          "revision": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b",
+          "sha256": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b"
         },
         {
           "path": "apps/desktop/src-tauri/src/lib.rs",
@@ -30527,13 +30527,13 @@
           "path": "apps/desktop/src/lib/useProjectSession.ts",
           "description": "Renderer single-flight map/project operations retain exact retry envelopes and ignore stale completions.",
           "revision": "125735f4616dcc6a0512687cb8ec59afbd7e44be2c511acb11acbda0fe675de9",
-          "sha256": "125735f4616dcc6a0512687cb8ec59afbd7e44be2c511acb11acbda0fe675de9"
+          "sha256": "69305db08d5818d724ec89f867d4f4b3b4233011fc20b9b5d2b00b21236a9bd9"
         },
         {
           "path": "apps/desktop/src/components/CanvasStage.tsx",
           "description": "PNG metadata-only map state with explicit no-preview and no-displayability claim.",
           "revision": "7426bad7d8f8318af49fc664b45b2dab9fe405109950ce148b1ebeaae75636ac",
-          "sha256": "7426bad7d8f8318af49fc664b45b2dab9fe405109950ce148b1ebeaae75636ac"
+          "sha256": "ecf947222d6149887114f7ef34c30c166ab22ad7899b4ccf771307b51f85b3ac"
         }
       ],
       "validation": [
@@ -30550,7 +30550,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Author validation of the bounded current-main desktop adaptation; frontend cache isolation and independent review remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "152f54a42cc9c4a64fd585b0f19f5546e27b1f9040324ad4f32858a25fed90c1",
+          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Focused application/core Rust validation passes; separate Tauri suite passes 22+6+2. Frontend checks are stale relative to final assertions and shared Vitest cache was touched; all desktop/product exits remain open."
@@ -31513,8 +31513,8 @@
         {
           "path": "crates/application/src/port.rs",
           "description": "Application calibration intent derives causal metadata and validates image/floor frames and strict admitted-image point bounds before publication.",
-          "revision": "722fe815297f4e84a857e2e4225b82f8c72fd8274ee3011e6cc68ce8ae555030",
-          "sha256": "722fe815297f4e84a857e2e4225b82f8c72fd8274ee3011e6cc68ce8ae555030"
+          "revision": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b",
+          "sha256": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b"
         },
         {
           "path": "apps/desktop/src-tauri/src/lib.rs",
@@ -31526,7 +31526,7 @@
           "path": "apps/desktop/src/components/InspectorPanel.tsx",
           "description": "Numeric-only two-point calibration form exposes admitted bounds without rendering pixels.",
           "revision": "bbd6fda4910b031a5969b2b1233fd45d421e543a69847bfdfaa6c049f1d4b678",
-          "sha256": "bbd6fda4910b031a5969b2b1233fd45d421e543a69847bfdfaa6c049f1d4b678"
+          "sha256": "a8270150cb15a9e0e6f89a89781048151ba0a4641d6c01203323c4b6fe8de1af"
         }
       ],
       "validation": [
@@ -31543,7 +31543,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Author validation of canonical two-point bounds, persisted scale projection and the bounded UI adaptation; independent review and later calibration breadth remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "152f54a42cc9c4a64fd585b0f19f5546e27b1f9040324ad4f32858a25fed90c1",
+          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application intent tests verify causal order, exact import/calibration retry after reopen and strict bounds; native UI/adapter and cross-platform gates remain open."
@@ -102903,7 +102903,7 @@
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered Tauri shell lifecycle, progress, cancellation, and session preservation contract",
           "revision": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
-          "sha256": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
+          "sha256": "f02bf593c21b7065f443f73e151b3d8bb3be8b1fed42d1ed86add1df5f1f7ad0",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
@@ -102967,7 +102967,7 @@
           "path": "apps/desktop/src/App.tsx",
           "description": "React desktop shell composition and project-state presentation",
           "revision": "da035db876cc8c4c64d6133ff4fee5308454fd5d549cc6a573341b5785deff17",
-          "sha256": "da035db876cc8c4c64d6133ff4fee5308454fd5d549cc6a573341b5785deff17"
+          "sha256": "072a51412fbe3c38f60158f15f8211eb73d79945b4b7830cb290841b47708759"
         },
         {
           "path": "apps/desktop/src/lib/contracts.ts",
@@ -102979,7 +102979,7 @@
           "path": "apps/desktop/src/lib/useProjectSession.ts",
           "description": "Renderer operation admission, polling, cancellation, and retry lifecycle",
           "revision": "125735f4616dcc6a0512687cb8ec59afbd7e44be2c511acb11acbda0fe675de9",
-          "sha256": "125735f4616dcc6a0512687cb8ec59afbd7e44be2c511acb11acbda0fe675de9"
+          "sha256": "69305db08d5818d724ec89f867d4f4b3b4233011fc20b9b5d2b00b21236a9bd9"
         }
       ],
       "validation": [
@@ -102987,7 +102987,7 @@
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered React lifecycle, accessibility, progress, cancellation, retry, and responsive usability checks",
           "revision": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
-          "sha256": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
+          "sha256": "f02bf593c21b7065f443f73e151b3d8bb3be8b1fed42d1ed86add1df5f1f7ad0",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
@@ -105611,7 +105611,7 @@
           "path": "crates/application/tests/project_session.rs",
           "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
           "revision": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
-          "sha256": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
+          "sha256": "83346cfe536b456b0fec5b1479161c700bc87b7580f4bab93fc53f8f53ba96d5",
           "command": "cargo test -p kyberia-application --locked --offline",
           "scope": "bounded_application_project_session",
           "result": "PASS"
@@ -105759,7 +105759,7 @@
           "path": "crates/application/tests/project_session.rs",
           "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
           "revision": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
-          "sha256": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
+          "sha256": "83346cfe536b456b0fec5b1479161c700bc87b7580f4bab93fc53f8f53ba96d5",
           "command": "cargo test -p kyberia-application --locked --offline",
           "scope": "bounded_application_project_session",
           "result": "PASS"
@@ -105985,7 +105985,7 @@
           "path": "crates/application/tests/project_session.rs",
           "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
           "revision": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
-          "sha256": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
+          "sha256": "83346cfe536b456b0fec5b1479161c700bc87b7580f4bab93fc53f8f53ba96d5",
           "command": "cargo test -p kyberia-application --locked --offline",
           "scope": "bounded_application_project_session",
           "result": "PASS"
@@ -172633,7 +172633,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Author validation covers bounded grant/staging tests; two-platform selection and independent review remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "152f54a42cc9c4a64fd585b0f19f5546e27b1f9040324ad4f32858a25fed90c1",
+          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
           "command": "cargo test --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --quiet",
           "result": "PASS",
           "scope": "Desktop grant tests pass on macOS; Windows cross-check is blocked by absent MinGW and Linux/macOS runtime fixtures have not both run."
@@ -172687,19 +172687,19 @@
           "path": "crates/application/tests/project_session.rs",
           "description": "Operation-backed two-point calibration publication, exact retry, reopen, transform oracle and evidence-lock rejection tests.",
           "revision": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
-          "sha256": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231"
+          "sha256": "83346cfe536b456b0fec5b1479161c700bc87b7580f4bab93fc53f8f53ba96d5"
         },
         {
           "path": "crates/application/src/port.rs",
           "description": "Rejects non-finite, coincident or out-of-image calibration controls before durable publication.",
-          "revision": "722fe815297f4e84a857e2e4225b82f8c72fd8274ee3011e6cc68ce8ae555030",
-          "sha256": "722fe815297f4e84a857e2e4225b82f8c72fd8274ee3011e6cc68ce8ae555030"
+          "revision": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b",
+          "sha256": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b"
         },
         {
           "path": "apps/desktop/src/components/InspectorPanel.tsx",
           "description": "Displays numeric two-point calibration controls and persisted scale only, with no preview.",
           "revision": "bbd6fda4910b031a5969b2b1233fd45d421e543a69847bfdfaa6c049f1d4b678",
-          "sha256": "bbd6fda4910b031a5969b2b1233fd45d421e543a69847bfdfaa6c049f1d4b678"
+          "sha256": "a8270150cb15a9e0e6f89a89781048151ba0a4641d6c01203323c4b6fe8de1af"
         }
       ],
       "validation": [
@@ -172716,7 +172716,7 @@
           "path": "docs/validation/desktop-map-workflow-current-main.md",
           "description": "Focused current-main application and desktop author validation; frontend/E2E revalidation and independent review remain open.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "152f54a42cc9c4a64fd585b0f19f5546e27b1f9040324ad4f32858a25fed90c1",
+          "sha256": "1b70fe234cfdd8504dab8f3bbd2c858fa6e33f51242932d8ff8dc402e41be824",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application tests validate strict bounds and exact retry/reopen; no pixel decoding, multi-point/CRS, native multi-OS or field calibration acceptance is claimed."
@@ -238043,7 +238043,7 @@
           "path": "apps/desktop/src/lib/useProjectSession.ts",
           "description": "Renderer-known job identity, strict polling, cancellation and operation-specific retry",
           "revision": "125735f4616dcc6a0512687cb8ec59afbd7e44be2c511acb11acbda0fe675de9",
-          "sha256": "125735f4616dcc6a0512687cb8ec59afbd7e44be2c511acb11acbda0fe675de9"
+          "sha256": "69305db08d5818d724ec89f867d4f4b3b4233011fc20b9b5d2b00b21236a9bd9"
         },
         {
           "path": "apps/desktop/src-tauri/Cargo.toml",
@@ -238057,7 +238057,7 @@
           "path": "crates/application/tests/project_session.rs",
           "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
           "revision": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
-          "sha256": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
+          "sha256": "83346cfe536b456b0fec5b1479161c700bc87b7580f4bab93fc53f8f53ba96d5",
           "command": "cargo test -p kyberia-application --locked --offline",
           "scope": "bounded_application_project_session",
           "result": "PASS"
@@ -238066,7 +238066,7 @@
           "path": "apps/desktop/tests/e2e/desktop-shell.spec.ts",
           "description": "Rendered desktop/mobile shell, palette semantics, progress/cancel, session preservation and retry assertions",
           "revision": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
-          "sha256": "9f3a111b8233fd5f13677b8b47ec69df6fffafcad64989826ff3def5aacf1d4c",
+          "sha256": "f02bf593c21b7065f443f73e151b3d8bb3be8b1fed42d1ed86add1df5f1f7ad0",
           "command": "npm run e2e",
           "scope": "contract",
           "result": "PASS (10 Chromium tests)"
@@ -238579,7 +238579,7 @@
           "path": "crates/application/tests/project_session.rs",
           "description": "Real-bundle lifecycle, immutable snapshot, corruption, schema, cancellation, and cumulative-budget integration tests",
           "revision": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
-          "sha256": "d6fe140d01b77c7850d198e9a0102f5d5a4481faac5ba37c7592e8dde13d8231",
+          "sha256": "83346cfe536b456b0fec5b1479161c700bc87b7580f4bab93fc53f8f53ba96d5",
           "command": "cargo test -p kyberia-application --locked --offline",
           "scope": "bounded_application_project_session",
           "result": "PASS"

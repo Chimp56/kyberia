@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Icon } from "./Icons";
 import { commandPaletteShortcut } from "../lib/shortcuts";
-import type { CalibrateMapRequest, IpcErrorPayload, MapSummary } from "../lib/contracts";
+import type { CalibrateMapRequest, MapSummary } from "../lib/contracts";
+import type { MapReadbackRecovery } from "../lib/ui-state";
 
 type CalibrationInput = Pick<CalibrateMapRequest,
   "mapId" | "firstXPixels" | "firstYPixels" | "secondXPixels" | "secondYPixels" | "knownDistanceMeters">;
@@ -11,23 +12,28 @@ interface InspectorPanelProps {
   projectReady: boolean;
   isMobileOpen: boolean;
   maps: MapSummary[];
-  error: IpcErrorPayload | null;
+  readbackRecovery: MapReadbackRecovery | null;
+  busy: boolean;
   onImport: () => void;
+  onRefresh: () => void;
   onCalibrate: (input: CalibrationInput) => void;
 }
 
-export function InspectorPanel({ projectName, projectReady, isMobileOpen, maps, error, onImport, onCalibrate }: InspectorPanelProps) {
+export function InspectorPanel({ projectName, projectReady, isMobileOpen, maps, readbackRecovery, busy, onImport, onRefresh, onCalibrate }: InspectorPanelProps) {
   return (
     <aside className={`inspector-panel ${isMobileOpen ? "is-open" : ""}`} aria-label="Inspector">
       <div className="panel-title-row inspector-title"><h2>Inspector</h2><div className="inspector-actions"><button className="icon-button" type="button" disabled aria-label="Pin inspector" title="Inspector pinning is not available yet"><Icon name="pin" size={18} /></button><button className="icon-button" type="button" disabled aria-label="Close inspector" title="Inspector is required for the empty workspace"><Icon name="close" size={19} /></button></div></div>
       <div className="inspector-content">
         <div className="inspector-empty-icon"><Icon name="document" size={48} strokeWidth={1.25} /></div>
-        <h3>{maps.length > 0 ? "Map metadata" : projectReady ? "Floor ready" : "No project loaded"}</h3>
-        <p>{maps.length > 0 ? `Project “${projectName}” contains ${maps.length} imported PNG map${maps.length === 1 ? "" : "s"}.` : projectReady ? `Project “${projectName}” has a canonical floor ready for a map.` : "Create or open a project, then import a PNG floor plan."}</p>
-        {error && projectReady && <p className="state-remediation" role="status">A map operation committed, but its canonical view needs to be queried again: {error.message}</p>}
-        {!projectReady && <NextSteps />}
+        <h3>{readbackRecovery ? "Project view needs refresh" : maps.length > 0 ? "Map metadata" : projectReady ? "Floor ready" : "No project loaded"}</h3>
+        <p>{readbackRecovery ? `Project “${projectName}” may still show an older projection until its canonical state is queried.` : maps.length > 0 ? `Project “${projectName}” contains ${maps.length} imported PNG map${maps.length === 1 ? "" : "s"}.` : projectReady ? `Project “${projectName}” has a canonical floor ready for a map.` : "Create or open a project, then import a PNG floor plan."}</p>
+        {readbackRecovery && <div className="state-remediation" role="alert">
+          <p>Map operation {readbackRecovery.receipt.operationId} committed at revision {readbackRecovery.receipt.projectRevision}; readback failed: {readbackRecovery.error.message}</p>
+          <button type="button" className="secondary-button" disabled={busy} onClick={onRefresh}>Refresh canonical project view</button>
+        </div>}
+        {!projectReady && !readbackRecovery && <NextSteps />}
         {projectReady && <ReadySteps onImport={onImport} />}
-        {maps.map((map) => <MapCalibrationForm key={map.mapId} map={map} onCalibrate={onCalibrate} />)}
+        {projectReady && maps.map((map) => <MapCalibrationForm key={map.mapId} map={map} onCalibrate={onCalibrate} />)}
         <CapabilityNotice />
         <ShortcutList />
       </div>

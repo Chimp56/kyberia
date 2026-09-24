@@ -15,6 +15,19 @@ export interface ActiveProjectJobStatus {
   state: ActiveProjectJob["state"];
 }
 
+export interface CommittedMapMutationReceipt {
+  state: "committed";
+  operationId: string;
+  projectRevision: number;
+  contentHash: string;
+}
+
+export interface MapReadbackRecovery {
+  projectId: string | null;
+  receipt: CommittedMapMutationReceipt;
+  error: IpcErrorPayload;
+}
+
 export function mergeActiveProjectJobStatus(
   current: ActiveProjectJob | null,
   status: ActiveProjectJobStatus,
@@ -37,6 +50,7 @@ export interface WorkspaceState {
   floorId: string | null;
   maps: MapSummary[];
   error: IpcErrorPayload | null;
+  readbackRecovery: MapReadbackRecovery | null;
   activeJob: ActiveProjectJob | null;
   selectedTool: string;
   commandPaletteOpen: boolean;
@@ -53,6 +67,7 @@ export const initialWorkspaceState: WorkspaceState = {
   floorId: null,
   maps: [],
   error: null,
+  readbackRecovery: null,
   activeJob: null,
   selectedTool: "select",
   commandPaletteOpen: false,
@@ -71,6 +86,31 @@ export function stateForError(error: IpcErrorPayload, previous: WorkspaceState =
     error,
     activeJob: null,
   };
+}
+
+export function stateForMapReadbackFailure(
+  receipt: CommittedMapMutationReceipt,
+  error: IpcErrorPayload,
+  previous: WorkspaceState,
+): WorkspaceState {
+  return {
+    ...previous,
+    phase: "error",
+    error,
+    readbackRecovery: { projectId: previous.projectId, receipt, error },
+    activeJob: null,
+  };
+}
+
+export function mapReadbackIsReconciled(
+  projectId: string | null,
+  projectRevision: number | null,
+  recovery: MapReadbackRecovery,
+): boolean {
+  return projectId !== null
+    && projectId === recovery.projectId
+    && projectRevision !== null
+    && projectRevision >= recovery.receipt.projectRevision;
 }
 
 export function createRequestGate() {

@@ -16,7 +16,7 @@ import {
   type MapMutationResponse,
   type MapSourceSelection,
 } from "./contracts";
-import { createRequestGate, initialWorkspaceState, mergeActiveProjectJobStatus, stateForError, type WorkspaceState } from "./ui-state";
+import { createRequestGate, initialWorkspaceState, mapReadbackIsReconciled, mergeActiveProjectJobStatus, stateForError, stateForMapReadbackFailure, type WorkspaceState } from "./ui-state";
 
 type ProjectOperation = "current" | "create" | "open" | "import" | "calibrate";
 type JobOutcome =
@@ -40,6 +40,7 @@ export interface ProjectSessionController {
   importFloorPlan: () => Promise<void>;
   calibrateMap: (input: Omit<CalibrateMapRequest, "schema" | "jobId" | "operationId" | "actorId" | "deviceId" | "calibrationId"> & { calibrationId?: string }) => Promise<void>;
   retry: () => Promise<void>;
+  refreshProject: () => Promise<void>;
   cancelActiveJob: () => Promise<void>;
   selectTool: (tool: string) => void;
   toggleLayer: (layer: string) => void;
@@ -58,6 +59,7 @@ export function responseToState(response: CurrentProjectResponse, previous: Work
     floorId: response.project?.floorId ?? null,
     maps: response.project?.maps ?? [],
     error: null,
+    readbackRecovery: null,
     activeJob: null,
   };
 }
@@ -116,7 +118,22 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
         const observed = await Promise.race([outcome, delay(JOB_POLL_INTERVAL_MS)]);
         if (observed.kind === "success") {
           if (!requestGate.current.isCurrent(request)) return;
-          setState((current) => responseToState(assertResponse(observed.response), current));
+          const response = assertResponse(observed.response);
+          setState((current) => {
+            if (operation === "current" && current.readbackRecovery !== null
+              && !mapReadbackIsReconciled(
+                response.project?.projectId ?? null,
+                response.project?.revision ?? null,
+                current.readbackRecovery,
+              )) {
+              return stateForMapReadbackFailure(
+                current.readbackRecovery.receipt,
+                current.readbackRecovery.error,
+                current,
+              );
+            }
+            return responseToState(response, current);
+          });
           setLastError(null);
           lastFailedOperation.current = null;
           return;
@@ -248,7 +265,21 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
           if (response.current) {
             setState((current) => responseToState(response.current!, current));
           } else {
-            setState((current) => ({ ...current, phase: "ready", error: response.readbackError, activeJob: null }));
+            const readbackError = response.readbackError;
+            if (readbackError === null) {
+              throw {
+                schema: IPC_SCHEMA,
+                code: "invalid_response",
+                message: "The desktop adapter returned a committed mutation without a current view or readback error.",
+                retryable: false,
+              } satisfies IpcErrorPayload;
+            }
+            setState((current) => stateForMapReadbackFailure({
+              state: response.state,
+              operationId: response.operationId,
+              projectRevision: response.projectRevision,
+              contentHash: response.contentHash,
+            }, readbackError, current));
           }
           lastErrorRef.current = null;
           setLastError(null);
@@ -477,6 +508,10 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
   }, []);
 
   const retry = useCallback(async () => {
+    if (state.readbackRecovery !== null) {
+      await runCurrent();
+      return;
+    }
     if (!lastError?.retryable) return;
     if (lastFailedOperation.current === "create") await createBlankProject();
     else if (lastFailedOperation.current === "open") await openProject();
@@ -485,7 +520,12 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
       await performCalibration(pendingCalibration.current);
     }
     else await runCurrent();
-  }, [createBlankProject, importFloorPlan, lastError?.retryable, openProject, performCalibration, runCurrent]);
+  }, [createBlankProject, importFloorPlan, lastError?.retryable, openProject, performCalibration, runCurrent, state.readbackRecovery]);
+
+  const refreshProject = useCallback(async () => {
+    if (state.readbackRecovery === null) return;
+    await runCurrent();
+  }, [runCurrent, state.readbackRecovery]);
 
   return {
     state,
@@ -494,6 +534,7 @@ export function useProjectSession(ipc: DesktopIpc = getDesktopIpc()): ProjectSes
     importFloorPlan,
     calibrateMap,
     retry,
+    refreshProject,
     cancelActiveJob,
     selectTool,
     toggleLayer,

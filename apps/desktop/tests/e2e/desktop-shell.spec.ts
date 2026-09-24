@@ -324,3 +324,75 @@ test("retry repeats failed create and accepted replacement publishes a distinct 
   await expect(page.locator(".app-shell")).toHaveAttribute("data-project-id", "replacement-project");
   expect(await page.evaluate(() => (window as unknown as { __CREATE_COUNT__?: number }).__CREATE_COUNT__ ?? 0)).toBe(2);
 });
+
+test("committed map receipt exposes a query recovery path without repeating import", async ({ page }) => {
+  const recoveredProject = {
+    ...baselineResponse,
+    state: "materialized_current" as const,
+    project: {
+      ...baselineResponse.project!,
+      state: "materialized_current" as const,
+      revision: 1,
+      logicalTime: 1,
+      hasFloorPlan: true,
+      maps: [{ mapId: "map-1", floorId: "fixture-floor", name: "Plan.png", width: 200, height: 120, calibrated: false, metersPerPixel: null }],
+    },
+  };
+  const staleProject = {
+    ...baselineResponse,
+    project: { ...baselineResponse.project!, revision: 0 },
+  };
+  await page.addInitScript(({ recovered, staleProject }) => {
+    let currentQueries = 0;
+    let importCalls = 0;
+    window.__RF_ATLAS_IPC__ = {
+      currentProject: async () => {
+        currentQueries += 1;
+        (window as unknown as { __CURRENT_QUERIES__: number }).__CURRENT_QUERIES__ = currentQueries;
+        return currentQueries === 1 ? staleProject : recovered;
+      },
+      selectOpenProject: async () => ({ schema: "kyberia.desktop-ipc/2", selection: null }),
+      openProject: async () => recovered,
+      createBlankProject: async () => baselineResponse,
+      selectMapSource: async () => ({
+        schema: "kyberia.desktop-ipc/2",
+        selection: { grantId: "map-grant-1", displayName: "Plan.png", byteLength: 1024, kind: "png" },
+      }),
+      importMap: async () => {
+        importCalls += 1;
+        (window as unknown as { __IMPORT_CALLS__: number }).__IMPORT_CALLS__ = importCalls;
+        return {
+          schema: "kyberia.desktop-ipc/2",
+          state: "committed",
+          operationId: "operation-7",
+          projectRevision: 1,
+          contentHash: "a".repeat(64),
+          current: null,
+          readbackError: {
+            schema: "kyberia.desktop-ipc/2",
+            code: "storage",
+            message: "The canonical view could not be queried.",
+            retryable: false,
+          },
+        };
+      },
+      jobStatus: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "running", progress: 50 }),
+      cancelJob: async ({ jobId }) => ({ schema: "kyberia.desktop-ipc/2", jobId, state: "cancelling" }),
+    };
+  }, { recovered: recoveredProject, staleProject });
+  await page.goto("/");
+  await page.getByRole("region", { name: "Floor plan canvas" }).getByRole("button", { name: "New project", exact: true }).click();
+  await page.getByRole("button", { name: "Choose PNG floor plan" }).click();
+  await expect(page.getByRole("heading", { name: "Committed map change needs reconciliation" })).toBeVisible();
+  await expect(page.getByText("Operation operation-7 committed at revision 1")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Refresh project view" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Refresh canonical project view" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Refresh canonical project view" }).click();
+  await expect(page.getByRole("heading", { name: "Committed map change needs reconciliation" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Refresh canonical project view" })).toBeVisible();
+  await page.getByRole("button", { name: "Refresh canonical project view" }).click();
+  await expect(page.getByRole("heading", { name: "PNG map imported" })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __CURRENT_QUERIES__: number }).__CURRENT_QUERIES__)).toBe(2);
+  expect(await page.evaluate(() => (window as unknown as { __IMPORT_CALLS__: number }).__IMPORT_CALLS__)).toBe(1);
+});

@@ -4,13 +4,13 @@ use kyberia_application::{
     MapOperationContext, OpenProject, ProjectQuery, ProjectQueryResult, ProjectState, SessionMode,
 };
 use kyberia_domain::{
-    evidence::{Evidence, SchemaVersion, UnknownReason},
+    evidence::{ArtifactReference, Evidence, SchemaVersion, UnknownReason},
     identity::{
         BuildingId, CalibrationId, FloorId, MapAssetId, OperationId, ProjectId, SiteId, Text,
     },
     project::{
         Building, BuildingData, CommandRequest, Floor, FloorData, InitialProjectHierarchy,
-        MapCalibration, Project, ProjectCommand, Site,
+        MapAsset, MapAssetData, MapCalibration, Project, ProjectCommand, Site,
     },
     spatial::{
         CalibrationControls, CoordinateFrame, FrameKind, ImageYAxis, PixelPoint, Point2, Point3,
@@ -19,8 +19,8 @@ use kyberia_domain::{
     units::{CoordinateMeters, Meters, Pixels, Radians},
 };
 use kyberia_operation_log::{
-    CausalDepth, ImmutableReference, LogicalTimestamp, Mutation, NonReversibleReason, Operation,
-    ProjectVersion,
+    CausalDepth, ImmutableReference, InversePrior, LogicalTimestamp, Mutation, NonReversibleReason,
+    Operation, ProjectVersion,
 };
 use kyberia_project_store::{ArtifactEntry, ArtifactKind, Bundle, OpenMode};
 use kyberia_resource_budget::{CancellationHook, ResourceBudget, ResourceLimits};
@@ -1040,6 +1040,7 @@ fn intent_workflow_creates_floor_derives_causality_and_retries_after_reopen() {
         })
         .unwrap();
     let created = current(&session);
+    let project_id = created.project_id();
     assert_eq!(created.project().unwrap().floors().count(), 1);
     assert_eq!(created.revision().unwrap().project_revision(), 0);
 
@@ -1151,6 +1152,65 @@ fn intent_workflow_creates_floor_derives_causality_and_retries_after_reopen() {
     assert_eq!(calibration_record.causal_depth().value(), 1);
     assert_eq!(calibration_record.parents(), &[import_operation]);
     drop(bundle);
+
+    // Model a future multi-device DAG with nine concurrent heads. Exact
+    // retry of the already committed import must not need to derive a new
+    // eight-parent frontier.
+    let mut writer = Bundle::open(&path, OpenMode::ReadWrite).unwrap();
+    let mut expected_revision = writer.operation_store_state().unwrap().project_revision();
+    let mut concurrent_map_budget = ResourceBudget::new(limits());
+    let admitted =
+        kyberia_application::admit_map_asset(&bytes, &mut concurrent_map_budget).unwrap();
+    for index in 0..8_u8 {
+        let map_id: MapAssetId = identity(100 + index);
+        let map = MapAsset::new(MapAssetData {
+            id: map_id,
+            floor_id,
+            name: Text::new(format!("Concurrent map {index}")).unwrap(),
+            image_frame: frame(130 + index, FrameKind::ImagePixels),
+            width: admitted.width(),
+            height: admitted.height(),
+            source: ArtifactReference {
+                sha256: imported.receipt.content_hash,
+                media_type: Text::new("image/png").unwrap(),
+                byte_length: bytes.len() as u64,
+            },
+            provenance: Text::new("native-picker:grant-123").unwrap(),
+        })
+        .unwrap();
+        let operation = Operation::try_apply_v3(
+            identity(60 + index),
+            project_id,
+            identity(70 + index),
+            identity(80 + index),
+            LogicalTimestamp::new(3).unwrap(),
+            CausalDepth::new(0),
+            vec![],
+            Mutation::import_map(map),
+            InversePrior::MapAbsent { map_id },
+        )
+        .unwrap();
+        writer
+            .append_operation_if_revision(operation, Some(expected_revision))
+            .unwrap();
+        expected_revision = writer.operation_store_state().unwrap().project_revision();
+    }
+    let operations = writer.operation_set().unwrap();
+    let head_count = operations
+        .operations()
+        .filter(|operation| {
+            !operations
+                .operations()
+                .any(|child| child.parents().contains(&operation.operation_id()))
+        })
+        .count();
+    assert_eq!(head_count, 9);
+    let baseline = writer.materialization_baseline().unwrap().unwrap();
+    let materialized = kyberia_causal_materializer::materialize(&baseline, &operations).unwrap();
+    writer
+        .publish_materialized_project(&baseline, &operations, &materialized, expected_revision, 5)
+        .unwrap();
+    drop(writer);
 
     let mut reopened = app
         .open(OpenProject {

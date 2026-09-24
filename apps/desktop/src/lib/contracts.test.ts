@@ -53,11 +53,11 @@ describe("desktop IPC contract", () => {
     expect(() => assertMapSourceSelectionResponse({
       schema: IPC_SCHEMA,
       selection: { grantId: jobId, displayName: "Floor.png", byteLength: 1024, kind: "png", path: "/private/Floor.png" },
-    })).toThrow(/malformed/);
+    })).toThrow(/invalid PNG selection/);
     expect(() => assertMapSourceSelectionResponse({
       schema: IPC_SCHEMA,
       selection: { grantId: jobId, displayName: "Floor.png", byteLength: 32 * 1024 * 1024 + 1, kind: "png" },
-    })).toThrow(/malformed/);
+    })).toThrow(/invalid PNG selection/);
   });
 
   it("accepts receipt-first map responses without leaking source or pixel fields", () => {
@@ -76,8 +76,8 @@ describe("desktop IPC contract", () => {
       },
     };
     expect(assertMapMutationResponse(receipt).state).toBe("committed");
-    expect(() => assertMapMutationResponse({ ...receipt, sourcePath: "/private/Floor.png" })).toThrow(/malformed/);
-    expect(() => assertMapMutationResponse({ ...receipt, pixels: [0, 1, 2] })).toThrow(/malformed/);
+    expect(() => assertMapMutationResponse({ ...receipt, sourcePath: "/private/Floor.png" })).toThrow(/invalid map mutation receipt/);
+    expect(() => assertMapMutationResponse({ ...receipt, pixels: [0, 1, 2] })).toThrow(/invalid map mutation receipt/);
   });
 
   it("strictly validates bounded job progress and cancellation acknowledgements", () => {
