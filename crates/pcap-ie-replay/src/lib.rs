@@ -936,6 +936,43 @@ mod tests {
         ));
     }
 
+    struct CancelAfterOffset<'a> {
+        inner: Cursor<Vec<u8>>,
+        offset: u64,
+        cancel: &'a AtomicBool,
+        triggered: &'a AtomicBool,
+    }
+    impl Read for CancelAfterOffset<'_> {
+        fn read(&mut self, output: &mut [u8]) -> io::Result<usize> {
+            if self.inner.position() >= self.offset && !self.triggered.load(Ordering::Relaxed) {
+                self.triggered.store(true, Ordering::Relaxed);
+                self.cancel.store(true, Ordering::Relaxed);
+            }
+            self.inner.read(output)
+        }
+    }
+
+    #[test]
+    fn cancellation_after_staging_one_valid_frame_returns_no_capture() {
+        let first_packet = capture(&[(105, 4096)], &[(0, 1, beacon(b"staged"))]);
+        let after_first_packet = first_packet.len() as u64;
+        let mut bytes = first_packet;
+        bytes.extend_from_slice(&epb(0, 2, &beacon(b"not-reached")));
+
+        let cancel = AtomicBool::new(false);
+        let triggered = AtomicBool::new(false);
+        let input = CancelAfterOffset {
+            inner: Cursor::new(bytes),
+            offset: after_first_packet,
+            cancel: &cancel,
+            triggered: &triggered,
+        };
+        let result = replay(input, InputFraming::FcsAbsent, limits(), &cancel);
+
+        assert!(triggered.load(Ordering::Relaxed));
+        assert!(matches!(result, Err(Error::Cancelled)));
+    }
+
     #[test]
     fn deterministic_order_and_interface_identity_survive_multiple_interfaces() {
         let bytes = capture(
