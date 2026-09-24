@@ -1,11 +1,11 @@
 # Point-survey admission contract
 
 `kyberia-survey` is an inward, deterministic application core depending only on
-`kyberia-domain` and Serde. It controls one point capture from one source and one
-source-local monotonic epoch. It has no clock, capture, network, storage or UI
-side effects. Each accepted transition returns a new immutable state; an error
-leaves the original untouched. The caller stores canonical observation envelopes
-and persists the returned point state together with its observation references.
+`kyberia-domain` and Serde. Its point-capture and manual-path models use
+source-local monotonic epochs and have no clock, capture, network, storage or UI
+side effects. Each accepted transition returns a new state; an error leaves the
+prior value untouched. The caller stores canonical observation envelopes and
+persists survey state together with its observation references.
 
 ## Requirements and current boundary
 
@@ -18,9 +18,11 @@ not complete that user feature or all SUR-001 quality-gate dimensions.
 The following remain open: capture/UI/store wiring, annotations, repeated-point
 orchestration, statistical variance gates, active-test synchronization and result
 references, spectrum completion, multiple sensors and clock alignment, orientation
-stability, calibrated aggregation and the complete quality scorecard. Continuous
-paths (SUR-002), floor switching within a session and all other survey modes remain
-separate work. Unsupported active/spectrum gates are not offered in this contract.
+stability, calibrated aggregation and the complete quality scorecard. The separate
+manual continuous-path foundation below covers a pure SUR-002 positioning model;
+it does not wire capture, UI, persistence, or the Phase 1 product workflow. Floor
+switching within a session and all other survey modes remain separate work.
+Unsupported active/spectrum gates are not offered in this contract.
 
 ## Configuration and evidence
 
@@ -120,6 +122,76 @@ grows quadratically with record count. This is not a continuous frame-ingestion
 buffer. Full raw streams stay in observation storage. Exceeding the limit returns
 `Limit`; it never silently truncates. A future persistent receipt collection can
 replace the cloning representation without changing point semantics.
+
+## Manual continuous-path foundation (SUR-002)
+
+`ManualPathSurvey` is a pure state model for operator-clicked path anchors. It
+records `start`, `turn`, `pause`, `resume`, and `stop` as events with stable
+`PathAnchorId`s. Every event and observation timestamp is a
+`MonotonicTimestamp` from the configured single source epoch; the API accepts
+neither UTC nor wall-clock time. Reversed or repeated anchor times, mixed epochs,
+invalid transitions, duplicate observation IDs, and reported poses in another
+frame are rejected without changing the prior value. Distinct observations may
+share a capture timestamp.
+
+Consecutive anchors in the same path leg define the only intervals eligible for
+manual projection. A turn closes one interval and begins the next. Pause closes
+the current leg; resume opens a new leg at its own operator-supplied location.
+Stopping while paused creates an isolated endpoint rather than bridging the pause.
+An observation at an anchor timestamp uses that exact anchor. An observation
+strictly between two same-leg anchors is projected by
+`u = (t - t0) / (t1 - t0)` and per-coordinate convex interpolation
+`p = (1-u) p0 + u p1`; `u` uses integer nanosecond differences before its
+deterministic floating-point conversion. This explicitly reports
+`ManualUniformMotion`: it assumes steady motion on a straight segment and is not
+a measured pose. Samples later than the current last anchor remain retained but
+unassigned as `AwaitingNextAnchor` until a later anchor supports them. Times in a
+pause are `PauseGap`; times outside supported anchors are unassigned rather than
+clamped or extrapolated.
+
+Original clicked positions are retained separately from optional corrected
+positions. Edits are available only after stop, preserve anchor IDs, original
+coordinates, event times, observation IDs and raw observation timestamps, and do
+not cache projected positions. Every read recomputes positions from the current
+anchors. A reported pose takes precedence when its frame matches, covariance is
+known, and its largest per-axis standard deviation is at or below the caller's
+configured threshold. Unknown or over-threshold covariance falls back to the
+manual path when the timestamp is supported; `PoseDecision` and the retained raw
+pose make that choice explicit. No UTC conversion or timestamp mutation occurs.
+
+Speed is 3D anchor distance divided by elapsed monotonic seconds. A sharp turn is
+the horizontal heading change in the x-y plane between neighboring same-leg
+segments. Both thresholds are explicit configuration in meters per second and
+radians. Exceedances return typed diagnostics, not arbitrary path rejection;
+zero-length horizontal segments have no defined turn diagnostic. Non-finite or
+unrepresentable arithmetic, invalid configuration, and path/count bounds fail
+closed.
+
+Channel gaps are reported only when a caller supplies schedule intervals and
+per-frequency coverage completeness. Complete coverage intervals subtract from
+half-open scheduled intervals, and only remaining intervals intersecting a
+supported active path segment are returned with projected endpoints. Missing
+observations alone create no schedule. `Unknown` and `Incomplete` coverage do not
+count as complete; a result means only “scheduled interval without complete
+coverage,” never AP absence or negative RF evidence. Paused time is not turned
+into a path segment.
+
+The model caps a path at 512 anchors and 8,192 observations, each channel input
+vector at 512 scheduled and 2,048 coverage intervals, and one gap result at
+16,384 records. Serde decoding bounds anchor/observation sequence growth before
+accepting an extra element and revalidates phase, event order, epochs, frame
+consistency, identity uniqueness, and derived arithmetic. The state itself does
+not own a persistence or byte-stream boundary: stores/importers must impose their
+byte/depth admission limit before deserializing and reconcile observation IDs
+against canonical envelopes. A syntactically valid snapshot is consistent state,
+not authenticated source evidence.
+
+This foundation covers model-level start/turn/pause/resume/stop, timestamp
+projection, diagnostics, post-survey anchor correction, and schedule-backed gaps.
+It does not establish a field-tested walking pace, curved-path correction,
+capture adapter, map HUD, renderer, project-store persistence, field usability,
+or Phase 1/SUR-002 exit acceptance. Reproduction evidence is recorded in the
+[model validation note](../validation/manual-continuous-path.md).
 
 ## Validation and performance evidence
 

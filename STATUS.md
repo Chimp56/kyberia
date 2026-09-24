@@ -21,6 +21,22 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 
 ## Current execution checkpoint — 2026-09-23
 
+### Isolated manual continuous-path model candidate
+
+Branch `feat/phase1-manual-path-survey-current-20260923`, based on
+`afc5070fadac46411f02d355a0d00351f388205f`, adds a bounded pure SUR-002 model
+in `kyberia-survey`. It supports monotonic-time start/turn/pause/resume/stop,
+pose-first timestamp assignment with an explicit uniform-motion assumption,
+typed speed/turn diagnostics, post-stop anchor correction, and schedule-backed
+channel gaps that do not claim AP absence. The full survey package passes 46
+tests with one existing ignored benchmark; strict all-target Clippy, formatting,
+architecture and source-inventory checks pass locally. See the
+[validation note](docs/validation/manual-continuous-path.md).
+
+This candidate is not integrated or independently reviewed. Application/desktop
+capture wiring, canonical storage reconciliation, map HUD, human walking/field
+acceptance, and broader Phase 1/SUR-002 exit criteria remain open.
+
 The CPU/LLVM-only Sionna correction is integrated on `main` at `84a5bcb`.
 Independent runtime and docs/ledger reviews of follow-up `d0a88eb` pass with no
 findings; their scopes and evidence limits are recorded in the

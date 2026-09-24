@@ -2,10 +2,12 @@
 //! remain outside this crate; progress comes only from admitted evidence.
 mod association;
 mod config;
+mod manual_path;
 mod state;
 pub use association::*;
 pub use config::*;
 use kyberia_domain::{evidence::*, identity::*, observation::*, spatial::*, time::*, units::*};
+pub use manual_path::*;
 use serde::{Deserialize, Serialize};
 pub use state::*;
 use std::collections::{BTreeMap, BTreeSet};
