@@ -39,9 +39,16 @@ Fixtures are synthetic. No SoapySDR/vendor adapter, spectrum hardware,
 equivalent-noise-bandwidth normalization, remote-sensor replay, labeled traces,
 or Phase 5 runtime acceptance was exercised.
 
-## Bounded whole-bin band-power candidate
+## Integrated bounded whole-bin band-power increment
 
-This isolated candidate extends the validated sweep contract with a pure
+This increment is integrated from author commit `9122de8` as `eb27cbf` and
+independently approved in
+[`phase5-band-power-current-review.md`](../reviews/phase5-band-power-current-review.md)
+(report commit `8406e06`). The review found no blocker or major issue. It notes
+that tests do not construct an exact half-millidBm tie; the documented
+tie-away-from-zero behavior follows Rust's `f64::round()`.
+
+The integrated API extends the validated sweep contract with a pure
 `SpectrumSweep::integrate_band` query. It integrates one in-grid half-open band
 only when both endpoints align exactly to whole-bin boundaries. It sums dBm
 values after converting them to mW, or integrates dBm/Hz density over the
@@ -63,6 +70,10 @@ clipped/missing evidence, unchanged source identity, and a lowered work limit.
 This is a narrow computation core only. It does not implement current/average/
 minimum/max-hold views, a waterfall, threshold occupancy, channel overlays,
 time-domain bursts, analyzer adapters, calibration application, a renderer, or
-product/Phase 5 acceptance. `SPE-002` and Phase 5 remain open pending independent
-review and the broader numerical, rendering, hardware, calibration, and field
-gates.
+product/Phase 5 acceptance. `SPE-002` and Phase 5 remain open pending the broader
+numerical, rendering, hardware, calibration, and field gates.
+
+The bounded addition passes 19 contract tests, strict Clippy, formatting,
+architecture, source inventory (522 locked packages), ledger generation/check,
+and whitespace checks. The independent reviewer reran the focused tests and
+static checks. No half-millidBm tie fixture was constructed.

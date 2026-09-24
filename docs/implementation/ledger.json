@@ -48039,15 +48039,25 @@
       "validation": [
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
-          "description": "Synthetic integration regressions validate bounded whole-bin power calculation only; no rendered views or hardware/field acceptance",
-          "revision": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf",
-          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
+          "description": "Synthetic regressions validate bounded whole-bin power calculation; independent review approves the increment with a documented tie-rounding test caveat, and no rendered views or hardware/field acceptance",
+          "revision": "3a3ce931677766307fa6bb08eae6468934f4d6a440bc12633075a4a4d48054fa",
+          "sha256": "3a3ce931677766307fa6bb08eae6468934f4d6a440bc12633075a4a4d48054fa",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline; cargo clippy -p kyberia-spectrum-contract --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; git diff --check",
           "result": "PASS",
           "scope": "bounded software contract core only; synthetic evidence, no Phase 5 or product acceptance"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase5-band-power-current-review.md",
+          "description": "Independent approval of bounded whole-bin band power; the report notes no exact half-millidBm tie fixture",
+          "revision": "22be450d1b800ebe20acb79f9f783a1b1662396b",
+          "sha256": "ae8a6925a922a3335e0db86ce3b9fd97d5f56722deb7e2d2a5964d7e1197e37b",
+          "reviewer": "/root/phase5_band_power_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "catalog:SPE-002:1",
@@ -177213,7 +177223,7 @@
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: v1 sweep/calibration contracts plus unit-safe, bounded signature assessment",
           "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
-          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
+          "sha256": "3a3ce931677766307fa6bb08eae6468934f4d6a440bc12633075a4a4d48054fa",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep/calibration contract and signature tests only; no hardware or adapter execution"
@@ -177363,7 +177373,7 @@
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: per-bin coverage regression and exact-boundary fixture",
           "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
-          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
+          "sha256": "3a3ce931677766307fa6bb08eae6468934f4d6a440bc12633075a4a4d48054fa",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep-window coverage checks only; no survey path or physical positioning validation"
@@ -177427,7 +177437,7 @@
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: PSD fail-closed behavior and generic deterministic pattern regressions",
           "revision": "3ff26ebd6fe25e375dac5a41d1a7430c21e4fccf6cf5859a676d2512846fb5b9",
-          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
+          "sha256": "3a3ce931677766307fa6bb08eae6468934f4d6a440bc12633075a4a4d48054fa",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic contract fixtures only; no labeled traces, emitter identification or field validation"
@@ -242579,14 +242589,24 @@
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Focused synthetic contract checks only; full SPE-002 visual and Phase 5 runtime acceptance is unverified",
-          "revision": "c0a913c5d42dd6fec78348a6d03eb32dc71039f624581866717ec62ddbadc2bf",
-          "sha256": "31f4e634dc492830d419cf847dae1554ddfd6c884259b16373e3d70d232c89d8",
+          "revision": "3a3ce931677766307fa6bb08eae6468934f4d6a440bc12633075a4a4d48054fa",
+          "sha256": "3a3ce931677766307fa6bb08eae6468934f4d6a440bc12633075a4a4d48054fa",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline; cargo clippy -p kyberia-spectrum-contract --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; git diff --check",
           "result": "PASS",
           "scope": "partial contract validation only; no rendered views or hardware/field acceptance"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase5-band-power-current-review.md",
+          "description": "Independent approval of bounded whole-bin band power; the report notes no exact half-millidBm tie fixture",
+          "revision": "22be450d1b800ebe20acb79f9f783a1b1662396b",
+          "sha256": "ae8a6925a922a3335e0db86ce3b9fd97d5f56722deb7e2d2a5964d7e1197e37b",
+          "reviewer": "/root/phase5_band_power_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:43ee4ae81b715409ced5:1",

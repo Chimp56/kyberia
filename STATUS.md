@@ -9,8 +9,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
 - Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17` with the independently approved, test-only threshold/resource-boundary follow-up at `141fc0e` (`bde0b98`, `5426ec0`); Phase 2 IE-explorer core at `41e88b7` with singleton-warning correction `26efb81`, independently reviewed at `9401e4a` and re-reviewed at `f1788ef`; Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, schema validator at `22b8b33`, trailing-LF corrections `11bd549` and `7986171`, and focused independent review through `1881ba4`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Latest additional reviewed increment: Association/Reassociation Request/Response IE framing at `fefcce6`, independently reviewed in `3737372`. Fixed bodies remain raw; full INS-005 and Phase 2 remain open.
-- Most recent integration change: Association/Reassociation Request/Response IE framing at `fefcce6`, with independent review report `3737372`. The parser skips the subtype-specific fixed body before IE traversal and keeps those bytes raw. No Association fixed-field semantics, desktop UI, or standards clause/help catalog are claimed; INS-005 and Phase 2 remain open.
+- Latest additional reviewed increments: Association/Reassociation Request/Response IE framing at `fefcce6`, independently reviewed in `3737372`; Phase 5 whole-bin band-power integration at `eb27cbf`, independently reviewed in `8406e06`.
+- Most recent integration change: bounded whole-bin band-power calculation at `eb27cbf`, with independent report `8406e06`. It sums in linear power, requires complete exact-bin coverage, and reports unknown causes rather than partial totals. The tie-rounding direction is documented but lacks an exact half-millidBm fixture; spectrum UI, adapters, hardware/calibration and Phase 5 exit remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -68,13 +68,14 @@ with correction re-review `16a9111`. The PSD path fails closed and local-bin
 coverage is explicit; fixtures remain synthetic and bandwidth normalization,
 adapters, hardware and labeled traces remain open.
 
-An isolated Phase 5 candidate adds bounded exact whole-bin band-power
-integration over one validated sweep. Synthetic tests cover linear-domain
+The bounded whole-bin band-power calculation is integrated at `eb27cbf` and
+independently approved in report `8406e06`. Synthetic tests cover linear-domain
 dBm-bin summation, PSD density × explicit bin width, range/alignment checks,
 fail-closed clipping/missing-bin outcomes, unchanged sweep identity, and the
-work ceiling. It is not yet independently reviewed or integrated; it does not
-provide the current/average/minimum/max-hold/waterfall/occupancy views or
-hardware/calibration/field acceptance. `SPE-002` and Phase 5 remain open.
+work ceiling. The documented half-millidBm tie direction has no dedicated tie
+fixture. This calculation does not provide current/average/minimum/max-hold,
+waterfall/occupancy views, analyzer adapters, hardware/calibration/field
+acceptance, or Phase 5 exit. `SPE-002` and Phase 5 remain open.
 
 The Phase 8 plugin declaration/parser contract is integrated at `8cce7c1`
 with correction re-review `51f5caa`. Raw input and nesting are bounded before
@@ -240,7 +241,7 @@ product capability is validated.
 | Versioned antenna-pattern contract | Integrated at `6709813`; schema-validation candidate based on recorded main checkpoint | Eleven synthetic candidate tests pass, including the non-pole elevation golden and trailing-line-feed rejection for all four schema-patterned text fields. The candidate runs Draft 2020-12 validation with the existing pinned validator; clean-bootstrap execution and independent review remain open. Licensed manufacturer data, source rights/checksum validation, uncertainty-aware planning, cuts/harmonics, visual review, polarization mismatch loss, Sionna adapter, and Phase 3 exit remain open |
 | Desktop instrument shell | Integrated and independently approved through `74d0f89` | Native lifecycle, opaque grants, project commands, command palette, responsive shell, deterministic cancellation proof, zero-finding npm audit and release build pass locally; hosted multi-OS and later Phase 1 workflow gates remain |
 | Kyberia Lab MCP | Integrated through `964a5ae`; CPU-only Sionna correction at `84a5bcb`, independently reviewed follow-up `d0a88eb` | Runtime and docs/ledger reviews pass for the bounded correction. The change removes the accelerator suite/selector; pinned worker-0.2.0 execution and provisioned authenticated hosts plus physical Windows/Kismet/spectrum executions remain |
-| Phase 5 spectrum evidence contract | Integrated on `main` at `9641431`; correction re-review `16a9111` | Signature rules v2 fail closed for dBm/Hz and require 80% per-bin coverage across event sweeps; 14 synthetic contract tests pass. Both prior MAJOR findings are resolved; one non-blocking v1 decoder-diagnostic MINOR is documented. No SoapySDR/vendor adapter, bandwidth normalization, hardware, remote-sensor or labeled-trace execution; Phase 5 remains open. See [validation](docs/validation/phase5-spectrum-contract.md) |
+| Phase 5 spectrum evidence contract | Integrated on `main` at `9641431`; correction re-review `16a9111`; whole-bin power at `eb27cbf`, independently approved in `8406e06` | 19 band-power contract tests plus the earlier sweep/signature coverage pass. Linear-domain summation, exact alignment and fail-closed unknown causes are covered. A half-millidBm tie case is not directly tested. No spectrum UI, SoapySDR/vendor adapter, equivalent-bandwidth normalization, hardware, remote-sensor or labeled-trace execution; Phase 5 remains open. See [validation](docs/validation/phase5-spectrum-contract.md) |
 | Phase 6 pose/anchor fusion foundation | Integrated at `3caa22e`, fixes through `acc35e9`; independent rereview `b792bf9` | 21 focused contract tests, strict Clippy, formatting, architecture, package inventory and ledger checks pass on main. Exact-sample speed and source-covariance issues were corrected; rereview has no findings. Native platform acquisition, relocalization, route comparison, remote pairing and device/field acceptance remain open; see [validation](docs/validation/mobile-pose-contract.md) |
 | Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
