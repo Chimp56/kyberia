@@ -7,8 +7,11 @@ This model-level increment was authored on
 approved the implementation and work-budget correction with no unresolved
 findings in
 [`phase1-manual-path-budget-rereview-20260923.md`](../reviews/phase1-manual-path-budget-rereview-20260923.md).
-A fresh review of the assembled current-main integration is pending. This does
-not claim Phase 1 or SUR-002 exit.
+The assembled current-main integration was independently approved with no
+scoped findings in
+[`phase1-manual-path-current-main-integration-review-fc809af-20260923.md`](../reviews/phase1-manual-path-current-main-integration-review-fc809af-20260923.md).
+This approves the bounded pure model only; it does not claim Phase 1 or SUR-002
+exit.
 
 ## Implemented scope
 
@@ -123,6 +126,5 @@ capture backend, persistence adapter, human walking pace, or field usability.
 `catalog:SUR-002:1`, its five source-qualified bullets, and `backlog:MAPB-004:1`
 remain `IN_PROGRESS`. This code does not implement the map HUD, application
 commands, capture orchestration, durable project wiring, calibrated/map-frame
-admission, or human usability. Source-level review is approved, but fresh
-current-main integration review and broader Phase 1/SUR-002 acceptance remain
-open.
+admission, or human usability. Source and current-main integration reviews are
+approved, but broader Phase 1/SUR-002 acceptance remains open.

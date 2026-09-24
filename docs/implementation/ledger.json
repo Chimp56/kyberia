@@ -35437,9 +35437,9 @@
       "validation": [
         {
           "path": "docs/validation/manual-continuous-path.md",
-          "description": "Reproducible 47-test SUR-002 model validation; source review is approved, while current-main integration review, application, field and Phase 1 acceptance remain open.",
+          "description": "Reproducible 47-test SUR-002 model validation; source and current-main integration reviews are approved, while application, field and Phase 1 acceptance remain open.",
           "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "3d158a880e83a8d01abf68d1480eb977c24b50a713ce24dc1ab824aa061c1878",
+          "sha256": "c5a89f60cd60aada960d582bd8de63a44fd1810c409d37fcd1ba62ecf7b3f66e",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS: 47 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
           "scope": "Pure survey model and local structural checks only; no application/desktop wiring, persistence adapter, field test, or phase exit."
@@ -35452,6 +35452,15 @@
           "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
           "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
           "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/phase1-manual-path-current-main-integration-review-fc809af-20260923.md",
+          "description": "Independent current-main integration review of the bounded manual-path model; approved with no scoped findings; product acceptance remains open.",
+          "revision": "1933b7755e15ed6652abeccbfb59eef73c23ff0e",
+          "sha256": "4e596bc16a225557887b8aff15853c3e7cf2bb94375779c08ea91630236c7e46",
+          "reviewer": "/root/phase3_schema_review",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -172968,9 +172977,9 @@
       "validation": [
         {
           "path": "docs/validation/manual-continuous-path.md",
-          "description": "Local acceptance evidence for the bounded manual path foundation; source review is approved while fresh current-main integration review and product acceptance remain open.",
+          "description": "Local acceptance evidence for the bounded manual path foundation; source and current-main integration reviews are approved while product acceptance remains open.",
           "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "3d158a880e83a8d01abf68d1480eb977c24b50a713ce24dc1ab824aa061c1878",
+          "sha256": "c5a89f60cd60aada960d582bd8de63a44fd1810c409d37fcd1ba62ecf7b3f66e",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS: 47 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
           "scope": "Manual-path state model only. Product map workflow, app/store integration, user and field validation are not established."
@@ -172983,6 +172992,15 @@
           "revision": "b92e15b3918c15807f701af71a8d92773d7d81af",
           "sha256": "9ebf3c93b12b857a63eecbe8ff4f3fae48f2b85aa95a7281d534d5b5ca5fde90",
           "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/phase1-manual-path-current-main-integration-review-fc809af-20260923.md",
+          "description": "Independent current-main integration review of the bounded manual-path model; approved with no scoped findings; product acceptance remains open.",
+          "revision": "1933b7755e15ed6652abeccbfb59eef73c23ff0e",
+          "sha256": "4e596bc16a225557887b8aff15853c3e7cf2bb94375779c08ea91630236c7e46",
+          "reviewer": "/root/phase3_schema_review",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -240832,7 +240850,7 @@
           "path": "docs/validation/manual-continuous-path.md",
           "description": "Evidence-bounded validation; audit's broader resampling and field/pace semantics are not satisfied.",
           "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "3d158a880e83a8d01abf68d1480eb977c24b50a713ce24dc1ab824aa061c1878",
+          "sha256": "c5a89f60cd60aada960d582bd8de63a44fd1810c409d37fcd1ba62ecf7b3f66e",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS: bounded survey-model tests and local structural checks; no broader product validation claimed.",
           "scope": "Partial model implementation only; no pace guidance, spatial resampling, body-effect treatment or field replay evaluation."

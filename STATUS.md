@@ -27,8 +27,9 @@ The bounded SUR-002 model from `feat/phase1-manual-path-survey-current-20260923`
 at `91060ef`, based on `afc5070`, is assembled on
 `integrate/phase1-manual-path-main-20260923` from current main `172c4a3`.
 Independent source review approved the model and work-bound correction with no
-unresolved findings in report `b92e15b`; the combined current-main integration
-is pending its own independent review. The model supports monotonic-time
+unresolved findings in report `b92e15b`; independent current-main integration
+review approved the assembled candidate with no scoped findings in report
+`1933b77`. The model supports monotonic-time
 start/turn/pause/resume/stop, pose-first timestamp assignment with an explicit
 uniform-motion assumption, typed speed/turn diagnostics, post-stop anchor
 correction, and schedule-backed channel gaps that do not claim AP absence. Its
