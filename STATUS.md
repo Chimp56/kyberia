@@ -43,12 +43,11 @@ Application/desktop capture wiring, canonical storage reconciliation, map HUD,
 human walking/field acceptance, and broader Phase 1/SUR-002 exit criteria
 remain open.
 
-An isolated follow-up candidate on
-`feat/phase1-manual-path-persistence-20260923` adds a zero-allocation
-`ManualPathSurvey::observation_ids()` iterator in deterministic stored order,
-plus a focused regression test. Focused survey tests and structural checks pass;
-independent review is pending. It does not introduce persistence or alter the
-capture-session association contract.
+The zero-allocation `ManualPathSurvey::observation_ids()` iterator and focused
+ordering regression are integrated at `348aec6` and independently approved in
+the report recorded at `6e51355`. Focused survey tests and structural checks
+pass. This increment does not introduce persistence or alter the
+capture-session association contract; SUR-002 and Phase 1 remain open.
 
 The CPU/LLVM-only Sionna correction is integrated on `main` at `84a5bcb`.
 Independent runtime and docs/ledger reviews of follow-up `d0a88eb` pass with no

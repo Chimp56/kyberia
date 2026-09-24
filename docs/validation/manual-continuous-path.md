@@ -11,10 +11,9 @@ The assembled current-main integration was independently approved with no
 scoped findings in
 [`phase1-manual-path-current-main-integration-review-fc809af-20260923.md`](../reviews/phase1-manual-path-current-main-integration-review-fc809af-20260923.md).
 Those reviews approve the bounded pure model baseline only; they do not claim
-Phase 1 or SUR-002 exit. An isolated follow-up candidate on
-`feat/phase1-manual-path-persistence-20260923` adds only a zero-allocation
-iterator over retained observation IDs; independent review of that accessor is
-pending.
+Phase 1 or SUR-002 exit. The zero-allocation iterator over retained observation
+IDs and its ordering regression are integrated at `348aec6`; independent review
+approved the bounded change in the report recorded at `6e51355`.
 
 ## Implemented scope
 
