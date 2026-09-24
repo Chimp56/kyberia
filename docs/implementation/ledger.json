@@ -30548,12 +30548,12 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Author validation of the bounded current-main desktop adaptation; frontend cache isolation and independent review remain open.",
+          "description": "Author validation of the bounded current-main desktop adaptation; final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches, while fresh independent rereview remains pending.",
           "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
           "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
-          "scope": "Focused application/core Rust validation passes; separate Tauri suite passes 22+6+2. Frontend checks are stale relative to final assertions and shared Vitest cache was touched; all desktop/product exits remain open."
+          "scope": "Focused application/core Rust validation passes; separate Tauri suite passes 23+6+2. Final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches; the root Vitest cache is unchanged and the temporary dependency symlink was restored to ignored trash. All desktop/product exits remain open."
         }
       ],
       "reviews": [
