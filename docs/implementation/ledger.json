@@ -30490,7 +30490,7 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "A bounded PNG source can be imported through a typed operation with durable MapSource closure; this candidate additionally wires an opaque native grant and numeric-only desktop workflow, while independent review and the complete format catalog remain open."
+        "A bounded PNG source can be imported through a typed operation with durable MapSource closure; this increment additionally wires a reviewed opaque native grant and numeric-only desktop workflow, while the complete format catalog and pixel decoding remain open."
       ],
       "implementation": [
         {
@@ -30548,9 +30548,9 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Author validation of the bounded current-main desktop adaptation; final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches, source follow-ups are approved, and current-main integration review remains pending.",
-          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
-          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "description": "Author validation of the bounded current-main desktop adaptation; final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches, and the assembled integration review is approved; broader product gates remain open.",
+          "revision": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
+          "sha256": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Focused application/core Rust validation passes; separate Tauri suite passes 23+6+2. Final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches; the root Vitest cache is unchanged and the temporary dependency symlink was restored to ignored trash. All desktop/product exits remain open."
@@ -30571,6 +30571,15 @@
               "resolution": "RESOLVED"
             }
           ]
+        },
+        {
+          "path": "docs/reviews/phase0-desktop-map-current-main-integration-review-6bddfe7-20260923.md",
+          "description": "Independent review of the assembled current-main desktop map integration; approved with no scoped findings, with candidate ancestry corrected in the report.",
+          "revision": "ac86d1676f33db80628edf9a2069e1bfb5f883e9",
+          "sha256": "319277239da5967cb847acc63649b3c6a1730bfd81d4d29391ef159f1af8defc",
+          "reviewer": "/root/phase3_schema_review",
+          "disposition": "APPROVED",
+          "findings": []
         }
       ],
       "blocker": null,
@@ -31501,7 +31510,7 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Two-point calibration is represented by typed V3 operations with exact undo prior and deterministic floor-evidence conflict behavior; this candidate derives causal metadata and accepts only finite distinct controls strictly within canonical PNG bounds; broader calibration remains open."
+        "Two-point calibration is represented by typed V3 operations with exact undo prior and deterministic floor-evidence conflict behavior; this increment derives causal metadata and accepts only finite distinct controls strictly within canonical PNG bounds; broader calibration remains open."
       ],
       "implementation": [
         {
@@ -31541,15 +31550,25 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Author validation of canonical two-point bounds, persisted scale projection and the bounded UI adaptation; source follow-ups are approved, while current-main integration review and later calibration breadth remain open.",
-          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
-          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "description": "Author validation of canonical two-point bounds, persisted scale projection and the bounded UI adaptation; assembled current-main integration review is approved, while later calibration breadth remains open.",
+          "revision": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
+          "sha256": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application intent tests verify causal order, exact import/calibration retry after reopen and strict bounds; native UI/adapter and cross-platform gates remain open."
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase0-desktop-map-current-main-integration-review-6bddfe7-20260923.md",
+          "description": "Independent review of the assembled current-main desktop map integration; approved with no scoped findings, with candidate ancestry corrected in the report.",
+          "revision": "ac86d1676f33db80628edf9a2069e1bfb5f883e9",
+          "sha256": "319277239da5967cb847acc63649b3c6a1730bfd81d4d29391ef159f1af8defc",
+          "reviewer": "/root/phase3_schema_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:99d4b489d538d6c04def:1",
@@ -172597,7 +172616,7 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Strict bounded PNG content admission rejects malformed or oversized containers without inflating pixels; native selection and 32 MiB staging are a reviewed-ready candidate only."
+        "Strict bounded PNG content admission rejects malformed or oversized containers without inflating pixels; the reviewed increment adds native selection and 32 MiB staging, while cross-platform and pixel-decoding gates remain open."
       ],
       "implementation": [
         {
@@ -172631,15 +172650,25 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Author validation covers bounded grant/staging tests; source follow-ups are approved while two-platform selection and current-main integration review remain open.",
-          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
-          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "description": "Author validation covers bounded grant/staging tests; assembled current-main integration review is approved while two-platform selection and product acceptance remain open.",
+          "revision": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
+          "sha256": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
           "command": "cargo test --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --quiet",
           "result": "PASS",
           "scope": "Desktop grant tests pass on macOS; Windows cross-check is blocked by absent MinGW and Linux/macOS runtime fixtures have not both run."
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase0-desktop-map-current-main-integration-review-6bddfe7-20260923.md",
+          "description": "Independent review of the assembled current-main desktop map integration; approved with no scoped findings, with candidate ancestry corrected in the report.",
+          "revision": "ac86d1676f33db80628edf9a2069e1bfb5f883e9",
+          "sha256": "319277239da5967cb847acc63649b3c6a1730bfd81d4d29391ef159f1af8defc",
+          "reviewer": "/root/phase3_schema_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4d376c166d579dafe144:1",
@@ -172680,7 +172709,7 @@
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [
-        "Two-point map calibration is carried by a typed operation and checked against a coordinate transform oracle; this candidate additionally rejects out-of-image controls and derives causal metadata from canonical state."
+        "Two-point map calibration is carried by a typed operation and checked against a coordinate transform oracle; this reviewed increment additionally rejects out-of-image controls and derives causal metadata from canonical state."
       ],
       "implementation": [
         {
@@ -172714,15 +172743,25 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Focused current-main application and desktop author validation; frontend/E2E revalidation passes, while independent current-main integration review remains open.",
-          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
-          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "description": "Focused current-main application and desktop author validation; frontend/E2E revalidation and assembled integration review pass, while broader product gates remain open.",
+          "revision": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
+          "sha256": "6b2d6b1c618d324aca116602528ce6399a4904df677ab5efc6067793da226240",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application tests validate strict bounds and exact retry/reopen; no pixel decoding, multi-point/CRS, native multi-OS or field calibration acceptance is claimed."
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase0-desktop-map-current-main-integration-review-6bddfe7-20260923.md",
+          "description": "Independent review of the assembled current-main desktop map integration; approved with no scoped findings, with candidate ancestry corrected in the report.",
+          "revision": "ac86d1676f33db80628edf9a2069e1bfb5f883e9",
+          "sha256": "319277239da5967cb847acc63649b3c6a1730bfd81d4d29391ef159f1af8defc",
+          "reviewer": "/root/phase3_schema_review",
+          "disposition": "APPROVED",
+          "findings": []
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:4d376c166d579dafe144:1",

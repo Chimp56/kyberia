@@ -1,15 +1,19 @@
 # Current-main desktop PNG map workflow candidate
 
-This packet describes a manual desktop-workflow adaptation authored from
+This packet describes a bounded desktop-workflow adaptation authored from
 `bc51e80b14e30f927628f4ba9f2e92a4773423fe` on
-`feat/phase0-desktop-map-current` and assembled against the current integration
-base on `integrate/phase0-map-main-20260923`. The source and ledger follow-ups
+`feat/phase0-desktop-map-current` and assembled on base
+`77347586dd94a494684a073d9a0756a78757b22d` through candidate
+`6bddfe701e026418398c9f1ee9253cb4593485aa`. The source and ledger follow-ups
 are independently approved in
 [`phase0-desktop-map-rereview-b92ade4-20260923.md`](../reviews/phase0-desktop-map-rereview-b92ade4-20260923.md)
 and
 [`phase0-desktop-map-ledger-rereview-ecb9ab1-20260923.md`](../reviews/phase0-desktop-map-ledger-rereview-ecb9ab1-20260923.md).
-The assembled current-main integration has not yet been independently
-reviewed or promoted to `main`. This work does not close Phase 0/1 or
+The complete assembled tree was independently approved with no scoped
+integration findings in
+[`phase0-desktop-map-current-main-integration-review-6bddfe7-20260923.md`](../reviews/phase0-desktop-map-current-main-integration-review-6bddfe7-20260923.md),
+whose ancestry correction records the first-parent assembly range. The reviewed
+increment is integrated on `main`. This work does not close Phase 0/1 or
 MAP-002/MAP-003/MAPB-001/MAPB-002.
 
 ## Plan scope
@@ -111,8 +115,8 @@ pre-existing root cache
 retained the same modification time and SHA-256 before and after the final
 runs. No `npm install`, chmod or root-cache cleanup was performed.
 
-The full Playwright suite, frontend production build, native picker runtime, Windows adapter
-compilation/runtime, and two-platform determinism remain unvalidated. There is
-no live-radio, real PNG pixel decoding/display, field calibration, raw export
-or Phase 0 exit evidence. Fresh independent rereview of the author follow-up
-is required before integration.
+The full Playwright suite, frontend production build, native picker runtime,
+Windows adapter compilation/runtime, and two-platform determinism remain
+unvalidated. There is no live-radio, real PNG pixel decoding/display, field
+calibration, raw export or Phase 0 exit evidence. Independent approval of this
+bounded integration does not establish any of those remaining gates.

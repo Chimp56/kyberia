@@ -10,7 +10,7 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Integration branch: `main`.
 - Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17` with the independently approved, test-only threshold/resource-boundary follow-up at `141fc0e` (`bde0b98`, `5426ec0`); Phase 2 IE-explorer core at `41e88b7` with singleton-warning correction `26efb81`, independently reviewed at `9401e4a` and re-reviewed at `f1788ef`; Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, schema validator at `22b8b33`, trailing-LF corrections `11bd549` and `7986171`, and focused independent review through `1881ba4`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
 - Latest additional reviewed increments: Association/Reassociation Request/Response IE framing at `fefcce6`, independently reviewed in `3737372`; Phase 5 whole-bin band-power integration at `eb27cbf`, independently reviewed in `8406e06`; Phase 7 Sionna convergence support diagnostic at `a83ec42`, with cancellation and worker-failure corrections in `f74595d` and `0a0ee26`.
-- Most recent integration change: bounded Phase 1 application/session point-survey snapshot save/load/history at `2a6b4a7`, independently approved in the report recorded at `c431869`. Application tests, ledger, and integration diff checks pass. Manual continuous-survey paths, desktop flow, capture orchestration, and Phase 1 exit remain open.
+- Most recent integration change: the bounded Phase 0 desktop map workflow, assembled from candidate commits `dbc5adf` through `6bddfe7` on base `7734758`, is integrated on `main`; the complete assembled tree was independently approved with no scoped findings in the report recorded at `ac86d16`. The report correction records the exact assembly range. Map-format breadth, pixel decoding/display, two-platform validation, live capability, raw export, Phase 0 exit, manual continuous-survey paths, capture orchestration, and Phase 1 exit remain open.
 - The reconciled Phase 7 current-main candidate `c2f7a95`, based on mainline `9b9a136`, was independently approved with no scoped findings. Review report `a903842` verifies the Phase 2 association/reassociation and Phase 5 band-power ledger records were preserved. This is approval of the bounded integration candidate, not Sionna runtime or Phase 7 acceptance; see [the integration review](docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md).
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
@@ -86,8 +86,9 @@ the identified ordering finding is resolved. This does not close the remaining
 import-format catalog, pixel decoding, map UI/desktop workflow, multi-point/CRS
 calibration, or the Phase 0 exit criteria.
 
-A manual current-main desktop workflow adaptation is assembled on
-`integrate/phase0-map-main-20260923`, based on current main `7734758`. It adds a
+A bounded current-main desktop workflow adaptation was assembled from
+`dbc5adf` through `6bddfe7` on base `7734758` and fast-forward integrated onto
+`main` through review-report correction `ac86d16`. It adds a
 fresh-project floor baseline, intent-derived application causality, native
 opaque PNG selection, bounded staging, canonical map/calibration projections,
 and a numeric-only no-preview UI path. Source and ledger follow-ups received
@@ -97,11 +98,12 @@ receipt in an explicit stale-view state and offers a project query that cannot
 repeat the mutation; an application fixture covers exact retry after reopen
 with nine causal heads. TSC, Vitest and targeted Playwright checks pass with
 generated caches and artifacts in the author worktree; the root Vitest cache
-remained unchanged. The assembled current-main integration is pending its own
-fresh independent review before promotion to `main`. Its validation packet
-records remaining synthetic/mocked-only limits. This does not change the open
-Phase 0 exit criteria or the remaining map-format, pixel-decoding,
-two-platform, live-capability and raw-export gates.
+remained unchanged. Independent review approved the complete assembled
+current-main tree with no scoped integration findings; its report and ancestry
+correction are recorded at `ac86d16`. The validation packet records remaining
+synthetic/mocked-only limits. This does not change the open Phase 0 exit
+criteria or the remaining map-format, pixel-decoding, two-platform,
+live-capability and raw-export gates.
 
 The hardware-independent Phase 5 spectrum contract is integrated at `9641431`
 with correction re-review `16a9111`. The PSD path fails closed and local-bin
