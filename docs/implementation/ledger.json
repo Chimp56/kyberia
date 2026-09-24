@@ -34663,8 +34663,8 @@
         {
           "path": "crates/application/src/session.rs",
           "description": "ProjectSession exposes typed snapshot save/load and bounded cancellable cursor pages; capture orchestration and desktop flow remain open",
-          "revision": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00",
-          "sha256": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00"
+          "revision": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c",
+          "sha256": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c"
         },
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
@@ -34680,8 +34680,8 @@
           "command": "cargo test --locked --offline -p kyberia-project-store",
           "result": "PASS",
           "scope": "Snapshot persistence/history foundation only; not complete point capture or SUR-001 acceptance",
-          "revision": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9",
-          "sha256": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9"
+          "revision": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a",
+          "sha256": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a"
         }
       ],
       "reviews": [
@@ -160399,9 +160399,9 @@
       "implementation": [
         {
           "path": "crates/application/src/session.rs",
-          "description": "Integrated application history exposes bounded/cancellable cursor pages; Phase 1 product acceptance remains open",
-          "revision": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00",
-          "sha256": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00"
+          "description": "Integrated application history exposes bounded/cancellable cursor pages plus a strict one-page legacy Vec wrapper; Phase 1 product acceptance remains open",
+          "revision": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c",
+          "sha256": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c"
         }
       ],
       "validation": [],
@@ -160774,8 +160774,8 @@
         {
           "path": "crates/application/src/session.rs",
           "description": "Application session persists completed point-survey snapshots and exposes bounded/cancellable cursor history; manual continuous survey and capture orchestration remain open",
-          "revision": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00",
-          "sha256": "528fd942cb608ce1d527035db479ce933726d83a6b4e1cd262f13dff12596e00"
+          "revision": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c",
+          "sha256": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c"
         }
       ],
       "validation": [
@@ -160785,8 +160785,8 @@
           "command": "cargo test --locked --offline -p kyberia-application",
           "result": "PASS",
           "scope": "Application point-survey persistence boundary and its underlying store/survey validation only; no capture orchestration, desktop flow, or Phase 1 acceptance",
-          "revision": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9",
-          "sha256": "47b81ed01a82ad7d31154d48e097dac211810176ff5de54b1a57ef87453afcb9"
+          "revision": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a",
+          "sha256": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a"
         }
       ],
       "reviews": [],

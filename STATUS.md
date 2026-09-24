@@ -84,13 +84,17 @@ round-trip, read-only, optimistic-revision, unknown-snapshot, session-filter,
 and decoder-receipt tests. The independently reviewed follow-up adds bounded,
 cancellable cursor pages: per-page artifact replay is item/byte/work bounded
 while full inventory and snapshot artifact metadata checks remain in force;
-the legacy single-page convenience method fails rather than returning partial
-history. Typed write errors distinguish stale/identity conflicts from caller
-timestamp requests. Retained-bundle round-trip, read-only, stale revision,
-unknown snapshot, filtering, pagination, byte/work exhaustion, cancellation,
-and error-mapping tests pass. This foundation does not provide capture
-orchestration, a desktop survey flow, continuous-survey support, or Phase 1
-acceptance. See the [focused validation record](docs/validation/phase1-point-survey-application-session-20260923.md)
+history. The legacy `Result<Vec<_>, _>` method remains a strict one-page
+compatibility wrapper and returns `ResourceLimit` rather than partial results;
+cursor, page limits, and cancellation are available through an explicitly
+named page method. Typed write errors distinguish stale/identity conflicts
+from caller timestamp requests. A 65-snapshot regression checks legacy
+all-or-error behavior and traversal as 64 + 1. Retained-bundle round-trip,
+read-only, stale revision, unknown snapshot, filtering, pagination,
+byte/work exhaustion, cancellation, and error-mapping tests pass. This
+foundation does not provide capture orchestration, a desktop survey flow,
+continuous-survey support, or Phase 1 acceptance. See the [focused validation
+record](docs/validation/phase1-point-survey-application-session-20260923.md)
 and [independent review](docs/reviews/phase1-application-survey-session-review-20260923.md).
 
 The bounded Phase 2 `WIFI-001` parser is integrated on `main` at `1d8e68f`;

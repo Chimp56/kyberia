@@ -34,17 +34,24 @@ The first cursor pins the project identity, session filter, and starting bundle
 revision as a high-water mark. Continuation is strictly after the last returned
 `(revision, snapshot_id)` key in history order and at/below that high-water
 revision, so later writes do not appear mid-traversal and filtered pages do not
-skip intervening history entries. The compatibility `list_survey_snapshot_history`
-method is hard-bounded to one default page: if another page exists it errors
-without returning its first-page entries. `Bundle::verify` does not use that
-compatibility method; it explicitly drains the bounded page API.
+skip intervening history entries. The application keeps the legacy
+`ProjectSession::list_point_survey_snapshot_history` `Result<Vec<_>, _>`
+signature as a strict one-default-page convenience: if another page exists it
+returns `ResourceLimit` without exposing the first page's entries. Cursor,
+limits, and cancellation are available through the explicitly named
+`ProjectSession::list_point_survey_snapshot_history_page` API. The store-level
+`list_survey_snapshot_history` compatibility method has the same single-page
+all-or-error behavior. `Bundle::verify` does not use that compatibility
+method; it explicitly drains the bounded page API.
 
 Application tests use valid typed survey fixtures and retained real bundles in
 `.trash/test-runs/`. They cover round-trip/reopen/load, read-only rejection,
 optimistic conflict, unknown identity, session-filtered pagination, cursor
 high-water behavior, invalid limits/resource mapping, cancellation, and
-application-owned API types. Write mapping tests confirm reused immutable IDs
-with different evidence become `Conflict`, caller timestamp regression becomes
+application-owned API types. A 65-entry application test confirms the legacy
+Vec wrapper returns all-or-error and the new page method traverses 64 + 1
+entries. Write mapping tests confirm reused immutable IDs with different
+evidence become `Conflict`, caller timestamp regression becomes
 `InvalidRequest`, and stale revisions stay conflicts. Store tests cover exact
 byte/work exhaustion, cancellation after artifact read with no returned page,
 metadata-versus-off-page-byte integrity semantics, full traversal, and the
@@ -70,11 +77,12 @@ python3 tools/ledger.py check
 git diff --check
 ```
 
-Results: application 38 passed; project-store 150 passed with one throughput
-benchmark ignored; survey 35 passed with one benchmark ignored; observation
-pipeline 63 passed with one platform-dependent test ignored. Strict Clippy and
-format checks, architecture check, 522-package source inventory, ledger
-generation/check, and diff check all pass.
+Results: application 39 passed (including the compatibility follow-up);
+project-store 150 passed with one throughput benchmark ignored; survey 35
+passed with one benchmark ignored; observation pipeline 63 passed with one
+platform-dependent test ignored. Strict Clippy and format checks, architecture
+check, 522-package source inventory, ledger generation/check, and diff check
+all pass.
 
 This remains an application/storage foundation only. `SUR-001`, Phase 1,
 capture orchestration, manual continuous survey, desktop flow, and product

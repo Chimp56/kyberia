@@ -183,19 +183,54 @@ fn snapshot_history_is_validated_and_filtered_by_survey_session() {
         .list_point_survey_snapshot_history(Some(second_session))
         .unwrap();
     let all_history = session.list_point_survey_snapshot_history(None).unwrap();
-    assert_eq!(first_history.entries().len(), 1);
-    assert_eq!(first_history.entries()[0].receipt(), &first_receipt);
-    assert_eq!(second_history.entries().len(), 1);
-    assert_eq!(second_history.entries()[0].receipt(), &second_receipt);
-    assert_eq!(all_history.entries().len(), 2);
-    assert_eq!(
-        all_history.entries()[0].receipt().snapshot_id(),
-        identity(45)
-    );
-    assert_eq!(
-        all_history.entries()[1].receipt().snapshot_id(),
-        identity(46)
-    );
+    assert_eq!(first_history.len(), 1);
+    assert_eq!(first_history[0].receipt(), &first_receipt);
+    assert_eq!(second_history.len(), 1);
+    assert_eq!(second_history[0].receipt(), &second_receipt);
+    assert_eq!(all_history.len(), 2);
+    assert_eq!(all_history[0].receipt().snapshot_id(), identity(45));
+    assert_eq!(all_history[1].receipt().snapshot_id(), identity(46));
+}
+
+#[test]
+fn legacy_history_wrapper_errors_over_one_page_and_paged_api_traverses_all() {
+    let path = retained_directory().join("history-wrapper-bound.rfatlas");
+    let mut session = create_project(&path);
+    for index in 0..65_u8 {
+        session
+            .save_point_survey_snapshot(request(
+                80 + index,
+                survey(1),
+                i64::from(index) + 2,
+                Some(u64::from(index) + 1),
+            ))
+            .unwrap();
+    }
+
+    let error = session
+        .list_point_survey_snapshot_history(None)
+        .unwrap_err();
+    assert_eq!(error.kind(), ErrorKind::ResourceLimit);
+
+    let first = session
+        .list_point_survey_snapshot_history_page(
+            None,
+            None,
+            PointSurveySnapshotHistoryPageLimits::default(),
+            &mut NeverCancel,
+        )
+        .unwrap();
+    assert_eq!(first.entries().len(), 64);
+    let second = session
+        .list_point_survey_snapshot_history_page(
+            None,
+            first.next_cursor().cloned(),
+            PointSurveySnapshotHistoryPageLimits::default(),
+            &mut NeverCancel,
+        )
+        .unwrap();
+    assert_eq!(second.entries().len(), 1);
+    assert!(second.next_cursor().is_none());
 }
 
 #[test]
@@ -214,7 +249,7 @@ fn history_page_pins_revision_checks_resource_limits_and_cancels_cooperatively()
         ..PointSurveySnapshotHistoryPageLimits::default()
     };
     let first = session
-        .list_point_survey_snapshot_history_page_with_cancel(None, None, limits, &mut NeverCancel)
+        .list_point_survey_snapshot_history_page(None, None, limits, &mut NeverCancel)
         .unwrap();
     assert_eq!(first.entries().len(), 1);
     let cursor = first.next_cursor().unwrap().clone();
@@ -222,12 +257,7 @@ fn history_page_pins_revision_checks_resource_limits_and_cancels_cooperatively()
         .save_point_survey_snapshot(request(49, survey(3), 4, Some(3)))
         .unwrap();
     let second = session
-        .list_point_survey_snapshot_history_page_with_cancel(
-            None,
-            Some(cursor),
-            limits,
-            &mut NeverCancel,
-        )
+        .list_point_survey_snapshot_history_page(None, Some(cursor), limits, &mut NeverCancel)
         .unwrap();
     assert_eq!(second.entries().len(), 1);
     assert_eq!(second.entries()[0].receipt().snapshot_id(), identity(48));
@@ -241,12 +271,7 @@ fn history_page_pins_revision_checks_resource_limits_and_cancels_cooperatively()
         ..PointSurveySnapshotHistoryPageLimits::default()
     };
     let error = session
-        .list_point_survey_snapshot_history_page_with_cancel(
-            None,
-            None,
-            invalid_limits,
-            &mut NeverCancel,
-        )
+        .list_point_survey_snapshot_history_page(None, None, invalid_limits, &mut NeverCancel)
         .unwrap_err();
     assert_eq!(error.kind(), ErrorKind::InvalidRequest);
 
@@ -255,12 +280,7 @@ fn history_page_pins_revision_checks_resource_limits_and_cancels_cooperatively()
         ..PointSurveySnapshotHistoryPageLimits::default()
     };
     let error = session
-        .list_point_survey_snapshot_history_page_with_cancel(
-            None,
-            None,
-            insufficient_work,
-            &mut NeverCancel,
-        )
+        .list_point_survey_snapshot_history_page(None, None, insufficient_work, &mut NeverCancel)
         .unwrap_err();
     assert_eq!(error.kind(), ErrorKind::ResourceLimit);
 
@@ -271,7 +291,7 @@ fn history_page_pins_revision_checks_resource_limits_and_cancels_cooperatively()
         }
     }
     let error = session
-        .list_point_survey_snapshot_history_page_with_cancel(
+        .list_point_survey_snapshot_history_page(
             None,
             None,
             PointSurveySnapshotHistoryPageLimits::default(),

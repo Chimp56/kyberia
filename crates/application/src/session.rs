@@ -117,25 +117,36 @@ impl ProjectSession {
             .load_point_survey_snapshot(snapshot_id, expected_session)
     }
 
-    /// Return the bounded, validated append-only snapshot history, optionally
-    /// filtered by survey-session identity.
+    /// Return the complete snapshot history when it fits in one default page.
+    ///
+    /// This compatibility convenience is strictly bounded: if another page
+    /// exists it returns `ResourceLimit` rather than exposing partial
+    /// history. Use `list_point_survey_snapshot_history_page` to traverse
+    /// larger histories.
     pub fn list_point_survey_snapshot_history(
         &self,
         session_id: Option<SessionId>,
-    ) -> Result<PointSurveySnapshotHistoryPage, ApplicationError> {
+    ) -> Result<Vec<crate::PointSurveySnapshotHistoryEntry>, ApplicationError> {
         let mut cancel = kyberia_resource_budget::NeverCancel;
-        self.list_point_survey_snapshot_history_page_with_cancel(
+        let page = self.list_point_survey_snapshot_history_page(
             session_id,
             None,
             PointSurveySnapshotHistoryPageLimits::default(),
             &mut cancel,
-        )
+        )?;
+        if page.next_cursor().is_some() {
+            return Err(ApplicationError::new(
+                crate::ErrorKind::ResourceLimit,
+                "survey snapshot history exceeds the single-page compatibility limit; use cursor pages",
+            ));
+        }
+        Ok(page.entries().to_vec())
     }
 
     /// Return one bounded, replay-validated history page with cooperative
     /// cancellation. Continue by passing the returned cursor and same session
     /// filter; the cursor pins traversal to the first page's bundle revision.
-    pub fn list_point_survey_snapshot_history_page_with_cancel<H: CancellationHook>(
+    pub fn list_point_survey_snapshot_history_page<H: CancellationHook>(
         &self,
         session_id: Option<SessionId>,
         cursor: Option<PointSurveySnapshotHistoryCursor>,
