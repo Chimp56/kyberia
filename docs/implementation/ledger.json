@@ -167428,8 +167428,8 @@
         {
           "path": "docs/validation/sionna-convergence-diagnostic.md",
           "description": "Records the passing 14-test synthetic-only author check, including cancellation/failure preservation, and explicitly leaves actual worker, cross-runtime and product gates open.",
-          "revision": "c8a99494ea7133694406381370f6fe1aa2b3300132137a4d059270f8434ec88d",
-          "sha256": "dfaf723a49ad6ebe02d7ead7c16422b54f44ea795d2a36882329ff1ff55001bb",
+          "revision": "7f32d8722cad9b7357a3b860a805f727e1f4f49e0bdecd52ac0c715618b4a6d8",
+          "sha256": "7f32d8722cad9b7357a3b860a805f727e1f4f49e0bdecd52ac0c715618b4a6d8",
           "command": "python3 -m unittest discover -s tests -p 'test_sionna_convergence.py' -v",
           "result": "PASS",
           "scope": "contract"

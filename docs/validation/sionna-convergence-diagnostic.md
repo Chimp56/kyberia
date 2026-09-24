@@ -1,5 +1,15 @@
 # Sionna CPU convergence support diagnostic
 
+The bounded helper is integrated from source commits `7bdcda3`, `f25667a`,
+and `4324275` as `a83ec42`, `f74595d`, and `0a0ee26` on the current mainline.
+Independent review artifacts are
+[`phase7-sionna-convergence-diagnostic-review.md`](../reviews/phase7-sionna-convergence-diagnostic-review.md),
+[`phase7-sionna-convergence-cancellation-rereview-20260923.md`](../reviews/phase7-sionna-convergence-cancellation-rereview-20260923.md),
+and
+[`phase7-sionna-convergence-final-rereview-20260923.md`](../reviews/phase7-sionna-convergence-final-rereview-20260923.md).
+The first two findings were resolved in the final rereview; current-main
+integration/documentation reconciliation is recorded separately.
+
 This is a bounded analysis helper for repeated ordinary Sionna `radio_map`
 worker calls. It is a Phase 7 support diagnostic, not a new worker operation or
 product acceptance result. It does not close Phase 7, establish P2 superiority
