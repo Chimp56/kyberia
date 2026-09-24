@@ -45,8 +45,9 @@ This increment is integrated from author commit `9122de8` as `eb27cbf` and
 independently approved in
 [`phase5-band-power-current-review.md`](../reviews/phase5-band-power-current-review.md)
 (report commit `8406e06`). The review found no blocker or major issue. It notes
-that tests do not construct an exact half-millidBm tie; the documented
-tie-away-from-zero behavior follows Rust's `f64::round()`.
+that the integrated tests did not construct an exact half-millidBm tie. This
+isolated follow-up adds a direct regression for the documented
+tie-away-from-zero behavior.
 
 The integrated API extends the validated sweep contract with a pure
 `SpectrumSweep::integrate_band` query. It integrates one in-grid half-open band
@@ -76,4 +77,34 @@ numerical, rendering, hardware, calibration, and field gates.
 The bounded addition passes 19 contract tests, strict Clippy, formatting,
 architecture, source inventory (522 locked packages), ledger generation/check,
 and whitespace checks. The independent reviewer reran the focused tests and
-static checks. No half-millidBm tie fixture was constructed.
+static checks. At that integration point, no half-millidBm tie fixture was
+constructed.
+
+## Isolated final-quantization tie regression
+
+On the isolated `feat/phase5-bandpower-tie-20260923` candidate based on
+`a8cf7dccbe1a1c40d6adc51868e90dfe2cdcd452`, the final milli-dBm quantization
+now has a direct unit regression for exact `+0.5` and `-0.5` inputs and their
+immediately adjacent representable `f64` values. It verifies ties round away
+from zero while the neighbors round to the nearest integer. The test reaches
+the private `round_milli_dbm_ties_away_from_zero` seam after the logarithmic
+power conversion; it does not claim to construct a real sweep whose
+transcendental output is exactly halfway. The only production-source change
+extracts that private quantizer from the existing mW-to-dBm helper. The public
+API and intended calculation semantics are unchanged.
+
+Focused checks on this candidate passed:
+
+- `CARGO_HOME=/private/tmp/kyberia-phase5-bandpower-tie-20260923/.trash/cargo-home cargo test --locked --offline -p kyberia-spectrum-contract` — 1 unit test, 19 integration tests, 0 doctests; 20 passed.
+- `CARGO_HOME=/private/tmp/kyberia-phase5-bandpower-tie-20260923/.trash/cargo-home cargo clippy -p kyberia-spectrum-contract --all-targets --locked --offline -- -D warnings`
+- `CARGO_HOME=/private/tmp/kyberia-phase5-bandpower-tie-20260923/.trash/cargo-home cargo fmt -p kyberia-spectrum-contract -- --check`
+- `python3 tools/architecture.py check`
+- `python3 tools/source_inventory.py check` — 522 locked external packages.
+- `python3 tools/ledger.py check`
+- `git diff --check`
+
+The focused source file SHA-256 is
+`c74add0289f21ca90b3ede8e087cb1e7e43e472cda10cdc12208a08d9955b773`.
+This is unintegrated candidate evidence pending independent review; it does
+not close spectrum adapters/UI, calibration, hardware/field gates, or SPE-002/
+Phase 5 acceptance.

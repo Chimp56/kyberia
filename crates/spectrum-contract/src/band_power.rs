@@ -257,7 +257,14 @@ fn milliwatts_to_rounded_milli_dbm(milliwatts: f64) -> Result<i32, SpectrumError
     if !milliwatts.is_finite() || milliwatts <= 0.0 {
         return Err(SpectrumError::Invalid("integrated linear power"));
     }
-    let rounded = (10_000.0 * milliwatts.log10()).round();
+    round_milli_dbm_ties_away_from_zero(10_000.0 * milliwatts.log10())
+}
+
+/// Quantize an already-converted milli-dBm value. Kept separate so exact
+/// half-way cases can be tested without relying on `log10` to produce an exact
+/// binary floating-point tie.
+fn round_milli_dbm_ties_away_from_zero(milli_dbm: f64) -> Result<i32, SpectrumError> {
+    let rounded = milli_dbm.round();
     if !rounded.is_finite() || rounded < f64::from(i32::MIN) || rounded > f64::from(i32::MAX) {
         return Err(SpectrumError::ResourceLimit("integrated display power"));
     }
@@ -267,4 +274,24 @@ fn milliwatts_to_rounded_milli_dbm(milliwatts: f64) -> Result<i32, SpectrumError
 fn coverage_parts_per_million(observed: u32, selected: u32) -> u32 {
     debug_assert!(selected > 0 && observed <= selected);
     ((u64::from(observed) * 1_000_000) / u64::from(selected)) as u32
+}
+
+#[cfg(test)]
+mod tests {
+    use super::round_milli_dbm_ties_away_from_zero;
+
+    #[test]
+    fn final_millidbm_quantization_rounds_half_ties_away_from_zero() {
+        let half = 0.5_f64;
+        let below_half = f64::from_bits(half.to_bits() - 1);
+        let above_half = f64::from_bits(half.to_bits() + 1);
+
+        assert_eq!(round_milli_dbm_ties_away_from_zero(below_half), Ok(0));
+        assert_eq!(round_milli_dbm_ties_away_from_zero(half), Ok(1));
+        assert_eq!(round_milli_dbm_ties_away_from_zero(above_half), Ok(1));
+
+        assert_eq!(round_milli_dbm_ties_away_from_zero(-below_half), Ok(0));
+        assert_eq!(round_milli_dbm_ties_away_from_zero(-half), Ok(-1));
+        assert_eq!(round_milli_dbm_ties_away_from_zero(-above_half), Ok(-1));
+    }
 }
