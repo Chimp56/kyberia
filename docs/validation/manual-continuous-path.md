@@ -45,11 +45,19 @@ explicitly mean “scheduled interval without complete coverage,” never AP
 absence or negative RF evidence.
 
 Bounds: 512 path anchors, 8,192 raw observations, 512 schedule intervals,
-2,048 coverage intervals, and 16,384 output gaps. Serde decoding bounds the
-anchor and observation sequences before accepting an extra record and then
-revalidates state invariants. The application/storage boundary must still
-enforce its byte/depth limit before decoding and reconcile each observation ID
-with the canonical stored envelope. This crate does not persist snapshots.
+2,048 coverage intervals, 16,384 output gaps, and 3,000,000 charged work units
+per `channel_gaps` call. The shared deterministic counter charges interval
+validation and filtering, bounded coverage-order comparisons/moves, every
+schedule/segment and coverage/segment visit, and each emitted gap before work is
+performed. It fails with `Limit` before the next operation would exceed budget,
+including when complete coverage would emit zero gaps. A dense regression uses
+8 schedules, 2,048 same-start complete intervals, and 511 path segments; the
+interval union fully covers the schedule but the call fails closed at the work
+bound. Serde decoding bounds the anchor and observation sequences before
+accepting an extra record and then revalidates state invariants. The
+application/storage boundary must still enforce its byte/depth limit before
+decoding and reconcile each observation ID with the canonical stored envelope.
+This crate does not persist snapshots.
 
 ## Regression evidence
 
@@ -59,17 +67,18 @@ extrapolation, reported-pose precedence and covariance fallback, wrong and
 duplicate times/IDs, mixed epochs/frames, speed/turn thresholds, edited-anchor
 reprojection preserving original IDs/times/coordinates, schedule-only channel
 gaps, complete versus incomplete coverage, pause-safe gaps, malformed
-serialization and sequence bounds, and interior interpolation near the `u64`
-timestamp ceiling. A package unit test checks anchor and sample admission caps.
+serialization and sequence bounds, interior interpolation near the `u64`
+timestamp ceiling, and dense tied complete-coverage work-budget exhaustion. A
+package unit test checks anchor and sample admission caps.
 
 The source and focused test file content SHA-256 values at this candidate are:
 
 - `crates/survey/src/manual_path.rs` —
-  `46aeb29a41ad7e84dac1f6fc2c4cb6f8c39b05b94646cae41d1f8390e06339f9`.
+  `af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f`.
 - `crates/survey/tests/manual_path.rs` —
-  `8e2265e25c3d7a9314a7747feaa3ce9767608549ddee05e07a794f5bfd78fc40`.
+  `5d61f2d72c8ca37695699c3b3d44fb1e2db08157091b86740376f3a6c6e314ff`.
 - `docs/architecture/survey-state.md` —
-  `acc62d3c29039202af0828ca1986e49d95d62439bff22b3422b660437f31bbfe`.
+  `360a4377a19aa9c61e9be0c46d3725ae9e5ab61cca1908830e6b980400ca35c4`.
 
 ## Reproduction commands and results
 
@@ -95,7 +104,7 @@ git diff --check
 ```
 
 On the assigned macOS ARM64 host, Rust/Cargo 1.98.1, the focused survey suite
-passes 46 tests with one pre-existing ignored release benchmark. Strict package
+passes 47 tests with one pre-existing ignored release benchmark. Strict package
 Clippy, formatting, architecture, source inventory, ledger generation/check,
 and diff whitespace checks pass. The source inventory remains 522 locked
 external packages; `Cargo.lock` is unchanged. Python 3.9.6 runs the repository

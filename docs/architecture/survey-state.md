@@ -177,11 +177,18 @@ coverage,” never AP absence or negative RF evidence. Paused time is not turned
 into a path segment.
 
 The model caps a path at 512 anchors and 8,192 observations, each channel input
-vector at 512 scheduled and 2,048 coverage intervals, and one gap result at
-16,384 records. Serde decoding bounds anchor/observation sequence growth before
-accepting an extra element and revalidates phase, event order, epochs, frame
-consistency, identity uniqueness, and derived arithmetic. The state itself does
-not own a persistence or byte-stream boundary: stores/importers must impose their
+vector at 512 scheduled and 2,048 coverage intervals, one gap result at 16,384
+records, and `channel_gaps` at 3,000,000 deterministic work units. Work is
+charged for interval validation/filter visits, each comparison and move in the
+bounded coverage ordering, schedule-to-segment visits, coverage-to-segment
+visits, and emitted-gap construction. The counter is shared across the entire
+call and checked before a charged operation; exceeding it returns `Limit`
+without returning partial gaps. This also bounds cases where complete coverage
+produces no gaps but would otherwise scan many same-start intervals repeatedly.
+Serde decoding bounds anchor/observation sequence growth before accepting an
+extra element and revalidates phase, event order, epochs, frame consistency,
+identity uniqueness, and derived arithmetic. The state itself does not own a
+persistence or byte-stream boundary: stores/importers must impose their
 byte/depth admission limit before deserializing and reconcile observation IDs
 against canonical envelopes. A syntactically valid snapshot is consistent state,
 not authenticated source evidence.

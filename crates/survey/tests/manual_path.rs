@@ -464,6 +464,49 @@ fn channel_gaps_do_not_bridge_pause_intervals() {
 }
 
 #[test]
+fn dense_tied_complete_coverage_fails_closed_at_total_work_bound() {
+    let mut path = path();
+    for second in 1..=510 {
+        path = path.turn(at(second), p(second as f64, 0.0)).unwrap();
+    }
+    path = path.stop(at(511), p(511.0, 0.0)).unwrap();
+
+    let frequency = Hertz::new(2_412_000_000.0).unwrap();
+    let schedule_interval = ManualTimeInterval::new(at(0), at(511)).unwrap();
+    let schedule = vec![
+        ScheduledChannelInterval {
+            evidence_ref: Text::new("schedule-dense").unwrap(),
+            frequency,
+            interval: schedule_interval,
+        };
+        8
+    ];
+    let coverage = (0..2048)
+        .map(|index| {
+            let end_nanoseconds = ((index + 1) as u128 * 511 * 1_000_000_000 / 2048) as u64;
+            ChannelCoverageInterval {
+                evidence_ref: Text::new("coverage-dense").unwrap(),
+                frequency,
+                interval: ManualTimeInterval::new(
+                    at(0),
+                    MonotonicTimestamp {
+                        epoch: epoch(),
+                        nanoseconds: end_nanoseconds,
+                    },
+                )
+                .unwrap(),
+                completeness: ChannelCoverageCompleteness::Complete,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        path.channel_gaps(&schedule, &coverage),
+        Err(ManualPathError::Limit)
+    );
+}
+
+#[test]
 fn duplicate_observation_and_malformed_serialized_timestamps_are_rejected() {
     let path = path()
         .turn(at(10), p(10.0, 0.0))

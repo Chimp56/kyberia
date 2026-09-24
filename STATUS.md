@@ -28,7 +28,8 @@ Branch `feat/phase1-manual-path-survey-current-20260923`, based on
 in `kyberia-survey`. It supports monotonic-time start/turn/pause/resume/stop,
 pose-first timestamp assignment with an explicit uniform-motion assumption,
 typed speed/turn diagnostics, post-stop anchor correction, and schedule-backed
-channel gaps that do not claim AP absence. The full survey package passes 46
+channel gaps that do not claim AP absence, with a deterministic total gap-work
+cap. The full survey package passes 47
 tests with one existing ignored benchmark; strict all-target Clippy, formatting,
 architecture and source-inventory checks pass locally. See the
 [validation note](docs/validation/manual-continuous-path.md).

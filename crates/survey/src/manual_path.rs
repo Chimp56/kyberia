@@ -12,6 +12,61 @@ const MAX_PATH_OBSERVATIONS: usize = 8192;
 const MAX_CHANNEL_SCHEDULE_INTERVALS: usize = 512;
 const MAX_CHANNEL_COVERAGE_INTERVALS: usize = 2048;
 const MAX_CHANNEL_GAPS: usize = 16_384;
+const MAX_CHANNEL_GAP_WORK: usize = 3_000_000;
+
+#[derive(Default)]
+struct ChannelGapWork {
+    charged: usize,
+}
+
+impl ChannelGapWork {
+    fn charge(&mut self, units: usize) -> Result<(), ManualPathError> {
+        let next = self
+            .charged
+            .checked_add(units)
+            .ok_or(ManualPathError::Limit)?;
+        if next > MAX_CHANNEL_GAP_WORK {
+            return Err(ManualPathError::Limit);
+        }
+        self.charged = next;
+        Ok(())
+    }
+}
+
+fn sort_channel_intervals(
+    intervals: &mut [ManualTimeInterval],
+    work: &mut ChannelGapWork,
+) -> Result<(), ManualPathError> {
+    for index in 1..intervals.len() {
+        let interval = intervals[index];
+        let mut insertion = index;
+        while insertion > 0 {
+            work.charge(1)?;
+            let previous = intervals[insertion - 1];
+            let ordering = previous
+                .start
+                .nanoseconds
+                .cmp(&interval.start.nanoseconds)
+                .then_with(|| {
+                    previous
+                        .end_exclusive
+                        .nanoseconds
+                        .cmp(&interval.end_exclusive.nanoseconds)
+                });
+            if ordering != std::cmp::Ordering::Greater {
+                break;
+            }
+            work.charge(1)?;
+            intervals[insertion] = previous;
+            insertion -= 1;
+        }
+        if insertion != index {
+            work.charge(1)?;
+            intervals[insertion] = interval;
+        }
+    }
+    Ok(())
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ManualPathError {
@@ -862,26 +917,32 @@ impl ManualPathSurvey {
         {
             return Err(ManualPathError::Limit);
         }
+        let mut work = ChannelGapWork::default();
         for entry in schedule {
+            work.charge(1)?;
             self.check_interval(entry.interval)?;
         }
         for entry in coverage {
+            work.charge(1)?;
             self.check_interval(entry.interval)?;
         }
 
         let mut gaps = Vec::new();
         for scheduled in schedule {
-            let mut complete: Vec<_> = coverage
-                .iter()
-                .filter(|item| {
-                    item.frequency == scheduled.frequency
-                        && item.completeness == ChannelCoverageCompleteness::Complete
-                })
-                .map(|item| item.interval)
-                .collect();
-            complete.sort_by_key(|interval| interval.start.nanoseconds);
+            work.charge(1)?;
+            let mut complete = Vec::new();
+            for item in coverage {
+                work.charge(1)?;
+                if item.frequency == scheduled.frequency
+                    && item.completeness == ChannelCoverageCompleteness::Complete
+                {
+                    complete.push(item.interval);
+                }
+            }
+            sort_channel_intervals(&mut complete, &mut work)?;
 
             for pair in self.anchors.windows(2) {
+                work.charge(1)?;
                 if pair[0].leg != pair[1].leg {
                     continue;
                 }
@@ -900,12 +961,14 @@ impl ManualPathSurvey {
                 }
                 let mut cursor = start;
                 for observed in &complete {
+                    work.charge(1)?;
                     let observed_start = observed.start.nanoseconds.max(start);
                     let observed_end = observed.end_exclusive.nanoseconds.min(end);
                     if observed_start >= observed_end || observed_end <= cursor {
                         continue;
                     }
                     if observed_start > cursor {
+                        work.charge(1)?;
                         self.push_channel_gap(&mut gaps, pair, scheduled, cursor, observed_start)?;
                     }
                     cursor = cursor.max(observed_end);
@@ -914,6 +977,7 @@ impl ManualPathSurvey {
                     }
                 }
                 if cursor < end {
+                    work.charge(1)?;
                     self.push_channel_gap(&mut gaps, pair, scheduled, cursor, end)?;
                 }
             }
