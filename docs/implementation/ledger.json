@@ -48282,9 +48282,9 @@
       "validation": [
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
-          "description": "Synthetic regressions validate bounded whole-bin power and the follow-up exact positive/negative final-quantizer ties; independent review of the follow-up is pending, and rendered views or hardware/field acceptance remain open",
-          "revision": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
-          "sha256": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
+          "description": "Synthetic regressions validate bounded whole-bin power and exact positive/negative final-quantizer ties; the follow-up is independently approved, while rendered views and hardware/field acceptance remain open",
+          "revision": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
+          "sha256": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline; cargo clippy -p kyberia-spectrum-contract --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; git diff --check",
           "result": "PASS",
           "scope": "bounded software contract core only; synthetic evidence, no Phase 5 or product acceptance"
@@ -48297,6 +48297,15 @@
           "revision": "22be450d1b800ebe20acb79f9f783a1b1662396b",
           "sha256": "ae8a6925a922a3335e0db86ce3b9fd97d5f56722deb7e2d2a5964d7e1197e37b",
           "reviewer": "/root/phase5_band_power_review",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/phase5-bandpower-tie-current-review.md",
+          "description": "Independent approval of the positive/negative exact half-millidBm final-quantizer regression; no findings",
+          "revision": "71f9de297208afc6a5c8fa76e71c41271f43d3f3",
+          "sha256": "aa5b08b15d94dfd91a2965df4e9a0564750c2fc66b67e2bef192e4c18aa314bd",
+          "reviewer": "/root/phase5_bandpower_tie_reviewer",
           "disposition": "APPROVED",
           "findings": []
         }
@@ -177768,8 +177777,8 @@
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: v1 sweep/calibration contracts plus unit-safe, bounded signature assessment",
-          "revision": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
-          "sha256": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
+          "revision": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
+          "sha256": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep/calibration contract and signature tests only; no hardware or adapter execution"
@@ -177918,8 +177927,8 @@
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: per-bin coverage regression and exact-boundary fixture",
-          "revision": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
-          "sha256": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
+          "revision": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
+          "sha256": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic sweep-window coverage checks only; no survey path or physical positioning validation"
@@ -177982,8 +177991,8 @@
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
           "description": "Correction report: PSD fail-closed behavior and generic deterministic pattern regressions",
-          "revision": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
-          "sha256": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
+          "revision": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
+          "sha256": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
           "command": "cargo test -p kyberia-spectrum-contract --locked --offline",
           "result": "PASS",
           "scope": "Synthetic contract fixtures only; no labeled traces, emitter identification or field validation"
@@ -243151,9 +243160,9 @@
       "validation": [
         {
           "path": "docs/validation/phase5-spectrum-contract.md",
-          "description": "Focused synthetic contract checks include exact positive/negative half-millidBm ties and adjacent representable values through the private final quantizer; full SPE-002 visual and Phase 5 runtime acceptance is unverified",
-          "revision": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
-          "sha256": "690382de1f95c24f4b833ac7d89f01005c6f4a8c625c6aba8f34cf5a68194e4e",
+          "description": "Focused synthetic contract checks include exact positive/negative half-millidBm ties and adjacent representable values through the private final quantizer; the follow-up has independent approval, while full SPE-002 visual and Phase 5 runtime acceptance is unverified",
+          "revision": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
+          "sha256": "1c81673ada1644c79a3a55cad474387571b670c904c7e5f20257e64095ef94e4",
           "command": "CARGO_HOME=/private/tmp/kyberia-phase5-bandpower-tie-20260923/.trash/cargo-home cargo test --locked --offline -p kyberia-spectrum-contract; CARGO_HOME=/private/tmp/kyberia-phase5-bandpower-tie-20260923/.trash/cargo-home cargo clippy -p kyberia-spectrum-contract --all-targets --locked --offline -- -D warnings; CARGO_HOME=/private/tmp/kyberia-phase5-bandpower-tie-20260923/.trash/cargo-home cargo fmt -p kyberia-spectrum-contract -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS",
           "scope": "isolated source-level quantizer test and partial synthetic contract validation only; no exact real-sweep logarithmic tie, rendered views, adapters, calibration, or hardware/field acceptance"
@@ -243166,6 +243175,15 @@
           "revision": "22be450d1b800ebe20acb79f9f783a1b1662396b",
           "sha256": "ae8a6925a922a3335e0db86ce3b9fd97d5f56722deb7e2d2a5964d7e1197e37b",
           "reviewer": "/root/phase5_band_power_review",
+          "disposition": "APPROVED",
+          "findings": []
+        },
+        {
+          "path": "docs/reviews/phase5-bandpower-tie-current-review.md",
+          "description": "Independent approval of the positive/negative exact half-millidBm final-quantizer regression; no findings",
+          "revision": "71f9de297208afc6a5c8fa76e71c41271f43d3f3",
+          "sha256": "aa5b08b15d94dfd91a2965df4e9a0564750c2fc66b67e2bef192e4c18aa314bd",
+          "reviewer": "/root/phase5_bandpower_tie_reviewer",
           "disposition": "APPROVED",
           "findings": []
         }
