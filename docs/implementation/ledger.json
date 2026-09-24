@@ -176861,10 +176861,12 @@
         "point_location_rejects_floor_and_frame_mismatch",
         "point_location_is_invariant_to_ring_start_and_winding_direction",
         "route_stations_are_deterministic_and_follow_metric_distance_through_a_turn",
+        "station_exactly_at_route_vertex_is_emitted_at_the_shared_turn_point",
         "allowed_boundary_is_included_and_exclusion_boundary_is_excluded_without_renumbering",
         "allowed_hole_interior_is_pruned_and_its_boundary_follows_boundary_policy",
         "cable_length_threshold_is_inclusive_and_excess_rejects_the_whole_request",
         "invalid_spacing_route_identity_and_degenerate_segments_fail_closed",
+        "candidate_generation_rejects_route_frame_mismatch",
         "station_and_aggregate_geometry_work_limits_reject_without_truncation",
         "excessive_exclusion_region_count_is_not_silently_truncated",
         "excessive_total_region_coordinates_fail_before_candidate_classification",
@@ -176894,8 +176896,8 @@
         {
           "description": "Route station, boundary, cable, resource, and metamorphic regression cases",
           "path": "crates/planner-candidate-adapter/tests/candidates.rs",
-          "revision": "811f4a214ca0eb9a19514c9509130e976c4691d7e33bee65b3aac270b2e34943",
-          "sha256": "811f4a214ca0eb9a19514c9509130e976c4691d7e33bee65b3aac270b2e34943"
+          "revision": "27295029b5a8ed14038c1a239fbf60d94a96b05580154c3806fbe126e5b847c5",
+          "sha256": "27295029b5a8ed14038c1a239fbf60d94a96b05580154c3806fbe126e5b847c5"
         },
         {
           "description": "Point-location boundaries, holes, multipolygon, identity, and winding regression cases",
@@ -176908,17 +176910,17 @@
         {
           "path": "docs/validation/phase4-route-candidate-generator.md",
           "description": "Focused deterministic geometry and route-backed candidate-generator validation",
-          "revision": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
-          "sha256": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "revision": "bd989ebc234bcd214650497caa666825f9bb04fe740bfdccfd4e0e4f99b1239a",
+          "sha256": "bd989ebc234bcd214650497caa666825f9bb04fe740bfdccfd4e0e4f99b1239a",
           "command": "cargo test -p kyberia-geometry-adapter -p kyberia-planner-candidate-adapter --locked --offline",
           "result": "PASS",
-          "scope": "53 focused Rust tests (41 geometry and 12 route-backed candidate tests); no full-floor sampling, infrastructure topology, RF, solver, or Phase 4 acceptance"
+          "scope": "55 focused Rust tests (41 geometry and 14 route-backed candidate tests); no full-floor sampling, infrastructure topology, RF, solver, or Phase 4 acceptance"
         },
         {
           "path": "docs/validation/phase4-route-candidate-generator.md",
           "description": "Strict lint validation of the geometry and candidate-generator packages",
-          "revision": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
-          "sha256": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "revision": "bd989ebc234bcd214650497caa666825f9bb04fe740bfdccfd4e0e4f99b1239a",
+          "sha256": "bd989ebc234bcd214650497caa666825f9bb04fe740bfdccfd4e0e4f99b1239a",
           "command": "cargo clippy -p kyberia-geometry-adapter -p kyberia-planner-candidate-adapter --all-targets --locked --offline -- -D warnings",
           "result": "PASS",
           "scope": "Strict Clippy for both changed packages and all targets"
@@ -176926,8 +176928,8 @@
         {
           "path": "docs/validation/phase4-route-candidate-generator.md",
           "description": "Formatting, architecture, external source-inventory, ledger, and diff checks",
-          "revision": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
-          "sha256": "7f29971bcb9a12fca9b6afd74a4d71830abe60717ee71c0c2a18a42d4d2f994d",
+          "revision": "bd989ebc234bcd214650497caa666825f9bb04fe740bfdccfd4e0e4f99b1239a",
+          "sha256": "bd989ebc234bcd214650497caa666825f9bb04fe740bfdccfd4e0e4f99b1239a",
           "command": "cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS",
           "scope": "Repository formatting and governance checks in the isolated candidate worktree"

@@ -50,15 +50,16 @@ retains its existing per-polygon and per-multipolygon validation bounds.
 
 The focused checks exercise interior/exterior/boundary and hole point
 classification, multipolygon membership, floor/frame mismatch, stable route
-stations through a turn, inclusion/exclusion boundary policy, hole pruning,
-exact cable-length threshold, invalid route inputs, route and station limits,
+stations through a turn including a station exactly at a shared route vertex,
+inclusion/exclusion boundary policy, hole pruning, exact cable-length
+threshold, invalid route inputs including frame mismatch, route and station limits,
 full-polyline cable length, and metamorphic restoration of pruned station IDs
 when an exclusion is removed. An explicit 256-empty-exclusion fixture confirms
 region-object visits count against the aggregate work ceiling.
 
 Validation results:
 
-- `cargo test -p kyberia-geometry-adapter -p kyberia-planner-candidate-adapter --locked --offline` — PASS, 53 tests total (41 geometry, 12 candidate-generator); no ignored tests.
+- `cargo test -p kyberia-geometry-adapter -p kyberia-planner-candidate-adapter --locked --offline` — PASS, 55 tests total (41 geometry, 14 candidate-generator); no ignored tests.
 - `cargo clippy -p kyberia-geometry-adapter -p kyberia-planner-candidate-adapter --all-targets --locked --offline -- -D warnings` — PASS.
 - `cargo fmt --all -- --check` — PASS.
 - `python3 tools/architecture.py` — PASS.

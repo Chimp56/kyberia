@@ -100,6 +100,45 @@ fn route_stations_are_deterministic_and_follow_metric_distance_through_a_turn() 
 }
 
 #[test]
+fn station_exactly_at_route_vertex_is_emitted_at_the_shared_turn_point() {
+    let allowed = region(
+        &[(-1., -1.), (5., -1.), (5., 5.), (-1., 5.), (-1., -1.)],
+        &[],
+    );
+    let points = route(&[(0., 0.), (3., 0.), (3., 4.)]);
+    let candidates = generate_candidates(
+        &allowed,
+        &[],
+        CableRoute::new(floor(), frame(), &points),
+        Meters::new(3.).unwrap(),
+        Meters::new(7.).unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(
+        candidates
+            .iter()
+            .map(|station| station.id)
+            .collect::<Vec<_>>(),
+        [CandidateId(0), CandidateId(1), CandidateId(2)]
+    );
+    assert_eq!(
+        candidates
+            .iter()
+            .map(|station| station.point)
+            .collect::<Vec<_>>(),
+        [point(0., 0.), point(3., 0.), point(3., 3.)]
+    );
+    assert_eq!(
+        candidates
+            .iter()
+            .map(|station| station.route_distance.get())
+            .collect::<Vec<_>>(),
+        [0., 3., 6.]
+    );
+}
+
+#[test]
 fn allowed_boundary_is_included_and_exclusion_boundary_is_excluded_without_renumbering() {
     let allowed = square();
     let exclusion = region(&[(4., 4.), (6., 4.), (6., 6.), (4., 6.), (4., 4.)], &[]);
@@ -233,6 +272,22 @@ fn invalid_spacing_route_identity_and_degenerate_segments_fail_closed() {
             Meters::new(10.).unwrap(),
         ),
         Err(CandidateGenerationError::DegenerateRouteSegment)
+    );
+}
+
+#[test]
+fn candidate_generation_rejects_route_frame_mismatch() {
+    let allowed = square();
+    let points = route(&[(0., 5.), (10., 5.)]);
+    assert_eq!(
+        generate_candidates(
+            &allowed,
+            &[],
+            CableRoute::new(floor(), FrameId::from_bytes([3; 16]).unwrap(), &points),
+            Meters::new(1.).unwrap(),
+            Meters::new(10.).unwrap(),
+        ),
+        Err(CandidateGenerationError::FrameMismatch)
     );
 }
 
