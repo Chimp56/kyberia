@@ -5,9 +5,11 @@ the existing streaming PCAPNG adapter with the independent IEEE management
 parser while preserving the adapter boundary: no parser-to-container
 dependency was added.
 
-Validated source commit: `d4d03da296f0ec4326f5a5801c56799e689139dc` on
-`feat/phase2-ie-replay-20260923`. The source candidate is isolated and is not
-integrated to `main`; independent review remains required.
+Integrated source commit: `efdf514eb4e4669ab3ae89e67f4b29f54e426321`;
+staged-frame cancellation regression: `1332608fb2b2819d2cdcb71161640e73ae8445fa`.
+Current-main source review approved the bounded bridge; its one MINOR finding
+was stale integration wording in this record and `STATUS.md`, now corrected.
+See [`phase2-pcapng-ie-replay-current-review-20260924.md`](../reviews/phase2-pcapng-ie-replay-current-review-20260924.md).
 
 The bridge requires explicit FCS framing, interprets only raw 802.11 link type
 105, and accounts for unsupported link types (including radiotap/127),
@@ -28,7 +30,7 @@ PCAPNG decoder receipt; the IEEE record schema version is separate.
 
 ## Validation
 
-Focused checks on this isolated candidate passed:
+Focused checks on the integrated current-main implementation passed:
 
 - `CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo test -p kyberia-pcap-ie-replay --locked --offline` — 14 unit tests passed; 0 doctests.
 - `CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo clippy -p kyberia-pcap-ie-replay --all-targets --locked --offline -- -D warnings` — passed.

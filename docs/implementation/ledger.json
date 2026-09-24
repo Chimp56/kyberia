@@ -161875,22 +161875,38 @@
         {
           "path": "crates/pcap-ie-replay/src/lib.rs",
           "description": "Adds a composition-layer raw-linktype-105 replay bridge with explicit FCS policy, bounded staged publication, provenance, skip accounting, and post-staging cancellation regression coverage; live capture and Kismet integration remain open",
-          "revision": "d4d03da296f0ec4326f5a5801c56799e689139dc",
+          "revision": "1332608fb2b2819d2cdcb71161640e73ae8445fa",
           "sha256": "399896eb1bedd2af0250063b4d89134cbfa0de0334a45b4bae246f2cac56aa72"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/phase2-pcapng-ie-replay.md",
-          "description": "Fourteen synthetic replay tests including cancellation after a valid frame is staged, plus focused strict quality and traceability checks; physical capture, product integration, independent review and Phase 2 acceptance remain open",
-          "revision": "d4d03da296f0ec4326f5a5801c56799e689139dc",
-          "sha256": "9c3c8ffd2103e78c062c428910212d654f446af0bedd98dba525c98466b78577",
+          "description": "Fourteen synthetic replay tests including cancellation after a valid frame is staged; current-main review approved with a minor tracking wording finding that was resolved; physical capture, product integration and Phase 2 acceptance remain open",
+          "revision": "affac6ea8858f6a0ca432a3cfc06daf9e22ee7e8067766527c8c8e9abc301e8e",
+          "sha256": "affac6ea8858f6a0ca432a3cfc06daf9e22ee7e8067766527c8c8e9abc301e8e",
           "command": "CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo test -p kyberia-pcap-ie-replay --locked --offline; CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo clippy -p kyberia-pcap-ie-replay --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS",
           "scope": "bounded offline PCAPNG-to-IEEE replay candidate only"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase2-pcapng-ie-replay-current-review-20260924.md",
+          "description": "Independent review of the integrated Phase 2 PCAPNG/IEEE replay bridge and staged-frame cancellation regression",
+          "revision": "9301c06d9e427e688cf2796b5e2bff633d643dacbcc6c44dd80e94ef0129ddb4",
+          "sha256": "9301c06d9e427e688cf2796b5e2bff633d643dacbcc6c44dd80e94ef0129ddb4",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "STATUS.md and the validation note described the bridge as isolated and not integrated despite its presence on main.",
+              "resolution": "RESOLVED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:127b34061e3d4c941a66:1",
