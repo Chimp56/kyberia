@@ -1,10 +1,11 @@
 # Phase 2 association/reassociation IE-framing increment
 
-This is an author-candidate validation record for the isolated branch
-`feat/phase2-association-ie-current-20260923`, based on `eef8d897050835146621749c14609c870009bbd6`.
-Independent review and integration are still pending.
+This bounded parser increment is integrated from author commit `50c483e` as
+`fefcce6`. The independent review report is
+[`phase2-association-ie-current-review.md`](../reviews/phase2-association-ie-current-review.md)
+(report commit `70e24ae`).
 
-The candidate extends `crates/ieee80211/src/lib.rs` to locate and expose
+The implementation extends `crates/ieee80211/src/lib.rs` to locate and expose
 information elements in Association Request, Association Response,
 Reassociation Request, and Reassociation Response management frames. After
 the 24-byte management header, the parser skips the subtype-specific fixed
@@ -40,3 +41,11 @@ This bounded parser increment does not add Association/Reassociation fixed-
 field semantics, Authentication/Disassociation/Action parsing, standards
 clause/help links, desktop Lab UI/IPC, Kismet/physical capture validation, or
 other Phase 2 deliverables. `INS-005` and Phase 2 remain `IN_PROGRESS`.
+
+## Review note
+
+The independent review approved this bounded increment with a nonblocking
+pre-release API compatibility note: adding variants to the public exhaustive
+management-frame enum may require downstream exhaustive matches to be updated.
+No in-repository production consumer requires such a change. The wire parser's
+existing Beacon/Probe behavior is preserved; `INS-005` and Phase 2 remain open.

@@ -9,7 +9,8 @@ inventory is [TRACEABILITY.md](docs/implementation/TRACEABILITY.md), backed by
 - Current iteration: **6 — Lab validation, desktop shell integration, and hosted Windows closure**.
 - Integration branch: `main`.
 - Latest reviewed integrated features: the authenticated Kyberia Lab MCP through `964a5ae` with merge correction `eb3574d`; the desktop shell and deterministic cancellation/advisory corrections through `74d0f89`; the Windows loopback fixture correction through `f019928`; safe bootstrap-stage diagnostics through `c4a1219`; WIFI-001 at `1d8e68f`; bounded map import at `2670207`; Phase 5 spectrum contract at `9641431`; Phase 8 plugin parser contract at `8cce7c1`; bounded Phase 4 planner evaluator at `3370d17` with the independently approved, test-only threshold/resource-boundary follow-up at `141fc0e` (`bde0b98`, `5426ec0`); Phase 2 IE-explorer core at `41e88b7` with singleton-warning correction `26efb81`, independently reviewed at `9401e4a` and re-reviewed at `f1788ef`; Phase 6 pose/anchor fusion at `3caa22e` with fixes through `acc35e9`, independently re-reviewed at `b792bf9`; and the bounded Phase 3 antenna-pattern contract at `6709813` with elevation golden `c016288`, schema validator at `22b8b33`, trailing-LF corrections `11bd549` and `7986171`, and focused independent review through `1881ba4`. Runtime and documentation reviews of the Sionna follow-up `d0a88eb` pass. Final renderer and product gates remain open.
-- Most recent integration change: the Phase 3 Draft 2020-12 schema validator at `22b8b33`, with four-field trailing-LF corrections at `11bd549` and `7986171` and independent reports at `e6fbde4`, `a094b83`, and `1881ba4`. The pinned local schema command passes; clean-bootstrap execution remains unverified. Phase 3 product acceptance remains open; no manufacturer-data acceptance is claimed.
+- Latest additional reviewed increment: Association/Reassociation Request/Response IE framing at `fefcce6`, independently reviewed in `3737372`. Fixed bodies remain raw; full INS-005 and Phase 2 remain open.
+- Most recent integration change: Association/Reassociation Request/Response IE framing at `fefcce6`, with independent review report `3737372`. The parser skips the subtype-specific fixed body before IE traversal and keeps those bytes raw. No Association fixed-field semantics, desktop UI, or standards clause/help catalog are claimed; INS-005 and Phase 2 remain open.
 - Canonical CLI and single-snapshot queries: reviewed sources `57f8129`, `0ab4bc7`; integration `95b2f77`, `d9dfd0c`.
 - Latest independently reviewed publication correction: `b77e553`, followed by
   separately approved read-admission tests in `7be5e9a`. See the
@@ -44,20 +45,13 @@ reviewed identical-singleton warning correction at `26efb81`. Independent
 review and rereview reports are at `9401e4a` and `f1788ef`. It adds a zero-copy
 ordered view with exact raw TLVs, numeric IEEE IE/extension identities,
 malformed/contradictory evidence, and a bounded duplicate-preserving content
-diff. The integrated parser at `41e88b7` lacked association-frame support.
-There is no desktop Lab UI/IPC or standards clause/help catalog; `INS-005` and
-Phase 2 remain in progress. See
-[core validation](docs/validation/phase2-ie-explorer-core.md).
-
-An isolated follow-up candidate on `feat/phase2-association-ie-current-20260923`
-(base `eef8d897050835146621749c14609c870009bbd6`) adds Association Request,
-Association Response, Reassociation Request, and Reassociation Response IE
-framing with 4/6/10/6-byte fixed-body skips. Their fixed fields remain raw and
-are not decoded as Beacon/Probe Response fields. Focused parser, canonical
-round-trip, truncation, Clippy, formatting, architecture, and source-inventory
-checks pass; independent review and integration are pending. This candidate
-does not close the Lab UI/IPC, standards clause/help catalog, other Phase 2
-deliverables, `INS-005`, or the Phase 2 exit criteria. See
+diff. The Association/Reassociation Request/Response IE-framing increment is
+integrated at `fefcce6` and independently reviewed in `3737372`; subtype fixed
+bodies are skipped before IE traversal and retained raw. The review notes a
+pre-release compatibility caveat for downstream exhaustive matches on the
+public frame enum. There is still no desktop Lab UI/IPC or standards clause/help
+catalog; `INS-005` and Phase 2 remain in progress. See the
+[core validation](docs/validation/phase2-ie-explorer-core.md) and
 [association parser validation](docs/validation/phase2-association-ie-current.md).
 
 The bounded PNG admission and operation-backed map import/two-point calibration
@@ -243,7 +237,7 @@ product capability is validated.
 | Hosted validation diagnostics | Bootstrap diagnostic integrated through `c4a1219` | Ubuntu/macOS pass run `34772736694`; Windows stops during bootstrap. Five fixed, redacted stage IDs will identify the failing dependency step on the next run |
 | Windows native request runtime | CI / integrated `2988bc6` | At `c02212d`, macOS and Ubuntu pass; Windows next identifies a Unix-biased missing-path test. Platform-absolute retained fixture correction passes focused local validation and independent review; native Windows confirmation remains open |
 | WIFI-001 bounded Beacon/Probe IE parser | Integrated on `main` at `1d8e68f`; promotion validation recorded at `7d126cc` | Mainline focused tests, direct typed-field tcpdump comparison, deterministic mutation, formatting, strict Clippy, ledger, architecture and source-inventory checks pass. Independent correction re-review is PASS in `ffcaa8d` (review source commit `622452b`). Coverage-guided campaign is prior hash-matched evidence, not rerun here; other WIFI items, `INS-005`, Phase 2 exit, Kismet/physical capture and broader TST-002 gates remain open |
-| Phase 2 IE-explorer Rust core | Integrated on `main` at `41e88b7`; singleton-warning fix `26efb81`; independent review `9401e4a` and rereview `f1788ef` | 31 unit, 3 differential, and 3 compile-fail doctests pass. Association frames, desktop Lab UI/IPC, standards clause/help links, remaining Phase 2 deliverables and Phase 2 exit remain open; see [validation](docs/validation/phase2-ie-explorer-core.md) |
+| Phase 2 IE-explorer Rust core | Integrated on `main` at `41e88b7`; singleton-warning fix `26efb81`; association/reassociation framing at `fefcce6`, independently reviewed in `3737372` | Core suite: 31 unit, 3 differential, 3 compile-fail doctests; association increment: 33 unit, 3 fixture differential, 3 compile-fail doctests. Strict Clippy, fmt, architecture, source inventory, ledger and diff checks pass. Association fixed bodies remain raw; downstream exhaustive-enum matches may need updates. Desktop Lab UI/IPC, standards clause/help links, remaining Phase 2 deliverables and Phase 2 exit remain open; see [validation](docs/validation/phase2-association-ie-current.md) |
 
 
 The publication review is approved for the bounded increment in

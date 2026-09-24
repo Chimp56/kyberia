@@ -28395,7 +28395,7 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Author candidate adds IE framing for Association and Reassociation Request/Response subtypes with fixed bodies retained raw; typed association fields and Lab UI remain open",
+          "description": "Integrated increment adds IE framing for Association and Reassociation Request/Response subtypes with fixed bodies retained raw; typed association fields and Lab UI remain open",
           "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
           "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
@@ -28412,15 +28412,31 @@
         },
         {
           "path": "docs/validation/phase2-association-ie-current.md",
-          "description": "Author-candidate association/reassociation fixed-body skipping, IE offsets/order, duplicate preservation, canonical replay and truncation tests; independent review pending",
-          "revision": "ba97f33d2a5fa48c3d9715a5a416fbb4c875cb87",
-          "sha256": "9893b7bd84ea3c33e2dd4022ee3062653e5a044ed4974f718a31e0be1637c0ba",
+          "description": "Integrated association/reassociation fixed-body skipping, IE offsets/order, duplicate preservation, canonical replay and truncation tests; independent review approves with a documented pre-release enum compatibility note",
+          "revision": "3f85e45b077da31d694693fa2a8b134c2a77719f9bf0aa4c458300d8107ac0af",
+          "sha256": "3f85e45b077da31d694693fa2a8b134c2a77719f9bf0aa4c458300d8107ac0af",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check",
           "result": "PASS",
-          "scope": "isolated association/reassociation IE-framing candidate only; full INS-005 and Phase 2 remain open"
+          "scope": "integrated association/reassociation IE-framing increment only; full INS-005 and Phase 2 remain open"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase2-association-ie-current-review.md",
+          "description": "Independent review of association/reassociation IE framing; approved with a nonblocking pre-release exhaustive-enum compatibility note",
+          "revision": "70e24ae288c007db246ac243a1270e40e7d429c0",
+          "sha256": "0a5f81fa7ec5c4e72573724b1e5900abf1f7a305851fe4e492cea50966ddaa30",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Adding association/reassociation variants to the public exhaustive management-frame enum may require downstream exhaustive matches to be updated before the crate is stable.",
+              "resolution": "DOCUMENTED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:3c3c3c8459a15611bbb6:1",
@@ -161184,7 +161200,7 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Bounded Phase 2 IE-explorer source progress, including an author candidate for association/reassociation IE framing only; other Phase 2 deliverables and exit criteria remain open",
+          "description": "Bounded Phase 2 IE-explorer source progress, including integrated association/reassociation IE framing only; other Phase 2 deliverables and exit criteria remain open",
           "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
           "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
@@ -161617,7 +161633,7 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Partial information-element explorer/diff API over Beacon, Probe, Association, and Reassociation management subtypes; candidate framing changes are fixed-body skips only",
+          "description": "Partial information-element explorer/diff API over Beacon, Probe, Association, and Reassociation management subtypes; association fixed-body framing is integrated while typed association fields and Lab UI remain open",
           "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
           "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
@@ -161625,7 +161641,7 @@
       "validation": [
         {
           "path": "docs/validation/phase2-ie-explorer-core.md",
-          "description": "Core parser/explorer test, strict Clippy, and formatting results with open integration requirements recorded",
+          "description": "Earlier core parser/explorer test, strict Clippy, and formatting results for Beacon/Probe support; association framing is recorded separately",
           "revision": "95ed4f795a5048dfdb0ecde333c3e76bd8c75208",
           "sha256": "dd027402ee771446b440f2af3802895edac490ff18322ff809fb4d00c772d651",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --locked --offline --all-targets -- -D warnings; cargo fmt --all -- --check",
@@ -161634,15 +161650,31 @@
         },
         {
           "path": "docs/validation/phase2-association-ie-current.md",
-          "description": "Author-candidate association/reassociation fixed-body skipping, IE offsets/order, duplicate preservation, canonical replay and truncation tests; independent review pending",
-          "revision": "ba97f33d2a5fa48c3d9715a5a416fbb4c875cb87",
-          "sha256": "9893b7bd84ea3c33e2dd4022ee3062653e5a044ed4974f718a31e0be1637c0ba",
+          "description": "Integrated association/reassociation fixed-body skipping, IE offsets/order, duplicate preservation, canonical replay and truncation tests; independent review approves with a documented pre-release enum compatibility note",
+          "revision": "3f85e45b077da31d694693fa2a8b134c2a77719f9bf0aa4c458300d8107ac0af",
+          "sha256": "3f85e45b077da31d694693fa2a8b134c2a77719f9bf0aa4c458300d8107ac0af",
           "command": "cargo test -p kyberia-ieee80211 --locked --offline; cargo clippy -p kyberia-ieee80211 --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py; python3 tools/source_inventory.py check",
           "result": "PASS",
-          "scope": "isolated association/reassociation IE-framing candidate only; full Phase 2 remains open"
+          "scope": "integrated association/reassociation IE-framing increment only; full Phase 2 remains open"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "path": "docs/reviews/phase2-association-ie-current-review.md",
+          "description": "Independent review of association/reassociation IE framing; approved with a nonblocking pre-release exhaustive-enum compatibility note",
+          "revision": "70e24ae288c007db246ac243a1270e40e7d429c0",
+          "sha256": "0a5f81fa7ec5c4e72573724b1e5900abf1f7a305851fe4e492cea50966ddaa30",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "Adding association/reassociation variants to the public exhaustive management-frame enum may require downstream exhaustive matches to be updated before the crate is stable.",
+              "resolution": "DOCUMENTED"
+            }
+          ]
+        }
+      ],
       "blocker": null,
       "adr": null,
       "parent_id": "source:heading:127b34061e3d4c941a66:1",
@@ -171620,7 +171652,7 @@
       "implementation": [
         {
           "path": "crates/ieee80211/src/lib.rs",
-          "description": "Bounded Beacon/Probe parser plus separately tracked association/reassociation IE framing candidate; this source-identity update does not extend WIFI-001 historical parser review or fuzz claims",
+          "description": "Bounded Beacon/Probe parser plus separately tracked association/reassociation IE framing increment; this source-identity update does not extend WIFI-001 historical parser review or fuzz claims",
           "revision": "532adc70ad2ca40d746afe72e98f87caddcc9fd9",
           "sha256": "bfd99a2610a86a5c9a0012db1e30200246df44855659a2f55f1415b1fbfc6d2a"
         }
