@@ -96,6 +96,9 @@ foundation does not provide capture orchestration, a desktop survey flow,
 continuous-survey support, or Phase 1 acceptance. See the [focused validation
 record](docs/validation/phase1-point-survey-application-session-20260923.md)
 and [independent review](docs/reviews/phase1-application-survey-session-review-20260923.md).
+History pagination and its compatibility follow-up were integrated at
+`e089ba3` and `d200dbc`; the current-main reconciliation is approved in the
+[integration review](docs/reviews/phase1-point-survey-history-current-main-review-20260923.md).
 
 The bounded Phase 2 `WIFI-001` parser is integrated on `main` at `1d8e68f`;
 promotion validation is recorded at `7d126cc`. Typed-field tcpdump comparison,

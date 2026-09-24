@@ -30508,8 +30508,8 @@
         {
           "path": "crates/application/src/port.rs",
           "description": "Application-owned map intents derive causal metadata from canonical operations, validate strict image bounds, and return receipt-first readback outcomes.",
-          "revision": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b",
-          "sha256": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b"
+          "revision": "50b0d5e8ac2fcd34d9dc8f6452bbab94f2b523da356dc360215263b5ba98fabe",
+          "sha256": "50b0d5e8ac2fcd34d9dc8f6452bbab94f2b523da356dc360215263b5ba98fabe"
         },
         {
           "path": "apps/desktop/src-tauri/src/lib.rs",
@@ -31522,8 +31522,8 @@
         {
           "path": "crates/application/src/port.rs",
           "description": "Application calibration intent derives causal metadata and validates image/floor frames and strict admitted-image point bounds before publication.",
-          "revision": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b",
-          "sha256": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b"
+          "revision": "50b0d5e8ac2fcd34d9dc8f6452bbab94f2b523da356dc360215263b5ba98fabe",
+          "sha256": "50b0d5e8ac2fcd34d9dc8f6452bbab94f2b523da356dc360215263b5ba98fabe"
         },
         {
           "path": "apps/desktop/src-tauri/src/lib.rs",
@@ -34663,8 +34663,8 @@
         {
           "path": "crates/application/src/session.rs",
           "description": "ProjectSession exposes typed snapshot save/load and bounded cancellable cursor pages; capture orchestration and desktop flow remain open",
-          "revision": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c",
-          "sha256": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c"
+          "revision": "c38c236eeb4faf7c7907110bfb7d068cf7ff15e0b653b101124999c0ede1e8eb",
+          "sha256": "c38c236eeb4faf7c7907110bfb7d068cf7ff15e0b653b101124999c0ede1e8eb"
         },
         {
           "path": "crates/project-store/src/survey_snapshot.rs",
@@ -34680,8 +34680,8 @@
           "command": "cargo test --locked --offline -p kyberia-project-store",
           "result": "PASS",
           "scope": "Snapshot persistence/history foundation only; not complete point capture or SUR-001 acceptance",
-          "revision": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a",
-          "sha256": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a"
+          "revision": "5e11cd78829d871afcf083a74540d2d462e6a31d64ebd3fd8e25ae1785e13987",
+          "sha256": "5e11cd78829d871afcf083a74540d2d462e6a31d64ebd3fd8e25ae1785e13987"
         }
       ],
       "reviews": [
@@ -34708,6 +34708,21 @@
           "reviewer": "/root",
           "disposition": "APPROVED",
           "findings": []
+        },
+        {
+          "path": "docs/reviews/phase1-point-survey-history-current-main-review-20260923.md",
+          "description": "Independent current-main review of the bounded history API merge and preservation of map-mutation APIs",
+          "revision": "18b01f5f230570808ea0b8af294027f04f5a694219a8ec415d6fa28f77423816",
+          "sha256": "18b01f5f230570808ea0b8af294027f04f5a694219a8ec415d6fa28f77423816",
+          "reviewer": "/root/phase2_ie_explorer_review",
+          "disposition": "APPROVED",
+          "findings": [
+            {
+              "severity": "MINOR",
+              "description": "The exact d200dbc checkout had stale ledger source digests for application lib.rs, port.rs, and session.rs.",
+              "resolution": "RESOLVED by refreshing those source digests; the integrated-tree ledger check passes."
+            }
+          ]
         }
       ],
       "blocker": null,
@@ -105758,8 +105773,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0",
-          "sha256": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0"
+          "revision": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db",
+          "sha256": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db"
         }
       ],
       "validation": [
@@ -105906,8 +105921,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0",
-          "sha256": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0"
+          "revision": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db",
+          "sha256": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db"
         }
       ],
       "validation": [
@@ -106132,8 +106147,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0",
-          "sha256": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0"
+          "revision": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db",
+          "sha256": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db"
         }
       ],
       "validation": [
@@ -160400,8 +160415,8 @@
         {
           "path": "crates/application/src/session.rs",
           "description": "Integrated application history exposes bounded/cancellable cursor pages plus a strict one-page legacy Vec wrapper; Phase 1 product acceptance remains open",
-          "revision": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c",
-          "sha256": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c"
+          "revision": "c38c236eeb4faf7c7907110bfb7d068cf7ff15e0b653b101124999c0ede1e8eb",
+          "sha256": "c38c236eeb4faf7c7907110bfb7d068cf7ff15e0b653b101124999c0ede1e8eb"
         }
       ],
       "validation": [],
@@ -160774,8 +160789,8 @@
         {
           "path": "crates/application/src/session.rs",
           "description": "Application session persists completed point-survey snapshots and exposes bounded/cancellable cursor history; manual continuous survey and capture orchestration remain open",
-          "revision": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c",
-          "sha256": "fcfdd36077c5ddb7882a16afb9f96d79d667985fb99e28b62bac6b5348d2272c"
+          "revision": "c38c236eeb4faf7c7907110bfb7d068cf7ff15e0b653b101124999c0ede1e8eb",
+          "sha256": "c38c236eeb4faf7c7907110bfb7d068cf7ff15e0b653b101124999c0ede1e8eb"
         }
       ],
       "validation": [
@@ -160785,8 +160800,8 @@
           "command": "cargo test --locked --offline -p kyberia-application",
           "result": "PASS",
           "scope": "Application point-survey persistence boundary and its underlying store/survey validation only; no capture orchestration, desktop flow, or Phase 1 acceptance",
-          "revision": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a",
-          "sha256": "472ad5e1c30d5b403959752fb899c6e424255a702fa3f4781fdfdc1bb7b2280a"
+          "revision": "5e11cd78829d871afcf083a74540d2d462e6a31d64ebd3fd8e25ae1785e13987",
+          "sha256": "5e11cd78829d871afcf083a74540d2d462e6a31d64ebd3fd8e25ae1785e13987"
         }
       ],
       "reviews": [],
@@ -172878,8 +172893,8 @@
         {
           "path": "crates/application/src/port.rs",
           "description": "Rejects non-finite, coincident or out-of-image calibration controls before durable publication.",
-          "revision": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b",
-          "sha256": "f6ab9e1c659c63ad4e0eddba18fb98be7f039de1e8f0f3a1e79df2901b41fc2b"
+          "revision": "50b0d5e8ac2fcd34d9dc8f6452bbab94f2b523da356dc360215263b5ba98fabe",
+          "sha256": "50b0d5e8ac2fcd34d9dc8f6452bbab94f2b523da356dc360215263b5ba98fabe"
         },
         {
           "path": "apps/desktop/src/components/InspectorPanel.tsx",
@@ -238332,8 +238347,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0",
-          "sha256": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0"
+          "revision": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db",
+          "sha256": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db"
         },
         {
           "path": "apps/desktop/src-tauri/src/lib.rs",
@@ -238833,8 +238848,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0",
-          "sha256": "d580bc60e174aa1b81509513b9a60e5734e76ceef6e504d3e494b68867c4d9d0"
+          "revision": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db",
+          "sha256": "bc6282067a4b2b1b8207dcb5f89db7add0ec963b8f635f0540fe4417d848f3db"
         }
       ],
       "validation": [

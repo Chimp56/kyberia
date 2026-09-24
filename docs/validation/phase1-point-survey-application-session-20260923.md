@@ -86,5 +86,26 @@ all pass.
 
 This remains an application/storage foundation only. `SUR-001`, Phase 1,
 capture orchestration, manual continuous survey, desktop flow, and product
-acceptance remain open. Hardware, GUI, cross-platform runtime, and whole-workspace
-integration checks were not run; author work awaits independent review.
+acceptance remain open. Hardware, GUI, cross-platform runtime, and
+whole-workspace integration checks were not run.
+
+## Current-main integration verification
+
+The bounded history page and compatibility commits were integrated on `main`
+at `e089ba3` and `d200dbc`, preserving the existing map-mutation APIs. The
+independent current-main review approved the source/API integration; its sole
+MINOR finding concerned stale source hashes in the ledger at `d200dbc`, which
+were refreshed in the integration follow-up. See the
+[review record](../reviews/phase1-point-survey-history-current-main-review-20260923.md).
+
+On the integrated `main` tree, this locked/offline command passed:
+
+```sh
+CARGO_HOME=/private/tmp/kyberia-phase1-application-survey-session-20260923/.trash/cargo-home-20260923 cargo test --locked --offline -p kyberia-application -p kyberia-project-store -p kyberia-survey -p kyberia-observation-pipeline
+```
+
+Strict all-target Clippy passed for the same packages. `cargo fmt --all
+-- --check`, architecture, source inventory (522 locked packages), ledger
+generation/check, and `git diff --check` also passed. Build outputs stayed in
+the root worktree's ignored `target/`; test fixtures were retained under
+`.trash/test-runs/`. No cache or fixture cleanup was performed.
