@@ -5,7 +5,7 @@ the existing streaming PCAPNG adapter with the independent IEEE management
 parser while preserving the adapter boundary: no parser-to-container
 dependency was added.
 
-Validated source commit: `87d733b1dd276e07585ec1ad43898259bec0c14c` on
+Validated source commit: `d4d03da296f0ec4326f5a5801c56799e689139dc` on
 `feat/phase2-ie-replay-20260923`. The source candidate is isolated and is not
 integrated to `main`; independent review remains required.
 
@@ -30,7 +30,7 @@ PCAPNG decoder receipt; the IEEE record schema version is separate.
 
 Focused checks on this isolated candidate passed:
 
-- `CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo test -p kyberia-pcap-ie-replay --locked --offline` — 13 unit tests passed; 0 doctests.
+- `CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo test -p kyberia-pcap-ie-replay --locked --offline` — 14 unit tests passed; 0 doctests.
 - `CARGO_TARGET_DIR=/private/tmp/kyberia-phase2-ie-replay-20260923/target cargo clippy -p kyberia-pcap-ie-replay --all-targets --locked --offline -- -D warnings` — passed.
 - `cargo fmt --all -- --check` — passed.
 - `python3 tools/architecture.py` — passed.
@@ -46,9 +46,10 @@ ordering across capacity growth, timestamp and interface identity, link type
 105 versus 127, valid and invalid FCS under the explicit policy,
 non-management/protocol-version/unsupported-subtype accounting, malformed
 supported frames and malformed trailing container blocks after staged
-prefixes, exact packet/frame/work/retained-byte boundaries, and pre-read and
-reader-triggered cancellation. The packet importer’s limit and all-or-error
-behavior are checked without fixtures or mocks standing in for the parser.
+prefixes, exact packet/frame/work/retained-byte boundaries, pre-read and
+reader-triggered cancellation, and cancellation triggered only after a valid
+frame has been staged. The packet importer’s limit and all-or-error behavior
+are checked without fixtures or mocks standing in for the parser.
 
 This is not physical capture validation or desktop/product promotion. It does
 not implement radiotap, live Kismet/capture integration, standards references,
