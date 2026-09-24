@@ -568,6 +568,15 @@ impl ManualPathSurvey {
         self.observations.len()
     }
 
+    /// Iterate the retained canonical observation IDs in deterministic stored
+    /// order without allocating. Records are ordered by monotonic capture
+    /// nanoseconds and then by observation ID.
+    pub fn observation_ids(&self) -> impl ExactSizeIterator<Item = ObservationId> + '_ {
+        self.observations
+            .iter()
+            .map(|observation| observation.observation_id)
+    }
+
     pub fn turn(&self, at: MonotonicTimestamp, position: Point3) -> Result<Self, ManualPathError> {
         self.append_active_anchor(at, position, ManualPathAnchorKind::Turn)
     }

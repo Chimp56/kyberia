@@ -35429,19 +35429,19 @@
       "implementation": [
         {
           "path": "crates/survey/src/manual_path.rs",
-          "description": "Bounded pure manual-path state, monotonic projection, pose preference, diagnostics, editable anchors and schedule-backed gaps; foundation only.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "description": "Bounded pure manual-path state, monotonic projection, pose preference, diagnostics, editable anchors, schedule-backed gaps, and a zero-allocation observation-ID iterator; foundation only.",
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/manual-continuous-path.md",
-          "description": "Reproducible 47-test SUR-002 model validation; source and current-main integration reviews are approved, while application, field and Phase 1 acceptance remain open.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "c5a89f60cd60aada960d582bd8de63a44fd1810c409d37fcd1ba62ecf7b3f66e",
+          "description": "Reproducible 48-passing-test SUR-002 model validation; the observation-ID accessor follow-up awaits independent review, while application, field and Phase 1 acceptance remain open.",
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "ada69a096ca6c944737a99ce492af91302f5ca35543a54d7c1b39c02e1e14a98",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
-          "result": "PASS: 47 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
+          "result": "PASS: 48 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
           "scope": "Pure survey model and local structural checks only; no application/desktop wiring, persistence adapter, field test, or phase exit."
         }
       ],
@@ -35570,8 +35570,8 @@
         {
           "path": "crates/survey/src/manual_path.rs",
           "description": "Typed start/turn/pause/resume/stop anchor transitions with regression coverage.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [],
@@ -35635,8 +35635,8 @@
         {
           "path": "crates/survey/src/manual_path.rs",
           "description": "Source-local timestamp projection prefers bounded known-covariance poses and otherwise labels straight-segment uniform-motion assumption.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [],
@@ -35700,8 +35700,8 @@
         {
           "path": "crates/survey/src/manual_path.rs",
           "description": "Typed speed and horizontal heading-change advisories use caller-configured limits without rejecting path transitions.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [],
@@ -35765,8 +35765,8 @@
         {
           "path": "crates/survey/src/manual_path.rs",
           "description": "Stopped surveys permit edits that preserve original anchors and raw sample times/IDs while recomputing projected positions.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [],
@@ -35830,8 +35830,8 @@
         {
           "path": "crates/survey/src/manual_path.rs",
           "description": "Schedule- and completeness-evidence channel gaps are clipped to active path segments and never interpreted as AP absence.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [],
@@ -172970,18 +172970,18 @@
         {
           "path": "crates/survey/src/manual_path.rs",
           "description": "Model-level timestamp assignment and editable anchors; UI, application orchestration and durable project storage remain open.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/manual-continuous-path.md",
-          "description": "Local acceptance evidence for the bounded manual path foundation; source and current-main integration reviews are approved while product acceptance remains open.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "c5a89f60cd60aada960d582bd8de63a44fd1810c409d37fcd1ba62ecf7b3f66e",
+          "description": "Local validation evidence for the bounded manual path foundation and observation-ID accessor candidate; independent review and product acceptance remain open.",
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "ada69a096ca6c944737a99ce492af91302f5ca35543a54d7c1b39c02e1e14a98",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
-          "result": "PASS: 47 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
+          "result": "PASS: 48 survey tests passed, 1 existing release benchmark ignored; strict Clippy, formatting, architecture, source inventory, ledger and diff checks passed.",
           "scope": "Manual-path state model only. Product map workflow, app/store integration, user and field validation are not established."
         }
       ],
@@ -240841,16 +240841,16 @@
         {
           "path": "crates/survey/src/manual_path.rs",
           "description": "Partial deterministic path timestamps, covariance-aware pose precedence, turn diagnostics, scheduled gaps and replayable state foundation; pace guidance, resampling and body effects remain open.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f"
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98"
         }
       ],
       "validation": [
         {
           "path": "docs/validation/manual-continuous-path.md",
           "description": "Evidence-bounded validation; audit's broader resampling and field/pace semantics are not satisfied.",
-          "revision": "af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f",
-          "sha256": "c5a89f60cd60aada960d582bd8de63a44fd1810c409d37fcd1ba62ecf7b3f66e",
+          "revision": "1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98",
+          "sha256": "ada69a096ca6c944737a99ce492af91302f5ca35543a54d7c1b39c02e1e14a98",
           "command": "cargo test -p kyberia-survey --locked --offline; cargo clippy -p kyberia-survey --all-targets --locked --offline -- -D warnings; cargo fmt --all -- --check; python3 tools/architecture.py check; python3 tools/source_inventory.py check; python3 tools/ledger.py check; git diff --check",
           "result": "PASS: bounded survey-model tests and local structural checks; no broader product validation claimed.",
           "scope": "Partial model implementation only; no pace guidance, spatial resampling, body-effect treatment or field replay evaluation."

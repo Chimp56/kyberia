@@ -1,6 +1,6 @@
 # Manual continuous-path model (SUR-002) validation
 
-This model-level increment was authored on
+The bounded model baseline was authored on
 `feat/phase1-manual-path-survey-current-20260923` at `91060ef`, based on
 `afc5070`, and assembled on current-main base `172c4a3` in
 `integrate/phase1-manual-path-main-20260923`. Independent source review
@@ -10,8 +10,11 @@ findings in
 The assembled current-main integration was independently approved with no
 scoped findings in
 [`phase1-manual-path-current-main-integration-review-fc809af-20260923.md`](../reviews/phase1-manual-path-current-main-integration-review-fc809af-20260923.md).
-This approves the bounded pure model only; it does not claim Phase 1 or SUR-002
-exit.
+Those reviews approve the bounded pure model baseline only; they do not claim
+Phase 1 or SUR-002 exit. An isolated follow-up candidate on
+`feat/phase1-manual-path-persistence-20260923` adds only a zero-allocation
+iterator over retained observation IDs; independent review of that accessor is
+pending.
 
 ## Implemented scope
 
@@ -64,8 +67,9 @@ interval union fully covers the schedule but the call fails closed at the work
 bound. Serde decoding bounds the anchor and observation sequences before
 accepting an extra record and then revalidates state invariants. The
 application/storage boundary must still enforce its byte/depth limit before
-decoding and reconcile each observation ID with the canonical stored envelope.
-This crate does not persist snapshots.
+decoding and reconcile each observation ID with canonical stored evidence.
+`observation_ids()` supports that check in deterministic stored order without
+allocating, but this crate does not persist snapshots or authenticate evidence.
 
 ## Regression evidence
 
@@ -76,17 +80,18 @@ duplicate times/IDs, mixed epochs/frames, speed/turn thresholds, edited-anchor
 reprojection preserving original IDs/times/coordinates, schedule-only channel
 gaps, complete versus incomplete coverage, pause-safe gaps, malformed
 serialization and sequence bounds, interior interpolation near the `u64`
-timestamp ceiling, and dense tied complete-coverage work-budget exhaustion. A
-package unit test checks anchor and sample admission caps.
+timestamp ceiling, dense tied complete-coverage work-budget exhaustion, and
+the observation-ID iterator's stored order/content. A package unit test checks
+anchor and sample admission caps.
 
 The source and focused test file content SHA-256 values at this candidate are:
 
 - `crates/survey/src/manual_path.rs` —
-  `af57f104763d2938907f3d2fe78e7b3b427d67d0bcebf7ee5bcfeb99cc813e9f`.
+  `1449945c1afbc412967b68ceeb6e9df73dc12f837ac48ca695c7a84653319e98`.
 - `crates/survey/tests/manual_path.rs` —
-  `5d61f2d72c8ca37695699c3b3d44fb1e2db08157091b86740376f3a6c6e314ff`.
+  `f39155a32eeb293fcbb5982525d6b049bfd7e3fc2d8946e08034d44b69d1640e`.
 - `docs/architecture/survey-state.md` —
-  `360a4377a19aa9c61e9be0c46d3725ae9e5ab61cca1908830e6b980400ca35c4`.
+  `db0f2a2898abf52a2794423b9d96960da8aad4f88b9cbfa82ef371049a173fae`.
 
 ## Reproduction commands and results
 
@@ -112,7 +117,7 @@ git diff --check
 ```
 
 On the assigned macOS ARM64 host, Rust/Cargo 1.98.1, the focused survey suite
-passes 47 tests with one pre-existing ignored release benchmark. Strict package
+passes 48 tests with one pre-existing ignored release benchmark. Strict package
 Clippy, formatting, architecture, source inventory, ledger generation/check,
 and diff whitespace checks pass. The source inventory remains 522 locked
 external packages; `Cargo.lock` is unchanged. Python 3.9.6 runs the repository

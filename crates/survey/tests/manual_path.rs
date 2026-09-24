@@ -540,6 +540,25 @@ fn duplicate_observation_and_malformed_serialized_timestamps_are_rejected() {
 }
 
 #[test]
+fn observation_id_iterator_exposes_deterministic_stored_order() {
+    let path = path()
+        .record_observation(id(9), at(5), Evidence::Unknown(UnknownReason::NotMeasured))
+        .unwrap()
+        .record_observation(id(2), at(5), Evidence::Unknown(UnknownReason::NotMeasured))
+        .unwrap()
+        .record_observation(id(4), at(2), Evidence::Unknown(UnknownReason::NotMeasured))
+        .unwrap()
+        .record_observation(id(1), at(5), Evidence::Unknown(UnknownReason::NotMeasured))
+        .unwrap();
+
+    let observation_ids: Vec<_> = path.observation_ids().collect();
+
+    assert_eq!(observation_ids, vec![id(4), id(1), id(2), id(9)]);
+    assert_eq!(observation_ids.len(), path.observation_count());
+    assert_eq!(path.observation_ids().len(), path.observation_count());
+}
+
+#[test]
 fn stop_cannot_place_the_endpoint_before_a_retained_sample() {
     let path = path()
         .record_observation(id(1), at(5), Evidence::Unknown(UnknownReason::NotMeasured))

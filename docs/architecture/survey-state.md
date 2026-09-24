@@ -193,6 +193,12 @@ byte/depth admission limit before deserializing and reconcile observation IDs
 against canonical envelopes. A syntactically valid snapshot is consistent state,
 not authenticated source evidence.
 
+`observation_ids()` exposes the retained canonical IDs as a zero-allocation,
+exact-size iterator in deterministic stored order (monotonic capture time, then
+observation ID). This permits an outer association boundary to check membership
+without copying the model's private observation records; it does not authenticate
+or persist capture evidence.
+
 This foundation covers model-level start/turn/pause/resume/stop, timestamp
 projection, diagnostics, post-survey anchor correction, and schedule-backed gaps.
 It does not establish a field-tested walking pace, curved-path correction,
