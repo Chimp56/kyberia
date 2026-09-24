@@ -135,7 +135,9 @@ fn map_io(context: StoreContext, error: io::Error) -> ApplicationError {
 }
 
 fn map_invalid(context: StoreContext, message: String) -> ApplicationError {
-    if context == StoreContext::Mutation && message.starts_with("stale operation project revision")
+    if context == StoreContext::Mutation
+        && (message.starts_with("stale operation project revision")
+            || message.starts_with("stale project revision:"))
     {
         return ApplicationError::new(ErrorKind::Conflict, message);
     }

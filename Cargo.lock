@@ -2064,6 +2064,7 @@ dependencies = [
  "kyberia-operation-log",
  "kyberia-project-store",
  "kyberia-resource-budget",
+ "kyberia-survey",
  "rusqlite",
  "serde_json",
  "uuid",

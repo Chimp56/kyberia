@@ -9,7 +9,7 @@ Inventory: 3336 leaf obligations; 434 obligation groups; 1626 coverage-only bloc
 
 Source SHA-256: `1e308d236d63520b6569243f09b1e1f3daf62e1e724f3993b4744af8c27dc6a6`
 
-BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 129 | NOT_STARTED: 3141 | VALIDATED: 66
+BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 130 | NOT_STARTED: 3140 | VALIDATED: 66
 
 | Source occurrence | Source / hierarchy | Role | Status | Evidence |
 |---|---|---|---|---|
@@ -776,7 +776,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 129 | N
 | `source:spacing:01ba4719c80b6fe911b0:221` | [L882](../../plan.md#L882) RF Atlas / 6. RF Atlas capability catalog / 6.2 Project, site, and map management / MAP-008 — Photos, notes, and annotations — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:heading:3ae603c45088cc463dc2:1` | [L883](../../plan.md#L883) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes — ### 6.3 Survey acquisition modes | obligation_group | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:222` | [L884](../../plan.md#L884) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes — Whitespace | structure | COVERAGE_ONLY |  |
-| `catalog:SUR-001:1` | [L885](../../plan.md#L885) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-001 — Point survey — #### SUR-001 — Point survey | obligation_group | IN_PROGRESS | [implementation](../../crates/survey/src/state.rs), [reviews](../../docs/reviews/survey-point-review.md), [reviews](../../docs/reviews/observation-v2-review.md) |
+| `catalog:SUR-001:1` | [L885](../../plan.md#L885) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-001 — Point survey — #### SUR-001 — Point survey | obligation_group | IN_PROGRESS | [implementation](../../crates/survey/src/state.rs), [implementation](../../crates/application/src/session.rs), [reviews](../../docs/reviews/survey-point-review.md), [reviews](../../docs/reviews/observation-v2-review.md) |
 | `source:spacing:01ba4719c80b6fe911b0:223` | [L886](../../plan.md#L886) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-001 — Point survey — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:paragraph:26ee4b317272ba5bbab3:1` | [L887](../../plan.md#L887) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-001 — Point survey — A user selects a position and the system captures until the selected quality gate passes. The point stores a capture win | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:224` | [L888](../../plan.md#L888) RF Atlas / 6. RF Atlas capability catalog / 6.3 Survey acquisition modes / SUR-001 — Point survey — Whitespace | structure | COVERAGE_ONLY |  |
@@ -3372,7 +3372,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 129 | N
 | `source:list_item:e9cf86a426ec36cbcd9c:1` | [L4014](../../plan.md#L4014) RF Atlas / 17. Delivery roadmap / Phase 0 — Research harness and architecture proof — - Capability matrix is based on running probes, not assumptions. | obligation | NOT_STARTED |  |
 | `source:list_item:14f87dc946621af3befc:1` | [L4015](../../plan.md#L4015) RF Atlas / 17. Delivery roadmap / Phase 0 — Research harness and architecture proof — - Raw data can be exported without the UI. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:974` | [L4016](../../plan.md#L4016) RF Atlas / 17. Delivery roadmap / Phase 0 — Research harness and architecture proof — Whitespace | structure | COVERAGE_ONLY |  |
-| `source:heading:7a5888525836ebc85df4:1` | [L4017](../../plan.md#L4017) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — ### Phase 1 — Useful vertical slice: home dead-spot mapper | obligation_group | NOT_STARTED |  |
+| `source:heading:7a5888525836ebc85df4:1` | [L4017](../../plan.md#L4017) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — ### Phase 1 — Useful vertical slice: home dead-spot mapper | obligation_group | IN_PROGRESS | [implementation](../../crates/application/src/session.rs) |
 | `source:spacing:01ba4719c80b6fe911b0:975` | [L4018](../../plan.md#L4018) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:paragraph:59d12fadf0734f68d1af:1` | [L4019](../../plan.md#L4019) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — **Goal:** outperform free consumer analyzers for the user's original need. | obligation | NOT_STARTED |  |
 | `source:spacing:01ba4719c80b6fe911b0:976` | [L4020](../../plan.md#L4020) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — Whitespace | structure | COVERAGE_ONLY |  |
@@ -3380,7 +3380,7 @@ BLOCKED_EXTERNAL: 0 | DEFERRED_BY_ADR: 0 | IMPLEMENTED: 0 | IN_PROGRESS: 129 | N
 | `source:spacing:01ba4719c80b6fe911b0:977` | [L4022](../../plan.md#L4022) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — Whitespace | structure | COVERAGE_ONLY |  |
 | `source:list_item:422f1331a4be4bbecbf2:1` | [L4023](../../plan.md#L4023) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Inspector table, signal timeline, and channel views. | obligation | NOT_STARTED |  |
 | `source:list_item:f5b9b41868b0161301f7:1` | [L4024](../../plan.md#L4024) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Project/map import and two-point calibration. | obligation | NOT_STARTED |  |
-| `source:list_item:3f9ee5bfe108c53ff965:1` | [L4025](../../plan.md#L4025) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Point and manual continuous surveys. | obligation | NOT_STARTED |  |
+| `source:list_item:3f9ee5bfe108c53ff965:1` | [L4025](../../plan.md#L4025) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Point and manual continuous surveys. | obligation | IN_PROGRESS | [implementation](../../crates/application/src/session.rs), [validation](../../docs/validation/phase1-point-survey-application-session-20260923.md) |
 | `source:list_item:0a2944ed6197c7d538a0:1` | [L4026](../../plan.md#L4026) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Nearby RSSI and current-network active tests. | obligation | NOT_STARTED |  |
 | `source:list_item:07ec638b10a3b1b75f3d:1` | [L4027](../../plan.md#L4027) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - Separate gateway, LAN-agent, and Internet latency/throughput. | obligation | NOT_STARTED |  |
 | `source:list_item:a68da2007be3d5e2e942:1` | [L4028](../../plan.md#L4028) RF Atlas / 17. Delivery roadmap / Phase 1 — Useful vertical slice: home dead-spot mapper — - RSSI, AP count, band, channel, gateway RTT, LAN throughput, Internet throughput, loss, and data-quality maps. | obligation | NOT_STARTED |  |

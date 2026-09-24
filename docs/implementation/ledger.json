@@ -34571,9 +34571,15 @@
       "implementation": [
         {
           "path": "crates/survey/src/state.rs",
-          "description": "Pure evidence-driven lifecycle; UI/capture/storage synchronization remains open",
+          "description": "Pure evidence-driven lifecycle; application snapshot persistence is now exposed while live capture and UI remain open",
           "revision": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95",
           "sha256": "8f4708767567d4bbb267ce00aa07122c6af11dd8a483bdd4ae71eb8fbf3daf95"
+        },
+        {
+          "path": "crates/application/src/session.rs",
+          "description": "ProjectSession exposes typed immutable point-survey snapshot save/load/history; capture orchestration and desktop flow remain open",
+          "revision": "9abfdb3a4fe1a38e46f3160d5020d59130c50557e1060bbe3cc9d7528de6fa0c",
+          "sha256": "9abfdb3a4fe1a38e46f3160d5020d59130c50557e1060bbe3cc9d7528de6fa0c"
         }
       ],
       "validation": [],
@@ -103626,8 +103632,8 @@
         {
           "path": "Cargo.lock",
           "description": "Canonical locked Rust dependency resolution",
-          "revision": "9549a0462ab8e4b4168a4e86691a89dd65e8eaacaa0aa93c9b4851ff81b6a03b",
-          "sha256": "9549a0462ab8e4b4168a4e86691a89dd65e8eaacaa0aa93c9b4851ff81b6a03b"
+          "revision": "7f893f1b84073058a5f3363ac80741a1795da443a8a1cd3b9257de0b2d99660c",
+          "sha256": "7f893f1b84073058a5f3363ac80741a1795da443a8a1cd3b9257de0b2d99660c"
         },
         {
           "path": "apps/desktop/package-lock.json",
@@ -105530,8 +105536,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26",
-          "sha256": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26"
+          "revision": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174",
+          "sha256": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174"
         }
       ],
       "validation": [
@@ -105678,8 +105684,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26",
-          "sha256": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26"
+          "revision": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174",
+          "sha256": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174"
         }
       ],
       "validation": [
@@ -105904,8 +105910,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26",
-          "sha256": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26"
+          "revision": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174",
+          "sha256": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174"
         }
       ],
       "validation": [
@@ -160162,13 +160168,20 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration/release",
       "phase": 1,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "path": "crates/application/src/session.rs",
+          "description": "An isolated Phase 1 application candidate exposes point-survey snapshot persistence; Phase 1 product acceptance remains open",
+          "revision": "9abfdb3a4fe1a38e46f3160d5020d59130c50557e1060bbe3cc9d7528de6fa0c",
+          "sha256": "9abfdb3a4fe1a38e46f3160d5020d59130c50557e1060bbe3cc9d7528de6fa0c"
+        }
+      ],
       "validation": [],
       "reviews": [],
       "blocker": null,
@@ -160529,14 +160542,31 @@
           "level": 3
         }
       ],
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "owner": "integration/release",
       "phase": 1,
       "depends_on": [],
       "related_requirements": [],
       "acceptance_cases": [],
-      "implementation": [],
-      "validation": [],
+      "implementation": [
+        {
+          "path": "crates/application/src/session.rs",
+          "description": "Application session persists completed point-survey snapshots and exposes verified history; manual continuous survey and capture orchestration remain open",
+          "revision": "9abfdb3a4fe1a38e46f3160d5020d59130c50557e1060bbe3cc9d7528de6fa0c",
+          "sha256": "9abfdb3a4fe1a38e46f3160d5020d59130c50557e1060bbe3cc9d7528de6fa0c"
+        }
+      ],
+      "validation": [
+        {
+          "path": "docs/validation/phase1-point-survey-application-session-20260923.md",
+          "description": "Locked/offline application, project-store, and survey tests plus focused architecture, source inventory, ledger, formatting, and strict Clippy checks",
+          "command": "cargo test --locked --offline -p kyberia-application",
+          "result": "PASS",
+          "scope": "Application point-survey persistence boundary and its underlying store/survey validation only; no capture orchestration, desktop flow, or Phase 1 acceptance",
+          "revision": "b2849a05dfd6b2ef3904565347562226452135a5328de3136e778919100c5285",
+          "sha256": "b2849a05dfd6b2ef3904565347562226452135a5328de3136e778919100c5285"
+        }
+      ],
       "reviews": [],
       "blocker": null,
       "adr": null,
@@ -237886,8 +237916,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26",
-          "sha256": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26"
+          "revision": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174",
+          "sha256": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174"
         },
         {
           "path": "apps/desktop/src-tauri/src/lib.rs",
@@ -238387,8 +238417,8 @@
         {
           "path": "crates/application/src/lib.rs",
           "description": "Application-owned typed command, session, query, and private production adapter boundary",
-          "revision": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26",
-          "sha256": "7ded1feaa3ebb3faa237fa9614653789975722deceb65e9ba5c99f7abf398f26"
+          "revision": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174",
+          "sha256": "94630b412d1adfd13b02fd2e92a6a890d7a25997b4df330adb6f04f7cc0e2174"
         }
       ],
       "validation": [

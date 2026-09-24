@@ -4,10 +4,14 @@ use crate::{
     map_asset::{AdmittedMapAsset, PNG_MEDIA_TYPE},
     map_mutation::{CalibrateMapRequest, ImportMapRequest, MapMutationReceipt},
     query::{CurrentProjectView, snapshot_to_view},
+    survey_snapshot::{
+        LoadedPointSurveySnapshot, PointSurveySnapshotHistoryEntry, PointSurveySnapshotReceipt,
+        PointSurveySnapshotRequest, history_from_store, loaded_from_store, receipt_from_store,
+    },
 };
 use kyberia_domain::{
     evidence::ArtifactReference,
-    identity::{ContentHash, ProjectId, Text},
+    identity::{ContentHash, ProjectId, SessionId, SnapshotId, Text},
     project::{MapAsset, MapAssetData, Project},
 };
 use kyberia_operation_log::{
@@ -310,6 +314,64 @@ impl BundleProjectStore {
             .map(|manifest| manifest.project_id)
             .map_err(|error| map_store_error(StoreContext::Mutation, error))
     }
+
+    pub(crate) fn save_point_survey_snapshot(
+        &mut self,
+        request: PointSurveySnapshotRequest,
+    ) -> Result<PointSurveySnapshotReceipt, ApplicationError> {
+        if request.committed_utc_ms < 0 {
+            return Err(ApplicationError::new(
+                crate::ErrorKind::InvalidRequest,
+                "committed_utc_ms must be nonnegative",
+            ));
+        }
+        let record = self
+            .bundle
+            .save_survey_snapshot_if_revision(
+                request.snapshot_id,
+                &request.survey,
+                request.committed_utc_ms,
+                request.expected_bundle_revision,
+            )
+            .map_err(|error| map_store_error(StoreContext::Mutation, error))?;
+        receipt_from_store(record)
+    }
+
+    pub(crate) fn load_point_survey_snapshot(
+        &self,
+        snapshot_id: SnapshotId,
+        expected_session: Option<SessionId>,
+    ) -> Result<LoadedPointSurveySnapshot, ApplicationError> {
+        let loaded = self
+            .bundle
+            .load_survey_snapshot_for_session(snapshot_id, expected_session)
+            .map_err(map_snapshot_read_error)?;
+        loaded_from_store(loaded)
+    }
+
+    pub(crate) fn list_point_survey_snapshot_history(
+        &self,
+        session_id: Option<SessionId>,
+    ) -> Result<Vec<PointSurveySnapshotHistoryEntry>, ApplicationError> {
+        self.bundle
+            .list_survey_snapshot_history(session_id)
+            .map_err(|error| map_store_error(StoreContext::Query, error))?
+            .into_iter()
+            .map(history_from_store)
+            .collect()
+    }
+}
+
+fn map_snapshot_read_error(error: kyberia_project_store::StoreError) -> ApplicationError {
+    if let kyberia_project_store::StoreError::Invalid(message) = &error
+        && matches!(
+            message.as_str(),
+            "survey snapshot is not registered" | "survey snapshot session mismatch"
+        )
+    {
+        return ApplicationError::new(crate::ErrorKind::InvalidRequest, message.clone());
+    }
+    map_store_error(StoreContext::Query, error)
 }
 
 fn map_operation_input(error: OperationError) -> ApplicationError {

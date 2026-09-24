@@ -12,9 +12,14 @@ mod map_mutation;
 mod port;
 mod query;
 mod session;
+mod survey_snapshot;
 
 pub use command::{Command, CommandResult, CreateProject, OpenProject, SessionMode};
 pub use error::{ApplicationError, ErrorKind};
+pub use kyberia_survey::{
+    PointId, PointSnapshotDecodeReceipt, PointSnapshotInputVersion, PointSnapshotSchemaVersion,
+    PointSurvey,
+};
 pub use map_asset::{
     AdmittedMapAsset, MAX_MAP_DIMENSION, MAX_MAP_PIXELS, MAX_MAP_SOURCE_BYTES, MAX_PNG_CHUNKS,
     MAX_PNG_METADATA_BYTES, PNG_MEDIA_TYPE, admit_map_asset, admit_map_asset_with_hints,
@@ -27,6 +32,10 @@ pub use query::{
     CurrentProjectView, ProjectQuery, ProjectQueryResult, ProjectRevision, ProjectState,
 };
 pub use session::ProjectSession;
+pub use survey_snapshot::{
+    LoadedPointSurveySnapshot, PointSurveySnapshotHistoryEntry, PointSurveySnapshotReceipt,
+    PointSurveySnapshotRequest,
+};
 
 /// Stateless entry point for application use cases.
 #[derive(Clone, Copy, Debug, Default)]

@@ -8,7 +8,12 @@ use crate::{
         ProjectQuery, ProjectQueryResult, default_query_limits, query_with_budget,
         query_with_cancel,
     },
+    survey_snapshot::{
+        LoadedPointSurveySnapshot, PointSurveySnapshotHistoryEntry, PointSurveySnapshotReceipt,
+        PointSurveySnapshotRequest,
+    },
 };
+use kyberia_domain::identity::{SessionId, SnapshotId};
 use kyberia_resource_budget::{CancellationHook, ResourceBudget};
 
 /// A typed application session. The storage adapter is intentionally private;
@@ -81,6 +86,40 @@ impl ProjectSession {
             ));
         }
         self.store.calibrate_map(request, budget)
+    }
+
+    /// Persist one immutable, validated point-survey snapshot.
+    pub fn save_point_survey_snapshot(
+        &mut self,
+        request: PointSurveySnapshotRequest,
+    ) -> Result<PointSurveySnapshotReceipt, ApplicationError> {
+        if self.mode != SessionMode::ReadWrite {
+            return Err(ApplicationError::new(
+                crate::ErrorKind::ReadOnly,
+                "project session is read-only",
+            ));
+        }
+        self.store.save_point_survey_snapshot(request)
+    }
+
+    /// Load and replay-validate one snapshot, optionally requiring its survey
+    /// session identity to match the caller's expected session.
+    pub fn load_point_survey_snapshot(
+        &self,
+        snapshot_id: SnapshotId,
+        expected_session: Option<SessionId>,
+    ) -> Result<LoadedPointSurveySnapshot, ApplicationError> {
+        self.store
+            .load_point_survey_snapshot(snapshot_id, expected_session)
+    }
+
+    /// Return the bounded, validated append-only snapshot history, optionally
+    /// filtered by survey-session identity.
+    pub fn list_point_survey_snapshot_history(
+        &self,
+        session_id: Option<SessionId>,
+    ) -> Result<Vec<PointSurveySnapshotHistoryEntry>, ApplicationError> {
+        self.store.list_point_survey_snapshot_history(session_id)
     }
 }
 
