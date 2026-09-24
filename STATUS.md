@@ -48,15 +48,15 @@ independent review at `a903842`; see its
 [report](docs/reviews/phase7-sionna-convergence-main-integration-review-20260923.md)
 and the [validation note](docs/validation/sionna-convergence-diagnostic.md).
 
-An isolated Phase 1 application/session candidate is being developed from
-`afc5070fadac46411f02d355a0d00351f388205f`. `ProjectSession` now exposes
-typed save/load/history operations for the existing immutable point-survey
-snapshots, with retained-bundle round-trip, read-only, optimistic-revision,
-unknown-snapshot, session-filter, and decoder-receipt tests. This foundation
-does not provide capture orchestration, a desktop survey flow, continuous
-survey support, or Phase 1 acceptance. The candidate is not on `main` and
-awaits fresh independent review; see the
-[focused validation record](docs/validation/phase1-point-survey-application-session-20260923.md).
+The bounded Phase 1 application/session point-survey snapshot increment is
+integrated on `main` at `2a6b4a7` and independently approved in the report
+recorded at `c431869`. `ProjectSession` exposes typed save/load/history
+operations for immutable point-survey snapshots, with retained-bundle
+round-trip, read-only, optimistic-revision, unknown-snapshot, session-filter,
+and decoder-receipt tests. This foundation does not provide capture
+orchestration, a desktop survey flow, continuous-survey support, or Phase 1
+acceptance. See the [focused validation record](docs/validation/phase1-point-survey-application-session-20260923.md)
+and [independent review](docs/reviews/phase1-application-survey-session-review-20260923.md).
 
 The bounded Phase 2 `WIFI-001` parser is integrated on `main` at `1d8e68f`;
 promotion validation is recorded at `7d126cc`. Typed-field tcpdump comparison,
