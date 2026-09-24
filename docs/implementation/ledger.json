@@ -30548,9 +30548,9 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Author validation of the bounded current-main desktop adaptation; final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches, while fresh independent rereview remains pending.",
-          "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
+          "description": "Author validation of the bounded current-main desktop adaptation; final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches, source follow-ups are approved, and current-main integration review remains pending.",
+          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Focused application/core Rust validation passes; separate Tauri suite passes 23+6+2. Final TSC/Vitest and targeted Playwright recovery checks pass with worktree-local caches; the root Vitest cache is unchanged and the temporary dependency symlink was restored to ignored trash. All desktop/product exits remain open."
@@ -31541,9 +31541,9 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Author validation of canonical two-point bounds, persisted scale projection and the bounded UI adaptation; independent review and later calibration breadth remain open.",
-          "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
+          "description": "Author validation of canonical two-point bounds, persisted scale projection and the bounded UI adaptation; source follow-ups are approved, while current-main integration review and later calibration breadth remain open.",
+          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application intent tests verify causal order, exact import/calibration retry after reopen and strict bounds; native UI/adapter and cross-platform gates remain open."
@@ -172631,9 +172631,9 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Author validation covers bounded grant/staging tests; two-platform selection and independent review remain open.",
-          "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
+          "description": "Author validation covers bounded grant/staging tests; source follow-ups are approved while two-platform selection and current-main integration review remain open.",
+          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
           "command": "cargo test --locked --offline --manifest-path apps/desktop/src-tauri/Cargo.toml --quiet",
           "result": "PASS",
           "scope": "Desktop grant tests pass on macOS; Windows cross-check is blocked by absent MinGW and Linux/macOS runtime fixtures have not both run."
@@ -172714,9 +172714,9 @@
         },
         {
           "path": "docs/validation/desktop-map-workflow-current-main.md",
-          "description": "Focused current-main application and desktop author validation; frontend/E2E revalidation and independent review remain open.",
-          "revision": "57c555602193045afac2929278204bb4d73fc8e51dee3ccb7b45bf294d0fcf00",
-          "sha256": "934979ef36b0f346e5a495790685b8b15ad8355bb56be494bcf8383e218f8b20",
+          "description": "Focused current-main application and desktop author validation; frontend/E2E revalidation passes, while independent current-main integration review remains open.",
+          "revision": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
+          "sha256": "70af664f6795a7a177e85d4c446b0531c649473da77a88664810cefd3782ff4c",
           "command": "cargo test --locked --offline --quiet -p kyberia-domain -p kyberia-operation-log -p kyberia-causal-materializer -p kyberia-project-store -p kyberia-application -- --test-threads=1",
           "result": "PASS",
           "scope": "Application tests validate strict bounds and exact retry/reopen; no pixel decoding, multi-point/CRS, native multi-OS or field calibration acceptance is claimed."

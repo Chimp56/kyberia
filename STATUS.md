@@ -86,22 +86,22 @@ the identified ordering finding is resolved. This does not close the remaining
 import-format catalog, pixel decoding, map UI/desktop workflow, multi-point/CRS
 calibration, or the Phase 0 exit criteria.
 
-A separate manual current-main desktop workflow adaptation is under author
-validation on `feat/phase0-desktop-map-current`, based on `bc51e80`. It adds a
+A manual current-main desktop workflow adaptation is assembled on
+`integrate/phase0-map-main-20260923`, based on current main `7734758`. It adds a
 fresh-project floor baseline, intent-derived application causality, native
 opaque PNG selection, bounded staging, canonical map/calibration projections,
-and a numeric-only no-preview UI path. Independent reviews requested changes
-for committed-readback recovery, retry ordering and a browser-fixture scope
-error; the author follow-ups address these, and the focused Playwright recovery
-test now passes. The renderer retains the committed receipt in an explicit
-stale-view state and offers a project query that cannot repeat the mutation; an
-application fixture covers exact retry after reopen with nine causal heads.
-TSC, Vitest and the targeted Playwright test pass with generated caches and
-artifacts in the author worktree; the root Vitest cache remained unchanged.
-The candidate remains unintegrated pending fresh independent rereview. Its
-validation packet records remaining synthetic/mocked-only limits. This does
-not change the open Phase 0 exit criteria or the remaining map-format,
-pixel-decoding, two-platform, live-capability and raw-export gates.
+and a numeric-only no-preview UI path. Source and ledger follow-ups received
+independent approval in the reports recorded at `2f9cace` and `192b074`. The
+focused Playwright recovery test passes; the renderer retains the committed
+receipt in an explicit stale-view state and offers a project query that cannot
+repeat the mutation; an application fixture covers exact retry after reopen
+with nine causal heads. TSC, Vitest and targeted Playwright checks pass with
+generated caches and artifacts in the author worktree; the root Vitest cache
+remained unchanged. The assembled current-main integration is pending its own
+fresh independent review before promotion to `main`. Its validation packet
+records remaining synthetic/mocked-only limits. This does not change the open
+Phase 0 exit criteria or the remaining map-format, pixel-decoding,
+two-platform, live-capability and raw-export gates.
 
 The hardware-independent Phase 5 spectrum contract is integrated at `9641431`
 with correction re-review `16a9111`. The PSD path fails closed and local-bin

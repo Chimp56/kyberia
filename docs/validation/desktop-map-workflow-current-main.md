@@ -1,12 +1,16 @@
 # Current-main desktop PNG map workflow candidate
 
-This packet describes a manual, isolated adaptation from base
+This packet describes a manual desktop-workflow adaptation authored from
 `bc51e80b14e30f927628f4ba9f2e92a4773423fe` on
-`feat/phase0-desktop-map-current`. It is not integrated and has not received
-independent approval. Its first independent source review requested changes:
-the MAJOR committed-readback recovery and MINOR retry-frontier findings are
-addressed in this author follow-up, which still requires fresh independent
-rereview. It does not close Phase 0/1 or MAP-002/MAP-003/MAPB-001/MAPB-002.
+`feat/phase0-desktop-map-current` and assembled against the current integration
+base on `integrate/phase0-map-main-20260923`. The source and ledger follow-ups
+are independently approved in
+[`phase0-desktop-map-rereview-b92ade4-20260923.md`](../reviews/phase0-desktop-map-rereview-b92ade4-20260923.md)
+and
+[`phase0-desktop-map-ledger-rereview-ecb9ab1-20260923.md`](../reviews/phase0-desktop-map-ledger-rereview-ecb9ab1-20260923.md).
+The assembled current-main integration has not yet been independently
+reviewed or promoted to `main`. This work does not close Phase 0/1 or
+MAP-002/MAP-003/MAPB-001/MAPB-002.
 
 ## Plan scope
 
