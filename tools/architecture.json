@@ -22,6 +22,7 @@
     "kyberia-survey": {"layer": "application", "external_dependencies": ["serde"]},
     "kyberia-kismet-adapter": {"layer": "adapter", "external_dependencies": ["libc", "reqwest", "rusqlite", "serde", "serde_json", "sha2", "tempfile", "url", "windows-sys"]},
     "kyberia-packet-import": {"layer": "adapter", "external_dependencies": ["pcap-parser", "sha2"]},
+    "kyberia-pcap-ie-replay": {"layer": "composition", "external_dependencies": []},
     "kyberia-ieee80211": {"layer": "adapter", "external_dependencies": []},
     "kyberia-project-store": {"layer": "adapter", "external_dependencies": ["arrow-array", "arrow-schema", "bytes", "libc", "parquet", "rusqlite", "serde", "serde_json", "sha2", "tempfile", "windows-sys"]},
     "kyberia-capture-adapter": {"layer": "adapter", "external_dependencies": ["base64", "time", "serde", "serde_json", "sha2"]},

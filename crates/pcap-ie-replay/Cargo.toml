@@ -1,0 +1,14 @@
+[package]
+name = "kyberia-pcap-ie-replay"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Bounded all-or-error PCAPNG replay into normalized IEEE 802.11 management frames"
+
+[dependencies]
+kyberia-domain = { version = "=0.1.0", path = "../domain" }
+kyberia-ieee80211 = { version = "=0.1.0", path = "../ieee80211" }
+kyberia-packet-import = { version = "=0.1.0", path = "../packet-import" }
+
+[lints]
+workspace = true

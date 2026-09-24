@@ -2245,6 +2245,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kyberia-pcap-ie-replay"
+version = "0.1.0"
+dependencies = [
+ "kyberia-domain",
+ "kyberia-ieee80211",
+ "kyberia-packet-import",
+]
+
+[[package]]
 name = "kyberia-planner-candidate-adapter"
 version = "0.1.0"
 dependencies = [
